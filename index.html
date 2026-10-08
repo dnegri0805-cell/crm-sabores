@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="es" translate="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="google" content="notranslate">
+<title>Sabores de mi País · Gestión</title>
+<style>
+:root{--m:#7b2d3e;--n:#17213a;--g:#f3f4f7;--l:#d9dce3;--ok:#1d7a46;--er:#b3261e}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.4 system-ui,Segoe UI,sans-serif;color:#1c2333;background:var(--g)}
+header{background:var(--n);color:#fff;display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center;padding:10px 16px}
+header nav{display:flex;gap:4px;flex:1;flex-wrap:wrap}
+header nav a{padding:7px 14px;border-radius:6px;cursor:pointer;color:#cfd4e2}
+header nav a.on{background:var(--m);color:#fff}
+header span a{cursor:pointer;text-decoration:underline;margin-left:8px}
+main{max-width:980px;margin:0 auto;padding:16px}
+h2{margin:8px 0 12px}h3{margin:20px 0 8px}
+.box{background:#fff;border:1px solid var(--l);border-radius:8px;padding:14px;margin-bottom:14px}
+.login{max-width:340px;margin:12vh auto}
+.login h1{font-size:22px;color:var(--m);margin:0 0 12px}
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;margin-bottom:10px}
+input,select{width:100%;padding:9px;border:1px solid #b9bfcc;border-radius:6px;font:inherit;background:#fff;margin-bottom:8px}
+.g input,.g select{margin:0}
+label.f{display:block;font-size:13px;color:#6a7184}
+button{background:var(--m);color:#fff;border:0;border-radius:6px;padding:9px 16px;font:inherit;cursor:pointer}
+button:hover{filter:brightness(1.12)}
+button.alt{background:#fff;color:var(--m);border:1px solid var(--m)}
+.sub{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}
+table{width:100%;border-collapse:collapse;background:#fff;margin-bottom:8px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--l)}
+th{background:#eceef3;font-weight:600}
+td input{width:70px;margin:0;padding:5px}td select{margin:0;padding:5px;width:auto}td button{padding:5px 10px}
+.r{padding:8px;border-bottom:1px solid var(--l);cursor:pointer}.r:hover{background:#f6e9ec}
+small{color:#6a7184}td a{cursor:pointer;color:var(--er)}
+.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:12px;background:#eceef3}
+.tag.recibida{background:#d8efe1;color:var(--ok)}.tag.anulada{background:#f6dcda;color:var(--er)}.tag.recibida_parcial{background:#fff1cc;color:#7a5a00}
+#t{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);color:#fff;padding:10px 18px;border-radius:8px;z-index:9;display:none}
+.err{color:var(--er)}
+.clirow{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;margin-bottom:8px}.clirow a{cursor:pointer;color:var(--m);text-decoration:underline}
+#p_rep{margin-bottom:8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:10px}.chips small{width:100%}
+.chip{background:#f6e9ec;color:var(--m);border:1px solid #e5c9d0;border-radius:16px;padding:6px 12px;font-size:14px}
+td.qbox{white-space:nowrap}button.wa{color:#1d7a46;border-color:#1d7a46}.chip:hover{filter:none;background:#efd8de}
+@media(max-width:640px){#p_i .pu{display:none}#p_i{display:table}}td.qbox input{width:56px;text-align:center}td button.qb{padding:4px 10px;min-width:34px}
+.kp{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:14px}
+.kp .box{margin:0;display:grid;gap:4px}
+.kp .lab{font-size:13px;color:#6a7184;text-transform:uppercase;letter-spacing:.04em}
+.kp .num{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums}
+.kp .det{font-size:13px;color:#6a7184}
+.kp .box.alerta{border-color:var(--er)}.kp .box.alerta .num{color:var(--er)}
+.kp .box.ok .num{color:var(--ok)}
+.dos{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.dos .box{margin:0;min-width:0}.dos h3{margin:0 0 8px}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.mora{color:var(--er);font-weight:600}
+@media(max-width:640px){table{display:block;overflow-x:auto}}
+</style>
+</head>
+<body>
+<div id="app"></div><div id="t"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+const sb=supabase.createClient('https://ggfqdkgqtpnkvxoykoty.supabase.co','sb_publishable_kfvkZgS8FewPabohJrKf9Q_UDyEcQiR');
+const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s),app=$('#app');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $m=n=>'$ '+Number(n||0).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fd=d=>d?new Date(d+(String(d).length==10?'T12:00':'')).toLocaleDateString('es-AR'):'—';
+const ESTADOS=['pendiente','aprobado','en_preparacion','listo','en_reparto','entregado','cancelado'];
+let S={perfil:null,tab:'inicio',clientes:[],productos:[],items:[],sub:'ordenes',prov:[],oc:[]};
+function toast(t,er){const e=$('#t');e.textContent=t;e.style.background=er?'var(--er)':'var(--ok)';e.style.display='block';setTimeout(()=>e.style.display='none',er?6000:3000)}
+async function out(){await sb.auth.signOut();loginView()}
+
+function loginView(){
+  app.innerHTML=`<div class="box login"><h1>Sabores de mi País</h1><input id="em" type="email" placeholder="Correo"><input id="pw" type="password" placeholder="Contraseña"><button id="go">Ingresar</button><p id="le" class="err"></p></div>`;
+  const go=async()=>{const{error}=await sb.auth.signInWithPassword({email:$('#em').value.trim(),password:$('#pw').value});
+    if(error)$('#le').textContent=error.message==='Invalid login credentials'?'Correo o contraseña incorrectos.':'Error de conexión: '+error.message+(error.status?' ('+error.status+')':'');else init()};
+  $('#go').onclick=go;$('#pw').onkeydown=e=>{if(e.key==='Enter')go()};
+}
+async function init(){
+  const{data:{session}}=await sb.auth.getSession();if(!session)return loginView();
+  const{data:p,error:pe}=await sb.from('perfiles').select('*').eq('id',session.user.id).maybeSingle();
+  if(pe){app.innerHTML='<div class="box login"><p class="err">No se pudo leer tu perfil: '+esc(pe.message)+'</p><button onclick="out()">Salir</button></div>';return}
+  if(!p||!p.activo){app.innerHTML='<div class="box login"><p>Tu usuario todavía no está activado. Pedile al dueño que lo active.</p><button onclick="out()">Salir</button></div>';return}
+  S.perfil=p;
+  const[c,pr]=await Promise.all([
+    sb.from('clientes').select('*').eq('activo',true).order('razon_social'),
+    sb.from('precios_productos').select('producto_id,codigo,descripcion,precio_mayorista,precio_minorista,precio_especial').order('descripcion').range(0,1999)]);
+  if(c.error||pr.error){app.innerHTML='<div class="box login"><p class="err">No se pudieron cargar los datos: '+esc((c.error||pr.error).message)+'</p><button onclick="out()">Salir</button></div>';return}
+  S.clientes=c.data;S.productos=pr.data;shell();
+}
+function shell(){
+  app.innerHTML=`<header><b>Sabores de mi País</b><nav>${['inicio','pedidos','clientes','cobranza','compras'].map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${t[0].toUpperCase()+t.slice(1)}</a>`).join('')}</nav><span>${esc(S.perfil.nombre)} (${S.perfil.rol})<a onclick="out()">Salir</a></span></header><main id="v"></main>`;
+  $$('nav a').forEach(a=>a.onclick=()=>{S.tab=a.dataset.t;shell()});
+  ({inicio:vInicio,pedidos:vPedidos,clientes:vClientes,cobranza:vCobranza,compras:vCompras})[S.tab]();
+}
+
+/* Buscador de productos reutilizable */
+function buscador(inp,res,onPick,extra){
+  $(inp).oninput=()=>{const q=$(inp).value.toLowerCase().trim();if(q.length<2){$(res).innerHTML='';return}
+    const r=S.productos.filter(p=>(p.descripcion+' '+p.codigo).toLowerCase().includes(q)).slice(0,8);
+    $(res).innerHTML=r.map(p=>`<div class="r" data-id="${p.producto_id}">${esc(p.descripcion)} <small>${esc(p.codigo)}</small> ${extra?extra(p):''}</div>`).join('')||'<small>Sin resultados.</small>';
+    $$(res+' .r').forEach(d=>d.onclick=()=>{$(inp).value='';$(res).innerHTML='';onPick(S.productos.find(x=>x.producto_id==d.dataset.id))})};
+}
+
+/* ---------- Inicio (tablero) ---------- */
+const fechaDe=o=>o.fecha||o.creado_en||o.created_at||o.fecha_emision||null;
+const diaLocal=d=>{const x=new Date(String(d).length==10?d+'T12:00':d);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')};
+async function vInicio(){
+  const hoyD=new Date(),hoy=diaLocal(hoyD),mes=hoy.slice(0,7);
+  const en7=new Date();en7.setDate(en7.getDate()+7);const lim7=diaLocal(en7);
+  $('#v').innerHTML=`<h2>Hoy, ${hoyD.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}</h2>
+  <div class="kp">
+    <div class="box" id="k1"><span class="lab">Facturado hoy</span><span class="num">…</span><span class="det"></span></div>
+    <div class="box" id="k2"><span class="lab">Pedidos por aprobar</span><span class="num">…</span><span class="det"></span></div>
+    <div class="box" id="k3"><span class="lab">Te deben los clientes</span><span class="num">…</span><span class="det"></span></div>
+    <div class="box" id="k4"><span class="lab">Les debés a proveedores</span><span class="num">…</span><span class="det"></span></div>
+  </div>
+  <div class="dos">
+    <div class="box"><h3>Pedidos por aprobar</h3><div id="t1">Cargando…</div></div>
+    <div class="box"><h3>Facturas vencidas de clientes</h3><div id="t2">Cargando…</div></div>
+    <div class="box"><h3>Pagos a proveedores (próximos 7 días)</h3><div id="t3">Cargando…</div></div>
+  </div>`;
+  const kp=(id,num,det,cls)=>{const b=$('#'+id);b.querySelector('.num').textContent=num;b.querySelector('.det').textContent=det||'';if(cls)b.classList.add(cls)};
+  const fallo=(id,e)=>kp(id,'—','No se pudo leer: '+e.message);
+  const cli=id=>esc(S.clientes.find(c=>c.id==id)?.razon_social||'Cliente');
+  const [fv,pe,fe,sp,fp]=await Promise.all([
+    sb.from('facturas_venta').select('*').order('id',{ascending:false}).limit(500),
+    sb.from('pedidos').select('*,clientes(razon_social)').eq('estado','pendiente').order('numero',{ascending:true}).limit(50),
+    sb.from('facturas_estado').select('*').gt('pendiente',0.005).order('vencimiento').limit(500),
+    sb.from('v_saldo_proveedores').select('*'),
+    sb.from('facturas_proveedor').select('*,proveedores(razon_social)').lte('vencimiento',lim7).order('vencimiento').limit(50)]);
+  // 1 facturado hoy y en el mes
+  if(fv.error)fallo('k1',fv.error);else{
+    let h=0,nh=0,m=0;for(const f of fv.data){const d=fechaDe(f);if(!d)continue;const k=diaLocal(d);const t=Number(f.total||0);if(k==hoy){h+=t;nh++}if(k.slice(0,7)==mes)m+=t}
+    kp('k1',$m(h),nh+(nh==1?' factura':' facturas')+' · en el mes '+$m(m))}
+  // 2 pedidos pendientes
+  if(pe.error){fallo('k2',pe.error);$('#t1').innerHTML='<p class="err">'+esc(pe.error.message)+'</p>'}else{
+    const P=pe.data,tot=P.reduce((a,o)=>a+Number(o.total||0),0);
+    kp('k2',String(P.length),P.length?'Suman '+$m(tot):'Nada pendiente',P.length?'alerta':'ok');
+    $('#t1').innerHTML=P.length?'<table><tr><th>N°</th><th>Cliente</th><th class="n">Total</th></tr>'+P.slice(0,8).map(o=>`<tr><td>${o.numero}</td><td>${esc(o.clientes?.razon_social)}</td><td class="n">${$m(o.total)}</td></tr>`).join('')+'</table>'+(P.length>8?`<small>Y ${P.length-8} más.</small>`:'')+'<p><button class="alt" id="irP">Ir a Pedidos</button></p>':'<p><small>No hay pedidos esperando aprobación.</small></p>';
+    $('#irP')&&($('#irP').onclick=()=>{S.tab='pedidos';shell()})}
+  // 3 deuda clientes
+  if(fe.error){fallo('k3',fe.error);$('#t2').innerHTML='<p class="err">'+esc(fe.error.message)+'</p>'}else{
+    const F=fe.data,tot=F.reduce((a,x)=>a+Number(x.pendiente||0),0),V=F.filter(x=>x.dias_mora>0),tv=V.reduce((a,x)=>a+Number(x.pendiente||0),0);
+    kp('k3',$m(tot),V.length?'Vencido: '+$m(tv)+' en '+V.length+(V.length==1?' factura':' facturas'):'Nada vencido',V.length?'alerta':'');
+    V.sort((a,b)=>b.dias_mora-a.dias_mora);
+    $('#t2').innerHTML=V.length?'<table><tr><th>Cliente</th><th>Factura</th><th>Mora</th><th class="n">Debe</th></tr>'+V.slice(0,8).map(x=>`<tr><td>${cli(x.cliente_id)}</td><td>${x.tipo} ${x.numero}</td><td class="mora">${x.dias_mora} días</td><td class="n">${$m(x.pendiente)}</td></tr>`).join('')+'</table>'+(V.length>8?`<small>Y ${V.length-8} más.</small>`:'')+'<p><button class="alt" id="irC">Ir a Cobranza</button></p>':'<p><small>Ningún cliente tiene facturas vencidas.</small></p>';
+    $('#irC')&&($('#irC').onclick=()=>{S.tab='cobranza';shell()})}
+  // 4 proveedores
+  if(sp.error)fallo('k4',sp.error);else{
+    const D=sp.data.filter(x=>Number(x.saldo)>0.005),tot=D.reduce((a,x)=>a+Number(x.saldo),0);
+    kp('k4',$m(tot),D.length?D.length+(D.length==1?' proveedor':' proveedores'):'Sin deudas')}
+  if(fp.error)$('#t3').innerHTML='<p class="err">'+esc(fp.error.message)+'</p>';else{
+    const sal=id=>Number(sp.data?.find(x=>x.proveedor_id==id)?.saldo||0);
+    const L=fp.data.filter(f=>f.tipo!='NC'&&sal(f.proveedor_id)>0.005);
+    $('#t3').innerHTML=L.length?'<table><tr><th>Proveedor</th><th>Factura</th><th>Vence</th><th class="n">Total</th></tr>'+L.slice(0,8).map(f=>`<tr><td>${esc(f.proveedores?.razon_social)}</td><td>${f.tipo} ${esc(f.numero)}</td><td class="${f.vencimiento<hoy?'mora':''}">${fd(f.vencimiento)}</td><td class="n">${$m(f.total)}</td></tr>`).join('')+'</table><p><button class="alt" id="irV">Ir a Compras</button></p>':'<p><small>No hay facturas de proveedores por vencer esta semana.</small></p>';
+    $('#irV')&&($('#irV').onclick=()=>{S.tab='compras';S.sub='cuenta';shell()})}
+}
+
+/* ---------- Clientes ---------- */
+function vClientes(){
+  $('#v').innerHTML=`<h2>Clientes</h2><div class="box"><div class="g"><input id="c_n" placeholder="Razón social *"><input id="c_c" placeholder="CUIT"><input id="c_t" placeholder="Teléfono"><input id="c_d" placeholder="Domicilio">
+  <select id="c_i"><option value="responsable_inscripto">Responsable Inscripto</option><option value="monotributo">Monotributo</option><option value="consumidor_final">Consumidor final</option><option value="exento">Exento</option></select>
+  <select id="c_l"><option>mayorista</option><option>minorista</option><option>especial</option></select>
+  <input id="c_p" type="number" min="0" placeholder="Días de pago (0 = contado)"></div><button id="c_g">Guardar cliente</button></div>
+  <input id="q" placeholder="Buscar por nombre o CUIT"><table id="ct"></table>`;
+  const draw=()=>{const q=$('#q').value.toLowerCase();
+    $('#ct').innerHTML='<tr><th>Cliente</th><th>CUIT</th><th>Lista</th><th>Pago</th><th>Teléfono</th></tr>'+
+    S.clientes.filter(c=>(c.razon_social+(c.cuit||'')).toLowerCase().includes(q)).map(c=>`<tr><td>${esc(c.razon_social)}</td><td>${esc(c.cuit)}</td><td>${c.lista}</td><td>${c.condicion_pago_dias?c.condicion_pago_dias+' días':'Contado'}</td><td>${esc(c.telefono)}</td></tr>`).join('')};
+  $('#q').oninput=draw;draw();
+  $('#c_g').onclick=async()=>{const n=$('#c_n').value.trim();if(!n)return toast('Falta la razón social.',1);
+    const{data,error}=await sb.from('clientes').insert({razon_social:n,cuit:$('#c_c').value.trim()||null,telefono:$('#c_t').value.trim()||null,domicilio:$('#c_d').value.trim()||null,
+      condicion_iva:$('#c_i').value,lista:$('#c_l').value,condicion_pago_dias:+$('#c_p').value||0,vendedor_id:S.perfil.id}).select().single();
+    if(error)return toast(error.message,1);
+    S.clientes.push(data);S.clientes.sort((a,b)=>a.razon_social.localeCompare(b.razon_social));toast('Cliente guardado.');vClientes()};
+}
+
+/* ---------- Pedidos y facturación ---------- */
+async function vPedidos(){
+  S.items=[];S.pcli=null;
+  $('#v').innerHTML=`<h2>Pedidos</h2><div class="box">
+  <input id="p_cq" placeholder="Cliente: escribí nombre o CUIT" autocomplete="off"><div id="p_cr"></div>
+  <div id="p_sel" hidden><div class="clirow"><b id="p_cn"></b> <small id="p_cl"></small> <a id="p_cx">Cambiar</a></div>
+    <div id="p_rep"></div><div id="p_fav" class="chips"></div></div>
+  <input id="p_q" placeholder="Buscar producto (Enter agrega el primero)" autocomplete="off"><div id="p_r"></div><table id="p_i"></table><p><b id="p_t"></b></p><button id="p_g">Guardar pedido</button></div>
+  <h3>Últimos pedidos</h3><table id="pl"></table>`;
+  const cli=()=>S.pcli;
+  const pr=p=>Number(p['precio_'+(cli()?.lista||'mayorista')]);
+  const add=(p,q=1)=>{const it=S.items.find(i=>i.p.producto_id==p.producto_id);it?it.q+=q:S.items.push({p,q})};
+  const drawI=()=>{let t=0;
+    $('#p_i').innerHTML=S.items.map((i,k)=>{const s=pr(i.p)*i.q;t+=s;return `<tr><td>${esc(i.p.descripcion)}</td><td class="qbox"><button class="alt qb" data-m="${k}" aria-label="Restar">−</button><input type="number" min="1" value="${i.q}" data-k="${k}" class="qty"><button class="alt qb" data-p="${k}" aria-label="Sumar">+</button></td><td class="pu">${$m(pr(i.p))}</td><td class="n">${$m(s)}</td><td><a data-x="${k}">Quitar</a></td></tr>`}).join('');
+    $('#p_t').textContent=S.items.length?S.items.length+(S.items.length==1?' producto':' productos')+' · Total: '+$m(t):'';
+    $$('.qty').forEach(e=>e.onchange=()=>{S.items[e.dataset.k].q=Math.max(1,+e.value||1);drawI()});
+    $$('#p_i [data-m]').forEach(b=>b.onclick=()=>{const i=S.items[b.dataset.m];i.q>1?i.q--:S.items.splice(b.dataset.m,1);drawI()});
+    $$('#p_i [data-p]').forEach(b=>b.onclick=()=>{S.items[b.dataset.p].q++;drawI()});
+    $$('#p_i [data-x]').forEach(a=>a.onclick=()=>{S.items.splice(a.dataset.x,1);drawI()})};
+  drawI();
+  /* Cliente: buscador */
+  const elegir=async c=>{S.pcli=c;$('#p_cq').hidden=true;$('#p_cr').innerHTML='';$('#p_sel').hidden=false;
+    $('#p_cn').textContent=c.razon_social;$('#p_cl').textContent='Lista '+c.lista;drawI();
+    $('#p_rep').innerHTML='<small>Buscando sus pedidos anteriores…</small>';$('#p_fav').innerHTML='';
+    const{data:ped}=await sb.from('pedidos').select('id,numero,total,pedido_items(producto_id,cantidad)').eq('cliente_id',c.id).neq('estado','cancelado').order('numero',{ascending:false}).limit(10);
+    if(S.pcli!==c)return;
+    const P=(ped||[]).filter(o=>o.pedido_items?.length);
+    if(!P.length){$('#p_rep').innerHTML='<small>Es su primer pedido.</small>';return}
+    const u=P[0];
+    $('#p_rep').innerHTML=`<button class="alt" id="p_ru">Repetir último pedido (N° ${u.numero} · ${u.pedido_items.length} productos)</button>`;
+    $('#p_ru').onclick=()=>{let n=0;for(const it of u.pedido_items){const p=S.productos.find(x=>x.producto_id==it.producto_id);if(p){add(p,Number(it.cantidad)||1);n++}}
+      drawI();toast(n+' productos agregados del pedido N° '+u.numero+'. Ajustá las cantidades si hace falta.')};
+    const cnt={};for(const o of P)for(const it of o.pedido_items)cnt[it.producto_id]=(cnt[it.producto_id]||0)+1;
+    const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([id])=>S.productos.find(x=>x.producto_id==id)).filter(Boolean);
+    $('#p_fav').innerHTML=top.length?'<small>Lo que más compra (tocá para agregar):</small>'+top.map(p=>`<button class="chip" data-id="${p.producto_id}">${esc(p.descripcion)}</button>`).join(''):'';
+    $$('#p_fav .chip').forEach(b=>b.onclick=()=>{add(S.productos.find(x=>x.producto_id==b.dataset.id));drawI()});
+    $('#p_q').focus()};
+  const listaCli=()=>{const q=$('#p_cq').value.toLowerCase().trim();
+    const r=q?S.clientes.filter(c=>(c.razon_social+' '+(c.cuit||'')).toLowerCase().includes(q)).slice(0,8):[];
+    $('#p_cr').innerHTML=q?(r.map(c=>`<div class="r" data-id="${c.id}">${esc(c.razon_social)} <small>${esc(c.cuit)}</small></div>`).join('')||'<small>No hay clientes con ese nombre.</small>'):'';
+    $$('#p_cr .r').forEach(d=>d.onclick=()=>elegir(S.clientes.find(c=>c.id==d.dataset.id)));return r};
+  $('#p_cq').oninput=listaCli;
+  $('#p_cq').onkeydown=e=>{if(e.key=='Enter'){const r=listaCli();if(r.length)elegir(r[0])}};
+  $('#p_cx').onclick=()=>{S.pcli=null;$('#p_sel').hidden=true;$('#p_cq').hidden=false;$('#p_cq').value='';$('#p_cq').focus();drawI()};
+  /* Productos: Enter agrega el primero y deja el buscador listo */
+  buscador('#p_q','#p_r',p=>{add(p);drawI();$('#p_q').focus()},p=>`<b>${$m(pr(p))}</b>`);
+  $('#p_q').onkeydown=e=>{if(e.key=='Enter'){const f=$('#p_r .r');if(f)f.click()}};
+  $('#p_cq').focus();
+  $('#p_g').onclick=async()=>{const c=cli();if(!c||!S.items.length)return toast('Elegí un cliente y agregá productos.',1);
+    $('#p_g').disabled=true;
+    const{data:o,error}=await sb.from('pedidos').insert({cliente_id:c.id,vendedor_id:S.perfil.id,lista:c.lista,descuento_pct:c.descuento_pct}).select().single();
+    if(error){$('#p_g').disabled=false;return toast(error.message,1)}
+    const{error:e2}=await sb.from('pedido_items').insert(S.items.map(i=>({pedido_id:o.id,producto_id:i.p.producto_id,cantidad:i.q,precio_unitario:pr(i.p)})));
+    if(e2){$('#p_g').disabled=false;return toast('El pedido N° '+o.numero+' quedó sin productos: '+e2.message,1)}
+    toast('Pedido N° '+o.numero+' guardado.');vPedidos()};
+  const{data}=await sb.from('pedidos').select('*,clientes(razon_social)').order('numero',{ascending:false}).limit(15);
+  $('#pl').innerHTML='<tr><th>N°</th><th>Cliente</th><th>Total</th><th>Estado</th><th></th></tr>'+(data||[]).map(o=>`<tr><td>${o.numero}</td><td>${esc(o.clientes?.razon_social)}</td><td>${$m(o.total)}</td><td><select data-e="${o.id}">${ESTADOS.map(e=>`<option ${e==o.estado?'selected':''}>${e}</option>`).join('')}</select></td><td style="white-space:nowrap"><button data-f="${o.id}">Facturar</button> <button class="alt wa" data-w="${o.id}">WhatsApp</button> <button class="alt" data-pdf="${o.id}">PDF</button></td></tr>`).join('');
+  $$('[data-e]').forEach(s=>s.onchange=async()=>{const{error}=await sb.from('pedidos').update({estado:s.value}).eq('id',s.dataset.e);error?toast(error.message,1):toast('Estado actualizado.')});
+  $$('[data-w]').forEach(b=>b.onclick=()=>enviarWA(data.find(x=>x.id==b.dataset.w)));
+  $$('[data-pdf]').forEach(b=>b.onclick=()=>pedidoPDF(data.find(x=>x.id==b.dataset.pdf)));
+  $$('[data-f]').forEach(b=>b.onclick=async()=>{const o=data.find(x=>x.id==b.dataset.f),c=S.clientes.find(x=>x.id==o.cliente_id);
+    if(!(o.total>0))return toast('El pedido no tiene importe.',1);
+    const{data:ya}=await sb.from('facturas_venta').select('numero').eq('pedido_id',o.id).limit(1);
+    if(ya?.length)return toast('Este pedido ya tiene la factura N° '+ya[0].numero+'.',1);
+    const tipo=c.condicion_iva=='responsable_inscripto'?'A':'B';
+    const{data:u}=await sb.from('facturas_venta').select('numero').eq('tipo',tipo).order('numero',{ascending:false}).limit(1);
+    const v=new Date();v.setDate(v.getDate()+c.condicion_pago_dias);
+    const{data:f,error}=await sb.from('facturas_venta').insert({tipo,numero:(u?.[0]?.numero||0)+1,cliente_id:c.id,pedido_id:o.id,vencimiento:v.toISOString().slice(0,10),total:o.total}).select().single();
+    error?toast(error.message,1):toast('Factura '+tipo+' N° '+f.numero+' generada por '+$m(f.total)+'.')});
+}
+
+/* ---------- Pedido por WhatsApp / PDF ---------- */
+async function itemsPedido(o){
+  const{data,error}=await sb.from('pedido_items').select('*').eq('pedido_id',o.id);
+  if(error){toast('No se pudieron leer los productos: '+error.message,1);return null}
+  return data.map(i=>({d:S.productos.find(p=>p.producto_id==i.producto_id)?.descripcion||'Producto',q:+i.cantidad,pu:+i.precio_unitario,st:+i.cantidad*+i.precio_unitario}));
+}
+function telWA(t){let d=String(t||'').replace(/\D/g,'');if(!d)return '';
+  if(d.startsWith('54'))d=d.slice(2);if(d.startsWith('9'))d=d.slice(1);if(d.startsWith('0'))d=d.slice(1);
+  if(d.length==12)d=d.replace(/^(\d{2,4})15(\d{6,8})$/,'$1$2');return d.length>=10?'549'+d:''}
+async function enviarWA(o){
+  const w=window.open('','_blank');
+  const it=await itemsPedido(o);if(!it){w&&w.close();return}
+  const c=S.clientes.find(x=>x.id==o.cliente_id)||{};
+  const tot=it.reduce((a,i)=>a+i.st,0);
+  const txt=`*Sabores de mi País*\nPedido N° ${o.numero} · ${c.razon_social||''}\n\n`+it.map(i=>`• ${i.q} x ${i.d} — ${$m(i.st)}`).join('\n')+`\n\n*Total: ${$m(o.total||tot)}*\n\n¡Gracias por tu compra!`;
+  const tel=telWA(c.telefono),url='https://wa.me/'+tel+'?text='+encodeURIComponent(txt);
+  if(w)w.location.href=url;else location.href=url;
+  if(!tel)toast('Este cliente no tiene teléfono cargado: elegí el contacto en WhatsApp.')
+}
+async function pedidoPDF(o){
+  const w=window.open('','_blank');if(!w)return toast('Permití las ventanas emergentes para generar el PDF.',1);
+  w.document.write('<p style="font:16px system-ui;margin:32px">Armando el pedido…</p>');
+  const it=await itemsPedido(o);if(!it){w.close();return}
+  const c=S.clientes.find(x=>x.id==o.cliente_id)||{};
+  const tot=it.reduce((a,i)=>a+i.st,0),f=new Date(o.fecha||o.creado_en||o.created_at||Date.now()).toLocaleDateString('es-AR');
+  w.document.open();w.document.write(`<html><head><meta charset="utf-8"><title>Pedido ${o.numero} - ${esc(c.razon_social)}</title><style>body{font:14px system-ui,Segoe UI,sans-serif;margin:32px;color:#1c2333}h1{color:#7b2d3e;margin:0}.top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #7b2d3e;padding-bottom:12px}table{width:100%;border-collapse:collapse;margin:16px 0}th,td{border-bottom:1px solid #ccc;padding:6px;text-align:left}.n{text-align:right;white-space:nowrap}.tot td{font-weight:700;font-size:16px;border-bottom:0}.ayuda{background:#f6e9ec;padding:10px;border-radius:6px}@media print{.ayuda{display:none}}</style></head><body>
+  <p class="ayuda">Para guardarlo en PDF: en la ventana de impresión elegí <b>Guardar como PDF</b> como destino.</p>
+  <div class="top"><div><h1>Sabores de mi País</h1><div>Nota de pedido</div></div><div class="n"><b>Pedido N° ${o.numero}</b><br>${f}</div></div>
+  <p><b>Cliente:</b> ${esc(c.razon_social)}${c.cuit?'<br><b>CUIT:</b> '+esc(c.cuit):''}${c.domicilio?'<br><b>Domicilio:</b> '+esc(c.domicilio):''}</p>
+  <table><tr><th>Producto</th><th class="n">Cant.</th><th class="n">Precio</th><th class="n">Subtotal</th></tr>${it.map(i=>`<tr><td>${esc(i.d)}</td><td class="n">${i.q}</td><td class="n">${$m(i.pu)}</td><td class="n">${$m(i.st)}</td></tr>`).join('')}
+  <tr class="tot"><td colspan="3" class="n">Total</td><td class="n">${$m(o.total||tot)}</td></tr></table>
+  <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close();
+}
+
+/* ---------- Cobranza ---------- */
+function vCobranza(){
+  $('#v').innerHTML=`<h2>Cobranza</h2><div class="box"><select id="k_c"><option value="">Elegí un cliente</option>${S.clientes.map(c=>`<option value="${c.id}">${esc(c.razon_social)}</option>`).join('')}</select><div id="k_s"></div></div>`;
+  $('#k_c').onchange=async()=>{const id=$('#k_c').value;if(!id){$('#k_s').innerHTML='';return}
+    const[s,f,r]=await Promise.all([
+      sb.from('saldos_clientes').select('*').eq('cliente_id',id).maybeSingle(),
+      sb.from('facturas_estado').select('*').eq('cliente_id',id).gt('pendiente',0.005).order('vencimiento'),
+      sb.from('recibos').select('*').eq('cliente_id',id).eq('anulado',false).order('numero',{ascending:false}).limit(8)]);
+    const F=f.data||[];
+    $('#k_s').innerHTML=`<p>Saldo: <b>${$m(s.data?.saldo)}</b> <small>(facturado ${$m(s.data?.facturado)} · cobrado ${$m(s.data?.cobrado)})</small></p>
+    <table><tr><th>Factura</th><th>Vence</th><th>Mora</th><th>Pendiente</th></tr>${F.map(x=>`<tr><td>${x.tipo} ${x.numero}</td><td>${x.vencimiento}</td><td>${x.dias_mora?x.dias_mora+' días':'—'}</td><td>${$m(x.pendiente)}</td></tr>`).join('')||'<tr><td colspan="4">No tiene facturas pendientes.</td></tr>'}</table>
+    <div class="g"><input id="k_i" type="number" step="0.01" min="0" placeholder="Importe a cobrar"><select id="k_m"><option>transferencia</option><option>efectivo</option><option>cheque</option><option>tarjeta</option><option>otro</option></select></div>
+    <button id="k_g">Registrar cobro</button><h3>Últimos recibos</h3>
+    <table>${(r.data||[]).map(x=>`<tr><td>Recibo ${x.numero}</td><td>${new Date(x.fecha).toLocaleDateString('es-AR')}</td><td>${x.medio}</td><td>${$m(x.importe)}</td></tr>`).join('')||'<tr><td>Todavía no hay recibos.</td></tr>'}</table>`;
+    $('#k_g').onclick=async()=>{const total=+$('#k_i').value;if(!(total>0))return toast('Poné el importe a cobrar.',1);
+      let rest=total;const imp=[];
+      for(const x of F){if(rest<=0)break;const a=Math.min(rest,x.pendiente);imp.push({factura_id:x.factura_id,importe:+a.toFixed(2)});rest=+(rest-a).toFixed(2)}
+      const{data,error}=await sb.rpc('registrar_cobranza',{p_cliente:id,p_importe:total,p_medio:$('#k_m').value,p_imputaciones:imp});
+      if(error)return toast(error.message,1);
+      toast('Recibo N° '+data+' registrado'+(rest>0?'. Quedan '+$m(rest)+' a cuenta.':'.'));$('#k_c').onchange()}};
+}
+
+/* ---------- Compras ---------- */
+const OC_TXT={borrador:'Borrador',enviada:'Enviada',recibida_parcial:'Recibida parcial',recibida:'Recibida',anulada:'Anulada'};
+const provSel=(id,sel)=>`<select id="${id}"><option value="">Elegí un proveedor</option>${S.prov.map(p=>`<option value="${p.id}" ${p.id==sel?'selected':''}>${esc(p.razon_social)}</option>`).join('')}</select>`;
+const prodNom=id=>S.productos.find(p=>p.producto_id==id)?.descripcion||('Producto '+id);
+
+async function vCompras(){
+  $('#v').innerHTML=`<h2>Compras</h2><div class="sub">${[['ordenes','Órdenes de compra'],['proveedores','Proveedores'],['cuenta','Facturas y pagos']].map(([k,t])=>`<button class="${S.sub==k?'':'alt'}" data-s="${k}">${t}</button>`).join('')}</div><div id="cv">Cargando…</div>`;
+  $$('[data-s]').forEach(b=>b.onclick=()=>{S.sub=b.dataset.s;vCompras()});
+  const{data,error}=await sb.from('proveedores').select('*').eq('activo',true).order('razon_social');
+  if(error){$('#cv').innerHTML='<p class="err">No se pudo leer Compras: '+esc(error.message)+'<br>¿Ya corriste compras.sql en Supabase?</p>';return}
+  S.prov=data;
+  ({ordenes:cOrdenes,proveedores:cProveedores,cuenta:cCuenta})[S.sub]();
+}
+
+/* Órdenes de compra */
+async function cOrdenes(){
+  S.oc=[];
+  $('#cv').innerHTML=`<div class="box"><b>Nueva orden de compra</b><div class="g" style="margin-top:8px">${provSel('o_p')}<input id="o_f" type="date" title="Fecha de entrega esperada"></div>
+  <input id="o_q" placeholder="Buscar producto por nombre o código"><div id="o_r"></div><table id="o_i"></table><p><b id="o_t"></b></p>
+  <input id="o_o" placeholder="Observaciones (opcional)"><button id="o_g">Guardar orden</button></div>
+  <div id="rx"></div><h3>Órdenes</h3><table id="ol"></table>`;
+  const drawI=()=>{let t=0;
+    $('#o_i').innerHTML=S.oc.length?'<tr><th>Producto</th><th>Cant.</th><th>Costo unit.</th><th>Subtotal</th><th></th></tr>'+S.oc.map((i,k)=>{const s=i.c*i.q;t+=s;
+      return `<tr><td>${esc(i.p.descripcion)}</td><td><input type="number" min="1" value="${i.q}" data-k="${k}" class="oq"></td><td><input type="number" min="0" step="0.01" value="${i.c}" data-k="${k}" class="oc" style="width:110px"></td><td>${$m(s)}</td><td><a data-x="${k}">Quitar</a></td></tr>`}).join(''):'';
+    $('#o_t').textContent=S.oc.length?'Total: '+$m(t):'';
+    $$('.oq').forEach(e=>e.onchange=()=>{S.oc[e.dataset.k].q=Math.max(1,+e.value||1);drawI()});
+    $$('.oc').forEach(e=>e.onchange=()=>{S.oc[e.dataset.k].c=Math.max(0,+e.value||0);drawI()});
+    $$('#o_i [data-x]').forEach(a=>a.onclick=()=>{S.oc.splice(a.dataset.x,1);drawI()})};
+  drawI();
+  buscador('#o_q','#o_r',async p=>{const it=S.oc.find(i=>i.p.producto_id==p.producto_id);if(it){it.q++;return drawI()}
+    const[u,pc]=await Promise.all([
+      sb.from('ordenes_compra_items').select('costo_unitario').eq('producto_id',p.producto_id).order('id',{ascending:false}).limit(1),
+      sb.from('productos').select('costo').eq('id',p.producto_id).maybeSingle()]);
+    const c=Number(u.data?.[0]?.costo_unitario||pc.data?.costo||0);
+    S.oc.push({p,q:1,c});drawI();
+    if(!c)toast('Este producto no tiene costo cargado: escribilo a mano.',1)});
+  $('#o_g').onclick=async()=>{const pv=$('#o_p').value;
+    if(!pv||!S.oc.length)return toast('Elegí un proveedor y agregá productos.',1);
+    if(S.oc.some(i=>!(i.c>0)))return toast('Completá el costo unitario de todos los productos.',1);
+    const{data:o,error}=await sb.from('ordenes_compra').insert({proveedor_id:pv,fecha_entrega:$('#o_f').value||null,observaciones:$('#o_o').value.trim()||null}).select().single();
+    if(error)return toast(error.message,1);
+    const{error:e2}=await sb.from('ordenes_compra_items').insert(S.oc.map(i=>({orden_id:o.id,producto_id:i.p.producto_id,cantidad:i.q,costo_unitario:i.c})));
+    if(e2){await sb.from('ordenes_compra').delete().eq('id',o.id);return toast('No se pudo guardar la orden: '+e2.message,1)}
+    toast('Orden de compra N° '+o.id+' guardada.');cOrdenes()};
+
+  const{data,error}=await sb.from('ordenes_compra').select('*,proveedores(razon_social)').order('id',{ascending:false}).limit(25);
+  if(error)return $('#ol').innerHTML='<tr><td class="err">'+esc(error.message)+'</td></tr>';
+  $('#ol').innerHTML='<tr><th>N°</th><th>Fecha</th><th>Proveedor</th><th>Total</th><th>Estado</th><th></th></tr>'+(data.map(o=>{
+    const cerrada=o.estado=='recibida'||o.estado=='anulada';
+    const est=['borrador','enviada'].includes(o.estado)
+      ?`<select data-e="${o.id}">${['borrador','enviada','anulada'].map(e=>`<option value="${e}" ${e==o.estado?'selected':''}>${OC_TXT[e]}</option>`).join('')}</select>`
+      :`<span class="tag ${o.estado}">${OC_TXT[o.estado]}</span>`;
+    return `<tr><td>${o.id}</td><td>${fd(o.fecha)}</td><td>${esc(o.proveedores?.razon_social)}</td><td>${$m(o.total)}</td><td>${est}</td>
+      <td style="white-space:nowrap">${cerrada?'':`<button data-r="${o.id}">Recibir</button> `}<button class="alt" data-pr="${o.id}">Imprimir</button></td></tr>`}).join('')||'<tr><td colspan="6">Todavía no hay órdenes.</td></tr>');
+  $$('#ol [data-e]').forEach(s=>s.onchange=async()=>{
+    if(s.value=='anulada'&&!confirm('¿Anular la orden N° '+s.dataset.e+'?'))return cOrdenes();
+    const{error}=await sb.from('ordenes_compra').update({estado:s.value}).eq('id',s.dataset.e);error?toast(error.message,1):(toast('Estado actualizado.'),cOrdenes())});
+  $$('#ol [data-r]').forEach(b=>b.onclick=()=>recibir(data.find(o=>o.id==b.dataset.r)));
+  $$('#ol [data-pr]').forEach(b=>b.onclick=()=>imprimirOC(data.find(o=>o.id==b.dataset.pr)));
+}
+
+async function recibir(o){
+  const{data:it,error}=await sb.from('ordenes_compra_items').select('*').eq('orden_id',o.id).order('id');
+  if(error)return toast(error.message,1);
+  $('#rx').innerHTML=`<div class="box" style="border-color:var(--m)"><b>Recibir mercadería · OC N° ${o.id} · ${esc(o.proveedores?.razon_social)}</b>
+  <table style="margin-top:8px"><tr><th>Producto</th><th>Pedido</th><th>Ya recibido</th><th>Llega ahora</th></tr>${it.map(i=>{const pend=Math.max(0,i.cantidad-i.cantidad_recibida);
+    return `<tr><td>${esc(prodNom(i.producto_id))}</td><td>${+i.cantidad}</td><td>${+i.cantidad_recibida}</td><td><input type="number" min="0" step="1" value="${pend}" data-i="${i.id}" data-p="${pend}" class="rq"></td></tr>`}).join('')}</table>
+  <div class="g"><input id="r_rm" placeholder="N° de remito del proveedor"></div><button id="r_ok">Confirmar recepción</button> <button class="alt" id="r_no">Cancelar</button></div>`;
+  $('#rx').scrollIntoView({behavior:'smooth'});
+  $('#r_no').onclick=()=>$('#rx').innerHTML='';
+  $('#r_ok').onclick=async()=>{const items=[...$$('.rq')].map(e=>({oc_item_id:+e.dataset.i,cantidad:+e.value||0,pend:+e.dataset.p})).filter(x=>x.cantidad>0);
+    if(!items.length)return toast('No cargaste ninguna cantidad.',1);
+    if(items.some(x=>x.cantidad>x.pend)&&!confirm('Hay productos que llegan en más cantidad de la pedida. ¿Confirmás igual?'))return;
+    const{error}=await sb.rpc('recibir_orden',{p_orden_id:o.id,p_remito:$('#r_rm').value.trim(),p_items:items.map(({oc_item_id,cantidad})=>({oc_item_id,cantidad}))});
+    if(error)return toast(error.message,1);
+    toast('Mercadería de la OC N° '+o.id+' ingresada al stock.');cOrdenes()};
+}
+
+async function imprimirOC(o){
+  const w=window.open('','_blank');if(!w)return toast('Permití las ventanas emergentes para imprimir.',1);
+  const{data:it}=await sb.from('ordenes_compra_items').select('*').eq('orden_id',o.id).order('id');
+  w.document.write(`<html><head><title>OC ${o.id}</title><style>body{font:14px system-ui;margin:32px;color:#1c2333}h1{color:#7b2d3e;margin:0}table{width:100%;border-collapse:collapse;margin:16px 0}th,td{border-bottom:1px solid #ccc;padding:6px;text-align:left}td.n,th.n{text-align:right}</style></head><body>
+  <h1>Sabores de mi País</h1><h2>Orden de compra N° ${o.id}</h2>
+  <p><b>Proveedor:</b> ${esc(o.proveedores?.razon_social)}<br><b>Fecha:</b> ${fd(o.fecha)}${o.fecha_entrega?'<br><b>Entrega esperada:</b> '+fd(o.fecha_entrega):''}</p>
+  <table><tr><th>Producto</th><th class="n">Cantidad</th><th class="n">Costo unit.</th><th class="n">Subtotal</th></tr>${(it||[]).map(i=>`<tr><td>${esc(prodNom(i.producto_id))}</td><td class="n">${+i.cantidad}</td><td class="n">${$m(i.costo_unitario)}</td><td class="n">${$m(i.subtotal)}</td></tr>`).join('')}
+  <tr><th colspan="3" class="n">Total</th><th class="n">${$m(o.total)}</th></tr></table>${o.observaciones?'<p><b>Observaciones:</b> '+esc(o.observaciones)+'</p>':''}
+  <script>window.onload=()=>window.print()<\/script></body></html>`);w.document.close();
+}
+
+/* Proveedores */
+async function cProveedores(){
+  $('#cv').innerHTML=`<div class="box"><b>Nuevo proveedor</b><div class="g" style="margin-top:8px"><input id="v_n" placeholder="Razón social *"><input id="v_c" placeholder="CUIT"><input id="v_t" placeholder="Teléfono"><input id="v_e" type="email" placeholder="Email"><input id="v_d" placeholder="Domicilio">
+  <select id="v_i"><option value="responsable_inscripto">Responsable Inscripto</option><option value="monotributo">Monotributo</option><option value="exento">Exento</option></select>
+  <input id="v_p" type="number" min="0" placeholder="Días de pago (ej. 30)"></div><button id="v_g">Guardar proveedor</button></div><table id="vt"></table>`;
+  const{data:s}=await sb.from('v_saldo_proveedores').select('*');
+  const sal=id=>s?.find(x=>x.proveedor_id==id)?.saldo||0;
+  $('#vt').innerHTML='<tr><th>Proveedor</th><th>CUIT</th><th>Pago</th><th>Teléfono</th><th>Le debés</th></tr>'+S.prov.map(p=>`<tr><td>${esc(p.razon_social)}</td><td>${esc(p.cuit)}</td><td>${p.dias_pago?p.dias_pago+' días':'Contado'}</td><td>${esc(p.telefono)}</td><td><b>${$m(sal(p.id))}</b></td></tr>`).join('');
+  $('#v_g').onclick=async()=>{const n=$('#v_n').value.trim();if(!n)return toast('Falta la razón social.',1);
+    const{error}=await sb.from('proveedores').insert({razon_social:n,cuit:$('#v_c').value.trim()||null,telefono:$('#v_t').value.trim()||null,email:$('#v_e').value.trim()||null,
+      domicilio:$('#v_d').value.trim()||null,condicion_iva:$('#v_i').value,dias_pago:$('#v_p').value===''?30:+$('#v_p').value});
+    if(error)return toast(error.message,1);toast('Proveedor guardado.');vCompras()};
+}
+
+/* Facturas de proveedor y pagos */
+function cCuenta(){
+  $('#cv').innerHTML=`<div class="box">${provSel('a_p',S.provSel)}<div id="a_s"></div></div>`;
+  $('#a_p').onchange=async()=>{const id=$('#a_p').value;S.provSel=id;if(!id){$('#a_s').innerHTML='';return}
+    const pv=S.prov.find(p=>p.id==id);
+    const[s,f,g,o]=await Promise.all([
+      sb.from('v_saldo_proveedores').select('*').eq('proveedor_id',id).maybeSingle(),
+      sb.from('facturas_proveedor').select('*').eq('proveedor_id',id).order('fecha',{ascending:false}).limit(15),
+      sb.from('pagos_proveedor').select('*').eq('proveedor_id',id).order('fecha',{ascending:false}).limit(10),
+      sb.from('ordenes_compra').select('id,fecha,total').eq('proveedor_id',id).neq('estado','anulada').order('id',{ascending:false}).limit(20)]);
+    if(s.error)return $('#a_s').innerHTML='<p class="err">'+esc(s.error.message)+'</p>';
+    const hoy=new Date().toISOString().slice(0,10);
+    $('#a_s').innerHTML=`<p>Le debés: <b>${$m(s.data?.saldo)}</b> <small>(facturado ${$m(s.data?.facturado)} · pagado ${$m(s.data?.pagado)})</small></p>
+    <h3>Cargar factura del proveedor</h3><div class="g">
+      <label class="f">Tipo<select id="f_t"><option>A</option><option>B</option><option>C</option><option value="NC">Nota de crédito</option></select></label>
+      <label class="f">Número<input id="f_n" placeholder="0003-00001234"></label>
+      <label class="f">Fecha<input id="f_f" type="date" value="${hoy}"></label>
+      <label class="f">Orden de compra<select id="f_o"><option value="">Sin vincular</option>${(o.data||[]).map(x=>`<option value="${x.id}">OC ${x.id} · ${fd(x.fecha)} · ${$m(x.total)}</option>`).join('')}</select></label>
+      <label class="f">Neto gravado<input id="f_ne" type="number" step="0.01" min="0"></label>
+      <label class="f">IVA<input id="f_iv" type="number" step="0.01" min="0"></label>
+      <label class="f">Percepciones<input id="f_pe" type="number" step="0.01" min="0" value="0"></label>
+    </div><p><small>Total: <b id="f_tot">${$m(0)}</b> · vence a ${pv.dias_pago||0} días</small></p><button id="f_g">Guardar factura</button>
+    <h3>Registrar pago</h3><div class="g"><input id="g_i" type="number" step="0.01" min="0" placeholder="Importe"><select id="g_m"><option>transferencia</option><option>efectivo</option><option>cheque</option><option>echeq</option><option>otro</option></select><input id="g_r" placeholder="Referencia (N° transf., cheque…)"></div>
+    <button id="g_g">Registrar pago</button>
+    <h3>Facturas</h3><table><tr><th>Comprobante</th><th>Fecha</th><th>Vence</th><th>OC</th><th>Total</th></tr>${(f.data||[]).map(x=>`<tr><td>${x.tipo} ${esc(x.numero)}</td><td>${fd(x.fecha)}</td><td>${fd(x.vencimiento)}</td><td>${x.orden_id||'—'}</td><td>${x.tipo=='NC'?'−':''}${$m(x.total)}</td></tr>`).join('')||'<tr><td colspan="5">No hay facturas cargadas.</td></tr>'}</table>
+    <h3>Pagos</h3><table>${(g.data||[]).map(x=>`<tr><td>${fd(x.fecha)}</td><td>${x.medio}</td><td>${esc(x.referencia)}</td><td>${$m(x.importe)}</td></tr>`).join('')||'<tr><td>Todavía no hay pagos.</td></tr>'}</table>`;
+    const tot=()=>(+$('#f_ne').value||0)+(+$('#f_iv').value||0)+(+$('#f_pe').value||0);
+    ['#f_ne','#f_iv','#f_pe'].forEach(k=>$(k).oninput=()=>$('#f_tot').textContent=$m(tot()));
+    $('#f_ne').onchange=()=>{if(!$('#f_iv').value&&$('#f_t').value=='A'){$('#f_iv').value=(+$('#f_ne').value*0.21).toFixed(2);$('#f_tot').textContent=$m(tot())}};
+    $('#f_g').onclick=async()=>{const n=$('#f_n').value.trim();if(!n||!(tot()>0))return toast('Completá número e importes de la factura.',1);
+      const v=new Date($('#f_f').value+'T12:00');v.setDate(v.getDate()+(pv.dias_pago||0));
+      const{error}=await sb.from('facturas_proveedor').insert({proveedor_id:id,tipo:$('#f_t').value,numero:n,fecha:$('#f_f').value,vencimiento:v.toISOString().slice(0,10),
+        orden_id:+$('#f_o').value||null,neto:+$('#f_ne').value||0,iva:+$('#f_iv').value||0,percepciones:+$('#f_pe').value||0});
+      if(error)return toast(error.code=='23505'?'Esa factura ya estaba cargada.':error.message,1);
+      toast('Factura guardada.');$('#a_p').onchange()};
+    $('#g_g').onclick=async()=>{const imp=+$('#g_i').value;if(!(imp>0))return toast('Poné el importe del pago.',1);
+      const{error}=await sb.from('pagos_proveedor').insert({proveedor_id:id,importe:imp,medio:$('#g_m').value,referencia:$('#g_r').value.trim()||null});
+      if(error)return toast(error.message,1);toast('Pago de '+$m(imp)+' registrado.');$('#a_p').onchange()};
+  };
+  if(S.provSel)$('#a_p').onchange();
+}
+init();
+</script>
+</body>
+</html>
