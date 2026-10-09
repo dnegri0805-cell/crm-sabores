@@ -145,10 +145,15 @@ function chipStock(id,pide){if(!S.stockOk||!S.inv)return '';const d=stk(id).d,m=
   const c=d<=0||(pide&&pide>d)?'st0':(m&&d<=m?'stb':'stok');
   return `<span class="stk ${c}" title="Disponible en depósito">Disp. ${nf(d)}</span>`}
 
+/* Búsqueda sin importar tildes ni mayúsculas; todas las palabras tienen que aparecer */
+const norm=t=>String(t??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+const coincide=(texto,q)=>{const t=norm(texto);return norm(q).split(/\s+/).filter(Boolean).every(w=>t.includes(w))};
+const txtProd=p=>p.descripcion+' '+p.codigo+' '+(p.marca||'')+' '+(p.familia||'');
+
 /* Buscador de productos reutilizable */
 function buscador(inp,res,onPick,extra){
   $(inp).oninput=()=>{const q=$(inp).value.toLowerCase().trim();if(q.length<2){$(res).innerHTML='';return}
-    const r=S.productos.filter(p=>(p.descripcion+' '+p.codigo).toLowerCase().includes(q)).slice(0,8);
+    const r=S.productos.filter(p=>coincide(txtProd(p),q)).slice(0,15);
     $(res).innerHTML=r.map(p=>`<div class="r" data-id="${p.producto_id}">${esc(p.descripcion)} <small>${esc(p.codigo)}</small> ${extra?extra(p):''}</div>`).join('')||'<small>Sin resultados.</small>';
     $$(res+' .r').forEach(d=>d.onclick=()=>{$(inp).value='';$(res).innerHTML='';onPick(S.productos.find(x=>x.producto_id==d.dataset.id))})};
 }
@@ -243,7 +248,7 @@ SDMP-01281	36</pre>
   const upd=()=>{const n=new Set([...Object.keys(cont),...Object.keys(mins)]).size;$('#s_n').textContent=n?n+(n==1?' producto con cambios':' productos con cambios'):''};
   const draw=()=>{const q=$('#s_q').value.toLowerCase().trim(),sb_=$('#s_b').checked;
     let L=S.productos.filter(p=>S.min[p.producto_id]?.a!==false);
-    if(q)L=L.filter(p=>(p.descripcion+' '+p.codigo).toLowerCase().includes(q));
+    if(q)L=L.filter(p=>coincide(txtProd(p),q));
     if(sb_){const ids=new Set(bajos().map(x=>x.p.producto_id));L=L.filter(p=>ids.has(p.producto_id))}
     const V=L.slice(0,200);
     $('#s_t').innerHTML='<tr><th>Producto</th><th class="n">Físico</th><th class="n">Reservado</th><th class="n">Disponible</th><th class="n">Mínimo</th><th class="n">Contado</th></tr>'+
@@ -296,7 +301,7 @@ function vClientes(){
   <input id="q" placeholder="Buscar por nombre o CUIT · tocá un cliente para ver su ficha"><table id="ct"></table>`;
   const draw=()=>{const q=$('#q').value.toLowerCase();
     $('#ct').innerHTML='<tr><th>Cliente</th><th>CUIT</th><th>Lista</th><th>Pago</th><th>Teléfono</th></tr>'+
-    S.clientes.filter(c=>(c.razon_social+(c.cuit||'')).toLowerCase().includes(q)).map(c=>`<tr class="clic" data-fc="${c.id}"><td><a class="lnk">${esc(c.razon_social)}</a></td><td>${esc(c.cuit)}</td><td>${c.lista}</td><td>${c.condicion_pago_dias?c.condicion_pago_dias+' días':'Contado'}</td><td>${esc(c.telefono)}</td></tr>`).join('')};
+    S.clientes.filter(c=>coincide(c.razon_social+' '+(c.cuit||''),q)).map(c=>`<tr class="clic" data-fc="${c.id}"><td><a class="lnk">${esc(c.razon_social)}</a></td><td>${esc(c.cuit)}</td><td>${c.lista}</td><td>${c.condicion_pago_dias?c.condicion_pago_dias+' días':'Contado'}</td><td>${esc(c.telefono)}</td></tr>`).join('')};
   const bind=()=>$$('#ct [data-fc]').forEach(r=>r.onclick=()=>fichaCliente(S.clientes.find(c=>c.id==r.dataset.fc)));
   $('#q').oninput=()=>{draw();bind()};draw();bind();
   $('#c_g').onclick=async()=>{const n=$('#c_n').value.trim();if(!n)return toast('Falta la razón social.',1);
@@ -349,7 +354,7 @@ SDMP-01279	8.900</pre>
   $('#pr_fa').innerHTML+=uniq('familia').map(x=>`<option>${esc(x)}</option>`).join('');
   const nuevo={};let sel=[];
   const filtrar=()=>{const q=$('#pr_q').value.toLowerCase().trim(),v=$('#pr_pv').value,m=$('#pr_ma').value,f=$('#pr_fa').value;
-    return S.productos.filter(p=>(!q||(p.descripcion+' '+p.codigo).toLowerCase().includes(q))&&(!v||S.min[p.producto_id]?.pv==v)&&(!m||p.marca==m)&&(!f||p.familia==f))};
+    return S.productos.filter(p=>(!q||coincide(txtProd(p),q))&&(!v||S.min[p.producto_id]?.pv==v)&&(!m||p.marca==m)&&(!f||p.familia==f))};
   const precio=(c,l)=>L[l]!=null&&c>0?Math.round(c/(1-L[l]/100)*100)/100:null;
   const upd=()=>{const n=Object.keys(nuevo).length;$('#pr_n').textContent=n?n+(n==1?' costo cambiado sin guardar':' costos cambiados sin guardar'):''};
   const draw=()=>{sel=filtrar();$('#pr_cnt').textContent=sel.length+(sel.length==1?' producto':' productos');
@@ -587,7 +592,7 @@ async function vPedidos(){
     $$('#p_fav .chip').forEach(b=>b.onclick=()=>{add(S.productos.find(x=>x.producto_id==b.dataset.id));drawI()});
     $('#p_q').focus()};
   const listaCli=()=>{const q=$('#p_cq').value.toLowerCase().trim();
-    const r=q?S.clientes.filter(c=>(c.razon_social+' '+(c.cuit||'')).toLowerCase().includes(q)).slice(0,8):[];
+    const r=q?S.clientes.filter(c=>coincide(c.razon_social+' '+(c.cuit||''),q)).slice(0,8):[];
     $('#p_cr').innerHTML=q?(r.map(c=>`<div class="r" data-id="${c.id}">${esc(c.razon_social)} <small>${esc(c.cuit)}</small></div>`).join('')||'<small>No hay clientes con ese nombre.</small>'):'';
     $$('#p_cr .r').forEach(d=>d.onclick=()=>elegir(S.clientes.find(c=>c.id==d.dataset.id)));return r};
   $('#p_cq').oninput=listaCli;
