@@ -37,6 +37,10 @@ small{color:#6a7184}td a{cursor:pointer;color:var(--er)}
 .tag.recibida{background:#d8efe1;color:var(--ok)}.tag.anulada{background:#f6dcda;color:var(--er)}.tag.recibida_parcial{background:#fff1cc;color:#7a5a00}
 #t{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);color:#fff;padding:10px 18px;border-radius:8px;z-index:9;display:none}
 .err{color:var(--er)}
+.aum{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:4px 0 10px}.aum input{width:90px;margin:0}.aum b{margin-right:8px}
+tr.cambio td{background:#fff8e1}td input.cs{width:110px;text-align:right}
+#pr_imp summary{cursor:pointer}#pr_imp textarea{width:100%;font:13px ui-monospace,Consolas,monospace;padding:8px;border:1px solid #b9bfcc;border-radius:6px;margin:8px 0}
+.aviso p{margin:4px 0}
 .graf{position:relative}.graf svg{width:100%;height:auto;display:block}
 .graf .gl{stroke:#e6e3e5;stroke-width:1}.graf .base{stroke:#b9bfcc;stroke-width:1}
 .graf .ax{font-size:11px;fill:#6a7184;font-variant-numeric:tabular-nums}
@@ -116,24 +120,24 @@ async function init(){
   S.perfil=p;
   const[c,pr]=await Promise.all([
     sb.from('clientes').select('*').eq('activo',true).order('razon_social'),
-    sb.from('precios_productos').select('producto_id,codigo,descripcion,precio_mayorista,precio_minorista,precio_especial').order('descripcion').range(0,1999)]);
+    sb.from('precios_productos').select('producto_id,codigo,descripcion,familia,marca,costo,precio_mayorista,precio_minorista,precio_especial').order('descripcion').range(0,4999)]);
   if(c.error||pr.error){app.innerHTML='<div class="box login"><p class="err">No se pudieron cargar los datos: '+esc((c.error||pr.error).message)+'</p><button onclick="out()">Salir</button></div>';return}
   S.clientes=c.data;S.productos=pr.data;await cargarStock();shell();
 }
 function shell(){
-  app.innerHTML=`<header><b>Sabores de mi País</b><nav>${['inicio','pedidos','clientes','cobranza','compras','stock','reportes'].map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${t[0].toUpperCase()+t.slice(1)}</a>`).join('')}</nav><span>${esc(S.perfil.nombre)} (${S.perfil.rol})<a onclick="out()">Salir</a></span></header><main id="v"></main>`;
+  app.innerHTML=`<header><b>Sabores de mi País</b><nav>${['inicio','pedidos','clientes','cobranza','compras','stock','precios','reportes'].filter(t=>t!='precios'||S.perfil.rol=='dueno').map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${t[0].toUpperCase()+t.slice(1)}</a>`).join('')}</nav><span>${esc(S.perfil.nombre)} (${S.perfil.rol})<a onclick="out()">Salir</a></span></header><main id="v"></main>`;
   $$('nav a').forEach(a=>a.onclick=()=>{S.tab=a.dataset.t;shell()});
-  ({inicio:vInicio,pedidos:vPedidos,clientes:vClientes,cobranza:vCobranza,compras:vCompras,stock:vStock,reportes:vReportes})[S.tab]();
+  ({inicio:vInicio,pedidos:vPedidos,clientes:vClientes,cobranza:vCobranza,compras:vCompras,stock:vStock,precios:vPrecios,reportes:vReportes})[S.tab]();
 }
 
 /* Stock: físico, reservado, disponible y mínimo por producto */
 S.stock={};S.stockOk=false;S.min={};
 async function cargarStock(){
   const[st,mi]=await Promise.all([sb.from('stock').select('producto_id,fisico,reservado,disponible').range(0,4999),
-    sb.from('productos').select('id,stock_minimo,activo').range(0,4999)]);
+    sb.from('productos').select('id,stock_minimo,activo,proveedor_id').range(0,4999)]);
   S.stockOk=!st.error;S.stock={};S.inv=false;
   for(const r of st.data||[]){S.stock[r.producto_id]={f:+r.fisico||0,r:+r.reservado||0,d:r.disponible!=null?+r.disponible:(+r.fisico||0)-(+r.reservado||0)};if(+r.fisico)S.inv=true}
-  S.min={};for(const r of mi.data||[])S.min[r.id]={m:+r.stock_minimo||0,a:r.activo!==false};
+  S.min={};for(const r of mi.data||[])S.min[r.id]={m:+r.stock_minimo||0,a:r.activo!==false,pv:r.proveedor_id};
 }
 const stk=id=>S.stock[id]||{f:0,r:0,d:0};
 const nf=n=>Number(n||0).toLocaleString('es-AR',{maximumFractionDigits:2});
@@ -300,6 +304,99 @@ function vClientes(){
       condicion_iva:$('#c_i').value,lista:$('#c_l').value,condicion_pago_dias:+$('#c_p').value||0,vendedor_id:S.perfil.id}).select().single();
     if(error)return toast(error.message,1);
     S.clientes.push(data);S.clientes.sort((a,b)=>a.razon_social.localeCompare(b.razon_social));toast('Cliente guardado.');vClientes()};
+}
+
+/* ---------- Precios y márgenes ---------- */
+async function recargarProductos(){const{data,error}=await sb.from('precios_productos').select('producto_id,codigo,descripcion,familia,marca,costo,precio_mayorista,precio_minorista,precio_especial').order('descripcion').range(0,4999);if(!error)S.productos=data}
+const pctf=n=>Number(n).toLocaleString('es-AR',{maximumFractionDigits:2})+' %';
+const numAR=x=>{x=String(x??'').trim().replace(/\$|\s/g,'');if(!x)return null;if(x.includes(','))x=x.replace(/\./g,'').replace(',','.');else if(/^\d{1,3}(\.\d{3})+$/.test(x))x=x.replace(/\./g,'');const n=Number(x);return isFinite(n)?n:NaN};
+async function vPrecios(){
+  $('#v').innerHTML=`<h2>Precios y márgenes</h2>
+  <div class="box"><div class="bh"><h3>Margen de cada lista</h3></div>
+    <p><small>El precio de venta se calcula solo: <b>costo ÷ (1 − margen)</b>. Con 30 %, un producto que te cuesta $ 700 se vende a $ 1.000 y te deja $ 300.</small></p>
+    <div class="g" id="pr_l">Cargando…</div><button id="pr_lg">Guardar márgenes</button></div>
+  <div class="box"><h3>Productos</h3>
+    <div class="g"><input id="pr_q" placeholder="Buscar por nombre o código" autocomplete="off">
+      <select id="pr_pv"><option value="">Todos los proveedores</option></select>
+      <select id="pr_ma"><option value="">Todas las marcas</option></select>
+      <select id="pr_fa"><option value="">Todas las familias</option></select></div>
+    <div class="aum"><b id="pr_cnt"></b><span>Aumentar costo</span><input id="pr_pct" type="number" step="0.1" placeholder="%"><span>%</span><button class="alt" id="pr_prev">Ver cómo queda</button></div>
+    <div id="pr_conf"></div>
+    <div class="tw"><table id="pr_t"></table></div>
+    <button id="pr_g">Guardar costos cambiados</button> <span id="pr_n"></span></div>
+  <details class="box" id="pr_imp"><summary><b>Cargar la lista de precios del proveedor (pegar desde Excel)</b></summary>
+    <p><small>Dos columnas, sin títulos: <b>Código</b> · <b>Costo nuevo</b>. Copiá las filas de la planilla y pegalas acá.</small></p>
+    <pre class="ej">SDMP-00594	1250,50
+SDMP-01279	8.900</pre>
+    <textarea id="pr_pg" rows="8" placeholder="Pegá acá las filas copiadas"></textarea>
+    <button class="alt" id="pr_rev">Revisar</button><div id="pr_res"></div></details>`;
+  const[cl,pv,hi]=await Promise.all([sb.from('config_listas').select('*'),sb.from('proveedores').select('id,razon_social').order('razon_social'),
+    sb.from('historial_costos').select('producto_id,costo_anterior,costo_nuevo,fecha').order('fecha',{ascending:false}).limit(3000)]);
+  await cargarStock();
+  /* márgenes */
+  const L={};for(const r of cl.data||[])L[r.lista]=+r.margen_pct;
+  const LIS=['mayorista','minorista','especial'];
+  $('#pr_l').innerHTML=cl.error?'<p class="err">No se pudieron leer los márgenes: '+esc(cl.error.message)+'. Corré precios.sql en Supabase.</p>':
+    LIS.map(l=>`<label class="f">Lista ${l} (%)<input type="number" step="0.5" min="0" max="89" data-li="${l}" value="${L[l]??''}"></label>`).join('');
+  $('#pr_lg').onclick=async()=>{const ch=[...$$('[data-li]')].filter(e=>+e.value!==L[e.dataset.li]);if(!ch.length)return toast('No cambiaste ningún margen.',1);
+    for(const e of ch){const{error}=await sb.rpc('fijar_margen_lista',{p_lista:e.dataset.li,p_margen:+e.value});if(error)return toast(error.message,1);L[e.dataset.li]=+e.value}
+    await recargarProductos();draw();toast('Márgenes guardados. Los precios ya están actualizados.')};
+  /* filtros */
+  const ult={};for(const h of hi.data||[])if(!ult[h.producto_id])ult[h.producto_id]=h;
+  const uniq=k=>[...new Set(S.productos.map(p=>p[k]).filter(Boolean))].sort();
+  $('#pr_pv').innerHTML+=(pv.data||[]).map(p=>`<option value="${p.id}">${esc(p.razon_social)}</option>`).join('');
+  $('#pr_ma').innerHTML+=uniq('marca').map(x=>`<option>${esc(x)}</option>`).join('');
+  $('#pr_fa').innerHTML+=uniq('familia').map(x=>`<option>${esc(x)}</option>`).join('');
+  const nuevo={};let sel=[];
+  const filtrar=()=>{const q=$('#pr_q').value.toLowerCase().trim(),v=$('#pr_pv').value,m=$('#pr_ma').value,f=$('#pr_fa').value;
+    return S.productos.filter(p=>(!q||(p.descripcion+' '+p.codigo).toLowerCase().includes(q))&&(!v||S.min[p.producto_id]?.pv==v)&&(!m||p.marca==m)&&(!f||p.familia==f))};
+  const precio=(c,l)=>L[l]!=null&&c>0?Math.round(c/(1-L[l]/100)*100)/100:null;
+  const upd=()=>{const n=Object.keys(nuevo).length;$('#pr_n').textContent=n?n+(n==1?' costo cambiado sin guardar':' costos cambiados sin guardar'):''};
+  const draw=()=>{sel=filtrar();$('#pr_cnt').textContent=sel.length+(sel.length==1?' producto':' productos');
+    const V=sel.slice(0,150);
+    $('#pr_t').innerHTML='<tr><th>Producto</th><th class="n">Costo</th><th class="n">Mayorista</th><th class="n">Minorista</th><th class="n">Especial</th><th class="n">Ganás (may.)</th><th>Último cambio</th></tr>'+
+      V.map(p=>{const id=p.producto_id,c=nuevo[id]??+p.costo,pm=precio(c,'mayorista'),u=ult[id];
+        return `<tr${nuevo[id]!=null?' class="cambio"':''}><td>${esc(p.descripcion)} <small>${esc(p.codigo)}</small></td>
+        <td class="n"><input type="number" step="0.01" min="0" class="cs" data-id="${id}" value="${nuevo[id]??''}" placeholder="${p.costo!=null?nf(p.costo):'—'}"></td>
+        <td class="n">${pm!=null?$m(pm):'—'}</td><td class="n">${precio(c,'minorista')!=null?$m(precio(c,'minorista')):'—'}</td><td class="n">${precio(c,'especial')!=null?$m(precio(c,'especial')):'—'}</td>
+        <td class="n">${pm!=null?$m(pm-c):'—'}</td>
+        <td><small>${u?fd(u.fecha)+' · '+(u.costo_anterior>0?(u.costo_nuevo>=u.costo_anterior?'+':'')+pctf((u.costo_nuevo/u.costo_anterior-1)*100):'nuevo'):'—'}</small></td></tr>`}).join('')+
+      (sel.length>V.length?`<tr><td colspan="7"><small>Se muestran 150 de ${sel.length}. El aumento por porcentaje se aplica a los ${sel.length}.</small></td></tr>`:'')+
+      (sel.length?'':'<tr><td colspan="7"><small>No hay productos con ese filtro.</small></td></tr>');
+    $$('.cs').forEach(e=>e.onchange=()=>{const n=numAR(e.value);if(e.value===''||n===null)delete nuevo[e.dataset.id];else if(n>0)nuevo[e.dataset.id]=n;setTimeout(draw);upd()})};
+  ['#pr_q','#pr_pv','#pr_ma','#pr_fa'].forEach(k=>$(k)[k=='#pr_q'?'oninput':'onchange']=()=>{$('#pr_conf').innerHTML='';draw()});
+  draw();
+  $('#pr_g').onclick=async()=>{const it=Object.entries(nuevo).map(([id,costo])=>({id,costo}));if(!it.length)return toast('No cambiaste ningún costo.',1);
+    $('#pr_g').disabled=true;const{data,error}=await sb.rpc('fijar_costos',{p_items:it});$('#pr_g').disabled=false;
+    if(error)return toast(error.message,1);for(const k in nuevo)delete nuevo[k];await recargarProductos();vPrecios();toast((data||it.length)+' costos actualizados. Los precios ya cambiaron.')};
+  /* aumento por porcentaje */
+  $('#pr_prev').onclick=()=>{const p=numAR($('#pr_pct').value);if(!p||!(p>-90&&p<=500))return toast('Escribí un porcentaje, por ejemplo 12 o -5.',1);
+    const con=sel.filter(x=>+x.costo>0);if(!con.length)return toast('Ningún producto del filtro tiene costo cargado.',1);
+    const ej=con[0],nc=Math.round(ej.costo*(1+p/100)*100)/100,filtro=[$('#pr_pv').selectedOptions[0].text,$('#pr_ma').value,$('#pr_fa').value,$('#pr_q').value&&'"'+$('#pr_q').value+'"'].filter(x=>x&&!/^Todos|^Todas/.test(x)).join(' · ')||'todos los productos';
+    $('#pr_conf').innerHTML=`<div class="aviso"><p><b>${p>0?'Aumento':'Baja'} de ${pctf(Math.abs(p))}</b> al costo de <b>${con.length}</b> ${con.length==1?'producto':'productos'} (${esc(filtro)}).${sel.length>con.length?(sel.length-con.length==1?' El que no tiene costo cargado no cambia.':' Los '+(sel.length-con.length)+' sin costo cargado no cambian.'):''}</p>
+      <p>Ejemplo: ${esc(ej.descripcion)} pasa de costo ${$m(ej.costo)} a <b>${$m(nc)}</b>; precio mayorista de ${$m(precio(+ej.costo,'mayorista'))} a <b>${$m(precio(nc,'mayorista'))}</b>.</p>
+      <button id="pr_ap">Aplicar ${p>0?'aumento':'baja'}</button> <button class="alt" id="pr_no">Cancelar</button></div>`;
+    $('#pr_no').onclick=()=>$('#pr_conf').innerHTML='';
+    $('#pr_ap').onclick=async()=>{$('#pr_ap').disabled=true;$('#pr_ap').textContent='Aplicando…';
+      const{data,error}=await sb.rpc('aumentar_costos',{p_ids:con.map(x=>x.producto_id),p_pct:p});
+      if(error){$('#pr_ap').disabled=false;return toast(error.message,1)}
+      $('#pr_pct').value='';await recargarProductos();vPrecios();toast((data??con.length)+' productos actualizados con '+(p>0?'+':'')+pctf(p)+'.')}};
+  /* pegar lista del proveedor */
+  $('#pr_rev').onclick=()=>{const porCod={};for(const p of S.productos)porCod[String(p.codigo).trim().toUpperCase()]=p;
+    const ok=[],mal=[];
+    for(const raw of $('#pr_pg').value.split(/\r?\n/)){const l=raw.trim();if(!l)continue;const c=l.split(/\t|;/).map(x=>x.trim());
+      const p=porCod[(c[0]||'').toUpperCase()],n=numAR(c[1]);
+      if(!p)mal.push(l+' → no encontré ese código');else if(!(n>0))mal.push(l+' → costo no válido');else ok.push({p,n})}
+    const sube=ok.filter(x=>+x.p.costo>0),prom=sube.length?sube.reduce((a,x)=>a+(x.n/x.p.costo-1),0)/sube.length*100:null;
+    $('#pr_res').innerHTML=(ok.length?`<p><b>${ok.length}</b> ${ok.length==1?'costo listo':'costos listos'} para cargar${prom!=null?' · cambio promedio <b>'+(prom>=0?'+':'')+pctf(prom)+'</b>':''}.</p>
+      ${(()=>{const raro=ok.filter(x=>+x.p.costo>0&&Math.abs(x.n/x.p.costo-1)>0.5);return raro.length?`<p class="aviso">Ojo: ${raro.length} ${raro.length==1?'costo cambia':'costos cambian'} más de 50 %. Revisá que la columna sea la correcta (aparecen primero).</p>`:''})()}
+      <table>${ok.slice().sort((x,y)=>Math.abs(y.n/(+y.p.costo||y.n)-1)-Math.abs(x.n/(+x.p.costo||x.n)-1)).slice(0,8).map(x=>{const v=+x.p.costo>0?x.n/x.p.costo-1:null;return `<tr><td>${esc(x.p.descripcion)}</td><td class="n">${x.p.costo?$m(x.p.costo):'—'}</td><td class="n">→ <b>${$m(x.n)}</b></td><td class="n ${v!=null&&Math.abs(v)>0.5?'mora':''}">${v==null?'nuevo':(v>=0?'+':'')+pctf(v*100)}</td></tr>`}).join('')}</table>${ok.length>8?'<small>Y '+(ok.length-8)+' más.</small>':''}`:'<p>No hay filas válidas.</p>')+
+      (mal.length?`<p class="err">${mal.length} ${mal.length==1?'fila no se va a cargar':'filas no se van a cargar'}:</p><ul class="err">${mal.slice(0,10).map(x=>'<li>'+esc(x)+'</li>').join('')}</ul>`:'')+
+      (ok.length?`<button id="pr_ap2">Cargar ${ok.length} ${ok.length==1?'costo':'costos'}</button>`:'');
+    $('#pr_ap2')&&($('#pr_ap2').onclick=async()=>{$('#pr_ap2').disabled=true;$('#pr_ap2').textContent='Cargando…';
+      const{data,error}=await sb.rpc('fijar_costos',{p_items:ok.map(x=>({id:x.p.producto_id,costo:x.n}))});
+      if(error){$('#pr_ap2').disabled=false;return toast(error.message,1)}
+      await recargarProductos();vPrecios();toast((data??ok.length)+' costos actualizados desde la lista del proveedor.')})};
 }
 
 /* ---------- Reportes de ventas ---------- */
