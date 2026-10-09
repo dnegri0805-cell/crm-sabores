@@ -37,6 +37,12 @@ small{color:#6a7184}td a{cursor:pointer;color:var(--er)}
 .tag.recibida{background:#d8efe1;color:var(--ok)}.tag.anulada{background:#f6dcda;color:var(--er)}.tag.recibida_parcial{background:#fff1cc;color:#7a5a00}
 #t{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);color:#fff;padding:10px 18px;border-radius:8px;z-index:9;display:none}
 .err{color:var(--er)}
+a.lnk{cursor:pointer;color:var(--m);text-decoration:underline;text-underline-offset:2px}
+tr.clic{cursor:pointer}tr.clic:hover td{background:#f6e9ec}
+.fc-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:14px}.fc-head h2{margin:0 0 4px}
+.fc-acc{display:flex;flex-wrap:wrap;gap:6px}
+.dos.fc2{grid-template-columns:repeat(auto-fit,minmax(min(100%,430px),1fr))}.dos .box{overflow-x:auto}.dos .box table{display:table}
+.badge{white-space:nowrap}
 .ped{background:#fff;border:1px solid var(--l);border-left:4px solid #b9bfcc;border-radius:8px;padding:10px 12px;margin-bottom:8px;display:grid;gap:8px}
 .ped.est-pendiente{border-left-color:#c58a00}.ped.est-aprobado,.ped.est-en_preparacion,.ped.est-listo,.ped.est-en_reparto{border-left-color:#2f5ea8}.ped.est-entregado{border-left-color:var(--ok)}.ped.est-cancelado{border-left-color:#b9bfcc;opacity:.7}
 .ped-top{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}.ped-top .cli{flex:1;min-width:0}.ped-top .tot{font-weight:700;font-variant-numeric:tabular-nums}
@@ -276,16 +282,82 @@ function vClientes(){
   <select id="c_i"><option value="responsable_inscripto">Responsable Inscripto</option><option value="monotributo">Monotributo</option><option value="consumidor_final">Consumidor final</option><option value="exento">Exento</option></select>
   <select id="c_l"><option>mayorista</option><option>minorista</option><option>especial</option></select>
   <input id="c_p" type="number" min="0" placeholder="Días de pago (0 = contado)"></div><button id="c_g">Guardar cliente</button></div>
-  <input id="q" placeholder="Buscar por nombre o CUIT"><table id="ct"></table>`;
+  <input id="q" placeholder="Buscar por nombre o CUIT · tocá un cliente para ver su ficha"><table id="ct"></table>`;
   const draw=()=>{const q=$('#q').value.toLowerCase();
     $('#ct').innerHTML='<tr><th>Cliente</th><th>CUIT</th><th>Lista</th><th>Pago</th><th>Teléfono</th></tr>'+
-    S.clientes.filter(c=>(c.razon_social+(c.cuit||'')).toLowerCase().includes(q)).map(c=>`<tr><td>${esc(c.razon_social)}</td><td>${esc(c.cuit)}</td><td>${c.lista}</td><td>${c.condicion_pago_dias?c.condicion_pago_dias+' días':'Contado'}</td><td>${esc(c.telefono)}</td></tr>`).join('')};
-  $('#q').oninput=draw;draw();
+    S.clientes.filter(c=>(c.razon_social+(c.cuit||'')).toLowerCase().includes(q)).map(c=>`<tr class="clic" data-fc="${c.id}"><td><a class="lnk">${esc(c.razon_social)}</a></td><td>${esc(c.cuit)}</td><td>${c.lista}</td><td>${c.condicion_pago_dias?c.condicion_pago_dias+' días':'Contado'}</td><td>${esc(c.telefono)}</td></tr>`).join('')};
+  const bind=()=>$$('#ct [data-fc]').forEach(r=>r.onclick=()=>fichaCliente(S.clientes.find(c=>c.id==r.dataset.fc)));
+  $('#q').oninput=()=>{draw();bind()};draw();bind();
   $('#c_g').onclick=async()=>{const n=$('#c_n').value.trim();if(!n)return toast('Falta la razón social.',1);
     const{data,error}=await sb.from('clientes').insert({razon_social:n,cuit:$('#c_c').value.trim()||null,telefono:$('#c_t').value.trim()||null,domicilio:$('#c_d').value.trim()||null,
       condicion_iva:$('#c_i').value,lista:$('#c_l').value,condicion_pago_dias:+$('#c_p').value||0,vendedor_id:S.perfil.id}).select().single();
     if(error)return toast(error.message,1);
     S.clientes.push(data);S.clientes.sort((a,b)=>a.razon_social.localeCompare(b.razon_social));toast('Cliente guardado.');vClientes()};
+}
+
+/* ---------- Ficha del cliente ---------- */
+async function fichaCliente(c){
+  if(!c)return;window.scrollTo(0,0);
+  const IVA={responsable_inscripto:'Responsable Inscripto',monotributo:'Monotributo',consumidor_final:'Consumidor final',exento:'Exento'};
+  $('#v').innerHTML=`<p><a class="lnk" id="fc_vol">← Volver a Clientes</a></p>
+  <div class="fc-head"><div><h2>${esc(c.razon_social)}</h2><small>${c.cuit?'CUIT '+esc(c.cuit)+' · ':''}${IVA[c.condicion_iva]||esc(c.condicion_iva||'')} · Lista ${esc(c.lista)} · ${c.condicion_pago_dias?c.condicion_pago_dias+' días':'Contado'}</small>
+    <div><small>${c.telefono?'Tel. '+esc(c.telefono):'Sin teléfono'}${c.domicilio?' · '+esc(c.domicilio):''}</small></div></div>
+    <div class="fc-acc"><button id="fc_np">Nuevo pedido</button><button class="alt" id="fc_co">Registrar cobro</button><button class="alt" id="fc_ed">Editar datos</button></div></div>
+  <div id="fc_edit" hidden class="box"><div class="g">
+    <label class="f">Razón social<input id="e_n" value="${esc(c.razon_social)}"></label><label class="f">CUIT<input id="e_c" value="${esc(c.cuit)}"></label>
+    <label class="f">Teléfono<input id="e_t" value="${esc(c.telefono)}"></label><label class="f">Domicilio<input id="e_d" value="${esc(c.domicilio)}"></label>
+    <label class="f">Condición IVA<select id="e_i">${Object.entries(IVA).map(([k,t])=>`<option value="${k}" ${k==c.condicion_iva?'selected':''}>${t}</option>`).join('')}</select></label>
+    <label class="f">Lista<select id="e_l">${['mayorista','minorista','especial'].map(l=>`<option ${l==c.lista?'selected':''}>${l}</option>`).join('')}</select></label>
+    <label class="f">Días de pago<input id="e_p" type="number" min="0" value="${c.condicion_pago_dias||0}"></label></div>
+    <button id="e_g">Guardar datos</button> <button class="alt" id="e_x">Cancelar</button></div>
+  <div class="kp">
+    <div class="box" id="f1"><span class="lab">Saldo</span><span class="num">…</span><span class="det"></span></div>
+    <div class="box" id="f2"><span class="lab">Vencido</span><span class="num">…</span><span class="det"></span></div>
+    <div class="box" id="f3"><span class="lab">Compró este año</span><span class="num">…</span><span class="det"></span></div>
+    <div class="box" id="f4"><span class="lab">Último pedido</span><span class="num">…</span><span class="det"></span></div>
+  </div>
+  <div class="dos fc2">
+    <div class="box"><h3>Facturas pendientes</h3><div id="fc_fa">Cargando…</div></div>
+    <div class="box"><h3>Pagos recibidos</h3><div id="fc_pa">Cargando…</div></div>
+    <div class="box"><h3>Pedidos</h3><div id="fc_pe">Cargando…</div></div>
+    <div class="box"><h3>Lo que más compra</h3><div id="fc_pr">Cargando…</div></div>
+  </div>`;
+  $('#fc_vol').onclick=()=>vClientes();
+  $('#fc_np').onclick=()=>{S.preCli=c;S.tab='pedidos';shell()};
+  $('#fc_co').onclick=()=>{S.preCob=c.id;S.tab='cobranza';shell()};
+  $('#fc_ed').onclick=()=>{$('#fc_edit').hidden=false};$('#e_x').onclick=()=>{$('#fc_edit').hidden=true};
+  $('#e_g').onclick=async()=>{const n=$('#e_n').value.trim();if(!n)return toast('Falta la razón social.',1);
+    const cambios={razon_social:n,cuit:$('#e_c').value.trim()||null,telefono:$('#e_t').value.trim()||null,domicilio:$('#e_d').value.trim()||null,
+      condicion_iva:$('#e_i').value,lista:$('#e_l').value,condicion_pago_dias:+$('#e_p').value||0};
+    const{error}=await sb.from('clientes').update(cambios).eq('id',c.id);if(error)return toast(error.message,1);
+    Object.assign(c,cambios);toast('Datos guardados.');fichaCliente(c)};
+  const kp=(id,num,det,cls)=>{const b=$('#'+id);b.querySelector('.num').textContent=num;b.querySelector('.det').textContent=det||'';if(cls)b.classList.add(cls)};
+  const anio=String(new Date().getFullYear());
+  const[sa,fe,re,pe]=await Promise.all([
+    sb.from('saldos_clientes').select('*').eq('cliente_id',c.id).maybeSingle(),
+    sb.from('facturas_estado').select('*').eq('cliente_id',c.id).gt('pendiente',0.005).order('vencimiento'),
+    sb.from('recibos').select('*').eq('cliente_id',c.id).eq('anulado',false).order('numero',{ascending:false}).limit(10),
+    sb.from('pedidos').select('*,pedido_items(producto_id,cantidad)').eq('cliente_id',c.id).order('numero',{ascending:false}).limit(30)]);
+  // saldo
+  if(sa.error)kp('f1','—','No se pudo leer');else kp('f1',$m(sa.data?.saldo),'Facturado '+$m(sa.data?.facturado)+' · cobrado '+$m(sa.data?.cobrado),Number(sa.data?.saldo)>0.005?'':'ok');
+  // facturas
+  if(fe.error){kp('f2','—','');$('#fc_fa').innerHTML='<p class="err">'+esc(fe.error.message)+'</p>'}else{
+    const F=fe.data,V=F.filter(x=>x.dias_mora>0),tv=V.reduce((a,x)=>a+Number(x.pendiente||0),0);
+    kp('f2',$m(tv),V.length?V.length+(V.length==1?' factura':' facturas')+' · hasta '+Math.max(...V.map(x=>x.dias_mora))+' días':'Nada vencido',V.length?'alerta':'ok');
+    $('#fc_fa').innerHTML=F.length?'<table><tr><th>Factura</th><th>Vence</th><th class="n">Debe</th></tr>'+F.map(x=>`<tr><td>${x.tipo} ${x.numero}</td><td class="${x.dias_mora>0?'mora':''}">${fd(x.vencimiento)}${x.dias_mora>0?' · '+x.dias_mora+' d':''}</td><td class="n">${$m(x.pendiente)}</td></tr>`).join('')+'</table>':'<p><small>No tiene facturas pendientes.</small></p>'}
+  // pagos
+  $('#fc_pa').innerHTML=re.error?'<p class="err">'+esc(re.error.message)+'</p>':(re.data.length?'<table><tr><th>Recibo</th><th>Fecha</th><th>Medio</th><th class="n">Importe</th></tr>'+re.data.map(x=>`<tr><td>${x.numero}</td><td>${fd(x.fecha)}</td><td>${esc(x.medio)}</td><td class="n">${$m(x.importe)}</td></tr>`).join('')+'</table>':'<p><small>Todavía no hay pagos registrados.</small></p>');
+  // pedidos
+  if(pe.error){$('#fc_pe').innerHTML='<p class="err">'+esc(pe.error.message)+'</p>';kp('f3','—','');kp('f4','—','')}else{
+    const P=pe.data,val=P.filter(o=>o.estado!='cancelado');
+    const ya=val.filter(o=>String(fechaDe(o)||'').startsWith(anio));
+    kp('f3',$m(ya.reduce((a,o)=>a+Number(o.total||0),0)),ya.length+(ya.length==1?' pedido':' pedidos'));
+    const u=val[0];kp('f4',u?'N° '+u.numero:'—',u?(fechaDe(u)?fd(fechaDe(u))+' · ':'')+$m(u.total):'Todavía no compró');
+    $('#fc_pe').innerHTML=P.length?'<table><tr><th>N°</th><th>Fecha</th><th>Estado</th><th class="n">Total</th><th></th></tr>'+P.slice(0,12).map(o=>`<tr><td>${o.numero}</td><td>${fd(fechaDe(o))}</td><td><span class="badge b-${o.estado}">${EST_TXT[o.estado]||o.estado}</span></td><td class="n">${$m(o.total)}</td><td><a class="lnk" data-pdf="${o.id}">PDF</a></td></tr>`).join('')+'</table>':'<p><small>Todavía no tiene pedidos.</small></p>';
+    $$('#fc_pe [data-pdf]').forEach(a=>a.onclick=()=>pedidoPDF(P.find(o=>o.id==a.dataset.pdf)));
+    const cnt={};for(const o of val)for(const it of o.pedido_items||[]){const k=it.producto_id;cnt[k]=cnt[k]||{n:0,q:0};cnt[k].n++;cnt[k].q+=Number(it.cantidad)||0}
+    const top=Object.entries(cnt).sort((a,b)=>b[1].n-a[1].n||b[1].q-a[1].q).slice(0,8);
+    $('#fc_pr').innerHTML=top.length?'<table><tr><th>Producto</th><th class="n">Pedidos</th><th class="n">Unidades</th></tr>'+top.map(([id,x])=>`<tr><td>${esc(S.productos.find(p=>p.producto_id==id)?.descripcion||'Producto')}</td><td class="n">${x.n}</td><td class="n">${nf(x.q)}</td></tr>`).join('')+'</table>':'<p><small>Cuando haga pedidos, acá vas a ver sus productos habituales.</small></p>'}
 }
 
 /* ---------- Pedidos y facturación ---------- */
@@ -337,7 +409,7 @@ async function vPedidos(){
   /* Productos: Enter agrega el primero y deja el buscador listo */
   buscador('#p_q','#p_r',p=>{add(p);drawI();$('#p_q').focus()},p=>`<b>${$m(pr(p))}</b> ${chipStock(p.producto_id)}`);
   $('#p_q').onkeydown=e=>{if(e.key=='Enter'){const f=$('#p_r .r');if(f)f.click()}};
-  $('#p_cq').focus();
+  if(S.preCli){const c=S.preCli;S.preCli=null;elegir(c)}else $('#p_cq').focus();
   $('#p_g').onclick=async()=>{const c=cli();if(!c||!S.items.length)return toast('Elegí un cliente y agregá productos.',1);
     $('#p_g').disabled=true;
     const{data:o,error}=await sb.from('pedidos').insert({cliente_id:c.id,vendedor_id:S.perfil.id,lista:c.lista,descuento_pct:c.descuento_pct}).select().single();
@@ -381,7 +453,7 @@ async function listaPedidos(){
         :(sig?`<button data-sig="${o.id}">${sig[1]}</button>`:'');
       const fb=cerr?'':(f?`<span class="fac">Factura ${f.tipo} N° ${f.numero}</span>`:(o.estado=='pendiente'?'':`<button data-fa="${o.id}">Facturar</button>`));
       return `<div class="ped est-${o.estado}">
-        <div class="ped-top"><b>N° ${o.numero}</b> <span class="cli">${esc(o.clientes?.razon_social)}</span><span class="tot">${$m(o.total)}</span></div>
+        <div class="ped-top"><b>N° ${o.numero}</b> <a class="cli lnk" data-fc="${o.cliente_id}">${esc(o.clientes?.razon_social)}</a><span class="tot">${$m(o.total)}</span></div>
         <div class="ped-acc"><span class="badge b-${o.estado}">${EST_TXT[o.estado]||o.estado}</span>${prin}${fb}
           <button class="alt wa" data-w="${o.id}">WhatsApp</button><button class="alt" data-pdf="${o.id}">PDF</button>
           <select class="mas" data-e="${o.id}" aria-label="Cambiar estado"><option value="">Más…</option>${ESTADOS.filter(e=>e!=o.estado).map(e=>`<option value="${e}">${e=='cancelado'?'Cancelar pedido':'Pasar a: '+EST_TXT[e]}</option>`).join('')}</select></div></div>`}).join('')
@@ -399,6 +471,7 @@ async function listaPedidos(){
       if(e=='cancelado'&&!confirm('¿Cancelar el pedido N° '+o.numero+'? Se libera la mercadería reservada.')){s.value='';return}
       if(await cambiarEstado(o,e))toast('Pedido N° '+o.numero+': '+EST_TXT[e]+'.');cargar()});
     $$('#pl [data-w]').forEach(b=>b.onclick=()=>enviarWA(ped(b.dataset.w)));
+    $$('#pl [data-fc]').forEach(a=>a.onclick=()=>{const c=S.clientes.find(x=>x.id==a.dataset.fc);if(c){S.tab='clientes';shell();fichaCliente(c)}});
     $$('#pl [data-pdf]').forEach(b=>b.onclick=()=>pedidoPDF(ped(b.dataset.pdf)));
   };
   cargar();
@@ -439,7 +512,7 @@ async function pedidoPDF(o){
 }
 
 /* ---------- Cobranza ---------- */
-function vCobranza(){
+function vCobranza(){setTimeout(()=>{if(S.preCob&&$('#k_c')){$('#k_c').value=S.preCob;S.preCob=null;$('#k_c').onchange()}});
   $('#v').innerHTML=`<h2>Cobranza</h2><div class="box"><select id="k_c"><option value="">Elegí un cliente</option>${S.clientes.map(c=>`<option value="${c.id}">${esc(c.razon_social)}</option>`).join('')}</select><div id="k_s"></div></div>`;
   $('#k_c').onchange=async()=>{const id=$('#k_c').value;if(!id){$('#k_s').innerHTML='';return}
     const[s,f,r]=await Promise.all([
