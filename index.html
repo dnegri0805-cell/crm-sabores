@@ -37,6 +37,13 @@ small{color:#6a7184}td a{cursor:pointer;color:var(--er)}
 .tag.recibida{background:#d8efe1;color:var(--ok)}.tag.anulada{background:#f6dcda;color:var(--er)}.tag.recibida_parcial{background:#fff1cc;color:#7a5a00}
 #t{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);color:#fff;padding:10px 18px;border-radius:8px;z-index:9;display:none}
 .err{color:var(--er)}
+.graf{position:relative}.graf svg{width:100%;height:auto;display:block}
+.graf .gl{stroke:#e6e3e5;stroke-width:1}.graf .base{stroke:#b9bfcc;stroke-width:1}
+.graf .ax{font-size:11px;fill:#6a7184;font-variant-numeric:tabular-nums}
+.graf .bar path{fill:#d9b8c0}.graf .bar.on path{fill:var(--m)}.graf .bar .hit{fill:transparent;cursor:pointer}.graf .bar:hover path{filter:brightness(1.1)}
+.graf .tip{position:absolute;transform:translateX(-50%);background:#17213a;color:#fff;padding:6px 10px;border-radius:6px;font-size:13px;pointer-events:none;white-space:nowrap;text-align:center}
+.graf details{margin-top:6px}.graf details table{max-width:320px}
+.bh{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}.bh h3{margin:0}.bh button{padding:5px 10px;font-size:13px}
 a.lnk{cursor:pointer;color:var(--m);text-decoration:underline;text-underline-offset:2px}
 tr.clic{cursor:pointer}tr.clic:hover td{background:#f6e9ec}
 .fc-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:14px}.fc-head h2{margin:0 0 4px}
@@ -114,9 +121,9 @@ async function init(){
   S.clientes=c.data;S.productos=pr.data;await cargarStock();shell();
 }
 function shell(){
-  app.innerHTML=`<header><b>Sabores de mi País</b><nav>${['inicio','pedidos','clientes','cobranza','compras','stock'].map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${t[0].toUpperCase()+t.slice(1)}</a>`).join('')}</nav><span>${esc(S.perfil.nombre)} (${S.perfil.rol})<a onclick="out()">Salir</a></span></header><main id="v"></main>`;
+  app.innerHTML=`<header><b>Sabores de mi País</b><nav>${['inicio','pedidos','clientes','cobranza','compras','stock','reportes'].map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${t[0].toUpperCase()+t.slice(1)}</a>`).join('')}</nav><span>${esc(S.perfil.nombre)} (${S.perfil.rol})<a onclick="out()">Salir</a></span></header><main id="v"></main>`;
   $$('nav a').forEach(a=>a.onclick=()=>{S.tab=a.dataset.t;shell()});
-  ({inicio:vInicio,pedidos:vPedidos,clientes:vClientes,cobranza:vCobranza,compras:vCompras,stock:vStock})[S.tab]();
+  ({inicio:vInicio,pedidos:vPedidos,clientes:vClientes,cobranza:vCobranza,compras:vCompras,stock:vStock,reportes:vReportes})[S.tab]();
 }
 
 /* Stock: físico, reservado, disponible y mínimo por producto */
@@ -293,6 +300,89 @@ function vClientes(){
       condicion_iva:$('#c_i').value,lista:$('#c_l').value,condicion_pago_dias:+$('#c_p').value||0,vendedor_id:S.perfil.id}).select().single();
     if(error)return toast(error.message,1);
     S.clientes.push(data);S.clientes.sort((a,b)=>a.razon_social.localeCompare(b.razon_social));toast('Cliente guardado.');vClientes()};
+}
+
+/* ---------- Reportes de ventas ---------- */
+const MESES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const PERIODOS=[['mes','Este mes'],['mesant','Mes anterior'],['3m','Últimos 3 meses'],['anio','Este año'],['12m','Últimos 12 meses']];
+function rango(k){const h=new Date(),y=h.getFullYear(),m=h.getMonth(),f=(a,b)=>diaLocal(new Date(a,b,1));
+  if(k=='mes')return[f(y,m),f(y,m+1)];if(k=='mesant')return[f(y,m-1),f(y,m)];if(k=='3m')return[f(y,m-2),f(y,m+1)];
+  if(k=='anio')return[f(y,0),f(y+1,0)];return[f(y,m-11),f(y,m+1)]}
+function aTabla(head,rows){return [head,...rows].map(r=>r.map(x=>String(x).replace(/\t|\n/g,' ')).join('\t')).join('\n')}
+async function copiarTabla(head,rows){const t=aTabla(head,rows);
+  try{await navigator.clipboard.writeText(t);toast('Tabla copiada: pegala en Excel con Ctrl+V.')}
+  catch(e){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('Tabla copiada: pegala en Excel con Ctrl+V.')}}
+async function vReportes(){
+  S.rp=S.rp||'mes';
+  $('#v').innerHTML=`<h2>Reportes de ventas</h2>
+  <div class="sub" id="rp_p">${PERIODOS.map(([k,t])=>`<button class="${S.rp==k?'':'alt'}" data-rp="${k}">${t}</button>`).join('')}</div>
+  <p><small>Cuenta los pedidos aprobados en adelante (no incluye los que esperan aprobación ni los cancelados).</small></p>
+  <div class="kp">
+    <div class="box" id="r1"><span class="lab">Ventas</span><span class="num">…</span><span class="det"></span></div>
+    <div class="box" id="r2"><span class="lab">Pedidos</span><span class="num">…</span><span class="det"></span></div>
+    <div class="box" id="r3"><span class="lab">Ticket promedio</span><span class="num">…</span><span class="det"></span></div>
+    <div class="box" id="r4"><span class="lab">Margen bruto</span><span class="num">…</span><span class="det"></span></div>
+  </div>
+  <div class="box"><h3>Ventas por mes · últimos 12 meses</h3><div id="rp_g" class="graf">Cargando…</div></div>
+  <div class="dos fc2">
+    <div class="box"><div class="bh"><h3>Mejores clientes</h3><button class="alt" id="cp_c">Copiar para Excel</button></div><div id="rp_c"></div></div>
+    <div class="box"><div class="bh"><h3>Productos más vendidos</h3><button class="alt" id="cp_p">Copiar para Excel</button></div><div id="rp_pr"></div></div>
+  </div>`;
+  $$('[data-rp]').forEach(b=>b.onclick=()=>{S.rp=b.dataset.rp;$$('[data-rp]').forEach(x=>x.className=x.dataset.rp==S.rp?'':'alt');pintar()});
+  const[pe,co]=await Promise.all([
+    sb.from('pedidos').select('id,numero,total,estado,cliente_id,fecha,creado_en,created_at,clientes(razon_social),pedido_items(producto_id,cantidad,precio_unitario)').not('estado','in','(pendiente,cancelado)').order('numero',{ascending:false}).range(0,4999),
+    sb.from('productos').select('id,costo').range(0,4999)]);
+  let P=pe.data;
+  if(pe.error){const r2=await sb.from('pedidos').select('*,clientes(razon_social),pedido_items(producto_id,cantidad,precio_unitario)').not('estado','in','(pendiente,cancelado)').order('numero',{ascending:false}).range(0,4999);
+    if(r2.error){$('#rp_g').innerHTML='<p class="err">No se pudieron leer los pedidos: '+esc(r2.error.message)+'</p>';return}P=r2.data}
+  const costo={};for(const r of co.data||[])costo[r.id]=Number(r.costo)||0;
+  for(const o of P)o._d=fechaDe(o)?diaLocal(fechaDe(o)):'';
+  const nombre=id=>S.productos.find(p=>p.producto_id==id)?.descripcion||'Producto';
+  let TC=[],TP=[];
+  const pintar=()=>{
+    const[a,b]=rango(S.rp),L=P.filter(o=>o._d>=a&&o._d<b);
+    const v=L.reduce((x,o)=>x+Number(o.total||0),0);
+    let vi=0,ci=0,sinC=0;
+    const pc={},cc={};
+    for(const o of L){const k=o.cliente_id;cc[k]=cc[k]||{n:o.clientes?.razon_social||'Cliente',p:0,v:0};cc[k].p++;cc[k].v+=Number(o.total||0);
+      for(const it of o.pedido_items||[]){const q=Number(it.cantidad)||0,pu=Number(it.precio_unitario)||0,cu=costo[it.producto_id]||0;
+        vi+=q*pu;if(cu>0)ci+=q*cu;else sinC+=q*pu;
+        const x=pc[it.producto_id]=pc[it.producto_id]||{q:0,v:0,c:0,sc:false};x.q+=q;x.v+=q*pu;if(cu>0)x.c+=q*cu;else x.sc=true}}
+    const conC=vi-sinC,mg=conC>0?(conC-ci)/conC:null;
+    $('#r1 .num').textContent=$m(v);$('#r1 .det').textContent=PERIODOS.find(x=>x[0]==S.rp)[1];
+    $('#r2 .num').textContent=String(L.length);$('#r2 .det').textContent=Object.keys(cc).length+(Object.keys(cc).length==1?' cliente':' clientes');
+    $('#r3 .num').textContent=L.length?$m(v/L.length):'—';$('#r3 .det').textContent='por pedido';
+    $('#r4 .num').textContent=mg==null?'—':(mg*100).toLocaleString('es-AR',{maximumFractionDigits:1})+' %';
+    $('#r4 .det').textContent=mg==null?'Faltan costos cargados':('Ganancia '+$m(conC-ci)+(sinC>0?' · hay productos sin costo':''));
+    // clientes
+    TC=Object.values(cc).sort((x,y)=>y.v-x.v);
+    $('#rp_c').innerHTML=TC.length?'<table><tr><th>Cliente</th><th class="n">Pedidos</th><th class="n">Ventas</th><th class="n">%</th></tr>'+TC.slice(0,10).map(x=>`<tr><td>${esc(x.n)}</td><td class="n">${x.p}</td><td class="n">${$m(x.v)}</td><td class="n">${v?Math.round(x.v/v*100):0} %</td></tr>`).join('')+'</table>'+(TC.length>10?`<small>Y ${TC.length-10} clientes más (se copian todos).</small>`:''):'<p><small>No hay ventas en este período.</small></p>';
+    // productos
+    TP=Object.entries(pc).map(([id,x])=>({n:nombre(id),...x})).sort((x,y)=>y.v-x.v);
+    $('#rp_pr').innerHTML=TP.length?'<table><tr><th>Producto</th><th class="n">Unid.</th><th class="n">Ventas</th><th class="n">Margen</th></tr>'+TP.slice(0,10).map(x=>`<tr><td>${esc(x.n)}</td><td class="n">${nf(x.q)}</td><td class="n">${$m(x.v)}</td><td class="n">${x.sc||!x.v?'—':Math.round((x.v-x.c)/x.v*100)+' %'}</td></tr>`).join('')+'</table>'+(TP.length>10?`<small>Y ${TP.length-10} productos más (se copian todos).</small>`:''):'<p><small>No hay ventas en este período.</small></p>';
+    grafico(a,b)};
+  const grafico=(a,b)=>{const h=new Date(),M=[];
+    for(let i=11;i>=0;i--){const d=new Date(h.getFullYear(),h.getMonth()-i,1),k=diaLocal(d).slice(0,7);M.push({k,l:MESES[d.getMonth()]+(d.getMonth()==0||i==11?' '+String(d.getFullYear()).slice(2):''),v:0})}
+    for(const o of P){const m=M.find(x=>x.k==o._d.slice(0,7));if(m)m.v+=Number(o.total||0)}
+    const max=Math.max(...M.map(x=>x.v)),W=Math.max(340,Math.min(720,$('#rp_g').clientWidth||720)),H=W<500?200:230,pl=W<500?60:64,pb=28,pt=12,cw=(W-pl-8)/12,bw=Math.min(36,cw*0.6);
+    if(cw<40)M.forEach(m=>m.l=m.l.split(' ')[0]);
+    const paso=(()=>{if(!max)return 1;const r=max/4,p=Math.pow(10,Math.floor(Math.log10(r)));return [1,2,2.5,5,10].map(x=>x*p).find(x=>x>=r)})();
+    const top=max?Math.ceil(max/paso)*paso:4,y=v=>pt+(H-pt-pb)*(1-v/top);
+    const corto=v=>v>=1e6?(v/1e6).toLocaleString('es-AR',{maximumFractionDigits:1})+' M':v>=1e3?Math.round(v/1e3)+' mil':String(Math.round(v));
+    let g='';for(let t=0;t<=top+1e-9;t+=paso)g+=`<line x1="${pl}" x2="${W-8}" y1="${y(t)}" y2="${y(t)}" class="gl"/><text x="${pl-8}" y="${y(t)+4}" class="ax" text-anchor="end">$ ${corto(t)}</text>`;
+    const enP=k=>k+'-01'>=a.slice(0,7)+'-01'&&k+'-01'<b;
+    const bars=M.map((m,i)=>{const cx=pl+cw*i+cw/2,yy=y(m.v),hh=Math.max(0,H-pb-yy),r=Math.min(4,hh/2);
+      const path=hh>0?`M${cx-bw/2},${H-pb}V${yy+r}Q${cx-bw/2},${yy} ${cx-bw/2+r},${yy}H${cx+bw/2-r}Q${cx+bw/2},${yy} ${cx+bw/2},${yy+r}V${H-pb}Z`:'';
+      return `<g class="bar${enP(m.k)?' on':''}" data-i="${i}"><rect x="${pl+cw*i}" y="${pt}" width="${cw}" height="${H-pt-pb}" class="hit"/>${path?`<path d="${path}"/>`:''}<text x="${cx}" y="${H-8}" class="ax" text-anchor="middle">${m.l}</text></g>`}).join('');
+    $('#rp_g').innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Ventas por mes de los últimos 12 meses">${g}<line x1="${pl}" x2="${W-8}" y1="${H-pb}" y2="${H-pb}" class="base"/>${bars}</svg><div class="tip" hidden></div>
+      <details><summary><small>Ver como tabla</small></summary><table>${M.map(m=>`<tr><td>${m.l}</td><td class="n">${$m(m.v)}</td></tr>`).join('')}</table></details>`;
+    const tip=$('#rp_g .tip');
+    $$('#rp_g .bar').forEach(el=>{el.onmouseenter=el.onclick=()=>{const m=M[el.dataset.i];tip.hidden=false;tip.innerHTML=`<b>${m.l}</b><br>${$m(m.v)}`;
+      const r=el.getBoundingClientRect(),pr=$('#rp_g').getBoundingClientRect();tip.style.left=(r.left-pr.left+r.width/2)+'px';tip.style.top=Math.max(0,(el.querySelector('path')?.getBoundingClientRect().top||r.top)-pr.top-46)+'px'};
+      el.onmouseleave=()=>tip.hidden=true})};
+  $('#cp_c').onclick=()=>copiarTabla(['Cliente','Pedidos','Ventas','% del total'],TC.map(x=>{const t=TC.reduce((a,y)=>a+y.v,0);return[x.n,x.p,x.v.toFixed(2).replace('.',','),(t?x.v/t*100:0).toFixed(1).replace('.',',')]}));
+  $('#cp_p').onclick=()=>copiarTabla(['Producto','Unidades','Ventas','Margen %'],TP.map(x=>[x.n,x.q,x.v.toFixed(2).replace('.',','),x.sc||!x.v?'':((x.v-x.c)/x.v*100).toFixed(1).replace('.',',')]));
+  pintar();
 }
 
 /* ---------- Ficha del cliente ---------- */
