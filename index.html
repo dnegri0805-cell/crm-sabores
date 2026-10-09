@@ -37,6 +37,7 @@ small{color:#6a7184}td a{cursor:pointer;color:var(--er)}
 .tag.recibida{background:#d8efe1;color:var(--ok)}.tag.anulada{background:#f6dcda;color:var(--er)}.tag.recibida_parcial{background:#fff1cc;color:#7a5a00}
 #t{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);color:#fff;padding:10px 18px;border-radius:8px;z-index:9;display:none}
 .err{color:var(--er)}
+.marca{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:#234a87;background:#dde7f6;border-radius:4px;padding:1px 6px;vertical-align:1px}
 .aum{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:4px 0 10px}.aum input{width:90px;margin:0}.aum b{margin-right:8px}
 tr.cambio td{background:#fff8e1}td input.cs{width:110px;text-align:right}
 #pr_imp summary{cursor:pointer}#pr_imp textarea{width:100%;font:13px ui-monospace,Consolas,monospace;padding:8px;border:1px solid #b9bfcc;border-radius:6px;margin:8px 0}
@@ -154,7 +155,7 @@ const txtProd=p=>p.descripcion+' '+p.codigo+' '+(p.marca||'')+' '+(p.familia||''
 function buscador(inp,res,onPick,extra){
   $(inp).oninput=()=>{const q=$(inp).value.toLowerCase().trim();if(q.length<2){$(res).innerHTML='';return}
     const r=S.productos.filter(p=>coincide(txtProd(p),q)).slice(0,15);
-    $(res).innerHTML=r.map(p=>`<div class="r" data-id="${p.producto_id}">${esc(p.descripcion)} <small>${esc(p.codigo)}</small> ${extra?extra(p):''}</div>`).join('')||'<small>Sin resultados.</small>';
+    $(res).innerHTML=r.map(p=>`<div class="r" data-id="${p.producto_id}">${esc(p.descripcion)} ${p.marca?`<span class="marca">${esc(p.marca)}</span>`:''} <small>${esc(p.codigo)}</small> ${extra?extra(p):''}</div>`).join('')||'<small>Sin resultados.</small>';
     $$(res+' .r').forEach(d=>d.onclick=()=>{$(inp).value='';$(res).innerHTML='';onPick(S.productos.find(x=>x.producto_id==d.dataset.id))})};
 }
 
@@ -565,7 +566,7 @@ async function vPedidos(){
   const pr=p=>Number(p['precio_'+(cli()?.lista||'mayorista')]);
   const add=(p,q=1)=>{const it=S.items.find(i=>i.p.producto_id==p.producto_id);it?it.q+=q:S.items.push({p,q})};
   const drawI=()=>{let t=0;
-    $('#p_i').innerHTML=S.items.map((i,k)=>{const s=pr(i.p)*i.q;t+=s;return `<tr><td>${esc(i.p.descripcion)}<br>${chipStock(i.p.producto_id,i.q)}</td><td class="qbox"><button class="alt qb" data-m="${k}" aria-label="Restar">−</button><input type="number" min="1" value="${i.q}" data-k="${k}" class="qty"><button class="alt qb" data-p="${k}" aria-label="Sumar">+</button></td><td class="pu">${$m(pr(i.p))}</td><td class="n">${$m(s)}</td><td><a data-x="${k}">Quitar</a></td></tr>`}).join('');
+    $('#p_i').innerHTML=S.items.map((i,k)=>{const s=pr(i.p)*i.q;t+=s;return `<tr><td>${esc(i.p.descripcion)} ${i.p.marca?`<span class="marca">${esc(i.p.marca)}</span>`:''}<br>${chipStock(i.p.producto_id,i.q)}</td><td class="qbox"><button class="alt qb" data-m="${k}" aria-label="Restar">−</button><input type="number" min="1" value="${i.q}" data-k="${k}" class="qty"><button class="alt qb" data-p="${k}" aria-label="Sumar">+</button></td><td class="pu">${$m(pr(i.p))}</td><td class="n">${$m(s)}</td><td><a data-x="${k}">Quitar</a></td></tr>`}).join('');
     $('#p_t').textContent=S.items.length?S.items.length+(S.items.length==1?' producto':' productos')+' · Total: '+$m(t):'';
     const falta=S.stockOk&&S.inv?S.items.filter(i=>i.q>stk(i.p.producto_id).d).length:0;
     $('#p_av').innerHTML=falta?`<p class="aviso">${falta==1?'Un producto pide':falta+' productos piden'} más de lo disponible. Podés guardar igual; revisá antes de aprobar.</p>`:'';
