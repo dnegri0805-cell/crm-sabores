@@ -37,6 +37,14 @@ small{color:#6a7184}td a{cursor:pointer;color:var(--er)}
 .tag.recibida{background:#d8efe1;color:var(--ok)}.tag.anulada{background:#f6dcda;color:var(--er)}.tag.recibida_parcial{background:#fff1cc;color:#7a5a00}
 #t{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);color:#fff;padding:10px 18px;border-radius:8px;z-index:9;display:none}
 .err{color:var(--er)}
+.ped{background:#fff;border:1px solid var(--l);border-left:4px solid #b9bfcc;border-radius:8px;padding:10px 12px;margin-bottom:8px;display:grid;gap:8px}
+.ped.est-pendiente{border-left-color:#c58a00}.ped.est-aprobado,.ped.est-en_preparacion,.ped.est-listo,.ped.est-en_reparto{border-left-color:#2f5ea8}.ped.est-entregado{border-left-color:var(--ok)}.ped.est-cancelado{border-left-color:#b9bfcc;opacity:.7}
+.ped-top{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}.ped-top .cli{flex:1;min-width:0}.ped-top .tot{font-weight:700;font-variant-numeric:tabular-nums}
+.ped-acc{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.ped-acc button{padding:6px 12px;font-size:14px}
+.ped-acc select.mas{width:auto;margin:0;padding:6px;font-size:14px}
+.badge{font-size:12px;padding:3px 9px;border-radius:10px;background:#eceef3;font-weight:600}
+.b-pendiente{background:#fff1cc;color:#7a5a00}.b-aprobado,.b-en_preparacion,.b-listo,.b-en_reparto{background:#dde7f6;color:#234a87}.b-entregado{background:#d8efe1;color:var(--ok)}.b-cancelado{background:#eceef3;color:#6a7184}
+.fac{font-size:13px;color:var(--ok);font-weight:600}
 .stk{display:inline-block;font-size:12px;padding:1px 8px;border-radius:10px;margin-top:2px;white-space:nowrap}
 .stok{background:#d8efe1;color:#1d7a46}.stb{background:#fff1cc;color:#7a5a00}.st0{background:#f6dcda;color:#b3261e}
 .aviso{background:#fff1cc;color:#7a5a00;padding:8px 10px;border-radius:6px;font-size:14px}
@@ -337,20 +345,63 @@ async function vPedidos(){
     const{error:e2}=await sb.from('pedido_items').insert(S.items.map(i=>({pedido_id:o.id,producto_id:i.p.producto_id,cantidad:i.q,precio_unitario:pr(i.p)})));
     if(e2){$('#p_g').disabled=false;return toast('El pedido N° '+o.numero+' quedó sin productos: '+e2.message,1)}
     toast('Pedido N° '+o.numero+' guardado.');await cargarStock();vPedidos()};
-  const{data}=await sb.from('pedidos').select('*,clientes(razon_social)').order('numero',{ascending:false}).limit(15);
-  $('#pl').innerHTML='<tr><th>N°</th><th>Cliente</th><th>Total</th><th>Estado</th><th></th></tr>'+(data||[]).map(o=>`<tr><td>${o.numero}</td><td>${esc(o.clientes?.razon_social)}</td><td>${$m(o.total)}</td><td><select data-e="${o.id}">${ESTADOS.map(e=>`<option ${e==o.estado?'selected':''}>${e}</option>`).join('')}</select></td><td style="white-space:nowrap"><button data-f="${o.id}">Facturar</button> <button class="alt wa" data-w="${o.id}">WhatsApp</button> <button class="alt" data-pdf="${o.id}">PDF</button></td></tr>`).join('');
-  $$('[data-e]').forEach(s=>s.onchange=async()=>{const{error}=await sb.from('pedidos').update({estado:s.value}).eq('id',s.dataset.e);if(error)return toast(error.message,1);toast('Estado actualizado.');cargarStock()});
-  $$('[data-w]').forEach(b=>b.onclick=()=>enviarWA(data.find(x=>x.id==b.dataset.w)));
-  $$('[data-pdf]').forEach(b=>b.onclick=()=>pedidoPDF(data.find(x=>x.id==b.dataset.pdf)));
-  $$('[data-f]').forEach(b=>b.onclick=async()=>{const o=data.find(x=>x.id==b.dataset.f),c=S.clientes.find(x=>x.id==o.cliente_id);
-    if(!(o.total>0))return toast('El pedido no tiene importe.',1);
-    const{data:ya}=await sb.from('facturas_venta').select('numero').eq('pedido_id',o.id).limit(1);
-    if(ya?.length)return toast('Este pedido ya tiene la factura N° '+ya[0].numero+'.',1);
-    const tipo=c.condicion_iva=='responsable_inscripto'?'A':'B';
-    const{data:u}=await sb.from('facturas_venta').select('numero').eq('tipo',tipo).order('numero',{ascending:false}).limit(1);
-    const v=new Date();v.setDate(v.getDate()+c.condicion_pago_dias);
-    const{data:f,error}=await sb.from('facturas_venta').insert({tipo,numero:(u?.[0]?.numero||0)+1,cliente_id:c.id,pedido_id:o.id,vencimiento:v.toISOString().slice(0,10),total:o.total}).select().single();
-    error?toast(error.message,1):toast('Factura '+tipo+' N° '+f.numero+' generada por '+$m(f.total)+'.')});
+  listaPedidos();
+}
+
+/* ---------- Lista de pedidos: aprobar y facturar en un toque ---------- */
+const EST_TXT={pendiente:'Por aprobar',aprobado:'Aprobado',en_preparacion:'En preparación',listo:'Listo',en_reparto:'En reparto',entregado:'Entregado',cancelado:'Cancelado'};
+const SIG={aprobado:['en_preparacion','A preparación'],en_preparacion:['listo','Marcar listo'],listo:['en_reparto','Salió a reparto'],en_reparto:['entregado','Entregado']};
+const FILTROS=[['abiertos','En curso'],['pendiente','Por aprobar'],['entregado','Entregados'],['todos','Todos']];
+async function facturarPedido(o){
+  const c=S.clientes.find(x=>x.id==o.cliente_id);if(!c){toast('No encuentro el cliente de este pedido.',1);return null}
+  if(!(o.total>0)){toast('El pedido no tiene importe.',1);return null}
+  const{data:ya}=await sb.from('facturas_venta').select('tipo,numero').eq('pedido_id',o.id).limit(1);
+  if(ya?.length){toast('Este pedido ya tiene la factura '+ya[0].tipo+' N° '+ya[0].numero+'.',1);return null}
+  const tipo=c.condicion_iva=='responsable_inscripto'?'A':'B';
+  const{data:u}=await sb.from('facturas_venta').select('numero').eq('tipo',tipo).order('numero',{ascending:false}).limit(1);
+  const v=new Date();v.setDate(v.getDate()+(c.condicion_pago_dias||0));
+  const{data:f,error}=await sb.from('facturas_venta').insert({tipo,numero:(u?.[0]?.numero||0)+1,cliente_id:c.id,pedido_id:o.id,vencimiento:diaLocal(v),total:o.total}).select().single();
+  if(error){toast(error.message,1);return null}
+  return f}
+async function cambiarEstado(o,e){const{error}=await sb.from('pedidos').update({estado:e}).eq('id',o.id);
+  if(error){toast(error.message,1);return false}o.estado=e;cargarStock();return true}
+async function listaPedidos(){
+  S.pf=S.pf||'abiertos';
+  $('#pl').outerHTML=`<div class="sub" id="pfil">${FILTROS.map(([k,t])=>`<button class="${S.pf==k?'':'alt'}" data-pf="${k}">${t}</button>`).join('')}</div><div id="pl">Cargando…</div>`;
+  $$('[data-pf]').forEach(b=>b.onclick=()=>{S.pf=b.dataset.pf;$$('[data-pf]').forEach(x=>x.className=x.dataset.pf==S.pf?'':'alt');cargar()});
+  const cargar=async()=>{
+    let q=sb.from('pedidos').select('*,clientes(razon_social)').order('numero',{ascending:false}).limit(30);
+    if(S.pf=='abiertos')q=q.not('estado','in','(entregado,cancelado)');else if(S.pf!='todos')q=q.eq('estado',S.pf);
+    const{data,error}=await q;if(error){$('#pl').innerHTML='<p class="err">'+esc(error.message)+'</p>';return}
+    const ids=data.map(o=>o.id),fac={};
+    if(ids.length){const{data:F}=await sb.from('facturas_venta').select('pedido_id,tipo,numero').in('pedido_id',ids);for(const f of F||[])fac[f.pedido_id]=f}
+    $('#pl').innerHTML=data.length?data.map(o=>{const f=fac[o.id],sig=SIG[o.estado],cerr=o.estado=='cancelado';
+      const prin=o.estado=='pendiente'
+        ?`<button data-ap="${o.id}">Aprobar</button>${f?'':`<button data-apf="${o.id}">Aprobar y facturar</button>`}`
+        :(sig?`<button data-sig="${o.id}">${sig[1]}</button>`:'');
+      const fb=cerr?'':(f?`<span class="fac">Factura ${f.tipo} N° ${f.numero}</span>`:(o.estado=='pendiente'?'':`<button data-fa="${o.id}">Facturar</button>`));
+      return `<div class="ped est-${o.estado}">
+        <div class="ped-top"><b>N° ${o.numero}</b> <span class="cli">${esc(o.clientes?.razon_social)}</span><span class="tot">${$m(o.total)}</span></div>
+        <div class="ped-acc"><span class="badge b-${o.estado}">${EST_TXT[o.estado]||o.estado}</span>${prin}${fb}
+          <button class="alt wa" data-w="${o.id}">WhatsApp</button><button class="alt" data-pdf="${o.id}">PDF</button>
+          <select class="mas" data-e="${o.id}" aria-label="Cambiar estado"><option value="">Más…</option>${ESTADOS.filter(e=>e!=o.estado).map(e=>`<option value="${e}">${e=='cancelado'?'Cancelar pedido':'Pasar a: '+EST_TXT[e]}</option>`).join('')}</select></div></div>`}).join('')
+      :'<p><small>No hay pedidos en esta lista.</small></p>';
+    const ped=id=>data.find(x=>x.id==id);
+    $$('#pl [data-ap]').forEach(b=>b.onclick=async()=>{b.disabled=true;if(await cambiarEstado(ped(b.dataset.ap),'aprobado'))toast('Pedido N° '+ped(b.dataset.ap).numero+' aprobado.');cargar()});
+    $$('#pl [data-apf]').forEach(b=>b.onclick=async()=>{b.disabled=true;const o=ped(b.dataset.apf);
+      if(!await cambiarEstado(o,'aprobado'))return cargar();const f=await facturarPedido(o);
+      if(f)toast('Pedido N° '+o.numero+' aprobado y facturado: '+f.tipo+' N° '+f.numero+' por '+$m(f.total)+'.');cargar()});
+    $$('#pl [data-sig]').forEach(b=>b.onclick=async()=>{b.disabled=true;const o=ped(b.dataset.sig),n=SIG[o.estado][0];
+      if(await cambiarEstado(o,n))toast('Pedido N° '+o.numero+': '+EST_TXT[n]+'.');cargar()});
+    $$('#pl [data-fa]').forEach(b=>b.onclick=async()=>{b.disabled=true;const o=ped(b.dataset.fa),f=await facturarPedido(o);
+      if(f)toast('Factura '+f.tipo+' N° '+f.numero+' generada por '+$m(f.total)+'.');cargar()});
+    $$('#pl [data-e]').forEach(s=>s.onchange=async()=>{const o=ped(s.dataset.e),e=s.value;if(!e)return;
+      if(e=='cancelado'&&!confirm('¿Cancelar el pedido N° '+o.numero+'? Se libera la mercadería reservada.')){s.value='';return}
+      if(await cambiarEstado(o,e))toast('Pedido N° '+o.numero+': '+EST_TXT[e]+'.');cargar()});
+    $$('#pl [data-w]').forEach(b=>b.onclick=()=>enviarWA(ped(b.dataset.w)));
+    $$('#pl [data-pdf]').forEach(b=>b.onclick=()=>pedidoPDF(ped(b.dataset.pdf)));
+  };
+  cargar();
 }
 
 /* ---------- Pedido por WhatsApp / PDF ---------- */
