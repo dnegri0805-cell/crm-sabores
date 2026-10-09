@@ -120,8 +120,8 @@ async function init(){
   if(!p||!p.activo){app.innerHTML='<div class="box login"><p>Tu usuario todavía no está activado. Pedile al dueño que lo active.</p><button onclick="out()">Salir</button></div>';return}
   S.perfil=p;
   const[c,pr]=await Promise.all([
-    sb.from('clientes').select('*').eq('activo',true).order('razon_social'),
-    sb.from('precios_productos').select('producto_id,codigo,descripcion,familia,marca,costo,precio_mayorista,precio_minorista,precio_especial').order('descripcion').range(0,4999)]);
+    todo(()=>sb.from('clientes').select('*').eq('activo',true).order('razon_social').order('id')),
+    todo(()=>sb.from('precios_productos').select(PROD_COLS).order('descripcion').order('producto_id'))]);
   if(c.error||pr.error){app.innerHTML='<div class="box login"><p class="err">No se pudieron cargar los datos: '+esc((c.error||pr.error).message)+'</p><button onclick="out()">Salir</button></div>';return}
   S.clientes=c.data;S.productos=pr.data;await cargarStock();shell();
 }
@@ -131,11 +131,15 @@ function shell(){
   ({inicio:vInicio,pedidos:vPedidos,clientes:vClientes,cobranza:vCobranza,compras:vCompras,stock:vStock,precios:vPrecios,reportes:vReportes})[S.tab]();
 }
 
+/* Supabase devuelve como máximo 1000 filas por pedido: esto trae todas, de a tandas */
+async function todo(armar){let out=[],i=0;for(;;){const{data,error}=await armar().range(i,i+999);if(error)return{data:out,error};out=out.concat(data);if(data.length<1000)return{data:out,error:null};i+=1000}}
+const PROD_COLS='producto_id,codigo,descripcion,familia,marca,costo,precio_mayorista,precio_minorista,precio_especial';
+
 /* Stock: físico, reservado, disponible y mínimo por producto */
 S.stock={};S.stockOk=false;S.min={};
 async function cargarStock(){
-  const[st,mi]=await Promise.all([sb.from('stock').select('producto_id,fisico,reservado,disponible').range(0,4999),
-    sb.from('productos').select('id,stock_minimo,activo,proveedor_id').range(0,4999)]);
+  const[st,mi]=await Promise.all([todo(()=>sb.from('stock').select('producto_id,fisico,reservado,disponible').order('producto_id')),
+    todo(()=>sb.from('productos').select('id,stock_minimo,activo,proveedor_id').order('id'))]);
   S.stockOk=!st.error;S.stock={};S.inv=false;
   for(const r of st.data||[]){S.stock[r.producto_id]={f:+r.fisico||0,r:+r.reservado||0,d:r.disponible!=null?+r.disponible:(+r.fisico||0)-(+r.reservado||0)};if(+r.fisico)S.inv=true}
   S.min={};for(const r of mi.data||[])S.min[r.id]={m:+r.stock_minimo||0,a:r.activo!==false,pv:r.proveedor_id};
@@ -313,7 +317,7 @@ function vClientes(){
 }
 
 /* ---------- Precios y márgenes ---------- */
-async function recargarProductos(){const{data,error}=await sb.from('precios_productos').select('producto_id,codigo,descripcion,familia,marca,costo,precio_mayorista,precio_minorista,precio_especial').order('descripcion').range(0,4999);if(!error)S.productos=data}
+async function recargarProductos(){const{data,error}=await todo(()=>sb.from('precios_productos').select(PROD_COLS).order('descripcion').order('producto_id'));if(!error)S.productos=data}
 const pctf=n=>Number(n).toLocaleString('es-AR',{maximumFractionDigits:2})+' %';
 const numAR=x=>{x=String(x??'').trim().replace(/\$|\s/g,'');if(!x)return null;if(x.includes(','))x=x.replace(/\./g,'').replace(',','.');else if(/^\d{1,3}(\.\d{3})+$/.test(x))x=x.replace(/\./g,'');const n=Number(x);return isFinite(n)?n:NaN};
 async function vPrecios(){
@@ -433,10 +437,10 @@ async function vReportes(){
   </div>`;
   $$('[data-rp]').forEach(b=>b.onclick=()=>{S.rp=b.dataset.rp;$$('[data-rp]').forEach(x=>x.className=x.dataset.rp==S.rp?'':'alt');pintar()});
   const[pe,co]=await Promise.all([
-    sb.from('pedidos').select('id,numero,total,estado,cliente_id,fecha,creado_en,created_at,clientes(razon_social),pedido_items(producto_id,cantidad,precio_unitario)').not('estado','in','(pendiente,cancelado)').order('numero',{ascending:false}).range(0,4999),
-    sb.from('productos').select('id,costo').range(0,4999)]);
+    todo(()=>sb.from('pedidos').select('id,numero,total,estado,cliente_id,fecha,creado_en,created_at,clientes(razon_social),pedido_items(producto_id,cantidad,precio_unitario)').not('estado','in','(pendiente,cancelado)').order('numero',{ascending:false})),
+    todo(()=>sb.from('productos').select('id,costo').order('id'))]);
   let P=pe.data;
-  if(pe.error){const r2=await sb.from('pedidos').select('*,clientes(razon_social),pedido_items(producto_id,cantidad,precio_unitario)').not('estado','in','(pendiente,cancelado)').order('numero',{ascending:false}).range(0,4999);
+  if(pe.error){const r2=await todo(()=>sb.from('pedidos').select('*,clientes(razon_social),pedido_items(producto_id,cantidad,precio_unitario)').not('estado','in','(pendiente,cancelado)').order('numero',{ascending:false}));
     if(r2.error){$('#rp_g').innerHTML='<p class="err">No se pudieron leer los pedidos: '+esc(r2.error.message)+'</p>';return}P=r2.data}
   const costo={};for(const r of co.data||[])costo[r.id]=Number(r.costo)||0;
   for(const o of P)o._d=fechaDe(o)?diaLocal(fechaDe(o)):'';
