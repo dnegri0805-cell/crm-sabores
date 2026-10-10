@@ -7,7 +7,7 @@ Guía ordenada por sección para consultar o pasarle al equipo. Cada punto dice 
 - **CRM (uso interno):** https://dnegri0805-cell.github.io/crm-sabores/ — se entra con usuario y contraseña.
 - **Catálogo de cada cliente:** link personal `pedido.html?c=…` que se manda desde la ficha del cliente (botón de WhatsApp). Cada cliente ve sus precios, su cuenta y sus promos.
 - **Catálogo público (sin precios de cliente):** `pedido.html?ver=catalogo` — para redes, folletos y nuevos clientes.
-- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-10.10`). Si algo "no aparece", cerrá y abrí la pestaña.
+- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-10.11`). Si algo "no aparece", cerrá y abrí la pestaña.
 - **En el celular:** abrí el CRM en Chrome → menú ⋮ → *Agregar a pantalla de inicio*. Queda como una app.
 - **Menú principal:** Inicio · Pedidos · Ventas · Reparto · Clientes · Cobranza · Caja · Compras · Stock · Precios · Reportes · Contable · Manual. Los números en rojo indican cosas pendientes.
 
@@ -17,6 +17,7 @@ Es el tablero del día. Arriba muestra el **objetivo del mes y la proyección** 
 
 Debajo aparecen tarjetas de aviso; cada una lleva a la pantalla donde se actúa:
 
+- **🎯 Metas de captación:** avance de la semana y aviso si vas atrasado.
 - **⚡ Cola del día:** cuántos mensajes hay listos para mandar hoy, con botón *Empezar*.
 - **Plan del día:** a quién llamar o visitar hoy, ya priorizado.
 - **Les toca comprar:** clientes que por su frecuencia ya deberían pedir.
@@ -46,8 +47,8 @@ Debajo aparecen tarjetas de aviso; cada una lleva a la pantalla donde se actúa:
 
 **Dónde:** menú *Ventas* (abre en *Cola del día*). Los botones de arriba cambian de pantalla; casi todas tienen botón de **WhatsApp con el mensaje ya armado**.
 
-- **⚡ Cola del día:** todos los mensajes que conviene mandar hoy, ya escritos y ordenados: carritos sin enviar, miraron el catálogo, llegó lo que esperaban, les toca comprar (con su **pedido sugerido**), secuencias para que vuelvan, **cupón automático a dormidos**, clientes nuevos, deudas, ofertas automáticas y prospectos. Tocás **▶ Empezar ráfaga**: se abre WhatsApp con el mensaje, lo mandás, volvés y sigue el próximo. Cada cliente aparece una vez por día y nada se repite. Abajo, **Resultados**: cuántos compraron en los 7 días siguientes y cuántos cupones se usaron.
-- **⚙️ Automatizaciones:** las reglas de la cola. Secuencia para que vuelvan a comprar (por días sin comprar: mensaje, mensaje, llamada), cupón a dormidos (días, %, vencimiento), pedido sugerido el día justo, **ofertas automáticas** por sobrestock o vencimiento (opcional: que se creen solas), primeros 90 días, secuencia de prospección (día 0 presentación, día 3 kit de primer pedido, día 7 visita), carritos, miraron y deudas. Todos los textos se pueden editar.
+- **⚡ Cola del día:** todos los mensajes que conviene mandar hoy, ya escritos y ordenados: carritos sin enviar, miraron el catálogo, llegó lo que esperaban, les toca comprar (con su **pedido sugerido**), secuencias para que vuelvan, **cupón automático a dormidos**, clientes nuevos, deudas, ofertas automáticas y prospectos. Tocás **▶ Empezar ráfaga**: se abre WhatsApp con el mensaje, lo mandás, volvés y sigue el próximo. Cada cliente aparece una vez por día y nada se repite. También entran: campañas programadas, presupuestos y pedidos sugeridos **sin respuesta**, el "¿llegó todo bien?" del día después de la entrega, los que **calificaron mal** (arriba de todo, para llamarlos), el pedido de **recomendación**, la **venta cruzada** y los **prospectos fríos**. Si hay clientes que suelen pedir a otra hora, la cola se divide en **⏰ Mandar ahora** y **🕐 Más tarde**. En la ráfaga, el botón **💬 Respuestas** tiene las respuestas rápidas. Abajo, **Resultados**: cuántos compraron en los 7 días siguientes y cuántos cupones se usaron.
+- **⚙️ Automatizaciones:** las reglas de la cola. Secuencia para que vuelvan a comprar (por días sin comprar: mensaje, mensaje, llamada), cupón a dormidos (días, %, vencimiento), pedido sugerido el día justo, **ofertas automáticas** por sobrestock o vencimiento (opcional: que se creen solas), primeros 90 días, secuencia de prospección (día 0 presentación, día 3 kit de primer pedido, día 7 visita), seguimiento de lo que quedó sin respuesta, después de la entrega, aviso de malas notas, venta cruzada (con cupón para probar), pedir recomendación, revivir prospectos fríos, carritos, miraron y deudas. Todos los textos se pueden editar. **🧪 Prueba A/B:** en varios mensajes podés escribir una *versión B*; la mitad de los clientes recibe cada una y a las 2 semanas queda sola la que más vendió. Al final, las **💬 Respuestas rápidas** (pedido mínimo, entregas, pago, zona, cómo pedir, lista de precios).
 - **📋 Plan del día:** lista priorizada de a quién contactar hoy y por qué. Empezá el día por acá.
 - **📞 Les toca comprar:** clientes que ya deberían pedir. Trae **pedido sugerido** y un **📋 Guion** de llamada.
 - **👀 Miraron el catálogo:** entraron a su link pero no pidieron. Momento ideal para escribirles.
@@ -60,8 +61,9 @@ Debajo aparecen tarjetas de aviso; cada una lleva a la pantalla donde se actúa:
 - **👋 Bienvenida y aniversarios:** mensajes para clientes nuevos y para quienes cumplen tiempo con nosotros.
 - **🌱 Primeros 90 días:** clientes nuevos y en qué pedido van (●○○). Si no hacen el 2° pedido les llega un mensaje; si no hacen el 3°, un cupón. Muestra qué % quedó como cliente fijo.
 - **🆘 Reclamos:** reclamos hechos desde "Mi cuenta" del cliente; respondé y cerralos.
-- **🧲 Embudo de prospectos:** Nuevo → Contactado → Visitado → Interesado → Ya es cliente.
+- **🧲 Embudo de prospectos:** Nuevo → Contactado → Visitado → Interesado → Ya es cliente. Botón **📋 Pegar una lista de prospectos** (nombre y teléfono por fila) y 💬 respuestas rápidas.
 - **🚶 Ruta de prospección:** con tu ubicación (o una dirección) arma el recorrido con los prospectos más cercanos, con una frase para cada rubro. En cada negocio tocás 👍 Le interesa · 🔁 Volver · 👎 No · 🧾 Hizo pedido (lo da de alta en el momento). Botón para abrir la ruta en Google Maps.
+- **🧭 Zonas sin cubrir:** mapa con las zonas donde ya tenés clientes (verde) y las vecinas donde todavía no (naranja), con botones para buscar negocios o armar la ruta en esa zona.
 - **🗺️ Buscar negocios:** busca kioscos, almacenes, dietéticas, etc. en una zona y los carga como prospectos.
 - **🧊 Exhibidores:** heladeras y exhibidores prestados en comodato: a quién, desde cuándo y si rinde.
 
@@ -87,7 +89,8 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 ## 6. Ventas · Difundir
 
 - **🔳 QR por campaña:** un QR propio para cada volante, cartel, vendedor o zona. Ves escaneos, pedidos de alta, pedidos web, clientes y cuánto compraron. Se descarga el QR o se imprimen 4 volantes por hoja.
-- **📣 Campañas:** mensaje masivo por WhatsApp a un grupo de clientes (por zona, rubro, nivel, etc.), uno por uno con su link.
+- **📣 Campañas:** además de mandarla ahora, la podés **📅 programar** para otro día: ese día aparece sola en la Cola del día.
+- **📣 Campañas (cómo armarla):** mensaje masivo por WhatsApp a un grupo de clientes (por zona, rubro, nivel, etc.), uno por uno con su link.
 - **📋 Novedades semanal:** arma el mensaje semanal con ofertas y novedades listo para enviar.
 - **📅 Fechas:** calendario comercial (Día del Padre, Pascuas, Navidad…) con productos sugeridos para cada fecha.
 - **🏪 Por rubro:** mensajes y productos pensados para kioscos, dietéticas, almacenes, etc.
@@ -100,7 +103,7 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 
 ## 7. Ventas · Analizar
 
-- **🧲 Captación:** prospectos nuevos, cuántos pasaron a cliente, clientes nuevos y su venta, semana a semana, **de dónde vienen** (QR, Buscar negocios, catálogo público, recomendación, visita) y por vendedor.
+- **🧲 Captación:** prospectos nuevos, cuántos pasaron a cliente, clientes nuevos y su venta, semana a semana, **de dónde vienen** (QR, Buscar negocios, catálogo público, recomendación, visita) y por vendedor. Abajo, las **🎯 metas de captación semanales** (prospectos contactados, visitas y clientes nuevos), que se ven en Inicio con su avance.
 - **📊 Resumen semanal:** cómo fue la semana contra la anterior.
 - **🏭 Metas y reintegros:** objetivos por proveedor/marca y reintegros que te deben.
 - **🕐 Cuándo piden:** días y horarios en que entran los pedidos (para saber cuándo mandar mensajes).
