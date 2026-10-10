@@ -225,6 +225,9 @@ input,textarea{border:2px solid #ece3d6;border-radius:14px}
 .mor{background:#fdecea;color:#7f1d1d;border-radius:16px;padding:12px 14px;margin:10px 0;font-size:14px}.mor .mp{margin-top:8px}
 .inst{display:flex;gap:10px;align-items:center;background:#17213a;color:#fff;border-radius:16px;padding:10px 12px;margin:8px 0;font-size:14px}.inst img{width:40px;height:40px;border-radius:10px;background:#fff}.inst div{flex:1}.inst button{border:0;border-radius:999px;padding:8px 12px;font-weight:700;background:var(--sol,#ffc93c);color:#4a3000}.inst a{color:#fff;opacity:.7;cursor:pointer;padding:0 4px}
 .liga{background:linear-gradient(120deg,#fff4d1,#ffe6a8);border-radius:16px;padding:10px 14px;margin:8px 0;font-size:14px}.acu{background:#eef4ff;color:#1e3a8a;border-radius:14px;padding:10px 12px;margin:8px 0;font-size:14px}.acu .pgb{margin-top:6px}
+.bio{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:10px;padding:8px 0}.bio .bb{display:block;text-align:center;padding:16px;border-radius:999px;font-weight:800;font-size:17px;text-decoration:none;border:2px solid var(--m);background:#fff;color:var(--m)}.bio .bb.prim{background:var(--m);color:#fff}.bio .bb.wsp{background:#25d366;border-color:#25d366;color:#fff}
+.biog{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.biog .bp{background:#fff;border-radius:14px;padding:8px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:4px;font-size:12px;box-shadow:var(--sombra)}.biog img,.biog .i0{width:100%;height:80px;object-fit:contain;border-radius:10px;background:#fff;display:flex;align-items:center;justify-content:center}.biog s{color:var(--mu);font-weight:400}
+.sorteo input{display:block;width:100%;margin:8px 0}
 .opi{margin:16px 0}.opi h3{margin:0 0 8px}.opl{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x mandatory}.op{flex:0 0 240px;scroll-snap-align:start;background:#fff;border-radius:16px;padding:12px;box-shadow:var(--sombra)}.op p{margin:6px 0;font-size:14px}.op small{color:var(--mu)}.op .es{color:#e0a100;letter-spacing:2px}
 </style>
 </head>
@@ -235,7 +238,7 @@ input,textarea{border:2px solid #ece3d6;border-radius:14px}
 <div id="t" class="toast" hidden></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
-const VERSION='2026-10-10.13';
+const VERSION='2026-10-10.14';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -245,7 +248,21 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const $m=n=>'$ '+Number(n||0).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const norm=t=>String(t??'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
 const QS=new URLSearchParams(location.search),SUG=QS.has('sug'),RUB=(QS.get('rubro')||'').trim().slice(0,40),token=QS.get('c')||'',ENC=QS.get('enc'),PRE=QS.get('pre'),REF=(QS.get('ref')||'').trim().toUpperCase().slice(0,12),QRC=(()=>{let q=(QS.get('qr')||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,16);try{if(q)sessionStorage.setItem('qrc',q);else q=sessionStorage.getItem('qrc')||''}catch(e){}return q})();
-let OPI=[],EST={};const cargarEst=()=>sb.rpc('estrategia_cliente',{p_token:PUB?null:token}).then(({data})=>{if(data&&typeof data=='object'){EST=data;if(P.length&&typeof lista=='function')lista()}},()=>{});
+const MODO=QS.get('ver')||'',BIO=MODO=='bio';
+function vistaBio(){document.title='Sabores de mi País';$('#hc').textContent='Distribuidora de alimentos · pedí online';const tel=telLimpio(C.tel);
+  const of=P.filter(p=>!p.combo&&promoP(p,1)).sort((a,b)=>!!b.img-!!a.img).slice(0,6);
+  $('#m').innerHTML=`<div class="bio"><a class="bb prim" href="pedido.html?ver=catalogo">🛒 Ver catálogo y precios</a><button class="bb" id="bio_a">🏪 Quiero ser cliente</button>${tel?`<a class="bb wsp" href="https://wa.me/${tel}?text=${encodeURIComponent('¡Hola! Los vi en Instagram y quiero hacer un pedido 👋')}" target="_blank" rel="noopener">💬 Escribinos por WhatsApp</a>`:''}
+    ${of.length?`<h3>🔥 Ofertas de la semana</h3><div class="biog">${of.map(p=>`<a class="bp" href="pedido.html?ver=catalogo">${p.img?`<img src="${esc(p.img)}" alt="" loading="lazy">`:'<span class="i0">'+esc((p.d||'?')[0])+'</span>'}<small>${esc(p.d)}</small><b><s>${$m(p.p)}</s> ${$m(puP(p,1))}</b></a>`).join('')}</div>`:''}
+    ${OPI.length?`<div class="opi"><h3>⭐ Lo que dicen nuestros clientes</h3><div class="opl">${OPI.map(o=>`<div class="op"><div class="es">${'★'.repeat(+o.p||5)}</div><p>“${esc(o.t)}”</p><small>${esc(o.n)}${o.r?' · '+esc(o.r):''}</small></div>`).join('')}</div></div>`:''}
+    <p class="mas">📦 Entregamos en tu local · precios mayoristas para kioscos, almacenes y dietéticas</p></div>`;
+  $('#bio_a').onclick=altaCliente}
+function vistaSorteo(){const pr=(QS.get('p')||'').slice(0,120);document.title='Sorteo · Sabores de mi País';$('#hc').textContent='Sorteo para comerciantes';
+  $('#m').innerHTML=`<div class="msg sorteo"><h2>🎁 Sorteo para comerciantes</h2>${pr?`<p>Sorteamos: <b>${esc(pr)}</b></p>`:''}<p style="color:var(--mu)">Anotate con los datos de tu negocio. El ganador se elige al azar entre los anotados y lo avisamos por WhatsApp.</p>
+    <input id="sn" placeholder="Nombre del negocio"><input id="st" inputmode="tel" placeholder="WhatsApp (ej. 11 5555 1234)"><input id="sr" placeholder="Rubro (kiosco, almacén, dietética…)"><input id="si" placeholder="Tu Instagram (@tunegocio)"><button class="prim" id="sg">Participar</button></div>`;
+  $('#sg').onclick=async e=>{const v=k=>$(k).value.trim();if(v('#sn').length<2)return toast('Poné el nombre del negocio.');if(!telLimpio(v('#st')))return toast('Poné un WhatsApp válido.');e.target.disabled=true;
+    const ig=v('#si')?'@'+v('#si').replace(/^@/,''):'';const{error}=await sb.rpc('alta_web',{p_nombre:v('#sn'),p_telefono:v('#st'),p_domicilio:null,p_rubro:v('#sr')||null,p_contacto:ig||null,p_cuit:null,p_nota:'Sorteo Instagram'+(ig?' · '+ig:'')+(pr?' · '+pr:'')});
+    if(error){e.target.disabled=false;return toast(error.message)}marcarQR(v('#st'));$('#m').innerHTML='<div class="msg"><div class="ok">✓</div><h2>¡Ya estás participando!</h2><p>Te avisamos por WhatsApp si ganás. Mientras, mirá nuestro catálogo con precios mayoristas:</p><a class="prim" style="display:inline-block;padding:12px 20px;border-radius:999px;text-decoration:none" href="pedido.html?ver=catalogo">Ver catálogo</a></div>'}}
+let OPI=[],EST={};const cargarEst=()=>sb.rpc('estrategia_cliente',{p_token:PUB?null:token}).then(({data})=>{if(data&&typeof data=='object'){EST=data;if(P.length&&!BIO&&typeof lista=='function')lista()}},()=>{});
 function ligaHTML(){const g=EST.liga;if(PUB||!g||!g.pos)return '';const pr=g.premios||[];
   return `<div class="liga">🏆 <b>Liga de ${esc(String(g.rubro).toLowerCase())}s</b> de este mes: vas <b>${g.pos}° de ${g.total}</b>. ${g.pos==1?'¡Vas primero! 🥇':g.falta>0?'Te faltan <b>'+$m(g.falta)+'</b> en compras para subir al '+(g.pos-1)+'°.':''}${pr.length?`<br><small>Premios: 🥇 ${esc(pr[0]||'')} · 🥈 ${esc(pr[1]||'')} · 🥉 ${esc(pr[2]||'')}</small>`:''}</div>`}
 function acuerdoHTML(){const a=EST.acuerdo;if(PUB||!a||!(+a.monto>0))return '';const p=Math.min(100,Math.round(+a.lleva/+a.monto*100));
@@ -307,11 +324,12 @@ sb.rpc('marca_publica').then(({data})=>{if(data){aplicarMarca(data);try{localSto
 async function iniciar(){
   if(ENC)return encuesta();if(PRE)return presupuesto();
   if(PUB&&QRC){try{if(!sessionStorage.getItem('qrv'+QRC)){sessionStorage.setItem('qrv'+QRC,'1');sb.rpc('registrar_qr',{p_codigo:QRC}).then(()=>{},()=>{})}}catch(e){}}
+  if(PUB&&MODO=='sorteo')return vistaSorteo();
   cargarEst();
-  if(PUB)sb.rpc('opiniones_publicas').then(({data})=>{if(Array.isArray(data)&&data.length){OPI=data;if(typeof lista=='function'&&P.length)lista()}},()=>{});
+  if(PUB)sb.rpc('opiniones_publicas').then(({data})=>{if(Array.isArray(data)&&data.length){OPI=data;if(BIO&&C)vistaBio();else if(typeof lista=='function'&&P.length)lista()}},()=>{});
   if(PUB){const a={};if(REF)a.p_ref=REF;if(RUB)a.p_rubro=RUB;const{data,error}=Object.keys(a).length?await sb.rpc('catalogo_publico',a):await sb.rpc('catalogo_publico');
     if(error){$('#hc').textContent='';$('#m').innerHTML=`<div class="msg"><h2>Catálogo no disponible</h2><p class="err">${esc(/catalogo_publico/.test(error.message)?'El catálogo todavía no está activado.':error.message)}</p></div>`;return}
-    C=data;P=(data.productos||[]).filter(p=>p.p>0);hayFotos=P.some(p=>p.img);armarCombos();cargarCarrito();
+    C=data;P=(data.productos||[]).filter(p=>p.p>0);hayFotos=P.some(p=>p.img);armarCombos();cargarCarrito();if(BIO)return vistaBio();
     document.title='Catálogo · Sabores de mi País';$('#hc').textContent=(C.rubro?'Catálogo para '+C.rubro.toLowerCase():'Catálogo de productos')+' · precios con IVA';pintar();return}
   if(!token){$('#hc').textContent='';$('#m').innerHTML='<div class="msg"><h2>Falta el link</h2><p>Abrí el link que te mandamos por WhatsApp para ver tu catálogo.</p></div>';return}
   const{data,error}=await sb.rpc('catalogo_cliente',{p_token:token});

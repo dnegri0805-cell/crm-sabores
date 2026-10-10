@@ -7,7 +7,7 @@ Guía ordenada por sección para consultar o pasarle al equipo. Cada punto dice 
 - **CRM (uso interno):** https://dnegri0805-cell.github.io/crm-sabores/ — se entra con usuario y contraseña.
 - **Catálogo de cada cliente:** link personal `pedido.html?c=…` que se manda desde la ficha del cliente (botón de WhatsApp). Cada cliente ve sus precios, su cuenta y sus promos.
 - **Catálogo público (sin precios de cliente):** `pedido.html?ver=catalogo` — para redes, folletos y nuevos clientes.
-- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-10.13`). Si algo "no aparece", cerrá y abrí la pestaña.
+- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-10.14`). Si algo "no aparece", cerrá y abrí la pestaña.
 - **En el celular:** abrí el CRM en Chrome → menú ⋮ → *Agregar a pantalla de inicio*. Queda como una app.
 - **Menú principal:** Inicio · Pedidos · Ventas · Reparto · Clientes · Cobranza · Caja · Compras · Stock · Precios · Reportes · Contable · Manual. Los números en rojo indican cosas pendientes.
 
@@ -114,6 +114,15 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 - **📢 Cambios de precio:** lista de lo que subió o bajó para avisar a clientes.
 - **📱 Estados de WhatsApp:** imágenes listas para subir a tus estados.
 - **🖼️ Tarjeta de producto:** imagen de un producto con precio para compartir.
+
+## 6 bis. Ventas · Instagram
+
+- **📸 Contenido:** imágenes listas en formato publicación (1080×1350) e historia (1080×1920) para 🔥 oferta, ✨ novedad, 🎁 combo, ⏳ oferta por cupo, 🏆 **Top 5 de la semana** (carrusel con tus ventas reales) y ⭐ **testimonios** (las opiniones que publicaste). Cada una trae su **texto y hashtags de tu zona** para copiar. Arriba cargás tu usuario, zona y hashtags propios.
+- **🗓️ Calendario y reels:** qué publicar cada día de la semana con tus datos (botón Armar) y **guiones de reels** (llegó mercadería, lo que más venden los kioscos, así armamos tu pedido, cuánto ganás con un producto) para copiar.
+- **🔗 Página para la bio:** tu página propia con catálogo, ofertas, "Quiero ser cliente", WhatsApp y opiniones. Pegá el link en la bio de Instagram: lo que entra por ahí queda como **📸 Instagram** en Captación, con visitas, altas, pedidos y clientes.
+- **🎁 Sorteo:** creás el sorteo (premio y cierre), te arma la imagen, el texto con las bases y el link del formulario. Los anotados quedan como prospectos con su secuencia; al cerrar, **🎲 Elegir ganador** al azar y la imagen para anunciarlo.
+- **📥 Prospectos de Instagram:** cargás negocios que encontrás en Instagram (con su @), abrís su perfil y copiás el mensaje directo listo. Cuando te pasan el WhatsApp, lo cargás y arranca la secuencia de la Cola.
+- **🛍️ Catálogo para Shopping:** descarga tus productos (con foto) en el formato de Meta para subirlos al Commerce Manager y etiquetarlos en las publicaciones.
 
 ## 7. Ventas · Analizar
 
