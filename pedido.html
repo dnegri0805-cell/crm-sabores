@@ -193,6 +193,11 @@ input,textarea{border:2px solid #ece3d6;border-radius:14px}
 .rel{background:linear-gradient(135deg,#111,#3a2a00);border-radius:24px;padding:4px 12px 12px;margin:16px 0}.rel .sec-t h2{color:var(--sol,#ffc93c)}.rel .sec-t small{color:#fff;background:rgba(255,255,255,.12);padding:4px 10px;border-radius:999px;font-variant-numeric:tabular-nums;font-weight:700}
 .sur .sec-t h2{font-size:18px}.sgb{width:100%;margin:8px 0 4px;background:var(--sol2,#fff4d1);color:#5a3a00;border:2px solid var(--sol,#ffc93c);border-radius:999px;padding:12px;font-weight:700}
 .dsf{background:var(--sol2,#fff4d1);border-radius:16px;padding:12px 14px;margin:12px 0}.dsf .pgb{margin-top:6px}
+/* ===== Ventas 4 ===== */
+.aum{background:linear-gradient(120deg,#b3261e,#e0322b);color:#fff;border-radius:18px;padding:12px 14px;margin:10px 0;font-size:15px;line-height:1.35}.aum small{display:inline-block;background:rgba(255,255,255,.2);border-radius:999px;padding:2px 10px;margin-top:4px;font-variant-numeric:tabular-nums;font-weight:700}
+.fij{background:var(--crema,#fbf6ee);border-radius:14px;padding:10px 12px;margin:8px 0;font-size:14px}.fij label{display:flex;gap:8px;align-items:center}.fij input[type=checkbox]{width:22px;height:22px;margin:0}
+.dch{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.dch button{border:2px solid var(--m);background:#fff;color:var(--m);border-radius:999px;padding:6px 12px;font-weight:700}.dch button.on{background:var(--m);color:#fff}
+.alta input{margin-bottom:8px}
 </style>
 </head>
 <body>
@@ -237,8 +242,9 @@ const pl=(t,n)=>{t=String(t||'Caja').toLowerCase();return n==1?t:(t.endsWith('s'
 function promoP(p,q,cerca){if(p.combo||p.pac)return null;let best=null;for(const r of (C?.promos||[])){const av=String(r.av||'').toUpperCase();
   if(r.a=='marca'&&String(p.m||'').toUpperCase()!==av)continue;if(r.a=='familia'&&String(p.f||'').toUpperCase()!==av)continue;if(r.a=='producto'&&String(p.id)!==String(r.av))continue;
   if(r.mt=='bulto'&&!(p.b>1))continue;if(!cerca){if(r.mt=='unidades'&&q<r.mu)continue;if(r.mt=='bulto'&&q<p.b)continue}
-  if(!best||+r.pct>+best.pct)best=r}return best}
-const condP=(r,p)=>r.mt=='bulto'?'llevando 1 '+String(p.tb||'caja').toLowerCase()+' o más':r.mt=='unidades'?(p.b>1&&r.mu%p.b==0?'llevando '+(r.mu/p.b)+' '+pl(p.tb,r.mu/p.b):'desde '+r.mu+' u.'):'';
+  const ef=/^Bonificación/.test(r.n||'')&&r.mt=='unidades'&&r.mu>0?{...r,bon:true,pct0:+r.pct,pct:q>0?+r.pct*Math.floor(q/r.mu)*r.mu/q:+r.pct}:r;
+  if(!best||+ef.pct>+best.pct||(cerca&&ef.bon&&!best.bon&&+ef.pct0>+best.pct))best=ef}return best}
+const condP=(r,p)=>r.bon||/^Bonificación/.test(r.n||'')?'llevá '+r.mu+', pagá '+Math.round(r.mu*(1-(r.pct0??r.pct)/100)):r.mt=='bulto'?'llevando 1 '+String(p.tb||'caja').toLowerCase()+' o más':r.mt=='unidades'?(p.b>1&&r.mu%p.b==0?'llevando '+(r.mu/p.b)+' '+pl(p.tb,r.mu/p.b):'desde '+r.mu+' u.'):'';
 const puP=(p,q)=>{const r=promoP(p,q);return r?Math.round(p.p*(1-r.pct/100)*100)/100:p.p};
 function enB(p,q){if(!(p.b>1)||q<p.b)return '';const c=Math.floor(q/p.b),r=q-c*p.b;return c+' '+pl(p.tb,c)+(r?' + '+nf(r)+' u.':'')}
 function sugeridos(){const co=C?.co||{},sc={};for(const id of Object.keys(car))(co[id]||[]).forEach((y,i)=>{if(!car[y]&&P.some(p=>p.id==y))sc[y]=(sc[y]||0)+(6-i)});
@@ -274,7 +280,9 @@ async function iniciar(){
   if(SUG&&Object.keys(car).length&&location.hash!='#cuenta')setTimeout(()=>{revisar();toast('Te armamos tu pedido sugerido. Cambiá lo que quieras y envialo.')},400);
 }
 function cargarSugerido(reemplazar){if(reemplazar)car={};let n=0;for(const x of C.sugerido||[])if(prod(x.id)){car[x.id]=reemplazar?Math.max(1,Math.round(x.q)):(car[x.id]||0)+Math.max(1,Math.round(x.q));n++}guardar();return n}
-setInterval(()=>{for(const e of document.querySelectorAll('[data-cd]')){const ms=new Date(e.dataset.cd+'T23:59:59-03:00')-Date.now();if(ms<=0){e.textContent='¡Terminó!';continue}
+setInterval(()=>{for(const e of document.querySelectorAll('[data-ca]')){const ms=new Date(e.dataset.ca+'T00:00:00-03:00')-Date.now();if(ms<=0){e.textContent='Ya rigen los precios nuevos';continue}
+  const h=Math.floor(ms/36e5),m=Math.floor(ms%36e5/6e4),sg=Math.floor(ms%6e4/1e3),p2=v=>String(v).padStart(2,'0');e.textContent='Quedan '+(h>=24?Math.floor(h/24)+' d '+p2(h%24):p2(h))+':'+p2(m)+':'+p2(sg)+' con los precios de hoy'}
+ for(const e of document.querySelectorAll('[data-cd]')){const ms=new Date(e.dataset.cd+'T23:59:59-03:00')-Date.now();if(ms<=0){e.textContent='¡Terminó!';continue}
   const h=Math.floor(ms/36e5),m=Math.floor(ms%36e5/6e4),sg=Math.floor(ms%6e4/1e3),p2=v=>String(v).padStart(2,'0');e.textContent='Termina en '+(h>=24?Math.floor(h/24)+' d '+p2(h%24):p2(h))+':'+p2(m)+':'+p2(sg)}},1000);
 let bT;function anotarBusqueda(t){clearTimeout(bT);bT=setTimeout(()=>{try{sb.rpc('registrar_busqueda',{p_token:token||'',p_texto:t}).then(()=>{},()=>{})}catch(e){}},1800)}
 async function avisame(id,b){if(!token){toast('Escribinos por WhatsApp y te avisamos cuando llegue.');return}b.disabled=true;
@@ -303,15 +311,30 @@ async function miCuenta(){$('#m').innerHTML='<p class="mas">Cargando tu cuenta�
   $('#m').innerHTML=`<div class="cta"><div class="lab">${debe?'Tu saldo':'Tu cuenta'}</div><div class="big">${debe?$m(x.saldo):'¡Estás al día!'}</div>
       ${+x.vencido>0.005?`<div class="venc">Vencido: ${$m(x.vencido)}</div>`:debe?'<small style="color:var(--mu)">Nada vencido todavía.</small>':''}
       ${debe?bloquePago(x,+x.saldo):''}</div>
-    <div class="cta"><h3 style="margin:0 0 4px">Facturas pendientes</h3>${F.length?F.map(f=>`<div class="fila"><div>Factura ${esc(f.t)} N° ${f.n}<br><small>${f.f?'del '+fdc(f.f)+' · ':''}vence ${fdc(f.v)}</small>${f.dm>0?`<br><small class="venc">Vencida hace ${f.dm} ${f.dm==1?'día':'días'}</small>`:''}</div><div class="n">${$m(f.p)}${+f.p<+f.tot?`<br><small>de ${$m(f.tot)}</small>`:''}</div></div>`).join(''):'<p class="mas" style="padding:4px 0;text-align:left">No tenés facturas pendientes.</p>'}</div>
+    <div class="cta"><h3 style="margin:0 0 4px">Facturas pendientes</h3>${F.length?F.map(f=>`<div class="fila"><div>Factura ${esc(f.t)} N° ${f.n}<br><small>${f.f?'del '+fdc(f.f)+' · ':''}vence ${fdc(f.v)}</small>${f.dm>0?`<br><small class="venc">Vencida hace ${f.dm} ${f.dm==1?'día':'días'}</small>`:''}${(()=>{const pp=x.pronto;if(!pp||!(+pp.pct>0)||!f.f)return '';const lim=new Date(new Date(String(f.f).slice(0,10)+'T12:00').getTime()+pp.dias*864e5);return lim>=new Date(new Date().toDateString())?`<br><small class="okt">💸 Pagando hasta el ${lim.toLocaleDateString('es-AR')}: <b>${$m(f.p*(1-pp.pct/100))}</b> (−${nf(pp.pct)} %)</small>`:''})()}</div><div class="n">${$m(f.p)}${+f.p<+f.tot?`<br><small>de ${$m(f.tot)}</small>`:''}</div></div>`).join(''):'<p class="mas" style="padding:4px 0;text-align:left">No tenés facturas pendientes.</p>'}</div>
     <div class="cta"><h3 style="margin:0 0 4px">Tus últimos pagos</h3>${Pg.length?Pg.map(r=>`<div class="fila"><div>Recibo N° ${r.n}<br><small>${fdc(r.f)} · ${esc(String(r.m||'').replace('_',' '))}</small></div><div class="n">${$m(r.i)}</div></div>`).join(''):'<p class="mas" style="padding:4px 0;text-align:left">Todavía no hay pagos registrados.</p>'}</div>
     ${x.puntos_activo&&'puntos' in x?`<div class="cta"><div class="lab">🏆 Tus puntos</div><div class="big">${nf(x.puntos)} puntos</div><small style="color:var(--mu)">Valen ${$m(x.puntos*(+x.valor_punto||10))} de descuento. Sumás 1 punto cada ${$m(x.puntos_cada||1000)} de compra entregada. Usalos tildando "Usar mis puntos" al enviar tu pedido.</small>
       ${(x.puntos_mov||[]).length?x.puntos_mov.map(m=>`<div class="fila"><div><small>${fdc(m.f)}</small><br>${esc(m.m||'')}</div><div class="n ${m.p<0?'venc':'okt'}">${m.p>0?'+':''}${nf(m.p)}</div></div>`).join(''):''}</div>`:''}
+    ${x.fijo&&(x.fijo.items||[]).length?`<div class="cta"><div class="lab">🔁 Tu pedido automático</div><p style="margin:4px 0">${x.fijo.activo?'Se arma solo los <b>'+(x.fijo.dias||[]).map(d=>['lunes','martes','miércoles','jueves','viernes','sábados','domingos'][d-1]).join(' y ')+'</b>':'<b>Pausado</b>'} · ${x.fijo.items.length} productos</p><button class="sec" id="fjb">${x.fijo.activo?'Pausar':'Reactivar'}</button></div>`:''}
     ${x.desafio&&+x.desafio.meta>0?`<div class="dsf"><b>🎯 Desafío del mes</b><br>${x.desafio.logrado?`<b class="okt">¡Lo lograste! Ganaste ${nf(x.desafio.puntos)} puntos 🎉</b>`:+x.desafio.llevas>=+x.desafio.meta?`<b class="okt">¡Llegaste! Te sumamos ${nf(x.desafio.puntos)} puntos cuando te entreguemos.</b>`:`Comprá ${$m(x.desafio.meta)} este mes y ganás <b>${nf(x.desafio.puntos)} puntos</b>. Llevás ${$m(x.desafio.llevas)}: te faltan <b>${$m(x.desafio.meta-x.desafio.llevas)}</b>.`}<div class="pgb"><i style="width:${Math.min(100,x.desafio.llevas/x.desafio.meta*100)}%"></i></div></div>`:''}
     ${x.ref&&+x.referido_puntos>0?`<div class="ref"><h3>🤝 Recomendá y ganá</h3><p>Pasale tu link a un negocio amigo. Cuando reciba su primer pedido, <b>los dos ganan ${nf(x.referido_puntos)} puntos</b> (${$m(x.referido_puntos*(+x.valor_punto||10))}).</p><p>Tu código: <span class="cod">${esc(x.ref)}</span>${+x.referidos?` · ya recomendaste a ${x.referidos}`:''}</p><button id="refb">Compartir mi link</button></div>`:''}
     <p class="mas">Los pagos que hagas pueden tardar en aparecer hasta que los registremos.</p>`;
+  const fb=$('#fjb');if(fb)fb.onclick=async()=>{fb.disabled=true;const{error}=await sb.rpc('fijo_cliente',{p_token:token,p_dias:x.fijo.dias||[],p_items:x.fijo.items||[],p_activo:!x.fijo.activo});if(error){fb.disabled=false;return toast(error.message)}toast(x.fijo.activo?'Pedido automático pausado.':'Pedido automático reactivado.');miCuenta()};
   const rb=$('#refb');if(rb)rb.onclick=async()=>{const u=new URL('pedido.html?ver=catalogo&ref='+x.ref,location.href).href,t=`¡Hola! Yo le compro a *Sabores de mi País* y te los recomiendo 👌 Mirá el catálogo y hacé tu pedido acá (con mi código ${x.ref} los dos tenemos un regalo):\n${u}`;
     try{if(navigator.share){await navigator.share({text:t});return}}catch(e){return}window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank')}}
+
+/* Quiero ser cliente (catálogo público) */
+function altaCliente(){const h=document.createElement('div');h.className='hoja';
+  h.innerHTML=`<div class="c alta" role="dialog" aria-label="Quiero ser cliente"><h2>🏪 Quiero ser cliente</h2><p style="color:var(--mu);margin-top:0">Dejanos tus datos y te contactamos por WhatsApp con tu lista de precios.</p>
+    <input id="an" maxlength="80" placeholder="Nombre del negocio *"><input id="at" maxlength="30" inputmode="tel" placeholder="WhatsApp *"><input id="ac" maxlength="60" placeholder="Tu nombre">
+    <input id="ad" maxlength="120" placeholder="Dirección del negocio"><input id="ar" maxlength="40" placeholder="Rubro (kiosco, almacén, dietética…)" value="${esc(RUB||'')}"><input id="ai" maxlength="20" inputmode="numeric" placeholder="CUIT (opcional)">
+    <div class="acc"><button class="sec" id="ax">Cancelar</button><button class="prim" id="ag">Enviar</button></div></div>`;
+  h.onclick=e=>{if(e.target===h)h.remove()};document.body.appendChild(h);h.querySelector('#ax').onclick=()=>h.remove();
+  h.querySelector('#ag').onclick=async e=>{const v=k=>h.querySelector(k).value.trim();if(v('#an').length<2)return toast('Poné el nombre del negocio.');if(!telLimpio(v('#at')))return toast('Poné un WhatsApp válido.');
+    e.target.disabled=true;const{error}=await sb.rpc('alta_web',{p_nombre:v('#an'),p_telefono:v('#at'),p_domicilio:v('#ad'),p_rubro:v('#ar'),p_contacto:v('#ac'),p_cuit:v('#ai'),p_nota:REF&&C.ref_nombre?'Lo recomendó '+C.ref_nombre:null});
+    if(error){e.target.disabled=false;const tel=telLimpio(C.tel);if(/alta_web|function|schema/i.test(error.message)&&tel){window.open('https://wa.me/'+tel+'?text='+encodeURIComponent('¡Hola! Quiero ser cliente. Mi negocio: '+v('#an')+(v('#ad')?' ('+v('#ad')+')':'')+(v('#ar')?' · '+v('#ar'):'')),'_blank');h.remove();return}return toast(error.message)}
+    h.querySelector('.c').innerHTML='<div class="msg" style="border:0;box-shadow:none;margin:0"><div class="ok">✓</div><h2>¡Gracias!</h2><p>Te escribimos por WhatsApp a la brevedad. Mientras, podés mirar el catálogo y hacer tu primer pedido.</p><button class="prim" id="ok2">Ver el catálogo</button></div>';
+    h.querySelector('#ok2').onclick=()=>h.remove()}}
 
 /* Encuesta después de la entrega */
 async function encuesta(){document.title='¿Cómo te atendimos? · Sabores de mi País';$('#hc').textContent='Tu opinión nos ayuda a mejorar';
@@ -350,6 +373,8 @@ function pintar(){
   $('#m').innerHTML=`<div class="busca"><div class="vbar"><input id="q" type="search" placeholder="Buscar producto (ej.: maní 85, crocante pizza)" value="${esc(filtro)}" autocomplete="off" aria-label="Buscar producto"><button class="vbtn" id="vt" aria-label="${vista=='grilla'?'Ver como lista':'Ver con fotos'}" title="${vista=='grilla'?'Ver como lista':'Ver con fotos'}">${vista=='grilla'?'☰':'▦'}</button></div>
     ${fams.length>1?`<div class="cats"><button class="cat ${fam?'':'on'}" data-fm=""><i style="background:var(--m)">★</i><span>Todo</span></button>${fams.map(f=>{const ph=P.find(p=>famDe(p)==f&&p.img);return `<button class="cat ${fam==f?'on':''}" data-fm="${esc(f)}"><i style="background:${colorDe(f)}">${ph?`<img src="${esc(ph.img)}" alt="" loading="lazy">`:esc(f[0]||'?')}</i><span>${esc(cap(f))}</span></button>`}).join('')}</div>`:''}
     ${marcas.length>1?`<select class="msel" id="mk" aria-label="Marca"><option value="">Todas las marcas</option>${marcas.map(m=>`<option ${marca==m?'selected':''}>${esc(m)}</option>`).join('')}</select>`:''}</div>
+    ${C.aumento&&C.aumento.fecha?`<div class="aum">⚠️ <b>${esc(C.aumento.texto||'Aumentan los precios')}</b> a partir del ${new Date(C.aumento.fecha+'T12:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'numeric'})}. ¡Comprá antes con los precios de hoy!<br><small data-ca="${esc(C.aumento.fecha)}">…</small></div>`:''}
+    ${PUB?'<button class="sec rep" id="alta">🏪 ¿Tenés un negocio? Quiero ser cliente</button>':''}
     ${PUB&&C.ref_nombre?`<div class="inv">🤝 Te invitó <b>${esc(C.ref_nombre)}</b>. Hacé tu primer pedido y los dos reciben un regalo en puntos.</div>`:''}
     ${(C.sugerido||[]).length?`<button class="sgb" id="sgb">⭐ Cargar mi pedido sugerido (${C.sugerido.length} productos que siempre llevás)</button>`:''}
     ${(C.ultimo||[]).length?`<button class="sec rep" id="rep">Repetir mi último pedido (${C.ultimo.length} productos)</button>`:''}
@@ -359,6 +384,7 @@ function pintar(){
   $$('[data-fm]').forEach(b=>b.onclick=()=>{fam=b.dataset.fm;lim=60;$$('[data-fm]').forEach(x=>x.classList.toggle('on',x.dataset.fm==fam));lista();window.scrollTo({top:0,behavior:'smooth'})});
   $('#vt').onclick=()=>{vista=vista=='grilla'?'lista':'grilla';try{localStorage.setItem('vista_cat',vista)}catch(e){}pintar()};
   $('#rep')&&($('#rep').onclick=()=>{let n=0;for(const u of C.ultimo){if(prod(u.id)){car[u.id]=(car[u.id]||0)+Math.max(1,Math.round(u.q));n++}}guardar();lista();barra();toast(n?n+' productos agregados de tu último pedido.':'Esos productos ya no están disponibles.')});
+  $('#alta')&&($('#alta').onclick=altaCliente);
   $('#sgb')&&($('#sgb').onclick=()=>{const n=cargarSugerido(false);lista();barra();toast(n?n+' productos agregados. Revisá las cantidades.':'Esos productos ya no están disponibles.')});
   lista();barra();
 }
@@ -382,11 +408,11 @@ function lista(){
 }
 function tarjeta(p){const q=car[p.id]||0,r=promoP(p,q),rc=r?null:promoP(p,q,true),pu=puP(p,q);
   return `<div class="card ${q?'sel':''}" style="--fc:${colorDe(famDe(p))}">${p.img?`<div class="ph" data-z="${p.id}"><img src="${esc(p.img)}" alt="" loading="lazy"></div>`:`<div class="ph ini" style="background:${colorDe(p.m||famDe(p))}1a;color:${colorDe(p.m||famDe(p))}">${esc((p.d||'?')[0])}</div>`}
-    ${p.ss?'<span class="rib ss">Sin stock</span>':p.pac?'<span class="rib pac">Tu precio</span>':r?`<span class="rib ${/^⚡/.test(r.n||'')?'rl':''}">${/^⚡/.test(r.n||'')?'⚡ ':''}−${nf(r.pct)} %</span>`:rc?`<span class="rib cerca">−${nf(rc.pct)} %</span>`:''}
+    ${p.ss?'<span class="rib ss">Sin stock</span>':p.pac?'<span class="rib pac">Tu precio</span>':r?`<span class="rib ${/^⚡/.test(r.n||'')?'rl':''}">${r.bon?esc(String(r.n).replace('Bonificación ','')):(/^⚡/.test(r.n||'')?'⚡ ':'')+'−'+nf(r.pct)+' %'}</span>`:rc?`<span class="rib cerca">${rc.bon?esc(String(rc.n).replace('Bonificación ','')):'−'+nf(rc.pct)+' %'}</span>`:''}
     ${p.combo?`<span class="rib">−${nf(p.pct)} %</span>`:''}${/^Últimas/.test((r||rc||{}).n||'')?'<span class="nuevo ult">ÚLTIMAS UNIDADES</span>':p.nv?'<span class="nuevo">NUEVO</span>':''}
     <div class="cn">${p.combo?'🎁 ':''}${esc(p.d)}</div><div class="cm">${p.combo?'':esc(p.m||'')}${p.b>1?' · '+esc(p.tb)+' × '+p.b:''}</div>${p.combo?`<div class="cdet">${esc(p.det)}</div>`:''}
     <div class="cp">${r?`<s>${$m(p.p)}</s>`:p.combo?`<s>${$m(p.ant)}</s>`:''}${$m(pu)}</div>
-    ${p.b>1?`<div class="cb">${esc(p.tb)}: ${$m((rc&&rc.mt=='bulto'?Math.round(p.p*(1-rc.pct/100)*100)/100:pu)*p.b)}</div>`:''}${rc?`<div class="cc">−${nf(rc.pct)} % ${esc(condP(rc,p))}</div>`:''}
+    ${p.b>1?`<div class="cb">${esc(p.tb)}: ${$m((rc&&rc.mt=='bulto'?Math.round(p.p*(1-rc.pct/100)*100)/100:pu)*p.b)}</div>`:''}${rc?`<div class="cc">${rc.bon?'🎁 '+esc(condP(rc,p)):'−'+nf(rc.pct)+' % '+esc(condP(rc,p))}</div>`:''}
     <div class="cq">${p.ss&&!q?btnAv(p):q?`<button class="mn" data-r="${p.id}" aria-label="Restar">−</button><input type="number" inputmode="numeric" min="0" value="${q}" data-i="${p.id}" aria-label="Cantidad"><button class="ms" data-s="${p.id}" aria-label="Sumar">+</button>`
       :`<button class="ag" data-s="${p.id}">Agregar</button>${p.b>1?`<button class="bx" data-bb="${p.id}" aria-label="Agregar ${esc(p.tb)} de ${p.b}">+${p.b}</button>`:''}`}</div></div>`}
 
@@ -439,11 +465,14 @@ function revisar(){
         `<div class="total"><span>Total</span><span>${$m(k.fin)}</span></div>`+progresoHTML(k.t,true)+
         (C.hay_cupones&&!h._cup?`<div class="cupr"><input id="cupi" maxlength="20" placeholder="¿Tenés un cupón de descuento?" autocomplete="off" value="${esc(h._cupv||'')}"><button class="sec" id="cupb">Aplicar</button></div>`:'')+
         (!PUB&&C.puntos_activo&&+C.puntos>0?`<label class="ptchk"><input type="checkbox" id="ptc" ${h._pts?'checked':''}><span>Usar mis <b>${nf(C.puntos)} puntos</b> (valen ${$m(C.puntos*(+C.valor_punto||10))}; se puede pagar hasta el ${nf(+C.canje_max||20)} % del pedido)</span></label>`:'')})()}
-      ${PUB?`<input id="pnom" maxlength="80" placeholder="Tu nombre o el de tu negocio *" value="${esc(h._nom||'')}" style="margin-bottom:8px"><input id="pdir" maxlength="120" placeholder="Dirección o zona de entrega" value="${esc(h._dir||'')}" style="margin-bottom:8px">`:''}
+      ${!PUB&&token?`<div class="fij"><label><input type="checkbox" id="fjc" ${h._fij?'checked':''}> 🔁 Repetir este pedido automáticamente</label>${h._fij?`<div class="dch">${['Lun','Mar','Mié','Jue','Vie','Sáb'].map((d,i)=>`<button data-fd="${i+1}" class="${(h._fd||[]).includes(i+1)?'on':''}">${d}</button>`).join('')}</div><small style="color:var(--mu)">Te lo armamos solo esos días, con los precios del momento. Lo pausás cuando quieras en "Mi cuenta".</small>`:''}</div>`:''}
+      ${PUB?`<input id="pnom" maxlength="80" placeholder="Tu nombre o el de tu negocio *" value="${esc(h._nom||'')}" style="margin-bottom:8px"><input id="ptel" maxlength="30" inputmode="tel" placeholder="Tu WhatsApp *" value="${esc(h._tel||'')}" style="margin-bottom:8px"><input id="pdir" maxlength="120" placeholder="Dirección o zona de entrega" value="${esc(h._dir||'')}" style="margin-bottom:8px">`:''}
       <textarea id="nota" rows="2" maxlength="500" placeholder="¿Algo que tengamos que saber? (horario de entrega, etc.)">${esc(h._nota||'')}</textarea>
-      <p style="font-size:13px;color:var(--mu)">Los precios incluyen IVA. ${PUB?'El pedido se manda por WhatsApp y te confirmamos stock y entrega.':'Te confirmamos el pedido cuando lo revisemos.'}</p>
-      <div class="acc"><button class="sec" id="seg">Seguir comprando</button><button class="prim" id="env">${PUB?'Enviar por WhatsApp':'Enviar pedido'}</button></div></div>`;
-    const sv=()=>{h._nota=$('#nota').value;if($('#cupi'))h._cupv=$('#cupi').value;if(PUB){h._nom=$('#pnom').value;h._dir=$('#pdir').value}};
+      <p style="font-size:13px;color:var(--mu)">Los precios incluyen IVA. ${PUB?'Te escribimos por WhatsApp para confirmar stock y entrega.':'Te confirmamos el pedido cuando lo revisemos.'}</p>
+      <div class="acc"><button class="sec" id="seg">Seguir comprando</button><button class="prim" id="env">Enviar pedido</button></div></div>`;
+    const sv=()=>{h._nota=$('#nota').value;if($('#cupi'))h._cupv=$('#cupi').value;if(PUB){h._nom=$('#pnom').value;h._tel=$('#ptel').value;h._dir=$('#pdir').value}};
+    const fj=h.querySelector('#fjc');if(fj)fj.onchange=()=>{sv();h._fij=fj.checked;h._fd=h._fd||[];draw()};
+    h.querySelectorAll('[data-fd]').forEach(b=>b.onclick=()=>{sv();const d=+b.dataset.fd;h._fd=(h._fd||[]).includes(d)?h._fd.filter(x=>x!=d):[...(h._fd||[]),d];draw()});
     h.querySelectorAll('[data-ag]').forEach(b=>b.onclick=()=>{sv();car[b.dataset.ag]=(car[b.dataset.ag]||0)+1;guardar();toast('Agregado al pedido.');draw()});
     const cx=h.querySelector('#cupx');if(cx)cx.onclick=e=>{e.preventDefault();sv();h._cup=null;draw()};
     const pc=h.querySelector('#ptc');if(pc)pc.onchange=()=>{sv();h._pts=pc.checked;draw()};
@@ -457,18 +486,27 @@ function revisar(){
     h.querySelectorAll('[data-i]').forEach(e=>e.onchange=()=>{sv();const v=Math.max(0,Math.round(+e.value||0));v?car[e.dataset.i]=v:delete car[e.dataset.i];guardar();setTimeout(draw)});
     h.querySelector('#seg').onclick=()=>{sv();cerrar()};
     const bajoMin=()=>C?.minimo&&totalFinal()<C.minimo;if(bajoMin()){const b=h.querySelector('#env');b.disabled=true;b.title='No llega al pedido mínimo'}
-    if(PUB)h.querySelector('#env').onclick=()=>{sv();if(bajoMin())return;const nom=(h._nom||'').trim();if(!nom){toast('Poné tu nombre o el de tu negocio.');$('#pnom').focus();return}
-      const tel=telLimpio(C.tel);if(!tel){toast('Escribinos por WhatsApp para hacer el pedido.');return}
+    if(PUB)h.querySelector('#env').onclick=async e=>{sv();if(bajoMin())return;const nom=(h._nom||'').trim();if(!nom){toast('Poné tu nombre o el de tu negocio.');$('#pnom').focus();return}
+      if(!telLimpio(h._tel)){toast('Poné tu WhatsApp para que te confirmemos el pedido.');$('#ptel').focus();return}
+      const b=e.target;b.disabled=true;b.textContent='Enviando…';
+      const{data:pw,error:pe}=await sb.rpc('pedido_publico',{p_nombre:nom,p_telefono:h._tel.trim(),p_domicilio:(h._dir||'').trim(),p_items:I.map(([id,q])=>({id,q})),p_nota:h._nota||null,p_ref:REF||null,p_cupon:h._cup?.codigo||null,p_rubro:RUB||C.rubro||null});
+      if(!pe){car={};guardar();h.remove();$('#bar').hidden=true;
+        $('#m').innerHTML=`<div class="msg"><div class="ok">✓</div><h2>¡Recibimos tu pedido!</h2><p>Pedido N° <b>${pw.numero}</b> · ${pw.productos} ${pw.productos==1?'producto':'productos'} · <b>${$m(pw.total)}</b></p><p>Te escribimos por WhatsApp al <b>${esc(h._tel)}</b> para confirmar stock y entrega. ¡Gracias!</p>${telLimpio(C.tel)?`<a class="sec" style="display:block;text-decoration:none;margin:10px 0" target="_blank" rel="noopener" href="https://wa.me/${telLimpio(C.tel)}?text=${encodeURIComponent('¡Hola! Soy '+nom+'. Les acabo de mandar el pedido N° '+pw.numero+' desde el catálogo.')}">Avisar por WhatsApp</a>`:''}<button class="sec" id="otro">Volver al catálogo</button></div>`;
+        $('#otro').onclick=()=>{filtro='';pintar()};window.scrollTo(0,0);return}
+      if(!/pedido_publico|function|schema/i.test(pe.message)){b.disabled=false;b.textContent='Enviar pedido';toast(pe.message);return}
+      const tel=telLimpio(C.tel);if(!tel){b.disabled=false;b.textContent='Enviar pedido';toast('Escribinos por WhatsApp para hacer el pedido.');return}
       const t=`*Pedido desde el catálogo*\n${nom}${h._dir?'\n'+h._dir.trim():''}\n\n`+I.map(([id,q])=>{const p=prod(id);return `• ${nf(q)} x ${p.d}${enB(p,q)?' ('+enB(p,q)+')':''} — ${$m(puP(p,q)*q)}`}).join('\n')+(()=>{const k=cuentas(h);return (k.e||k.cu?`\n\nSubtotal: ${$m(k.t)}`:'')+(k.e?`\nDescuento por monto ${nf(k.e)} %: −${$m(k.t-k.b1)}`:'')+(k.cu?`\nCupón ${h._cup.codigo} ${nf(k.cu)} %: −${$m(k.b1-k.b2)}`:'')+`\n\n*Total: ${$m(k.fin)}*`})()+(h._nota?'\n\nNota: '+h._nota.trim():'')+(C.ref_nombre?`\n\n🤝 Me recomendó: ${C.ref_nombre} (código ${REF})`:'');
       window.open('https://wa.me/'+tel+'?text='+encodeURIComponent(t),'_blank');car={};guardar();h.remove();$('#bar').hidden=true;
       $('#m').innerHTML=`<div class="msg"><div class="ok">✓</div><h2>¡Listo!</h2><p>Se abrió WhatsApp con tu pedido. <b>Tocá enviar</b> en WhatsApp y te respondemos para confirmar.</p><button class="sec" id="otro">Volver al catálogo</button></div>`;
       $('#otro').onclick=()=>{filtro='';pintar()};window.scrollTo(0,0)};
     else h.querySelector('#env').onclick=async e=>{sv();const b=e.target;b.disabled=true;b.textContent='Enviando…';
       const k=cuentas(h),args={p_token:token,p_items:I.map(([id,q])=>({id,q})),p_nota:h._nota||null};if(h._cup)args.p_cupon=h._cup.codigo;if(k.pts)args.p_puntos=true;
+      if(h._fij&&!(h._fd||[]).length){b.disabled=false;b.textContent='Enviar pedido';toast('Elegí qué días repetir el pedido.');return}
       const{data,error}=await sb.rpc('crear_pedido_cliente',args);
       if(error){b.disabled=false;b.textContent='Enviar pedido';toast(error.message);return}
+      let fijoOk=false;if(h._fij){const{error:fe}=await sb.rpc('fijo_cliente',{p_token:token,p_dias:h._fd,p_items:I.map(([id,q])=>({id,q})),p_activo:true});fijoOk=!fe;if(!fe)C.fijo={dias:h._fd,activo:true}}
       car={};guardar();h.remove();$('#bar').hidden=true;if(+data.puntos)C.puntos=Math.max(0,(+C.puntos||0)-data.puntos);
-      $('#m').innerHTML=`<div class="msg"><div class="ok">✓</div><h2>¡Recibimos tu pedido!</h2><p>Pedido N° <b>${data.numero}</b> · ${data.productos} ${data.productos==1?'producto':'productos'} · <b>${$m(data.total)}</b></p>${+data.cupon||+data.puntos||+data.descuento?`<p class="okt">Ahorraste con ${[+data.descuento?'descuento por monto':'',+data.cupon?'tu cupón':'',+data.puntos?nf(data.puntos)+' puntos':''].filter(Boolean).join(' + ')} 🎉</p>`:''}<p>Te avisamos cuando esté confirmado. ¡Gracias por tu compra!</p>${C.mp||C.pago?`<details style="margin:12px 0;text-align:left"><summary>¿Querés pagarlo ya?</summary>${bloquePago(C,data.total)}</details>`:''}<button class="sec" id="otro">Hacer otro pedido</button></div>`;
+      $('#m').innerHTML=`<div class="msg"><div class="ok">✓</div><h2>¡Recibimos tu pedido!</h2><p>Pedido N° <b>${data.numero}</b> · ${data.productos} ${data.productos==1?'producto':'productos'} · <b>${$m(data.total)}</b></p>${+data.cupon||+data.puntos||+data.descuento?`<p class="okt">Ahorraste con ${[+data.descuento?'descuento por monto':'',+data.cupon?'tu cupón':'',+data.puntos?nf(data.puntos)+' puntos':''].filter(Boolean).join(' + ')} 🎉</p>`:''}${fijoOk?`<p class="okt">🔁 Listo: lo repetimos solo los ${h._fd.sort().map(d=>['lunes','martes','miércoles','jueves','viernes','sábados','domingos'][d-1]).join(' y ')}.</p>`:''}<p>Te avisamos cuando esté confirmado. ¡Gracias por tu compra!</p>${C.mp||C.pago?`<details style="margin:12px 0;text-align:left"><summary>¿Querés pagarlo ya?</summary>${bloquePago(C,data.total)}</details>`:''}<button class="sec" id="otro">Hacer otro pedido</button></div>`;
       $('#otro').onclick=()=>{filtro='';marca='';pintar()};window.scrollTo(0,0)}};
   h.onclick=e=>{if(e.target===h){h._nota=$('#nota')?.value;cerrar()}};
   document.body.appendChild(h);draw();
