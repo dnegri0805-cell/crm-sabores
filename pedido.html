@@ -183,7 +183,8 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const $m=n=>'$ '+Number(n||0).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const norm=t=>String(t??'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
 const token=new URLSearchParams(location.search).get('c')||'';
-const K='carrito_'+token;
+const PUB=!token&&new URLSearchParams(location.search).has('ver');
+const K='carrito_'+(PUB?'publico':token);
 let C=null,P=[],car={},filtro='',marca='',lim=60;
 function toast(t){const e=$('#t');e.textContent=t;e.hidden=false;clearTimeout(e._t);e._t=setTimeout(()=>e.hidden=true,2600)}
 function guardar(){try{localStorage.setItem(K,JSON.stringify(car))}catch(e){}}
@@ -210,6 +211,10 @@ try{aplicarMarca(JSON.parse(localStorage.getItem('marca_cat')||'null')||{})}catc
 sb.rpc('marca_publica').then(({data})=>{if(data){aplicarMarca(data);try{localStorage.setItem('marca_cat',JSON.stringify(data))}catch(e){}if(C&&$('#l')&&!$('#q')?.value)lista()}});
 
 async function iniciar(){
+  if(PUB){const{data,error}=await sb.rpc('catalogo_publico');
+    if(error){$('#hc').textContent='';$('#m').innerHTML=`<div class="msg"><h2>Catálogo no disponible</h2><p class="err">${esc(/catalogo_publico/.test(error.message)?'El catálogo todavía no está activado.':error.message)}</p></div>`;return}
+    C=data;P=(data.productos||[]).filter(p=>p.p>0);hayFotos=P.some(p=>p.img);cargarCarrito();
+    document.title='Catálogo · Sabores de mi País';$('#hc').textContent='Catálogo de productos · precios con IVA';pintar();return}
   if(!token){$('#hc').textContent='';$('#m').innerHTML='<div class="msg"><h2>Falta el link</h2><p>Abrí el link que te mandamos por WhatsApp para ver tu catálogo.</p></div>';return}
   const{data,error}=await sb.rpc('catalogo_cliente',{p_token:token});
   if(error){$('#hc').textContent='';$('#m').innerHTML=`<div class="msg"><h2>No pudimos abrir tu catálogo</h2><p class="err">${esc(error.message)}</p></div>`;return}
@@ -316,16 +321,23 @@ function revisar(){
       ${I.map(([id,q])=>{const p=prod(id);return `<div class="it"><div>${esc(p.d)}<br><small>${$m(puP(p,q))} c/u${promoP(p,q)?' (−'+nf(promoP(p,q).pct)+' %)':''}${enB(p,q)?' · '+nf(q)+' u. = '+enB(p,q):''}</small></div><div class="n">${$m(puP(p,q)*q)}</div>
         <div class="q"><button data-r="${id}" aria-label="Restar">−</button><input type="number" inputmode="numeric" min="0" value="${q}" data-i="${id}" aria-label="Cantidad"><button data-s="${id}" aria-label="Sumar">+</button><button class="x" data-x="${id}">Quitar</button></div></div>`}).join('')}
       <div class="total"><span>Total</span><span>${$m(totalCar())}</span></div>
+      ${PUB?`<input id="pnom" maxlength="80" placeholder="Tu nombre o el de tu negocio *" value="${esc(h._nom||'')}" style="margin-bottom:8px"><input id="pdir" maxlength="120" placeholder="Dirección o zona de entrega" value="${esc(h._dir||'')}" style="margin-bottom:8px">`:''}
       <textarea id="nota" rows="2" maxlength="500" placeholder="¿Algo que tengamos que saber? (horario de entrega, etc.)">${esc(h._nota||'')}</textarea>
-      <p style="font-size:13px;color:var(--mu)">Los precios incluyen IVA. Te confirmamos el pedido cuando lo revisemos.</p>
-      <div class="acc"><button class="sec" id="seg">Seguir comprando</button><button class="prim" id="env">Enviar pedido</button></div></div>`;
-    const sv=()=>{h._nota=$('#nota').value};
+      <p style="font-size:13px;color:var(--mu)">Los precios incluyen IVA. ${PUB?'El pedido se manda por WhatsApp y te confirmamos stock y entrega.':'Te confirmamos el pedido cuando lo revisemos.'}</p>
+      <div class="acc"><button class="sec" id="seg">Seguir comprando</button><button class="prim" id="env">${PUB?'Enviar por WhatsApp':'Enviar pedido'}</button></div></div>`;
+    const sv=()=>{h._nota=$('#nota').value;if(PUB){h._nom=$('#pnom').value;h._dir=$('#pdir').value}};
     h.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{sv();car[b.dataset.s]++;guardar();draw()});
     h.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{sv();const k=b.dataset.r;car[k]>1?car[k]--:delete car[k];guardar();draw()});
     h.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>{sv();delete car[b.dataset.x];guardar();draw()});
     h.querySelectorAll('[data-i]').forEach(e=>e.onchange=()=>{sv();const v=Math.max(0,Math.round(+e.value||0));v?car[e.dataset.i]=v:delete car[e.dataset.i];guardar();setTimeout(draw)});
     h.querySelector('#seg').onclick=()=>{sv();cerrar()};
-    h.querySelector('#env').onclick=async e=>{sv();const b=e.target;b.disabled=true;b.textContent='Enviando…';
+    if(PUB)h.querySelector('#env').onclick=()=>{sv();const nom=(h._nom||'').trim();if(!nom){toast('Poné tu nombre o el de tu negocio.');$('#pnom').focus();return}
+      const tel=telLimpio(C.tel);if(!tel){toast('Escribinos por WhatsApp para hacer el pedido.');return}
+      const t=`*Pedido desde el catálogo*\n${nom}${h._dir?'\n'+h._dir.trim():''}\n\n`+I.map(([id,q])=>{const p=prod(id);return `• ${nf(q)} x ${p.d}${enB(p,q)?' ('+enB(p,q)+')':''} — ${$m(puP(p,q)*q)}`}).join('\n')+`\n\n*Total: ${$m(totalCar())}*`+(h._nota?'\n\nNota: '+h._nota.trim():'');
+      window.open('https://wa.me/'+tel+'?text='+encodeURIComponent(t),'_blank');car={};guardar();h.remove();$('#bar').hidden=true;
+      $('#m').innerHTML=`<div class="msg"><div class="ok">✓</div><h2>¡Listo!</h2><p>Se abrió WhatsApp con tu pedido. <b>Tocá enviar</b> en WhatsApp y te respondemos para confirmar.</p><button class="sec" id="otro">Volver al catálogo</button></div>`;
+      $('#otro').onclick=()=>{filtro='';pintar()};window.scrollTo(0,0)};
+    else h.querySelector('#env').onclick=async e=>{sv();const b=e.target;b.disabled=true;b.textContent='Enviando…';
       const{data,error}=await sb.rpc('crear_pedido_cliente',{p_token:token,p_items:I.map(([id,q])=>({id,q})),p_nota:h._nota||null});
       if(error){b.disabled=false;b.textContent='Enviar pedido';toast(error.message);return}
       car={};guardar();h.remove();$('#bar').hidden=true;

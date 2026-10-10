@@ -65,6 +65,8 @@ td.bajo,td .bajo{color:#7a5a00}
 .fa-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;max-height:55vh;overflow:auto}
 .fa-it{display:grid;gap:4px;border:2px solid var(--l);border-radius:10px;padding:8px;cursor:pointer;background:#fff;position:relative;font-size:13px}.fa-it.on{border-color:var(--ok)}
 .fa-it input{position:absolute;top:8px;left:8px;width:20px;height:20px;margin:0}.fa-it img{width:100%;aspect-ratio:1;object-fit:contain;background:#fff;border-radius:6px}.fa-it small{color:#6a7184}
+.fo-l{max-height:34vh;overflow:auto;border:1px solid var(--l);border-radius:8px;padding:6px 10px;display:grid;gap:4px;font-size:14px}.fo-l label{display:flex;gap:6px;align-items:center}.fo-l input{width:auto;margin:0}.fo-l .sinf{font-size:11px;color:#b45309}
+.fo-out{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:10px 0}.fo-out img{width:100%;border-radius:8px;border:1px solid var(--l);display:block}
 .inst ol{padding-left:20px;margin:8px 0}.inst li{margin:6px 0}
 main{max-width:980px;margin:0 auto;padding:16px}
 h2{margin:8px 0 12px}h3{margin:20px 0 8px}
@@ -662,6 +664,7 @@ const numAR=x=>{x=String(x??'').trim().replace(/\$|\s/g,'');if(!x)return null;if
 async function vPrecios(){
   $('#v').innerHTML=`<h2>Precios y márgenes</h2>
   <div class="box" id="pm"></div>
+  <div class="box" id="pr_vd"></div>
   <div class="box"><div class="bh"><h3>Lista de precios para clientes</h3><button id="pr_lp">Armar lista de precios</button></div>
     <p><small>Generá la lista mayorista, minorista o especial en PDF, por WhatsApp o para Excel. Para mandársela a un cliente puntual con sus precios, usá el botón <b>Lista de precios</b> de su ficha.</small></p></div>
   <div class="box"><div class="bh"><h3>Margen de cada lista</h3></div>
@@ -760,7 +763,7 @@ SDMP-01279	8.900</pre>
       const{data,error}=await sb.rpc('fijar_costos',{p_items:ok.map(x=>({id:x.p.producto_id,costo:x.n}))});
       if(error){$('#pr_ap2').disabled=false;return toast(error.message,1)}
       await recargarProductos();vPrecios();toast((data??ok.length)+' costos actualizados desde la lista del proveedor.')})};
-  importadorLista();
+  importadorLista();cajaVender();
   $('#pr_et').onclick=()=>etiquetas(sel.slice(0,300).map(p=>p.producto_id));
   $('#pr_fot').onclick=()=>fotosAutomaticas(sel);
   $('#pr_fjl').onclick=()=>fotosJL();
@@ -818,6 +821,7 @@ function abrirListaPrecios(c){
       <label class="f">Familia<select id="lp_f"><option value="">Todas</option>${uniq('familia').map(x=>`<option>${esc(x)}</option>`).join('')}</select></label>
       <label class="f">Buscar<input id="lp_q" placeholder="ej.: maní, crocante"></label></div>
     <label class="chk"><input type="checkbox" id="lp_c" checked> Mostrar el código de cada producto</label>
+    <label class="chk"><input type="checkbox" id="lp_of"> Solo productos en oferta (folleto)</label>
     <label class="chk"><input type="checkbox" id="lp_ft" ${Object.values(S.min).some(x=>x.foto)?'':'disabled'}> Con fotos de los productos${Object.values(S.min).some(x=>x.foto)?'':' <small>(todavía no cargaste fotos)</small>'}</label>
     <p id="lp_n"></p>
     <div class="fc-acc"><button id="lp_cat">📖 Catálogo con fotos</button><button class="alt" id="lp_pdf">Lista PDF</button><button class="alt wa" id="lp_wa">WhatsApp</button><button class="alt" id="lp_cp">Copiar para Excel</button></div>
@@ -840,7 +844,7 @@ function abrirListaPrecios(c){
       ${grupos(L).map(([g,X])=>`<h2>${esc(g)}</h2><table>${X.map(x=>`<tr>${ft?`<td style="width:58px;padding:3px">${x.f?`<img src="${esc(x.f)}" style="width:52px;height:52px;object-fit:contain;display:block">`:''}</td>`:''}${cod?`<td class="c">${esc(x.c)}</td>`:''}<td>${esc(x.d)}</td><td class="n">${$m(x.p)}</td></tr>`).join('')}</table>`).join('')}
       <p class="pie">Precios sujetos a modificación sin previo aviso.${c?.token_pedidos?' Hacé tu pedido online: '+esc(linkPedidos(c)):''}</p>
       <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close()};
-  $('#lp_cat').onclick=()=>{const{l,L}=sel();if(!L.length)return toast('No hay productos con ese filtro.',1);catalogoPDF(l,L,c,LIS[l])};
+  $('#lp_cat').onclick=()=>{const{l}=sel();let{L}=sel();if($('#lp_of').checked)L=L.filter(x=>promoCerca(x.id,l));if(!L.length)return toast($('#lp_of').checked?'No hay productos en oferta con ese filtro. Creá una promoción primero.':'No hay productos con ese filtro.',1);catalogoPDF(l,L,c,LIS[l])};
   $('#lp_wa').onclick=()=>{const{l,L}=sel();if(!L.length)return toast('No hay productos con ese filtro.',1);const cod=$('#lp_c').checked;
     const MAX=60,X=L.slice(0,MAX);
     let t=`*Sabores de mi País*\nLista de precios ${LIS[l]} · ${hoy()}\n_Precios con IVA incluido_\n`;
@@ -2477,6 +2481,100 @@ function fotosJL(){
     $('#fj_ok').disabled=false;pintar();est(`Guardé <b>${k-mal}</b> fotos.${mal?' '+mal+' no se pudieron guardar.':''}`);toast((k-mal)+' fotos guardadas.');
     if(typeof vPrecios=='function'&&$('#pr_q'))vPrecios()};
 }
+
+/* ======================= CATÁLOGO PÚBLICO Y FOLLETO DE OFERTAS ======================= */
+const linkPublico=()=>new URL('pedido.html?ver=catalogo',location.href.split('#')[0].split('?')[0]).href;
+async function cajaVender(){const box=$('#pr_vd');if(!box)return;
+  const{data}=await sb.from('config_app').select('valor').eq('clave','catalogo_publico').maybeSingle();const v=data?.valor||'';
+  box.innerHTML=`<div class="bh"><h3>📣 Para salir a vender</h3><button id="pv_fo">Armar folleto de ofertas</button></div>
+    <p><small>Folletos con fotos y precios de oferta por familia, listos para WhatsApp, estados o Instagram. Y un catálogo público para que cualquiera vea tus productos y te pida por WhatsApp.</small></p>
+    <div class="g"><label class="f">Catálogo público (para clientes nuevos)<select id="pv_cl"><option value="">Desactivado</option>${['minorista','mayorista','especial'].map(l=>`<option value="${l}" ${v==l?'selected':''}>Activado con precios ${l}</option>`).join('')}</select></label></div>
+    ${v?`<input readonly value="${linkPublico()}" id="pv_lk"><div class="fc-acc"><button class="alt" id="pv_cp">Copiar link</button><button class="alt wa" id="pv_wa">Compartir por WhatsApp</button><a class="lnk" href="${linkPublico()}" target="_blank" rel="noopener">Ver cómo se ve</a></div>
+      ${S.telEmp?'':'<p class="err"><small>Cargá tu WhatsApp en Cobranza (Tu WhatsApp) para que te lleguen los pedidos del catálogo.</small></p>'}`:''}`;
+  $('#pv_fo').onclick=()=>folletoOfertas();
+  $('#pv_cl').onchange=async e=>{const{error}=await sb.from('config_app').upsert({clave:'catalogo_publico',valor:e.target.value});if(error)return toast(error.message,1);toast(e.target.value?'Catálogo público activado.':'Catálogo público desactivado.');cajaVender()};
+  $('#pv_cp')&&($('#pv_cp').onclick=async()=>{try{await navigator.clipboard.writeText(linkPublico())}catch(e){$('#pv_lk').select();document.execCommand('copy')}toast('Link copiado.')});
+  $('#pv_wa')&&($('#pv_wa').onclick=()=>window.open('https://wa.me/?text='+encodeURIComponent('¡Hola! 👋 Te comparto el catálogo de *Sabores de mi País*: mirá los productos, las ofertas y hacé tu pedido por WhatsApp 👇\n'+linkPublico()),'_blank'));
+}
+
+const FMT={post:{w:1080,h:1350,n:4,col:2,t:'Posteo (1080×1350)'},historia:{w:1080,h:1920,n:6,col:2,t:'Historia / estado (1080×1920)'},cuadrado:{w:1080,h:1080,n:4,col:2,t:'Cuadrado (1080×1080)'}};
+function cargarImg(src){return new Promise(ok=>{if(!src)return ok(null);const i=new Image();if(!/^data:/.test(src))i.crossOrigin='anonymous';i.onload=()=>ok(i);i.onerror=()=>ok(null);i.src=src})}
+function rrect(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
+function lineas(c,t,maxW,maxL){const w=String(t).split(/\s+/),L=[];let cur='';for(const x of w){const tt=cur?cur+' '+x:x;if(c.measureText(tt).width<=maxW)cur=tt;else{if(cur)L.push(cur);cur=x}}if(cur)L.push(cur);
+  if(L.length>maxL){L.length=maxL;let u=L[maxL-1];while(c.measureText(u+'…').width>maxW&&u.length)u=u.slice(0,-1);L[maxL-1]=u+'…'}return L}
+async function dibujarFolleto(items,o){const F=FMT[o.fmt],cv=document.createElement('canvas');cv.width=F.w;cv.height=F.h;const c=cv.getContext('2d');
+  const FONT='system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif',m=48,cab=o.fmt=='historia'?380:300,pie=150;
+  c.fillStyle='#f6f2ec';c.fillRect(0,0,F.w,F.h);
+  // cabecera
+  const g=c.createLinearGradient(0,0,F.w,cab);g.addColorStop(0,MARCA.n);g.addColorStop(1,MARCA.c);c.fillStyle=g;c.fillRect(0,0,F.w,cab);
+  const logo=await cargarImg(MARCA.logo);let tx=m;
+  if(logo){const k=Math.min((cab-80)/logo.height,F.w*.36/logo.width),lw=logo.width*k,lh=logo.height*k;c.drawImage(logo,m,(cab-lh)/2,lw,lh);tx=m+lw+36}
+  c.fillStyle='#fff';c.textBaseline='alphabetic';c.font=`900 ${o.fmt=='historia'?120:104}px ${FONT}`;
+  const tit=o.titulo||'OFERTAS';let fs=o.fmt=='historia'?120:104;while(c.measureText(tit).width>F.w-tx-m&&fs>50){fs-=4;c.font=`900 ${fs}px ${FONT}`}
+  c.fillText(tit,tx,cab/2+fs*.15);
+  c.fillStyle='#ffd54a';c.font=`800 ${Math.round(fs*.48)}px ${FONT}`;c.fillText(lineas(c,o.sub||'',F.w-tx-m,1)[0]||'',tx,cab/2+fs*.15+fs*.62);
+  if(o.vig){c.fillStyle='rgba(255,255,255,.85)';let vf=30;c.font=`500 ${vf}px ${FONT}`;while(c.measureText(o.vig).width>F.w-tx-m&&vf>18){vf--;c.font=`500 ${vf}px ${FONT}`}c.fillText(lineas(c,o.vig,F.w-tx-m,1)[0],tx,cab-34)}
+  // grilla (las tarjetas se adaptan a la cantidad de productos)
+  const n=items.length,cols=n==1?1:F.col,rows=Math.ceil(n/cols),gap=28,top0=cab+36,bot0=F.h-pie-30,cw=(F.w-2*m-(cols-1)*gap)/cols;
+  const ch=Math.min((bot0-top0-(rows-1)*gap)/rows,cols==1?900:720),top=top0+((bot0-top0)-(rows*ch+(rows-1)*gap))/2;
+  const imgs=await Promise.all(items.map(x=>cargarImg(x.img)));
+  items.forEach((x,i)=>{const col=i%cols,row=Math.floor(i/cols),X=m+col*(cw+gap),Y=top+row*(ch+gap),pad=24,big=cw>600;
+    c.save();c.shadowColor='rgba(0,0,0,.12)';c.shadowBlur=18;c.shadowOffsetY=6;c.fillStyle='#fff';rrect(c,X,Y,cw,ch,28);c.fill();c.restore();
+    const fN=big?44:30,lhN=fN*1.2,fP=big?96:62,txt=lhN*2+(x.ant?40:0)+fP+((x.cond||x.bulto)?36:0)+30;
+    const ih=Math.max(80,ch-txt-pad*2),iw=cw-pad*2,im=imgs[i];
+    if(im){const k=Math.min(iw/im.width,ih/im.height);c.drawImage(im,X+pad+(iw-im.width*k)/2,Y+pad+(ih-im.height*k)/2,im.width*k,im.height*k)}
+    else{c.fillStyle=MARCA.c+'1f';rrect(c,X+pad,Y+pad,iw,ih,20);c.fill();c.fillStyle=MARCA.c;c.font=`900 ${Math.round(Math.min(ih,iw)*.55)}px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.fillText((x.d||'?')[0],X+cw/2,Y+pad+ih/2);c.textAlign='left';c.textBaseline='alphabetic'}
+    if(x.pct){const r=big?80:60;c.fillStyle='#d62828';c.beginPath();c.arc(X+cw-r+8,Y+r-8,r,0,7);c.fill();c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';c.font=`900 ${big?52:38}px ${FONT}`;c.fillText('-'+nf(x.pct)+'%',X+cw-r+8,Y+r-8);c.textAlign='left';c.textBaseline='alphabetic'}
+    let y=Y+pad+ih+fN+8;c.fillStyle='#1c2333';c.font=`700 ${fN}px ${FONT}`;const NL=lineas(c,x.d,iw,2);for(const l of NL){c.fillText(l,X+pad,y);y+=lhN}if(NL.length<2)y+=lhN;
+    if(x.ant){c.fillStyle='#8a90a0';c.font=`500 ${big?34:28}px ${FONT}`;const t=$m(x.ant);y+=6;c.fillText(t,X+pad,y);const tw=c.measureText(t).width;c.strokeStyle='#8a90a0';c.lineWidth=3;c.beginPath();c.moveTo(X+pad-2,y-10);c.lineTo(X+pad+tw+2,y-10);c.stroke();y+=8}
+    c.fillStyle=x.pct?'#d62828':MARCA.c;let pf=fP;c.font=`900 ${pf}px ${FONT}`;const pt=$m(x.p);while(c.measureText(pt).width>iw&&pf>36){pf-=3;c.font=`900 ${pf}px ${FONT}`}y+=pf*.95;c.fillText(pt,X+pad,y);
+    if(x.cond||x.bulto){c.fillStyle=x.cond?'#1d7a46':'#6a7184';c.font=`700 ${big?30:24}px ${FONT}`;y+=big?40:32;c.fillText(lineas(c,x.cond||x.bulto,iw,1)[0],X+pad,y)}});
+  // pie
+  c.fillStyle=MARCA.c;c.fillRect(0,F.h-pie,F.w,pie);c.fillStyle='#fff';c.textAlign='center';
+  c.font=`800 46px ${FONT}`;c.fillText(S.telEmp?'Pedí por WhatsApp  '+S.telEmp:'Sabores de mi País',F.w/2,F.h-pie+66);
+  c.font=`500 26px ${FONT}`;c.fillStyle='rgba(255,255,255,.9)';c.fillText('Precios con IVA · lista '+o.lista+(o.pie?' · '+o.pie:''),F.w/2,F.h-pie+112);c.textAlign='left';
+  return cv}
+async function folletoOfertas(){
+  const fams=[...new Set(S.productos.map(p=>(p.familia||'').trim()).filter(Boolean))].sort();
+  const m=document.createElement('div');m.className='modal';document.body.appendChild(m);let sel=[],man=new Set(),quit=new Set();
+  const hoy=new Date(),fin=new Date(hoy.getTime()+7*864e5);
+  m.innerHTML=`<div class="mc fo"><div class="bh"><h3>📣 Folleto de ofertas</h3><button class="alt" id="fo_x">Cerrar</button></div>
+    <div class="g"><label class="f">Familia<select id="fo_f"><option value="">Todas las ofertas</option>${fams.map(f=>`<option>${esc(f)}</option>`).join('')}</select></label>
+      <label class="f">Precios de la lista<select id="fo_l"><option>minorista</option><option>mayorista</option><option>especial</option></select></label>
+      <label class="f">Formato<select id="fo_t">${Object.entries(FMT).map(([k,f])=>`<option value="${k}">${f.t} · ${f.n} productos</option>`).join('')}</select></label>
+      <label class="f">Título<input id="fo_ti" value="OFERTAS" maxlength="22"></label>
+      <label class="f">Vigencia<input id="fo_vg" value="Válido hasta el ${fin.toLocaleDateString('es-AR',{day:'numeric',month:'long'})} o hasta agotar stock" maxlength="70"></label></div>
+    <div class="conscan"><input id="fo_q" placeholder="Agregar otro producto (nombre o código)" autocomplete="off">${btnScan('fo_sc')}</div><div id="fo_r"></div>
+    <div id="fo_lst"></div><button id="fo_g">Armar folleto</button><div id="fo_out"></div></div>`;
+  $('#fo_x').onclick=()=>m.remove();
+  const cand=()=>{const l=$('#fo_l').value,f=$('#fo_f').value;const base=S.productos.filter(p=>+p['precio_'+l]>0&&(!f||(p.familia||'').trim()==f));
+    let A=base.filter(p=>promoCerca(p.producto_id,l));if(!A.length)A=base.filter(p=>S.min[p.producto_id]?.foto).slice(0,24);
+    const ids=new Set(A.map(p=>p.producto_id));for(const id of man)ids.add(id);
+    return [...ids].map(id=>S.productos.find(p=>p.producto_id==id)).filter(p=>p&&+p['precio_'+l]>0).sort((a,b)=>(!!S.min[b.producto_id]?.foto)-(!!S.min[a.producto_id]?.foto)||a.descripcion.localeCompare(b.descripcion))};
+  const lst=()=>{const C=cand(),l=$('#fo_l').value;sel=C.filter(p=>!quit.has(p.producto_id));
+    $('#fo_lst').innerHTML=C.length?`<p><small>${C.some(p=>promoCerca(p.producto_id,l))?'Productos en oferta':'No hay promociones activas en esta familia: muestro productos destacados con foto (sin descuento). Creá una promoción en Precios para mostrar precio tachado.'} · ${sel.length} elegidos → ${Math.ceil(sel.length/FMT[$('#fo_t').value].n)||0} ${Math.ceil(sel.length/FMT[$('#fo_t').value].n)==1?'imagen':'imágenes'}</small></p>
+      <div class="fo-l">${C.map(p=>{const r=promoCerca(p.producto_id,l);return`<label><input type="checkbox" data-fo="${p.producto_id}" ${quit.has(p.producto_id)?'':'checked'}> ${S.min[p.producto_id]?.foto?'📷':'<span class="sinf">sin foto</span>'} ${esc(p.descripcion)} ${r?`<b class="promo">−${nf(r.descuento_pct)} %</b>`:''}</label>`}).join('')}</div>`
+      :'<p><small>No hay productos para mostrar con ese filtro.</small></p>';
+    $$('#fo_lst [data-fo]').forEach(i=>i.onchange=()=>{i.checked?quit.delete(i.dataset.fo):quit.add(i.dataset.fo);lst()})};
+  ['#fo_f','#fo_l','#fo_t'].forEach(k=>$(k).onchange=()=>{quit.clear();lst()});lst();
+  buscador('#fo_q','#fo_r',p=>{man.add(p.producto_id);quit.delete(p.producto_id);lst()});$('#fo_sc').onclick=()=>escanear('Agregar al folleto',p=>{man.add(p.producto_id);lst();return '✔ '+p.descripcion});
+  $('#fo_g').onclick=async()=>{if(!sel.length)return toast('Elegí al menos un producto.',1);const l=$('#fo_l').value,fmt=$('#fo_t').value,F=FMT[fmt],f=$('#fo_f').value;
+    $('#fo_g').disabled=true;$('#fo_out').innerHTML='<p>Armando…</p>';
+    const items=sel.map(p=>{const r=promoCerca(p.producto_id,l),base=+p['precio_'+l],b=bul(p.producto_id);const pr=r?Math.round(base*(1-r.descuento_pct/100)*100)/100:base;
+      return{d:p.descripcion,img:S.min[p.producto_id]?.foto||'',p:pr,ant:r?base:null,pct:r?+r.descuento_pct:0,cond:r&&condPromo(r)?condPromo(r):'',bulto:b?b.t+' × '+b.n+': '+$m(pr*b.n):''}});
+    const pags=[];for(let i=0;i<items.length;i+=F.n)pags.push(items.slice(i,i+F.n));
+    const cvs=[];for(const [k,pg] of pags.entries())cvs.push(await dibujarFolleto(pg,{fmt,lista:l,titulo:$('#fo_ti').value.trim().toUpperCase(),sub:f?cap1(f):'de la semana',vig:$('#fo_vg').value.trim(),pie:pags.length>1?(k+1)+'/'+pags.length:''}));
+    const blobs=await Promise.all(cvs.map(cv=>new Promise(ok=>cv.toBlob(ok,'image/jpeg',.9))));
+    const nom=k=>'Ofertas '+(f||'Sabores')+(pags.length>1?' '+(k+1):'')+'.jpg';
+    $('#fo_out').innerHTML=`<p><b>${cvs.length} ${cvs.length==1?'imagen lista':'imágenes listas'}.</b> ${navigator.canShare?'Tocá Compartir para mandarlas por WhatsApp o subirlas a tu estado.':'Descargalas y mandalas por WhatsApp o subilas a Instagram.'}</p>
+      <div class="fo-out">${blobs.map((b,k)=>`<div><img src="${URL.createObjectURL(b)}" alt="Folleto ${k+1}"><div class="fc-acc"><a class="lnk" download="${esc(nom(k))}" href="${URL.createObjectURL(b)}">Descargar</a></div></div>`).join('')}</div>
+      <div class="fc-acc">${navigator.canShare?'<button id="fo_sh">Compartir</button>':''}<button class="alt" id="fo_dl">Descargar ${cvs.length>1?'todas':''}</button></div>`;
+    $('#fo_g').disabled=false;
+    $('#fo_dl').onclick=()=>blobs.forEach((b,k)=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=nom(k);document.body.appendChild(a);a.click();a.remove()});
+    $('#fo_sh')&&($('#fo_sh').onclick=async()=>{const files=blobs.map((b,k)=>new File([b],nom(k),{type:'image/jpeg'}));
+      try{if(navigator.canShare({files}))await navigator.share({files,text:'Ofertas de Sabores de mi País'+(S.telEmp?' · Pedí por WhatsApp '+S.telEmp:'')});else $('#fo_dl').click()}catch(e){}})};
+}
+const cap1=t=>{t=String(t||'').toLowerCase();return t.charAt(0).toUpperCase()+t.slice(1)};
 
 /* ======================= CONTABLE (solo dueño) ======================= */
 const CT_SUBS=[['resultados','Resultados'],['rentab','Rentabilidad'],['iva','IVA'],['ret','Retenciones'],['cheques','Cheques'],['bancos','Bancos'],['flujo','Flujo de caja'],['stockv','Valor del stock'],['contador','Para el contador']];
