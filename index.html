@@ -23,8 +23,8 @@ header nav a{padding:7px 14px;border-radius:6px;cursor:pointer;color:#cfd4e2}
 header nav a.on{background:var(--m);color:#fff}
 header span a{cursor:pointer;text-decoration:underline;margin-left:8px}
 header>b{display:flex;align-items:center;gap:10px}
-.hlogo{height:60px;max-width:220px;object-fit:contain}
-@media(max-width:640px){.hlogo{height:56px;max-width:200px}.hn{display:none}}
+.hlogo{height:76px;max-width:240px;object-fit:contain;margin:-4px 0}
+@media(max-width:640px){.hlogo{height:68px;max-width:220px}.hn{display:none}}
 .login .llogo{display:block;max-height:150px;max-width:300px;margin:0 auto 10px;object-fit:contain}
 .herr{display:flex;flex-wrap:wrap;gap:8px;margin:-4px 0 12px}
 .herr button{background:#fff;color:var(--m);border:1px solid var(--l);padding:7px 12px;font-size:14px}
@@ -454,7 +454,8 @@ async function descargarBackup(){
   }catch(e){m.querySelector('.mc').innerHTML=`<h3>No se pudo descargar</h3><p class="err">${esc(e.message||String(e))}</p><button id="bk_ok">Cerrar</button>`;$('#bk_ok').onclick=()=>m.remove()}}
 
 /* ---------- Marca (logo y colores) e instalar como app ---------- */
-const MARCA_DEF={c:'#7b2d3e',n:'#17213a',logo:''};
+const LOGO_DEF=new URL('logo.png',location.href).href;
+const MARCA_DEF={c:'#7b2d3e',n:'#17213a',logo:LOGO_DEF};
 const PALETAS=[['Bordó (original)','#7b2d3e','#17213a'],['Verde','#2e7d4f','#1b2e25'],['Azul','#1f5fa8','#132238'],['Naranja','#c4571a','#2b1d16'],['Rojo','#b3261e','#1f1a1c'],['Violeta','#6b3fa0','#1e1830'],['Negro','#333a45','#111418']];
 let MARCA=(()=>{try{return{...MARCA_DEF,...JSON.parse(localStorage.getItem('marca')||'{}')}}catch(e){return{...MARCA_DEF}}})();
 function aplicarMarca(m=MARCA){const r=document.documentElement.style;r.setProperty('--m',m.c);r.setProperty('--n',m.n);
@@ -462,8 +463,9 @@ function aplicarMarca(m=MARCA){const r=document.documentElement.style;r.setPrope
 function guardarMarcaLocal(){try{localStorage.setItem('marca',JSON.stringify(MARCA))}catch(e){}}
 async function cargarMarca(){const{data,error}=await sb.from('config_app').select('clave,valor').in('clave',['marca_color','marca_oscuro','marca_logo']);
   if(error||!data)return;const g=k=>data.find(x=>x.clave==k)?.valor;
-  MARCA={c:g('marca_color')||MARCA_DEF.c,n:g('marca_oscuro')||MARCA_DEF.n,logo:g('marca_logo')||''};aplicarMarca();guardarMarcaLocal()}
-const logoImg=(h=80)=>MARCA.logo?`<img src="${MARCA.logo}" alt="" style="height:${h}px;max-width:${h*4}px;object-fit:contain;display:block;margin-bottom:6px">`:'';
+  const lg=data.find(x=>x.clave=='marca_logo');
+  MARCA={c:g('marca_color')||MARCA_DEF.c,n:g('marca_oscuro')||MARCA_DEF.n,logo:lg?(lg.valor||''):LOGO_DEF};aplicarMarca();guardarMarcaLocal()}
+const logoImg=(h=110)=>MARCA.logo?`<img src="${MARCA.logo}" alt="" style="height:${h}px;max-width:${h*4}px;object-fit:contain;display:block;margin-bottom:6px">`:'';
 aplicarMarca();
 
 let instalarEv=null;
@@ -497,7 +499,8 @@ function prepararLogo(im,sinFondo){
   let x0=0,y0=0,x1=W-1,y1=H-1;
   if(sinFondo){
     // 1) Fondo: blanco, negro o transparente que toca el borde → transparente
-    const fondo=q=>{const a=d[q*4+3];if(a<30)return true;const r=d[q*4],g=d[q*4+1],b=d[q*4+2];return(r>232&&g>232&&b>232)||(r<28&&g<28&&b<28)};
+    const yaTransp=[0,W-1,N-W,N-1].some(q=>d[q*4+3]<30);
+    const fondo=q=>{const a=d[q*4+3];if(a<30)return true;if(yaTransp)return false;const r=d[q*4],g=d[q*4+1],b=d[q*4+2];return(r>232&&g>232&&b>232)||(r<28&&g<28&&b<28)};
     const vis=new Uint8Array(N),st=new Int32Array(N);let sp=0;
     const push=q=>{if(!vis[q]&&fondo(q)){vis[q]=1;st[sp++]=q}};
     for(let x=0;x<W;x++){push(x);push((H-1)*W+x)}for(let y=0;y<H;y++){push(y*W);push(y*W+W-1)}
@@ -526,7 +529,7 @@ function editarMarca(){
   const ant={...MARCA};let nv={...MARCA};
   const m=document.createElement('div');m.className='modal';m.innerHTML=`<div class="mc"><h3>Logo y colores</h3><div class="mk">
   <label>Logo<small>Sale arriba en el CRM, en los PDF (pedidos, recibos, listas de precios) y en el catálogo online. Podés subir el archivo del logo o una captura de pantalla: se recorta solo.</small></label>
-  <div class="lg"><div class="pv" id="mk_pv"></div><div><button id="mk_sub">Subir logo</button> <a class="lnk" id="mk_q">Quitar</a><input id="mk_f" type="file" accept="image/*" hidden><br><label style="display:flex;gap:6px;align-items:center;font-weight:400;margin-top:8px"><input type="checkbox" id="mk_sf" checked style="width:auto;margin:0"> Recortar y sacar el fondo blanco</label></div></div>
+  <div class="lg"><div class="pv" id="mk_pv"></div><div><button id="mk_sub">Subir logo</button> <a class="lnk" id="mk_q">Quitar</a> · <a class="lnk" id="mk_o">Logo original</a><input id="mk_f" type="file" accept="image/*" hidden><br><label style="display:flex;gap:6px;align-items:center;font-weight:400;margin-top:8px"><input type="checkbox" id="mk_sf" checked style="width:auto;margin:0"> Recortar y sacar el fondo blanco</label></div></div>
   <label>Colores<small>Elegí una combinación o tus colores exactos.</small></label>
   <div class="pal">${PALETAS.map((p,i)=>`<button data-i="${i}" style="background:linear-gradient(90deg,${p[2]} 0 50%,${p[1]} 50%)">${p[0]}</button>`).join('')}</div>
   <div class="cols"><label><small>Color principal (botones)</small><input type="color" id="mk_c"></label><label><small>Color de la barra de arriba</small><input type="color" id="mk_n"></label></div>
@@ -540,7 +543,7 @@ function editarMarca(){
   let img=null;const proc=()=>{if(!img)return;try{nv.logo=prepararLogo(img,$('#mk_sf').checked);dibu()}catch(er){toast('No se pudo preparar el logo: '+er.message,1)}};
   $('#mk_f').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{img=await leerImagen(f);proc()}catch(er){toast(er.message,1)}};
   $('#mk_sf').onchange=proc;
-  $('#mk_q').onclick=()=>{nv.logo='';dibu()};
+  $('#mk_q').onclick=()=>{nv.logo='';dibu()};$('#mk_o').onclick=()=>{nv.logo=LOGO_DEF;dibu()};
   m.querySelectorAll('.pal button').forEach(b=>b.onclick=()=>{const p=PALETAS[b.dataset.i];nv.c=p[1];nv.n=p[2];dibu()});
   $('#mk_c').oninput=e=>{nv.c=e.target.value;dibu()};$('#mk_n').oninput=e=>{nv.n=e.target.value;dibu()};
   $('#mk_x').onclick=()=>{aplicarMarca(ant);m.remove()};

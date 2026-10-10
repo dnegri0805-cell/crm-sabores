@@ -14,7 +14,7 @@
 html,body{margin:0}
 body{font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--t);background:var(--g);padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
 header{background:var(--n);color:#fff;padding:calc(14px + env(safe-area-inset-top,0px)) 16px 14px}
-header b{font-size:18px;display:flex;align-items:center;gap:10px}header b img{height:52px;max-width:180px;object-fit:contain}header small{display:block;color:#cfd4e2;margin-top:2px}
+header b{font-size:18px;display:flex;align-items:center;gap:10px}header b img{height:70px;max-width:220px;object-fit:contain}header small{display:block;color:#cfd4e2;margin-top:2px}
 main{max-width:720px;margin:0 auto;padding:12px 16px}
 .busca{position:sticky;top:0;z-index:5;background:var(--g);padding:10px 0 8px}
 input,textarea{width:100%;font:inherit;padding:12px;border:1px solid #c9c4c8;border-radius:10px;background:#fff;color:var(--t)}
@@ -95,11 +95,11 @@ function enB(p,q){if(!(p.b>1)||q<p.b)return '';const c=Math.floor(q/p.b),r=q-c*p
 const totalCar=()=>Object.entries(car).reduce((a,[id,q])=>{const p=prod(id);return a+(p?puP(p,q)*q:0)},0);
 
 /* Logo y colores elegidos en el CRM */
-function aplicarMarca(m){if(!m)return;const r=document.documentElement.style,tinte=(h,k)=>{const n=parseInt(h.slice(1),16),c=[n>>16,n>>8&255,n&255].map(v=>Math.round(v+(255-v)*k));return'#'+c.map(v=>v.toString(16).padStart(2,'0')).join('')};
+function aplicarMarca(m){if(!m)return;if(m.logo===null||m.logo===undefined)m.logo='logo.png';const r=document.documentElement.style,tinte=(h,k)=>{const n=parseInt(h.slice(1),16),c=[n>>16,n>>8&255,n&255].map(v=>Math.round(v+(255-v)*k));return'#'+c.map(v=>v.toString(16).padStart(2,'0')).join('')};
   if(/^#[0-9a-f]{6}$/i.test(m.c||'')){r.setProperty('--m',m.c);r.setProperty('--m2',tinte(m.c,.9))}
   if(/^#[0-9a-f]{6}$/i.test(m.n||'')){r.setProperty('--n',m.n);document.querySelector('meta[name=theme-color]').setAttribute('content',m.n)}
-  if(m.logo&&/^data:image\//.test(m.logo)){const b=$('#hb');b.innerHTML='';const i=new Image();i.alt='';i.src=m.logo;b.append(i,document.createTextNode('Sabores de mi País'))}}
-try{aplicarMarca(JSON.parse(localStorage.getItem('marca_cat')||'null'))}catch(e){}
+  if(m.logo&&(/^data:image\//.test(m.logo)||m.logo=='logo.png'||/\/logo\.png$/.test(m.logo))){const b=$('#hb');b.innerHTML='';const i=new Image();i.alt='';i.src=m.logo;b.append(i,document.createTextNode('Sabores de mi País'))}}
+try{aplicarMarca(JSON.parse(localStorage.getItem('marca_cat')||'null')||{})}catch(e){}
 sb.rpc('marca_publica').then(({data})=>{if(data){aplicarMarca(data);try{localStorage.setItem('marca_cat',JSON.stringify(data))}catch(e){}}});
 
 async function iniciar(){
