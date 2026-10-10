@@ -38,6 +38,18 @@ button{font:inherit;cursor:pointer;border:0;border-radius:10px}
 .q input{width:64px;text-align:center;padding:9px 4px}
 .q .add{width:auto;padding:0 18px;font-size:16px;background:var(--m);color:#fff}
 .mas{text-align:center;color:var(--mu);font-size:14px;padding:10px}
+.p .d{display:flex;gap:10px;align-items:flex-start}.p .d .tx{min-width:0}
+.ft{width:64px;height:64px;flex:none;border-radius:10px;object-fit:contain;background:#fff;border:1px solid var(--l);cursor:zoom-in}
+.ft0{width:64px;height:64px;flex:none;border-radius:10px;background:var(--m2);display:grid;place-items:center;color:var(--m);font-weight:700;font-size:22px}
+.zoom{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:40;display:grid;place-items:center;padding:20px}.zoom img{max-width:100%;max-height:80vh;border-radius:12px;background:#fff}.zoom p{color:#fff;text-align:center;margin:10px 0 0}
+.tabs{display:flex;gap:6px;margin:10px 0 0}.tabs button{flex:1;background:rgba(255,255,255,.12);color:#fff;padding:9px 10px;font-size:15px}.tabs button.on{background:#fff;color:var(--n);font-weight:600}
+.cta{background:#fff;border:1px solid var(--l);border-radius:14px;padding:16px;margin:12px 0}
+.cta .big{font-size:30px;font-weight:700;font-variant-numeric:tabular-nums;margin:2px 0}
+.cta .lab{font-size:13px;color:var(--mu);text-transform:uppercase;letter-spacing:.04em}
+.mp{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:#009ee3;color:#fff;font-weight:700;padding:14px;margin-top:10px;text-decoration:none;border-radius:10px}
+.datos{white-space:pre-line;background:var(--g);border-radius:10px;padding:10px 12px;margin-top:10px;font-size:15px}
+.fila{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--l)}.fila:last-child{border-bottom:0}
+.fila small{color:var(--mu)}.fila small.venc{color:var(--er);font-weight:600}.fila .n{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}.venc{color:var(--er);font-weight:600}
 .bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--l);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));box-shadow:0 -4px 16px rgba(23,33,58,.08)}
 .bar .in{max-width:720px;margin:0 auto;display:flex;gap:12px;align-items:center;justify-content:space-between}
 .bar .tot{font-variant-numeric:tabular-nums}.bar .tot b{display:block;font-size:19px}
@@ -65,7 +77,7 @@ button{font:inherit;cursor:pointer;border:0;border-radius:10px}
 </style>
 </head>
 <body>
-<header><b id="hb">Sabores de mi País</b><small id="hc">Cargando tu catálogo…</small></header>
+<header><b id="hb">Sabores de mi País</b><small id="hc">Cargando tu catálogo…</small><div class="tabs" id="tabs" hidden><button data-tab="pedido" class="on">🛒 Hacer pedido</button><button data-tab="cuenta">💳 Mi cuenta</button></div></header>
 <main id="m"></main>
 <div class="bar" id="bar" hidden><div class="in"><div class="tot"><span id="bn"></span><b id="bt"></b></div><button class="prim" id="bv">Ver pedido</button></div></div>
 <div id="t" class="toast" hidden></div>
@@ -106,10 +118,31 @@ async function iniciar(){
   if(!token){$('#hc').textContent='';$('#m').innerHTML='<div class="msg"><h2>Falta el link</h2><p>Abrí el link que te mandamos por WhatsApp para ver tu catálogo.</p></div>';return}
   const{data,error}=await sb.rpc('catalogo_cliente',{p_token:token});
   if(error){$('#hc').textContent='';$('#m').innerHTML=`<div class="msg"><h2>No pudimos abrir tu catálogo</h2><p class="err">${esc(error.message)}</p></div>`;return}
-  C=data;P=(data.productos||[]).filter(p=>p.p>0);cargarCarrito();
+  C=data;P=(data.productos||[]).filter(p=>p.p>0);hayFotos=P.some(p=>p.img);cargarCarrito();
   $('#hc').textContent=C.cliente+' · precios lista '+C.lista;
-  pintar();
+  $('#tabs').hidden=false;$$('[data-tab]').forEach(b=>b.onclick=()=>irTab(b.dataset.tab));
+  irTab(location.hash=='#cuenta'?'cuenta':'pedido');
 }
+let hayFotos=false;
+function irTab(t){$$('[data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab==t));try{history.replaceState(null,'',t=='cuenta'?'#cuenta':location.pathname+location.search)}catch(e){}
+  if(t=='cuenta'){$('#bar').hidden=true;miCuenta()}else pintar();window.scrollTo(0,0)}
+function zoom(p){if(!p?.img)return;const z=document.createElement('div');z.className='zoom';z.innerHTML=`<div><img src="${esc(p.img)}" alt="${esc(p.d)}"><p>${esc(p.d)} · ${$m(p.p)}</p></div>`;z.onclick=()=>z.remove();document.body.appendChild(z)}
+const telLimpio=t=>{let d=String(t||'').replace(/\D/g,'');if(!d)return '';if(d.startsWith('54'))d=d.slice(2);if(d.startsWith('9'))d=d.slice(1);if(d.startsWith('0'))d=d.slice(1);return d.length>=10?'549'+d:''};
+const fdc=d=>d?new Date(String(d).length==10?d+'T12:00':d).toLocaleDateString('es-AR'):'';
+function bloquePago(x,monto){const tel=telLimpio(x.tel);
+  return (x.mp?`<a class="mp" href="${esc(x.mp)}" target="_blank" rel="noopener">Pagar con Mercado Pago</a>`:'')+
+    (x.pago?`<div class="datos"><b>Datos para transferir</b>\n${esc(x.pago)}</div>`:'')+
+    (tel?`<a class="sec" style="display:block;text-align:center;margin-top:10px;text-decoration:none" target="_blank" rel="noopener" href="https://wa.me/${tel}?text=${encodeURIComponent('Hola! Soy '+(C?.cliente||'')+'. Les aviso que pagué'+(monto?' '+$m(monto):'')+'. Les mando el comprobante.')}">Avisar que pagué (WhatsApp)</a>`:'')}
+async function miCuenta(){$('#m').innerHTML='<p class="mas">Cargando tu cuenta…</p>';
+  const{data:x,error}=await sb.rpc('cuenta_cliente',{p_token:token});
+  if(error){$('#m').innerHTML=`<div class="msg"><h2>No pudimos abrir tu cuenta</h2><p class="err">${esc(/cuenta_cliente/.test(error.message)?'Esta sección todavía no está activada.':error.message)}</p></div>`;return}
+  const F=x.facturas||[],Pg=x.pagos||[],debe=+x.saldo>0.005;
+  $('#m').innerHTML=`<div class="cta"><div class="lab">${debe?'Tu saldo':'Tu cuenta'}</div><div class="big">${debe?$m(x.saldo):'¡Estás al día!'}</div>
+      ${+x.vencido>0.005?`<div class="venc">Vencido: ${$m(x.vencido)}</div>`:debe?'<small style="color:var(--mu)">Nada vencido todavía.</small>':''}
+      ${debe?bloquePago(x,+x.saldo):''}</div>
+    <div class="cta"><h3 style="margin:0 0 4px">Facturas pendientes</h3>${F.length?F.map(f=>`<div class="fila"><div>Factura ${esc(f.t)} N° ${f.n}<br><small>${f.f?'del '+fdc(f.f)+' · ':''}vence ${fdc(f.v)}</small>${f.dm>0?`<br><small class="venc">Vencida hace ${f.dm} ${f.dm==1?'día':'días'}</small>`:''}</div><div class="n">${$m(f.p)}${+f.p<+f.tot?`<br><small>de ${$m(f.tot)}</small>`:''}</div></div>`).join(''):'<p class="mas" style="padding:4px 0;text-align:left">No tenés facturas pendientes.</p>'}</div>
+    <div class="cta"><h3 style="margin:0 0 4px">Tus últimos pagos</h3>${Pg.length?Pg.map(r=>`<div class="fila"><div>Recibo N° ${r.n}<br><small>${fdc(r.f)} · ${esc(String(r.m||'').replace('_',' '))}</small></div><div class="n">${$m(r.i)}</div></div>`).join(''):'<p class="mas" style="padding:4px 0;text-align:left">Todavía no hay pagos registrados.</p>'}</div>
+    <p class="mas">Los pagos que hagas pueden tardar en aparecer hasta que los registremos.</p>`}
 function pintar(){
   const marcas=[...new Set(P.map(p=>p.m).filter(Boolean))].sort();
   $('#m').innerHTML=`<div class="busca"><input id="q" type="search" placeholder="Buscar producto (ej.: maní 85, crocante pizza)" value="${esc(filtro)}" autocomplete="off" aria-label="Buscar producto">
@@ -125,10 +158,11 @@ function lista(){
   const ws=norm(filtro).split(/\s+/).filter(Boolean);
   const L=P.filter(p=>(!marca||p.m==marca)&&ws.every(w=>norm(p.d+' '+(p.m||'')+' '+(p.f||'')+' '+p.c).includes(w)));
   const V=L.slice(0,lim);
-  $('#l').innerHTML=V.map(p=>{const q=car[p.id]||0;return `<div class="p ${q?'sel':''}"><div class="d"><b>${esc(p.d)}</b><small>${p.m?`<span class="marca">${esc(p.m)}</span>`:''}${p.b>1?`<span class="bulto">${esc(p.tb)} × ${p.b}</span>`:''}${esc(p.c)}</small></div><div class="pr">${(()=>{const r=promoP(p,q),rc=r?null:promoP(p,q,true);return (r?`<s>${$m(p.p)}</s> ${$m(puP(p,q))}`:$m(p.p))+(p.b>1?`<small>${esc(p.tb)}: ${$m((rc&&rc.mt=='bulto'?Math.round(p.p*(1-rc.pct/100)*100)/100:puP(p,q))*p.b)}</small>`:'')+(r?`<span class="promo">−${nf(r.pct)} %</span>`:rc?`<span class="promo cerca">−${nf(rc.pct)} % ${esc(condP(rc,p))}</span>`:'')})()}</div>
+  $('#l').innerHTML=V.map(p=>{const q=car[p.id]||0;return `<div class="p ${q?'sel':''}"><div class="d">${p.img?`<img class="ft" src="${esc(p.img)}" alt="" loading="lazy" data-z="${p.id}">`:(hayFotos?`<span class="ft0" aria-hidden="true">${esc((p.d||'?')[0])}</span>`:'')}<div class="tx"><b>${esc(p.d)}</b><small>${p.m?`<span class="marca">${esc(p.m)}</span>`:''}${p.b>1?`<span class="bulto">${esc(p.tb)} × ${p.b}</span>`:''}${esc(p.c)}</small></div></div><div class="pr">${(()=>{const r=promoP(p,q),rc=r?null:promoP(p,q,true);return (r?`<s>${$m(p.p)}</s> ${$m(puP(p,q))}`:$m(p.p))+(p.b>1?`<small>${esc(p.tb)}: ${$m((rc&&rc.mt=='bulto'?Math.round(p.p*(1-rc.pct/100)*100)/100:puP(p,q))*p.b)}</small>`:'')+(r?`<span class="promo">−${nf(r.pct)} %</span>`:rc?`<span class="promo cerca">−${nf(rc.pct)} % ${esc(condP(rc,p))}</span>`:'')})()}</div>
     <div class="q">${q&&enB(p,q)?`<small class="eq">= ${enB(p,q)}</small>`:''}${q?`<button data-r="${p.id}" aria-label="Restar">−</button><input type="number" inputmode="numeric" min="0" value="${q}" data-i="${p.id}" aria-label="Cantidad"><button data-s="${p.id}" aria-label="Sumar">+</button>`:`<button class="add${p.b>1?' sec2':''}" data-s="${p.id}">Agregar 1</button>`}${p.b>1?`<button class="add" data-bb="${p.id}">+ ${esc(p.tb)} (${p.b})</button>`:''}</div></div>`}).join('')+
     (L.length>V.length?`<button class="sec" id="mas" style="width:100%">Ver más productos (${L.length-V.length})</button>`:'')+
     (L.length?'':'<p class="mas">No encontramos productos con esa búsqueda.</p>');
+  $$('#l [data-z]').forEach(i=>i.onclick=()=>zoom(prod(i.dataset.z)));
   $$('#l [data-s]').forEach(b=>b.onclick=()=>cambiar(b.dataset.s,1));
   $$('#l [data-r]').forEach(b=>b.onclick=()=>cambiar(b.dataset.r,-1));
   $$('#l [data-bb]').forEach(b=>b.onclick=()=>cambiar(b.dataset.bb,prod(b.dataset.bb).b));
@@ -161,7 +195,7 @@ function revisar(){
       const{data,error}=await sb.rpc('crear_pedido_cliente',{p_token:token,p_items:I.map(([id,q])=>({id,q})),p_nota:h._nota||null});
       if(error){b.disabled=false;b.textContent='Enviar pedido';toast(error.message);return}
       car={};guardar();h.remove();$('#bar').hidden=true;
-      $('#m').innerHTML=`<div class="msg"><div class="ok">✓</div><h2>¡Recibimos tu pedido!</h2><p>Pedido N° <b>${data.numero}</b> · ${data.productos} ${data.productos==1?'producto':'productos'} · <b>${$m(data.total)}</b></p><p>Te avisamos cuando esté confirmado. ¡Gracias por tu compra!</p><button class="sec" id="otro">Hacer otro pedido</button></div>`;
+      $('#m').innerHTML=`<div class="msg"><div class="ok">✓</div><h2>¡Recibimos tu pedido!</h2><p>Pedido N° <b>${data.numero}</b> · ${data.productos} ${data.productos==1?'producto':'productos'} · <b>${$m(data.total)}</b></p><p>Te avisamos cuando esté confirmado. ¡Gracias por tu compra!</p>${C.mp||C.pago?`<details style="margin:12px 0;text-align:left"><summary>¿Querés pagarlo ya?</summary>${bloquePago(C,data.total)}</details>`:''}<button class="sec" id="otro">Hacer otro pedido</button></div>`;
       $('#otro').onclick=()=>{filtro='';marca='';pintar()};window.scrollTo(0,0)}};
   h.onclick=e=>{if(e.target===h){h._nota=$('#nota')?.value;cerrar()}};
   document.body.appendChild(h);draw();
