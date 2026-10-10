@@ -37,6 +37,8 @@ small{color:#6a7184}td a{cursor:pointer;color:var(--er)}
 .tag.recibida{background:#d8efe1;color:var(--ok)}.tag.anulada{background:#f6dcda;color:var(--er)}.tag.recibida_parcial{background:#fff1cc;color:#7a5a00}
 #t{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);color:#fff;padding:10px 18px;border-radius:8px;z-index:9;display:none}
 .err{color:var(--er)}
+.gbar{position:relative;display:flex;justify-content:space-between;gap:8px;padding:6px 8px;margin:4px 0;border-radius:6px;overflow:hidden;font-size:14px}.gbar span,.gbar b{position:relative;z-index:1}.gbar i{position:absolute;left:0;top:0;bottom:0;background:#f6e9ec;border-radius:6px}
+tr.tot td{border-top:2px solid #d9dce3}
 .conscan{display:flex;gap:6px;align-items:flex-start}.conscan input{flex:1;min-width:0}
 button.scan{display:inline-flex;align-items:center;justify-content:center;padding:0 12px;height:42px;flex:none}
 .scanm .mc{max-width:520px}.cam{position:relative;background:#000;border-radius:10px;overflow:hidden;aspect-ratio:4/3;max-width:100%}
@@ -142,9 +144,9 @@ async function init(){
   S.clientes=c.data;S.productos=pr.data;await cargarStock();shell();
 }
 function shell(){
-  app.innerHTML=`<header><b>Sabores de mi País</b><nav>${['inicio','pedidos','reparto','clientes','cobranza','compras','stock','precios','reportes'].filter(t=>t!='precios'||S.perfil.rol=='dueno').map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${t[0].toUpperCase()+t.slice(1)}</a>`).join('')}</nav><span>${esc(S.perfil.nombre)} (${S.perfil.rol})<a onclick="out()">Salir</a></span></header><main id="v"></main>`;
+  app.innerHTML=`<header><b>Sabores de mi País</b><nav>${['inicio','pedidos','reparto','clientes','cobranza','caja','compras','stock','precios','reportes'].filter(t=>!['precios','caja'].includes(t)||S.perfil.rol=='dueno').map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${t[0].toUpperCase()+t.slice(1)}</a>`).join('')}</nav><span>${esc(S.perfil.nombre)} (${S.perfil.rol})<a onclick="out()">Salir</a></span></header><main id="v"></main>`;
   $$('nav a').forEach(a=>a.onclick=()=>{S.tab=a.dataset.t;shell()});
-  ({inicio:vInicio,pedidos:vPedidos,reparto:vReparto,clientes:vClientes,cobranza:vCobranza,compras:vCompras,stock:vStock,precios:vPrecios,reportes:vReportes})[S.tab]();
+  ({inicio:vInicio,pedidos:vPedidos,reparto:vReparto,caja:vCaja,clientes:vClientes,cobranza:vCobranza,compras:vCompras,stock:vStock,precios:vPrecios,reportes:vReportes})[S.tab]();
 }
 
 /* Supabase devuelve como máximo 1000 filas por pedido: esto trae todas, de a tandas */
@@ -517,6 +519,86 @@ function abrirListaPrecios(c){
     if(L.length>MAX)toast('El mensaje lleva los primeros '+MAX+' productos. Para la lista completa usá el PDF.',1);else if(c&&!tel)toast('Este cliente no tiene teléfono cargado: elegí el contacto en WhatsApp.')};
   $('#lp_cp').onclick=()=>{const{l,L}=sel();if(!L.length)return toast('No hay productos con ese filtro.',1);
     copiarTabla(['Código','Producto','Marca','Precio '+LIS[l]],L.map(x=>[x.c,x.d,x.m=='Otros'?'':x.m,x.p.toFixed(2).replace('.',',')]))};
+}
+
+/* ---------- Caja diaria y gastos ---------- */
+const CAT_GASTO=['Combustible','Sueldos','Alquiler','Servicios (luz, gas, internet)','Impuestos','Mantenimiento vehículo','Comisiones','Bancarios','Otros'];
+const MEDIOS=['efectivo','transferencia','cheque','tarjeta','debito_automatico','otro'];
+const MED_TXT={efectivo:'Efectivo',transferencia:'Transferencia',cheque:'Cheque',echeq:'eCheq',tarjeta:'Tarjeta',debito_automatico:'Débito automático',otro:'Otro'};
+async function vCaja(){
+  S.cjD=S.cjD||diaLocal(new Date());
+  const d=S.cjD,dd=new Date(d+'T12:00'),mi=d.slice(0,7)+'-01',mf=diaLocal(new Date(dd.getFullYear(),dd.getMonth()+1,1));
+  const titulo=dd.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
+  $('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Caja · ${titulo}</h2><div class="fc-acc"><button class="alt" id="cj_a" aria-label="Día anterior">←</button><input type="date" id="cj_d" value="${d}" style="width:auto;margin:0"><button class="alt" id="cj_s" aria-label="Día siguiente">→</button><button class="alt" id="cj_h">Hoy</button></div></div>
+  <div id="cj">Cargando…</div>`;
+  const ir=x=>{S.cjD=x;vCaja()},mov=n=>{const t=new Date(d+'T12:00');t.setDate(t.getDate()+n);ir(diaLocal(t))};
+  $('#cj_a').onclick=()=>mov(-1);$('#cj_s').onclick=()=>mov(1);$('#cj_h').onclick=()=>ir(diaLocal(new Date()));$('#cj_d').onchange=e=>e.target.value&&ir(e.target.value);
+  const ini=new Date(mi+'T00:00').toISOString(),fin=new Date(mf+'T00:00').toISOString();
+  const[re,pp,ga,ci,ul,pe,co]=await Promise.all([
+    todo(()=>sb.from('recibos').select('*').eq('anulado',false).gte('fecha',ini).lt('fecha',fin).order('fecha')),
+    todo(()=>sb.from('pagos_proveedor').select('*,proveedores(razon_social)').gte('fecha',mi).lt('fecha',mf).order('fecha')),
+    todo(()=>sb.from('gastos').select('*').gte('fecha',mi).lt('fecha',mf).order('fecha')),
+    sb.from('cierres_caja').select('*').eq('fecha',d).maybeSingle(),
+    sb.from('cierres_caja').select('fecha,efectivo_contado').lt('fecha',d).order('fecha',{ascending:false}).limit(1),
+    todo(()=>sb.from('pedidos').select('*,pedido_items(producto_id,cantidad)').not('estado','in','(pendiente,cancelado)').order('numero',{ascending:false})),
+    todo(()=>sb.from('productos').select('id,costo').order('id'))]);
+  if(ga.error){$('#cj').innerHTML='<p class="err">No se pudo leer la caja: '+esc(ga.error.message)+'. Corré caja.sql en Supabase.</p>';return}
+  const delDia=(x,k)=>diaLocal(x[k])===d;
+  const R=(re.data||[]).filter(x=>delDia(x,'fecha')),P=(pp.data||[]).filter(x=>x.fecha===d),G=(ga.data||[]).filter(x=>x.fecha===d);
+  const sum=(A,k='importe')=>A.reduce((a,x)=>a+Number(x[k]||0),0),porMedio=A=>{const o={};for(const x of A)o[x.medio]=(o[x.medio]||0)+Number(x.importe);return o};
+  const cob=porMedio(R),ef=x=>x.medio==='efectivo';
+  const inicial=ci.data?Number(ci.data.efectivo_inicial):Number(ul.data?.[0]?.efectivo_contado||0);
+  const esperado=inicial+sum(R.filter(ef))-sum(P.filter(ef))-sum(G.filter(ef));
+  // movimientos del día
+  const cli=id=>S.clientes.find(c=>c.id==id)?.razon_social||'Cliente';
+  const M=[...R.map(x=>({h:x.fecha,t:'Cobro',d:'Recibo N° '+x.numero+' · '+cli(x.cliente_id),m:x.medio,v:+x.importe})),
+    ...P.map(x=>({h:x.created_at||x.fecha,t:'Pago',d:(x.proveedores?.razon_social||'Proveedor')+(x.referencia?' · '+x.referencia:''),m:x.medio,v:-x.importe})),
+    ...G.map(x=>({h:x.creado_en||x.fecha,t:'Gasto',d:x.categoria+(x.descripcion?' · '+x.descripcion:''),m:x.medio,v:-x.importe,id:x.id}))].sort((a,b)=>String(a.h).localeCompare(String(b.h)));
+  // mes
+  const ventas=(pe.data||[]).filter(o=>{const f=fechaDe(o);return f&&diaLocal(f)>=mi&&diaLocal(f)<mf});
+  const costo={};for(const r of co.data||[])costo[r.id]=Number(r.costo)||0;
+  const vMes=sum(ventas,'total');let cmv=0,sinC=false;for(const o of ventas)for(const i of o.pedido_items||[]){const c=costo[i.producto_id];if(c>0)cmv+=c*Number(i.cantidad||0);else sinC=true}
+  const gMes=sum(ga.data||[]),netoMes=vMes-cmv-gMes;
+  const gCat={};for(const x of ga.data||[])gCat[x.categoria]=(gCat[x.categoria]||0)+Number(x.importe);
+  const gC=Object.entries(gCat).sort((a,b)=>b[1]-a[1]),gMax=Math.max(1,...gC.map(x=>x[1]));
+  const nomMes=dd.toLocaleDateString('es-AR',{month:'long',year:'numeric'});
+  $('#cj').innerHTML=`<div class="kp">
+    <div class="box ok"><span class="lab">Cobrado</span><span class="num">${$m(sum(R))}</span><span class="det">${Object.entries(cob).map(([k,v])=>(MED_TXT[k]||k)+' '+$m(v)).join(' · ')||'Sin cobros'}</span></div>
+    <div class="box"><span class="lab">Pagado a proveedores</span><span class="num">${$m(sum(P))}</span><span class="det">${P.length} ${P.length==1?'pago':'pagos'}</span></div>
+    <div class="box"><span class="lab">Gastos</span><span class="num">${$m(sum(G))}</span><span class="det">${G.length} ${G.length==1?'gasto':'gastos'}</span></div>
+    <div class="box"><span class="lab">Efectivo en caja</span><span class="num">${$m(esperado)}</span><span class="det">Debería haber (inicial ${$m(inicial)})</span></div></div>
+  <div class="dos fc2">
+    <div class="box"><h3>Movimientos del día</h3>${M.length?`<table>${M.map(x=>`<tr><td><span class="badge ${x.v>0?'b-entregado':'b-mora30'}">${x.t}</span></td><td>${esc(x.d)}<br><small>${MED_TXT[x.m]||esc(x.m)}</small></td><td class="n ${x.v<0?'mora':''}">${x.v<0?'−':''}${$m(Math.abs(x.v))}</td><td>${x.id?`<a class="lnk" data-gb="${x.id}">Borrar</a>`:''}</td></tr>`).join('')}</table>`:'<p><small>No hay movimientos este día.</small></p>'}</div>
+    <div class="box"><h3>Cargar gasto</h3><div class="g">
+      <label class="f">Categoría<select id="g_c">${CAT_GASTO.map(c=>`<option>${c}</option>`).join('')}</select></label>
+      <label class="f">Importe<input id="g_i" type="number" step="0.01" min="0" inputmode="decimal"></label>
+      <label class="f">Medio de pago<select id="g_m">${MEDIOS.map(m=>`<option value="${m}">${MED_TXT[m]}</option>`).join('')}</select></label>
+      <label class="f">Detalle (opcional)<input id="g_d" placeholder="Ej.: nafta camioneta"></label></div>
+      <button id="g_g">Guardar gasto</button></div>
+    <div class="box"><h3>Cierre de caja</h3>${ci.data?`<p>Cerrada: debería haber <b>${$m(ci.data.efectivo_esperado)}</b>, se contaron <b>${$m(ci.data.efectivo_contado)}</b>.</p>
+      <p class="${Math.abs(ci.data.diferencia)<0.005?'':'mora'}"><b>${Math.abs(ci.data.diferencia)<0.005?'La caja cerró justa.':(ci.data.diferencia>0?'Sobran ':'Faltan ')+$m(Math.abs(ci.data.diferencia))}</b></p>${ci.data.nota?'<p><small>'+esc(ci.data.nota)+'</small></p>':''}<button class="alt" id="cc_re">Volver a cerrar</button>`:''}
+      <div id="cc_f" ${ci.data?'hidden':''}><p><small>Contá el efectivo al final del día y escribilo. El CRM lo compara con lo que debería haber.</small></p><div class="g">
+      <label class="f">Efectivo al empezar el día<input id="cc_i" type="number" step="0.01" min="0" value="${inicial.toFixed(2)}"></label>
+      <label class="f">Efectivo contado<input id="cc_c" type="number" step="0.01" min="0" inputmode="decimal"></label>
+      <label class="f">Nota (opcional)<input id="cc_n"></label></div><p id="cc_dif"></p><button id="cc_g">Cerrar caja</button></div></div>
+    <div class="box"><h3>Ganancia de ${nomMes}</h3><table>
+      <tr><td>Ventas</td><td class="n">${$m(vMes)}</td></tr>
+      <tr><td>Costo de la mercadería vendida${sinC?' <small>(hay productos sin costo)</small>':''}</td><td class="n">− ${$m(cmv)}</td></tr>
+      <tr><td>Gastos del negocio</td><td class="n">− ${$m(gMes)}</td></tr>
+      <tr class="tot"><td><b>Ganancia neta</b></td><td class="n ${netoMes<0?'mora':''}"><b>${netoMes<0?'− '+$m(-netoMes):$m(netoMes)}</b></td></tr></table>
+      ${gC.length?`<h3 style="margin-top:14px">Gastos por categoría</h3>${gC.map(([k,v])=>`<div class="gbar"><span>${esc(k)}</span><b>${$m(v)}</b><i style="width:${(v/gMax*100).toFixed(1)}%"></i></div>`).join('')}`:''}
+      <p><small>Ventas = pedidos aprobados en adelante. El costo usa el costo actual de cada producto.</small></p></div></div>`;
+  $('#g_g').onclick=async()=>{const imp=+$('#g_i').value;if(!(imp>0))return toast('Poné el importe del gasto.',1);
+    $('#g_g').disabled=true;const{error}=await sb.from('gastos').insert({fecha:d,categoria:$('#g_c').value,descripcion:$('#g_d').value.trim()||null,importe:imp,medio:$('#g_m').value});
+    if(error){$('#g_g').disabled=false;return toast(error.message,1)}toast('Gasto de '+$m(imp)+' guardado.');vCaja()};
+  $$('#cj [data-gb]').forEach(a=>a.onclick=async()=>{if(!confirm('¿Borrar este gasto?'))return;const{error}=await sb.from('gastos').delete().eq('id',a.dataset.gb);error?toast(error.message,1):(toast('Gasto borrado.'),vCaja())});
+  const esp=()=>esperado-inicial+(+$('#cc_i').value||0);
+  const dif=()=>{const c=$('#cc_c').value;if(c===''){$('#cc_dif').innerHTML='';return}const x=+c-esp();$('#cc_dif').innerHTML=`Debería haber <b>${$m(esp())}</b> · ${Math.abs(x)<0.005?'<b>Cierra justo.</b>':`<b class="mora">${x>0?'Sobran':'Faltan'} ${$m(Math.abs(x))}</b>`}`};
+  $('#cc_c').oninput=dif;$('#cc_i').oninput=dif;
+  $('#cc_re')&&($('#cc_re').onclick=()=>{$('#cc_f').hidden=false;$('#cc_re').hidden=true});
+  $('#cc_g').onclick=async()=>{const c=$('#cc_c').value;if(c===''||+c<0)return toast('Escribí el efectivo que contaste.',1);
+    const{error}=await sb.from('cierres_caja').upsert({fecha:d,efectivo_inicial:+$('#cc_i').value||0,efectivo_esperado:+esp().toFixed(2),efectivo_contado:+c,nota:$('#cc_n').value.trim()||null});
+    if(error)return toast(error.message,1);toast('Caja cerrada.');vCaja()};
 }
 
 /* ---------- Reportes de ventas ---------- */
