@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="es" translate="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="google" content="notranslate">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#7b2d3e">
+<title>Hacé tu pedido · Sabores de mi País</title>
+<style>
+:root{--m:#7b2d3e;--m2:#f6e9ec;--n:#17213a;--g:#f4f2f3;--l:#e2dde0;--t:#1c2333;--mu:#6a7184;--ok:#1d7a46;--er:#b3261e}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--t);background:var(--g);padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+header{background:var(--n);color:#fff;padding:calc(14px + env(safe-area-inset-top,0px)) 16px 14px}
+header b{font-size:18px}header small{display:block;color:#cfd4e2;margin-top:2px}
+main{max-width:720px;margin:0 auto;padding:12px 16px}
+.busca{position:sticky;top:0;z-index:5;background:var(--g);padding:10px 0 8px}
+input,textarea{width:100%;font:inherit;padding:12px;border:1px solid #c9c4c8;border-radius:10px;background:#fff;color:var(--t)}
+input:focus,textarea:focus,button:focus-visible{outline:3px solid #c98a98;outline-offset:1px}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:8px 0 2px;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid #e5c9d0;background:#fff;color:var(--m);border-radius:18px;padding:7px 14px;font:inherit;font-size:14px;cursor:pointer}
+.chip.on{background:var(--m);color:#fff;border-color:var(--m)}
+button{font:inherit;cursor:pointer;border:0;border-radius:10px}
+.prim{background:var(--m);color:#fff;padding:13px 18px;font-weight:600}
+.sec{background:#fff;color:var(--m);border:1px solid var(--m);padding:11px 16px}
+.rep{width:100%;margin:8px 0 4px}
+.lista{display:grid;gap:8px;margin-top:6px}
+.p{background:#fff;border:1px solid var(--l);border-radius:12px;padding:12px;display:grid;grid-template-columns:1fr auto;gap:8px 12px;align-items:center}
+.p.sel{border-color:var(--m);box-shadow:inset 3px 0 0 var(--m)}
+.p .d{min-width:0}.p .d b{display:block;font-weight:500}
+.p .d small{color:var(--mu)}
+.p .pr{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.marca{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:#234a87;background:#dde7f6;border-radius:4px;padding:1px 6px;margin-right:4px}
+.q{display:flex;align-items:center;gap:6px;grid-column:1/-1;justify-content:flex-end}
+.q button{width:42px;height:42px;background:var(--m2);color:var(--m);font-size:22px;font-weight:600}
+.q input{width:64px;text-align:center;padding:9px 4px}
+.q .add{width:auto;padding:0 18px;font-size:16px;background:var(--m);color:#fff}
+.mas{text-align:center;color:var(--mu);font-size:14px;padding:10px}
+.bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--l);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));box-shadow:0 -4px 16px rgba(23,33,58,.08)}
+.bar .in{max-width:720px;margin:0 auto;display:flex;gap:12px;align-items:center;justify-content:space-between}
+.bar .tot{font-variant-numeric:tabular-nums}.bar .tot b{display:block;font-size:19px}
+.hoja{position:fixed;inset:0;background:rgba(23,33,58,.45);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.hoja .c{background:#fff;width:100%;max-width:720px;max-height:92vh;overflow:auto;border-radius:16px 16px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px))}
+.hoja h2{margin:0 0 10px}
+.it{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:10px 0;border-bottom:1px solid var(--l)}
+.it small{color:var(--mu)}.it .n{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.it .q{grid-column:1/-1;justify-content:flex-start}.it .q button{width:36px;height:36px;font-size:19px}.it .q input{width:56px;padding:6px 4px}
+.it .q .x{width:auto;padding:0 12px;font-size:14px;background:none;color:var(--er)}
+.total{display:flex;justify-content:space-between;font-size:19px;font-weight:700;margin:14px 0}
+.acc{display:flex;gap:8px;flex-wrap:wrap}.acc button{flex:1}
+.msg{background:#fff;border:1px solid var(--l);border-radius:14px;padding:24px 18px;margin-top:24px;text-align:center}
+.msg h2{margin:0 0 8px}.msg .ok{font-size:44px;line-height:1;color:var(--ok)}
+.err{color:var(--er)}
+.toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--n);color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;z-index:30;max-width:90vw;text-align:center}
+@media (prefers-reduced-motion:no-preference){.hoja .c{animation:sube .18s ease-out}@keyframes sube{from{transform:translateY(30px);opacity:.6}}}
+</style>
+</head>
+<body>
+<header><b>Sabores de mi País</b><small id="hc">Cargando tu catálogo…</small></header>
+<main id="m"></main>
+<div class="bar" id="bar" hidden><div class="in"><div class="tot"><span id="bn"></span><b id="bt"></b></div><button class="prim" id="bv">Ver pedido</button></div></div>
+<div id="t" class="toast" hidden></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+const sb=supabase.createClient('https://ggfqdkgqtpnkvxoykoty.supabase.co','sb_publishable_kfvkZgS8FewPabohJrKf9Q_UDyEcQiR',{auth:{persistSession:false}});
+const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $m=n=>'$ '+Number(n||0).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const norm=t=>String(t??'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+const token=new URLSearchParams(location.search).get('c')||'';
+const K='carrito_'+token;
+let C=null,P=[],car={},filtro='',marca='',lim=60;
+function toast(t){const e=$('#t');e.textContent=t;e.hidden=false;clearTimeout(e._t);e._t=setTimeout(()=>e.hidden=true,2600)}
+function guardar(){try{localStorage.setItem(K,JSON.stringify(car))}catch(e){}}
+function cargarCarrito(){try{const x=JSON.parse(localStorage.getItem(K)||'{}');for(const id in x)if(P.find(p=>p.id==id)&&x[id]>0)car[id]=+x[id]}catch(e){}}
+const prod=id=>P.find(p=>p.id==id);
+const totalCar=()=>Object.entries(car).reduce((a,[id,q])=>a+(prod(id)?.p||0)*q,0);
+
+async function iniciar(){
+  if(!token){$('#hc').textContent='';$('#m').innerHTML='<div class="msg"><h2>Falta el link</h2><p>Abrí el link que te mandamos por WhatsApp para ver tu catálogo.</p></div>';return}
+  const{data,error}=await sb.rpc('catalogo_cliente',{p_token:token});
+  if(error){$('#hc').textContent='';$('#m').innerHTML=`<div class="msg"><h2>No pudimos abrir tu catálogo</h2><p class="err">${esc(error.message)}</p></div>`;return}
+  C=data;P=(data.productos||[]).filter(p=>p.p>0);cargarCarrito();
+  $('#hc').textContent=C.cliente+' · precios lista '+C.lista;
+  pintar();
+}
+function pintar(){
+  const marcas=[...new Set(P.map(p=>p.m).filter(Boolean))].sort();
+  $('#m').innerHTML=`<div class="busca"><input id="q" type="search" placeholder="Buscar producto (ej.: maní 85, crocante pizza)" value="${esc(filtro)}" autocomplete="off" aria-label="Buscar producto">
+    ${marcas.length>1?`<div class="chips"><button class="chip ${marca?'':'on'}" data-mk="">Todas</button>${marcas.map(m=>`<button class="chip ${marca==m?'on':''}" data-mk="${esc(m)}">${esc(m)}</button>`).join('')}</div>`:''}</div>
+    ${(C.ultimo||[]).length?`<button class="sec rep" id="rep">Repetir mi último pedido (${C.ultimo.length} productos)</button>`:''}
+    <div class="lista" id="l"></div>`;
+  $('#q').oninput=e=>{filtro=e.target.value;lim=60;lista()};
+  $$('[data-mk]').forEach(b=>b.onclick=()=>{marca=b.dataset.mk;lim=60;$$('[data-mk]').forEach(x=>x.classList.toggle('on',x.dataset.mk==marca));lista()});
+  $('#rep')&&($('#rep').onclick=()=>{let n=0;for(const u of C.ultimo){if(prod(u.id)){car[u.id]=(car[u.id]||0)+Math.max(1,Math.round(u.q));n++}}guardar();lista();barra();toast(n?n+' productos agregados de tu último pedido.':'Esos productos ya no están disponibles.')});
+  lista();barra();
+}
+function lista(){
+  const ws=norm(filtro).split(/\s+/).filter(Boolean);
+  const L=P.filter(p=>(!marca||p.m==marca)&&ws.every(w=>norm(p.d+' '+(p.m||'')+' '+(p.f||'')+' '+p.c).includes(w)));
+  const V=L.slice(0,lim);
+  $('#l').innerHTML=V.map(p=>{const q=car[p.id]||0;return `<div class="p ${q?'sel':''}"><div class="d"><b>${esc(p.d)}</b><small>${p.m?`<span class="marca">${esc(p.m)}</span>`:''}${esc(p.c)}</small></div><div class="pr">${$m(p.p)}</div>
+    <div class="q">${q?`<button data-r="${p.id}" aria-label="Restar">−</button><input type="number" inputmode="numeric" min="0" value="${q}" data-i="${p.id}" aria-label="Cantidad"><button data-s="${p.id}" aria-label="Sumar">+</button>`:`<button class="add" data-s="${p.id}">Agregar</button>`}</div></div>`}).join('')+
+    (L.length>V.length?`<button class="sec" id="mas" style="width:100%">Ver más productos (${L.length-V.length})</button>`:'')+
+    (L.length?'':'<p class="mas">No encontramos productos con esa búsqueda.</p>');
+  $$('#l [data-s]').forEach(b=>b.onclick=()=>cambiar(b.dataset.s,1));
+  $$('#l [data-r]').forEach(b=>b.onclick=()=>cambiar(b.dataset.r,-1));
+  $$('#l [data-i]').forEach(e=>e.onchange=()=>{const v=Math.max(0,Math.round(+e.value||0));v?car[e.dataset.i]=v:delete car[e.dataset.i];guardar();setTimeout(lista);barra()});
+  $('#mas')&&($('#mas').onclick=()=>{lim+=60;lista()});
+}
+function cambiar(id,d){const q=(car[id]||0)+d;q>0?car[id]=q:delete car[id];guardar();lista();barra()}
+function barra(){const n=Object.keys(car).length;$('#bar').hidden=!n;if(!n)return;
+  $('#bn').textContent=n+(n==1?' producto':' productos');$('#bt').textContent=$m(totalCar())}
+$('#bv').onclick=revisar;
+function revisar(){
+  const cerrar=()=>{h.remove();lista();barra()};
+  const h=document.createElement('div');h.className='hoja';
+  const draw=()=>{const I=Object.entries(car).filter(([id])=>prod(id));
+    if(!I.length){cerrar();return}
+    h.innerHTML=`<div class="c" role="dialog" aria-label="Tu pedido"><h2>Tu pedido</h2>
+      ${I.map(([id,q])=>{const p=prod(id);return `<div class="it"><div>${esc(p.d)}<br><small>${$m(p.p)} c/u</small></div><div class="n">${$m(p.p*q)}</div>
+        <div class="q"><button data-r="${id}" aria-label="Restar">−</button><input type="number" inputmode="numeric" min="0" value="${q}" data-i="${id}" aria-label="Cantidad"><button data-s="${id}" aria-label="Sumar">+</button><button class="x" data-x="${id}">Quitar</button></div></div>`}).join('')}
+      <div class="total"><span>Total</span><span>${$m(totalCar())}</span></div>
+      <textarea id="nota" rows="2" maxlength="500" placeholder="¿Algo que tengamos que saber? (horario de entrega, etc.)">${esc(h._nota||'')}</textarea>
+      <p style="font-size:13px;color:var(--mu)">Los precios incluyen IVA. Te confirmamos el pedido cuando lo revisemos.</p>
+      <div class="acc"><button class="sec" id="seg">Seguir comprando</button><button class="prim" id="env">Enviar pedido</button></div></div>`;
+    const sv=()=>{h._nota=$('#nota').value};
+    h.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{sv();car[b.dataset.s]++;guardar();draw()});
+    h.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{sv();const k=b.dataset.r;car[k]>1?car[k]--:delete car[k];guardar();draw()});
+    h.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>{sv();delete car[b.dataset.x];guardar();draw()});
+    h.querySelectorAll('[data-i]').forEach(e=>e.onchange=()=>{sv();const v=Math.max(0,Math.round(+e.value||0));v?car[e.dataset.i]=v:delete car[e.dataset.i];guardar();setTimeout(draw)});
+    h.querySelector('#seg').onclick=()=>{sv();cerrar()};
+    h.querySelector('#env').onclick=async e=>{sv();const b=e.target;b.disabled=true;b.textContent='Enviando…';
+      const{data,error}=await sb.rpc('crear_pedido_cliente',{p_token:token,p_items:I.map(([id,q])=>({id,q})),p_nota:h._nota||null});
+      if(error){b.disabled=false;b.textContent='Enviar pedido';toast(error.message);return}
+      car={};guardar();h.remove();$('#bar').hidden=true;
+      $('#m').innerHTML=`<div class="msg"><div class="ok">✓</div><h2>¡Recibimos tu pedido!</h2><p>Pedido N° <b>${data.numero}</b> · ${data.productos} ${data.productos==1?'producto':'productos'} · <b>${$m(data.total)}</b></p><p>Te avisamos cuando esté confirmado. ¡Gracias por tu compra!</p><button class="sec" id="otro">Hacer otro pedido</button></div>`;
+      $('#otro').onclick=()=>{filtro='';marca='';pintar()};window.scrollTo(0,0)}};
+  h.onclick=e=>{if(e.target===h){h._nota=$('#nota')?.value;cerrar()}};
+  document.body.appendChild(h);draw();
+}
+iniciar();
+</script>
+</body>
+</html>

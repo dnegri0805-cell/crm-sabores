@@ -37,6 +37,8 @@ small{color:#6a7184}td a{cursor:pointer;color:var(--er)}
 .tag.recibida{background:#d8efe1;color:var(--ok)}.tag.anulada{background:#f6dcda;color:var(--er)}.tag.recibida_parcial{background:#fff1cc;color:#7a5a00}
 #t{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);color:#fff;padding:10px 18px;border-radius:8px;z-index:9;display:none}
 .err{color:var(--er)}
+.b-online{background:#e4f3ea;color:#1d7a46}
+.link-ped input{font-size:13px;color:#6a7184}
 .okb{background:#d8efe1;color:#14532d;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 b.parada{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--m);color:#fff;font-size:13px}
 .marca{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:#234a87;background:#dde7f6;border-radius:4px;padding:1px 6px;vertical-align:1px}
@@ -202,7 +204,7 @@ async function vInicio(){
   if(pe.error){fallo('k2',pe.error);$('#t1').innerHTML='<p class="err">'+esc(pe.error.message)+'</p>'}else{
     const P=pe.data,tot=P.reduce((a,o)=>a+Number(o.total||0),0);
     kp('k2',String(P.length),P.length?'Suman '+$m(tot):'Nada pendiente',P.length?'alerta':'ok');
-    $('#t1').innerHTML=P.length?'<table><tr><th>N°</th><th>Cliente</th><th class="n">Total</th></tr>'+P.slice(0,8).map(o=>`<tr><td>${o.numero}</td><td>${esc(o.clientes?.razon_social)}</td><td class="n">${$m(o.total)}</td></tr>`).join('')+'</table>'+(P.length>8?`<small>Y ${P.length-8} más.</small>`:'')+'<p><button class="alt" id="irP">Ir a Pedidos</button></p>':'<p><small>No hay pedidos esperando aprobación.</small></p>';
+    $('#t1').innerHTML=P.length?'<table><tr><th>N°</th><th>Cliente</th><th class="n">Total</th></tr>'+P.slice(0,8).map(o=>`<tr><td>${o.numero}</td><td>${esc(o.clientes?.razon_social)}${o.origen=='online'?' <span class="badge b-online">Online</span>':''}</td><td class="n">${$m(o.total)}</td></tr>`).join('')+'</table>'+(P.length>8?`<small>Y ${P.length-8} más.</small>`:'')+'<p><button class="alt" id="irP">Ir a Pedidos</button></p>':'<p><small>No hay pedidos esperando aprobación.</small></p>';
     $('#irP')&&($('#irP').onclick=()=>{S.tab='pedidos';shell()})}
   // 3 deuda clientes
   if(fe.error){fallo('k3',fe.error);$('#t2').innerHTML='<p class="err">'+esc(fe.error.message)+'</p>'}else{
@@ -495,6 +497,7 @@ async function vReportes(){
 }
 
 /* ---------- Ficha del cliente ---------- */
+const linkPedidos=c=>new URL('pedido.html?c='+c.token_pedidos,location.href.split('#')[0].split('?')[0]).href;
 async function fichaCliente(c){
   if(!c)return;window.scrollTo(0,0);
   const IVA={responsable_inscripto:'Responsable Inscripto',monotributo:'Monotributo',consumidor_final:'Consumidor final',exento:'Exento'};
@@ -502,6 +505,10 @@ async function fichaCliente(c){
   <div class="fc-head"><div><h2>${esc(c.razon_social)}</h2><small>${c.cuit?'CUIT '+esc(c.cuit)+' · ':''}${IVA[c.condicion_iva]||esc(c.condicion_iva||'')} · Lista ${esc(c.lista)} · ${c.condicion_pago_dias?c.condicion_pago_dias+' días':'Contado'}</small>
     <div><small>${c.telefono?'Tel. '+esc(c.telefono):'Sin teléfono'}${c.domicilio?' · '+esc(c.domicilio):''}</small></div></div>
     <div class="fc-acc"><button id="fc_np">Nuevo pedido</button><button class="alt" id="fc_co">Registrar cobro</button><button class="alt" id="fc_ed">Editar datos</button></div></div>
+  <div class="box link-ped"><div class="bh"><h3>Pedidos online</h3></div>
+    ${c.token_pedidos?`<p><small>Con este link ${esc(c.razon_social)} ve su catálogo con los precios de su lista y te manda pedidos, que llegan como <b>Por aprobar</b>.</small></p>
+    <input readonly id="lk_u" value="${linkPedidos(c)}"><div class="fc-acc"><button class="alt wa" id="lk_w">Mandar por WhatsApp</button><button class="alt" id="lk_c">Copiar link</button><button class="alt" id="lk_n">Generar link nuevo</button></div>`
+    :'<p class="err"><small>Todavía no está activado. Corré pedidos-online.sql en Supabase.</small></p>'}</div>
   <div id="fc_edit" hidden class="box"><div class="g">
     <label class="f">Razón social<input id="e_n" value="${esc(c.razon_social)}"></label><label class="f">CUIT<input id="e_c" value="${esc(c.cuit)}"></label>
     <label class="f">Teléfono<input id="e_t" value="${esc(c.telefono)}"></label><label class="f">Domicilio<input id="e_d" value="${esc(c.domicilio)}"></label>
@@ -522,6 +529,14 @@ async function fichaCliente(c){
     <div class="box"><h3>Lo que más compra</h3><div id="fc_pr">Cargando…</div></div>
   </div>`;
   $('#fc_vol').onclick=()=>vClientes();
+  if(c.token_pedidos){
+    $('#lk_c').onclick=async()=>{try{await navigator.clipboard.writeText(linkPedidos(c));toast('Link copiado.')}catch(e){$('#lk_u').select();document.execCommand('copy');toast('Link copiado.')}};
+    $('#lk_w').onclick=()=>{const t=`¡Hola! Te paso tu link para hacer pedidos a *Sabores de mi País*. Ahí ves todos los productos con tus precios y nos mandás el pedido directo:\n${linkPedidos(c)}\n\nGuardalo, es personal.`;
+      const tel=telWA(c.telefono);window.open('https://wa.me/'+tel+'?text='+encodeURIComponent(t),'_blank');if(!tel)toast('Este cliente no tiene teléfono cargado: elegí el contacto en WhatsApp.')};
+    $('#lk_n').onclick=async()=>{if(!confirm('¿Generar un link nuevo? El link anterior deja de funcionar.'))return;
+      const tk=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now()).replace(/-/g,'');
+      const{error}=await sb.from('clientes').update({token_pedidos:tk}).eq('id',c.id);if(error)return toast(error.message,1);
+      c.token_pedidos=tk;toast('Link nuevo generado. Mandáselo al cliente.');fichaCliente(c)}}
   $('#fc_np').onclick=()=>{S.preCli=c;S.tab='pedidos';shell()};
   $('#fc_co').onclick=()=>{S.preCob=c.id;S.tab='cobranza';shell()};
   $('#fc_ed').onclick=()=>{$('#fc_edit').hidden=false};$('#e_x').onclick=()=>{$('#fc_edit').hidden=true};
@@ -653,7 +668,7 @@ async function listaPedidos(){
       const fb=cerr?'':(f?`<span class="fac">Factura ${f.tipo} N° ${f.numero}</span>`:(o.estado=='pendiente'?'':`<button data-fa="${o.id}">Facturar</button>`));
       return `<div class="ped est-${o.estado}">
         <div class="ped-top"><b>N° ${o.numero}</b> <a class="cli lnk" data-fc="${o.cliente_id}">${esc(o.clientes?.razon_social)}</a><span class="tot">${$m(o.total)}</span></div>
-        <div class="ped-acc"><span class="badge b-${o.estado}">${EST_TXT[o.estado]||o.estado}</span>${prin}${fb}
+        <div class="ped-acc"><span class="badge b-${o.estado}">${EST_TXT[o.estado]||o.estado}</span>${o.origen=='online'?'<span class="badge b-online">Online</span>':''}${prin}${fb}
           <button class="alt wa" data-w="${o.id}">WhatsApp</button><button class="alt" data-pdf="${o.id}">PDF</button>
           <select class="mas" data-e="${o.id}" aria-label="Cambiar estado"><option value="">Más…</option>${ESTADOS.filter(e=>e!=o.estado).map(e=>`<option value="${e}">${e=='cancelado'?'Cancelar pedido':'Pasar a: '+EST_TXT[e]}</option>`).join('')}</select></div></div>`}).join('')
       :'<p><small>No hay pedidos en esta lista.</small></p>';
