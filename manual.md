@@ -7,7 +7,7 @@ Guía ordenada por sección para consultar o pasarle al equipo. Cada punto dice 
 - **CRM (uso interno):** https://dnegri0805-cell.github.io/crm-sabores/ — se entra con usuario y contraseña.
 - **Catálogo de cada cliente:** link personal `pedido.html?c=…` que se manda desde la ficha del cliente (botón de WhatsApp). Cada cliente ve sus precios, su cuenta y sus promos.
 - **Catálogo público (sin precios de cliente):** `pedido.html?ver=catalogo` — para redes, folletos y nuevos clientes.
-- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-10.18`). Si algo "no aparece", cerrá y abrí la pestaña.
+- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-10.19`). Si algo "no aparece", cerrá y abrí la pestaña.
 - **En el celular:** abrí el CRM en Chrome → menú ⋮ → *Agregar a pantalla de inicio*. Queda como una app.
 - **Menú principal:** Inicio · Pedidos · Ventas · Reparto · Clientes · Cobranza · Caja · Compras · Stock · Precios · Reportes · Contable · Manual. Los números en rojo indican cosas pendientes.
 
@@ -46,6 +46,9 @@ Debajo aparecen tarjetas de aviso; cada una lleva a la pantalla donde se actúa:
 ## 3 bis. Fiambres y quesos (productos por peso)
 
 Se venden **por pieza entera** y se cobran **por el peso real**.
+
+- **Todos los quesos y fiambres de la lista ya quedan marcados solos** (el SQL ventas-peso los marca; los envasados por gramos, fetas, rallados y untables quedan afuera). Si después cargás productos nuevos, en **Precios → ⚖️ Productos por peso** está el botón **⚡ Marcar todos los quesos y fiambres**.
+- **Por kilo o por pieza:** si el producto no tiene cargado el peso de la pieza, se vende **por kilo**: el precio de la lista es el precio por kilo, el cliente pide kilos y en el pedido, la nota de pedido (PDF), el remito y el WhatsApp sale **"16 kg · a pesar"** con el precio **"$ X /kg"**. Al pesar, los kilos se reemplazan por el peso real. Si le cargás el peso promedio de la pieza, pasa a venderse por pieza (abajo).
 
 - **Configurar (una vez):** en **Precios → ⚖️ Productos por peso** marcás cada fiambre o queso y cargás el **peso promedio de la pieza** (ej.: horma 3,5 kg). El **costo se carga por kilo**, como te lo pasa el proveedor; en Precios esas filas muestran los precios por kilo y cuánto queda la pieza.
 - **En el catálogo:** el cliente ve "⚖️ Pieza ≈ 3,5 kg · $ X el kg". Puede pedir por piezas o tocar **pedir en kilos** (ej.: 7 kg → 2 piezas). Se le avisa que el total final se ajusta al peso real.

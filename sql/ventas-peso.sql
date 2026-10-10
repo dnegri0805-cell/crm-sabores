@@ -54,11 +54,23 @@ begin
   return new;
 end $$;
 
--- Para el catálogo: qué productos se venden por peso y cuánto pesa la pieza
+-- Para el catálogo: qué productos se venden por peso y cuánto pesa la pieza (0 = se pide por kilo)
 create or replace function pesables() returns jsonb language sql stable security definer set search_path = public as $$
-  select coalesce(jsonb_object_agg(id::text, peso_pieza), '{}'::jsonb) from productos where por_peso and coalesce(peso_pieza, 0) > 0
+  select coalesce(jsonb_object_agg(id::text, coalesce(peso_pieza, 0)), '{}'::jsonb) from productos where por_peso
 $$;
+
+-- Una sola vez: marca como "por peso" todos los quesos y fiambres (los envasados por gramos quedan afuera)
+do $$
+begin
+  if exists (select 1 from config_app where clave = 'peso_auto') then return; end if;
+  update productos set por_peso = true
+   where not por_peso
+     and coalesce(familia, '') ~* '(queso|fiambre|chacinad|jamoner|embutid|^secos$)'
+     and coalesce(familia, '') !~* '(fetas|rallad|hebras|mendicrim|tholem|untable)'
+     and coalesce(descripcion, '') !~* '([0-9]+ *(gr|grs|g|gs|ml|cc)\M|fetas|rallad|\munt\M|unt\.|hebras|crema\M|tholem|pizzeta|mascarpone|camembert|brie|mendicrim|\mman[ií]\M|salchicha|rodajitas|fuet|bandeja|\([0-9]+\))';
+  insert into config_app (clave, valor) values ('peso_auto', now()::text);
+end $$;
 revoke execute on function pesables() from public;
 grant execute on function pesables() to anon, authenticated;
 
-select 'productos por peso listos' as resultado;
+select 'productos por peso listos: ' || (select count(*) from productos where por_peso) || ' quesos y fiambres por peso' as resultado;
