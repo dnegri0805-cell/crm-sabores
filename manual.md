@@ -7,7 +7,7 @@ Guía ordenada por sección para consultar o pasarle al equipo. Cada punto dice 
 - **CRM (uso interno):** https://dnegri0805-cell.github.io/crm-sabores/ — se entra con usuario y contraseña.
 - **Catálogo de cada cliente:** link personal `pedido.html?c=…` que se manda desde la ficha del cliente (botón de WhatsApp). Cada cliente ve sus precios, su cuenta y sus promos.
 - **Catálogo público (sin precios de cliente):** `pedido.html?ver=catalogo` — para redes, folletos y nuevos clientes.
-- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-10.16`). Si algo "no aparece", cerrá y abrí la pestaña.
+- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-10.17`). Si algo "no aparece", cerrá y abrí la pestaña.
 - **En el celular:** abrí el CRM en Chrome → menú ⋮ → *Agregar a pantalla de inicio*. Queda como una app.
 - **Menú principal:** Inicio · Pedidos · Ventas · Reparto · Clientes · Cobranza · Caja · Compras · Stock · Precios · Reportes · Contable · Manual. Los números en rojo indican cosas pendientes.
 
@@ -42,6 +42,16 @@ Debajo aparecen tarjetas de aviso; cada una lleva a la pantalla donde se actúa:
 **Estados:** A preparación → Marcar listo → Salió a reparto → Entregado. El cliente ve el seguimiento en su cuenta.
 
 **En cada pedido** aparecen avisos útiles: ganancia, si el cliente tiene deuda, si **se olvidó** algo que suele comprar y cuánto le falta para el descuento por monto o el envío gratis. Con **💬 ¿Te agrego…?** le mandás el mensaje para completar el pedido antes de prepararlo.
+
+## 3 bis. Fiambres y quesos (productos por peso)
+
+Se venden **por pieza entera** y se cobran **por el peso real**.
+
+- **Configurar (una vez):** en **Precios → ⚖️ Productos por peso** marcás cada fiambre o queso y cargás el **peso promedio de la pieza** (ej.: horma 3,5 kg). El **costo se carga por kilo**, como te lo pasa el proveedor; en Precios esas filas muestran los precios por kilo y cuánto queda la pieza.
+- **En el catálogo:** el cliente ve "⚖️ Pieza ≈ 3,5 kg · $ X el kg". Puede pedir por piezas o tocar **pedir en kilos** (ej.: 7 kg → 2 piezas). Se le avisa que el total final se ajusta al peso real.
+- **En los pedidos:** cada pieza va al precio estimado (precio por kilo × peso promedio), así los mínimos, descuentos y promos funcionan igual que siempre.
+- **Al preparar:** en el pedido aparece **⚖️ Pesar**. Escribís el peso real de cada renglón (si son varias piezas: **3,52 + 3,61**) y el importe se ajusta solo, con el detalle "7,13 kg × $/kg". Después te ofrece avisarle al cliente el total final por WhatsApp.
+- **Stock:** se cuenta en piezas.
 
 ## 4. Ventas · Recuperar y cerrar
 
