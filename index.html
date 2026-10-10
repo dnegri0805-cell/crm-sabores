@@ -23,8 +23,8 @@ header nav a{padding:7px 14px;border-radius:6px;cursor:pointer;color:#cfd4e2}
 header nav a.on{background:var(--m);color:#fff}
 header span a{cursor:pointer;text-decoration:underline;margin-left:8px}
 header>b{display:flex;align-items:center;gap:10px}
-.hlogo{height:52px;max-width:200px;object-fit:contain}
-@media(max-width:640px){.hlogo{height:48px;max-width:190px}.hn{display:none}}
+.hlogo{height:60px;max-width:220px;object-fit:contain}
+@media(max-width:640px){.hlogo{height:56px;max-width:200px}.hn{display:none}}
 .login .llogo{display:block;max-height:150px;max-width:300px;margin:0 auto 10px;object-fit:contain}
 .herr{display:flex;flex-wrap:wrap;gap:8px;margin:-4px 0 12px}
 .herr button{background:#fff;color:var(--m);border:1px solid var(--l);padding:7px 12px;font-size:14px}
@@ -487,17 +487,46 @@ async function instalarApp(){
   <p><small>Te queda un ícono de <b>Sabores</b> que abre el CRM directo, en pantalla completa, sin barra del navegador.</small></p><button id="in_ok">Entendido</button></div>`;
   document.body.appendChild(m);$('#in_ok').onclick=()=>m.remove()}
 
-function achicarLogo(file){return new Promise((ok,mal)=>{const r=new FileReader();r.onerror=()=>mal(new Error('No se pudo leer el archivo'));
-  r.onload=()=>{const im=new Image();im.onerror=()=>mal(new Error('Ese archivo no es una imagen que se pueda usar. Probá con PNG o JPG.'));
-    im.onload=()=>{const k=Math.min(1,480/im.width,200/im.height),w=Math.max(1,Math.round(im.width*k)),h=Math.max(1,Math.round(im.height*k));
-      const cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.getContext('2d').drawImage(im,0,0,w,h);
-      let u=cv.toDataURL('image/png');if(u.length>350000)u=cv.toDataURL('image/webp',.9);ok(u)};im.src=r.result};r.readAsDataURL(file)})}
+/* Prepara el logo: recorta lo que sobra (bordes, barras de captura de pantalla), saca el fondo blanco y lo deja liviano */
+function leerImagen(file){return new Promise((ok,mal)=>{const r=new FileReader();r.onerror=()=>mal(new Error('No se pudo leer el archivo'));
+  r.onload=()=>{const im=new Image();im.onerror=()=>mal(new Error('Ese archivo no es una imagen que se pueda usar. Probá con PNG o JPG.'));im.onload=()=>ok(im);im.src=r.result};r.readAsDataURL(file)})}
+function prepararLogo(im,sinFondo){
+  const k0=Math.min(1,1600/Math.max(im.width,im.height)),W=Math.max(1,Math.round(im.width*k0)),H=Math.max(1,Math.round(im.height*k0));
+  const cv=document.createElement('canvas');cv.width=W;cv.height=H;const cx=cv.getContext('2d');cx.drawImage(im,0,0,W,H);
+  const id=cx.getImageData(0,0,W,H),d=id.data,N=W*H;
+  let x0=0,y0=0,x1=W-1,y1=H-1;
+  if(sinFondo){
+    // 1) Fondo: blanco, negro o transparente que toca el borde → transparente
+    const fondo=q=>{const a=d[q*4+3];if(a<30)return true;const r=d[q*4],g=d[q*4+1],b=d[q*4+2];return(r>232&&g>232&&b>232)||(r<28&&g<28&&b<28)};
+    const vis=new Uint8Array(N),st=new Int32Array(N);let sp=0;
+    const push=q=>{if(!vis[q]&&fondo(q)){vis[q]=1;st[sp++]=q}};
+    for(let x=0;x<W;x++){push(x);push((H-1)*W+x)}for(let y=0;y<H;y++){push(y*W);push(y*W+W-1)}
+    while(sp){const q=st[--sp],x=q%W;if(x>0)push(q-1);if(x<W-1)push(q+1);if(q>=W)push(q-W);if(q<N-W)push(q+W)}
+    let quedan=0;for(let q=0;q<N;q++)if(!vis[q]&&d[q*4+3]>=30)quedan++;
+    if(quedan>N*0.01){
+      for(let q=0;q<N;q++)if(vis[q])d[q*4+3]=0;
+      // 2) Quedarse con el dibujo principal (la pieza más grande y lo que está pegado a ella)
+      const lab=new Int32Array(N),cajas=[];let n=0;
+      for(let q0=0;q0<N;q0++){if(lab[q0]||d[q0*4+3]<30)continue;n++;let c=[W,H,0,0,0];sp=0;st[sp++]=q0;lab[q0]=n;
+        while(sp){const q=st[--sp],x=q%W,y=(q-x)/W;c[4]++;if(x<c[0])c[0]=x;if(y<c[1])c[1]=y;if(x>c[2])c[2]=x;if(y>c[3])c[3]=y;
+          for(const v of[x>0?q-1:-1,x<W-1?q+1:-1,y>0?q-W:-1,y<H-1?q+W:-1])if(v>=0&&!lab[v]&&d[v*4+3]>=30){lab[v]=n;st[sp++]=v}}
+        cajas.push(c)}
+      const big=cajas.reduce((a,c)=>c[4]>a[4]?c:a),mx=(big[2]-big[0])*.25,my=(big[3]-big[1])*.25;
+      x0=big[0];y0=big[1];x1=big[2];y1=big[3];
+      for(const c of cajas){if(c[4]<big[4]*0.002)continue;
+        if(c[2]>=big[0]-mx&&c[0]<=big[2]+mx&&c[3]>=big[1]-my&&c[1]<=big[3]+my){x0=Math.min(x0,c[0]);y0=Math.min(y0,c[1]);x1=Math.max(x1,c[2]);y1=Math.max(y1,c[3])}}
+      // aplicar la transparencia
+      cx.putImageData(id,0,0)
+    }else sinFondo=false}
+  const cw=x1-x0+1,ch=y1-y0+1,k=Math.min(1,600/cw,300/ch),w=Math.max(1,Math.round(cw*k)),h=Math.max(1,Math.round(ch*k));
+  const out=document.createElement('canvas');out.width=w;out.height=h;const ox=out.getContext('2d');ox.imageSmoothingQuality='high';ox.drawImage(cv,x0,y0,cw,ch,0,0,w,h);
+  let u=out.toDataURL('image/png');if(u.length>450000)u=out.toDataURL('image/webp',.92);return u}
 
 function editarMarca(){
   const ant={...MARCA};let nv={...MARCA};
   const m=document.createElement('div');m.className='modal';m.innerHTML=`<div class="mc"><h3>Logo y colores</h3><div class="mk">
-  <label>Logo<small>Sale arriba en el CRM, en los PDF (pedidos, recibos, listas de precios) y en el catálogo online. Mejor si es PNG con fondo transparente.</small></label>
-  <div class="lg"><div class="pv" id="mk_pv"></div><div><button id="mk_sub">Subir logo</button> <a class="lnk" id="mk_q">Quitar</a><input id="mk_f" type="file" accept="image/*" hidden></div></div>
+  <label>Logo<small>Sale arriba en el CRM, en los PDF (pedidos, recibos, listas de precios) y en el catálogo online. Podés subir el archivo del logo o una captura de pantalla: se recorta solo.</small></label>
+  <div class="lg"><div class="pv" id="mk_pv"></div><div><button id="mk_sub">Subir logo</button> <a class="lnk" id="mk_q">Quitar</a><input id="mk_f" type="file" accept="image/*" hidden><br><label style="display:flex;gap:6px;align-items:center;font-weight:400;margin-top:8px"><input type="checkbox" id="mk_sf" checked style="width:auto;margin:0"> Recortar y sacar el fondo blanco</label></div></div>
   <label>Colores<small>Elegí una combinación o tus colores exactos.</small></label>
   <div class="pal">${PALETAS.map((p,i)=>`<button data-i="${i}" style="background:linear-gradient(90deg,${p[2]} 0 50%,${p[1]} 50%)">${p[0]}</button>`).join('')}</div>
   <div class="cols"><label><small>Color principal (botones)</small><input type="color" id="mk_c"></label><label><small>Color de la barra de arriba</small><input type="color" id="mk_n"></label></div>
@@ -508,7 +537,9 @@ function editarMarca(){
     $('#mk_dh').innerHTML=(nv.logo?`<img class="hlogo" src="${nv.logo}" alt="" style="height:40px;vertical-align:middle;margin-right:8px">`:'')+'Sabores de mi País';aplicarMarca(nv)};
   dibu();
   $('#mk_sub').onclick=()=>$('#mk_f').click();
-  $('#mk_f').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{nv.logo=await achicarLogo(f);dibu()}catch(er){toast(er.message,1)}};
+  let img=null;const proc=()=>{if(!img)return;try{nv.logo=prepararLogo(img,$('#mk_sf').checked);dibu()}catch(er){toast('No se pudo preparar el logo: '+er.message,1)}};
+  $('#mk_f').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{img=await leerImagen(f);proc()}catch(er){toast(er.message,1)}};
+  $('#mk_sf').onchange=proc;
   $('#mk_q').onclick=()=>{nv.logo='';dibu()};
   m.querySelectorAll('.pal button').forEach(b=>b.onclick=()=>{const p=PALETAS[b.dataset.i];nv.c=p[1];nv.n=p[2];dibu()});
   $('#mk_c').oninput=e=>{nv.c=e.target.value;dibu()};$('#mk_n').oninput=e=>{nv.n=e.target.value;dibu()};
