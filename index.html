@@ -1008,8 +1008,9 @@ async function fichaCliente(c){
     const ya=val.filter(o=>String(fechaDe(o)||'').startsWith(anio));
     kp('f3',$m(ya.reduce((a,o)=>a+Number(o.total||0),0)),ya.length+(ya.length==1?' pedido':' pedidos'));
     const u=val[0];kp('f4',u?'N° '+u.numero:'—',u?(fechaDe(u)?fd(fechaDe(u))+' · ':'')+$m(u.total):'Todavía no compró');
-    $('#fc_pe').innerHTML=P.length?'<table><tr><th>N°</th><th>Fecha</th><th>Estado</th><th class="n">Total</th><th></th></tr>'+P.slice(0,12).map(o=>`<tr><td>${o.numero}</td><td>${fd(fechaDe(o))}</td><td><span class="badge b-${o.estado}">${EST_TXT[o.estado]||o.estado}</span></td><td class="n">${$m(o.total)}</td><td><a class="lnk" data-pdf="${o.id}">PDF</a></td></tr>`).join('')+'</table>':'<p><small>Todavía no tiene pedidos.</small></p>';
+    $('#fc_pe').innerHTML=P.length?'<table><tr><th>N°</th><th>Fecha</th><th>Estado</th><th class="n">Total</th><th></th></tr>'+P.slice(0,12).map(o=>`<tr><td>${o.numero}</td><td>${fd(fechaDe(o))}</td><td><span class="badge b-${o.estado}">${EST_TXT[o.estado]||o.estado}</span></td><td class="n">${$m(o.total)}</td><td><a class="lnk" data-pdf="${o.id}">PDF</a>${['pendiente','cancelado'].includes(o.estado)?'':` · <a class="lnk" data-rm="${o.id}">Remito</a>`}</td></tr>`).join('')+'</table>':'<p><small>Todavía no tiene pedidos.</small></p>';
     $$('#fc_pe [data-pdf]').forEach(a=>a.onclick=()=>pedidoPDF(P.find(o=>o.id==a.dataset.pdf)));
+    $$('#fc_pe [data-rm]').forEach(a=>a.onclick=()=>remitos([P.find(o=>o.id==a.dataset.rm)]));
     const cnt={};for(const o of val)for(const it of o.pedido_items||[]){const k=it.producto_id;cnt[k]=cnt[k]||{n:0,q:0};cnt[k].n++;cnt[k].q+=Number(it.cantidad)||0}
     const top=Object.entries(cnt).sort((a,b)=>b[1].n-a[1].n||b[1].q-a[1].q).slice(0,8);
     $('#fc_pr').innerHTML=top.length?'<table><tr><th>Producto</th><th class="n">Pedidos</th><th class="n">Unidades</th></tr>'+top.map(([id,x])=>`<tr><td>${esc(S.productos.find(p=>p.producto_id==id)?.descripcion||'Producto')}</td><td class="n">${x.n}</td><td class="n">${nf(x.q)}</td></tr>`).join('')+'</table>':'<p><small>Cuando haga pedidos, acá vas a ver sus productos habituales.</small></p>'}
@@ -1113,7 +1114,7 @@ async function listaPedidos(){
       return `<div class="ped est-${o.estado}">
         <div class="ped-top"><b>N° ${o.numero}</b> <a class="cli lnk" data-fc="${o.cliente_id}">${esc(o.clientes?.razon_social)}</a><span class="tot">${$m(o.total)}</span></div>
         <div class="ped-acc"><span class="badge b-${o.estado}">${EST_TXT[o.estado]||o.estado}</span>${o.origen=='online'?'<span class="badge b-online">Online</span>':''}${prin}${fb}
-          <button class="alt wa" data-w="${o.id}">WhatsApp</button><button class="alt" data-pdf="${o.id}">PDF</button>
+          <button class="alt wa" data-w="${o.id}">WhatsApp</button><button class="alt" data-pdf="${o.id}">PDF</button>${['pendiente','cancelado'].includes(o.estado)?'':`<button class="alt" data-rm="${o.id}">Remito</button>`}
           <select class="mas" data-e="${o.id}" aria-label="Cambiar estado"><option value="">Más…</option>${ESTADOS.filter(e=>e!=o.estado).map(e=>`<option value="${e}">${e=='cancelado'?'Cancelar pedido':'Pasar a: '+EST_TXT[e]}</option>`).join('')}</select></div></div>`}).join('')
       :'<p><small>No hay pedidos en esta lista.</small></p>';
     const ped=id=>data.find(x=>x.id==id);
@@ -1131,6 +1132,7 @@ async function listaPedidos(){
     $$('#pl [data-w]').forEach(b=>b.onclick=()=>enviarWA(ped(b.dataset.w)));
     $$('#pl [data-fc]').forEach(a=>a.onclick=()=>{const c=S.clientes.find(x=>x.id==a.dataset.fc);if(c){S.tab='clientes';shell();fichaCliente(c)}});
     $$('#pl [data-pdf]').forEach(b=>b.onclick=()=>pedidoPDF(ped(b.dataset.pdf)));
+    $$('#pl [data-rm]').forEach(b=>b.onclick=()=>remitos([ped(b.dataset.rm)]));
   };
   cargar();
 }
@@ -1154,6 +1156,48 @@ async function enviarWA(o){
   if(w)w.location.href=url;else location.href=url;
   if(!tel)toast('Este cliente no tiene teléfono cargado: elegí el contacto en WhatsApp.')
 }
+/* ---------- Remito (original y duplicado, sin precios) ---------- */
+const IVA_TXT={responsable_inscripto:'Responsable Inscripto',monotributo:'Monotributo',consumidor_final:'Consumidor final',exento:'Exento'};
+const nroRemito=o=>'0001-'+String(o.numero||0).padStart(8,'0');
+async function remitos(lista){lista=(lista||[]).filter(Boolean);if(!lista.length)return toast('No hay pedidos para el remito.',1);
+  const w=window.open('','_blank');if(!w)return toast('Permití las ventanas emergentes para generar el remito.',1);
+  w.document.write('<p style="font:16px system-ui;margin:32px">Armando el remito…</p>');
+  const falta=lista.filter(o=>!o.pedido_items).map(o=>o.id);let its={};
+  if(falta.length){const{data,error}=await sb.from('pedido_items').select('pedido_id,producto_id,cantidad').in('pedido_id',falta);
+    if(error){w.close();return toast('No se pudieron leer los productos: '+error.message,1)}
+    for(const i of data)(its[i.pedido_id]=its[i.pedido_id]||[]).push(i)}
+  const prod=id=>S.productos.find(p=>p.producto_id==id)||{};
+  const hoja=(o,copia)=>{const c=S.clientes.find(x=>x.id==o.cliente_id)||{},I=o.pedido_items||its[o.id]||[];
+    const tot=I.reduce((a,i)=>a+Number(i.cantidad||0),0),f=new Date().toLocaleDateString('es-AR');
+    return `<section class="hoja"><div class="top"><div class="em">${logoImg(96)}<div><h1>Sabores de mi País</h1><div class="sub">Distribuidora de alimentos</div></div></div>
+      <div class="x"><b>X</b><small>Documento no válido<br>como factura</small></div>
+      <div class="nro"><div class="tit">REMITO</div><div>N° <b>${nroRemito(o)}</b></div><div>Fecha: <b>${f}</b></div><div>Pedido N° ${o.numero}</div><div class="cp">${copia}</div></div></div>
+      <div class="cli"><div><b>Señor/es:</b> ${esc(c.razon_social||'')}</div><div><b>CUIT:</b> ${esc(c.cuit||'—')}</div>
+        <div><b>Domicilio:</b> ${esc(c.domicilio||'—')}</div><div><b>Cond. IVA:</b> ${esc(IVA_TXT[c.condicion_iva]||c.condicion_iva||'—')}</div>
+        <div><b>Teléfono:</b> ${esc(c.telefono||'—')}</div></div>
+      <table><thead><tr><th style="width:110px">Código</th><th>Descripción</th><th class="n" style="width:190px">Cantidad</th></tr></thead>
+      <tbody>${I.map(i=>{const p=prod(i.producto_id),e=enBultos(i.producto_id,i.cantidad);return`<tr><td class="cod">${esc(p.codigo||'')}</td><td>${esc(p.descripcion||'Producto')}</td><td class="n"><b>${nf(i.cantidad)}</b> u.${e?'<br><small>'+e+'</small>':''}</td></tr>`}).join('')}</tbody>
+      <tfoot><tr><td colspan="2" class="n">Total de unidades</td><td class="n"><b>${nf(tot)}</b> u. · ${I.length} ${I.length==1?'producto':'productos'}</td></tr></tfoot></table>
+      ${o.observaciones?`<p class="obs"><b>Observaciones:</b> ${esc(o.observaciones)}</p>`:''}
+      <p class="leg">Recibí la mercadería detallada en conformidad y en buen estado.</p>
+      <div class="firmas"><div>Firma</div><div>Aclaración</div><div>DNI</div><div>Fecha de recepción</div></div></section>`};
+  w.document.open();w.document.write(`<html><head><meta charset="utf-8"><title>Remito ${lista.length==1?nroRemito(lista[0])+' - '+esc(S.clientes.find(x=>x.id==lista[0].cliente_id)?.razon_social||''):'('+lista.length+' pedidos)'}</title><style>
+  @page{size:A4;margin:12mm}body{font:13px system-ui,Segoe UI,sans-serif;color:#1c2333;margin:0}
+  .hoja{page-break-after:always;padding:4px}.hoja:last-child{page-break-after:auto}
+  .top{display:grid;grid-template-columns:1.4fr auto 1fr;gap:12px;align-items:start;border-bottom:2px solid ${MARCA.c};padding-bottom:10px}
+  .em{display:flex;gap:10px;align-items:center}.em img{margin:0!important}h1{color:${MARCA.c};margin:0;font-size:20px}.sub{color:#6a7184}
+  .x{border:2px solid #1c2333;width:74px;text-align:center;padding:4px 2px;border-radius:4px}.x b{font-size:38px;line-height:1;display:block}.x small{font-size:8px;display:block;line-height:1.15}
+  .nro{text-align:right;line-height:1.5}.nro .tit{font-size:20px;font-weight:800;letter-spacing:.08em;color:${MARCA.c}}.cp{display:inline-block;margin-top:4px;border:1px solid #1c2333;padding:1px 10px;font-weight:700;letter-spacing:.1em;font-size:12px}
+  .cli{display:grid;grid-template-columns:1fr 1fr;gap:4px 18px;border:1px solid #c9ccd4;border-radius:6px;padding:8px 10px;margin:12px 0}
+  table{width:100%;border-collapse:collapse}th{background:#eceef3;text-align:left;padding:6px}td{padding:6px;border-bottom:1px solid #dcdfe5;vertical-align:top}
+  .n{text-align:right}.cod{color:#6a7184;font-size:12px}td small{color:#6a7184}tfoot td{border-bottom:0;padding-top:8px}tr{page-break-inside:avoid}
+  .obs{background:#f3f4f7;padding:8px 10px;border-radius:6px}.leg{margin:18px 0 0;color:#444}
+  .firmas{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:56px}.firmas div{border-top:1px solid #1c2333;text-align:center;padding-top:4px;font-size:12px}
+  .ayuda{font:14px system-ui;background:#f6e9ec;padding:10px;border-radius:6px;margin:12px}@media print{.ayuda{display:none}}
+  </style></head><body><p class="ayuda">Se imprime <b>original y duplicado</b> de cada remito. Para guardarlo en PDF elegí <b>Guardar como PDF</b> como destino.</p>
+  ${lista.map(o=>hoja(o,'ORIGINAL')+hoja(o,'DUPLICADO')).join('')}
+  <script>window.onload=()=>setTimeout(()=>window.print(),400)<\/script></body></html>`);w.document.close()}
+
 async function pedidoPDF(o){
   const w=window.open('','_blank');if(!w)return toast('Permití las ventanas emergentes para generar el PDF.',1);
   w.document.write('<p style="font:16px system-ui;margin:32px">Armando el pedido…</p>');
@@ -1297,7 +1341,7 @@ async function vReparto(){
   <p><small>Marcá los pedidos que salen hoy y ordenalos con las flechas según el recorrido. Después imprimí la hoja, mandásela al chofer o abrí el recorrido en Google Maps.</small></p>
   <div class="box"><div class="sub" id="rv_f"></div><div id="rv_l">Cargando…</div></div>
   <div class="box" id="rv_acc" hidden><div class="bh"><h3 id="rv_t"></h3></div>
-    <div class="fc-acc"><button id="rv_imp">Imprimir hoja</button><button class="alt wa" id="rv_wa">Mandar al chofer</button><button class="alt" id="rv_map">Recorrido en Google Maps</button><button class="alt" id="rv_sal">Marcar «Salió a reparto»</button></div></div>`;
+    <div class="fc-acc"><button id="rv_imp">Imprimir hoja</button><button id="rv_rm">Imprimir remitos</button><button class="alt wa" id="rv_wa">Mandar al chofer</button><button class="alt" id="rv_map">Recorrido en Google Maps</button><button class="alt" id="rv_sal">Marcar «Salió a reparto»</button></div></div>`;
   const{data,error}=await sb.from('pedidos').select('*,clientes(razon_social),pedido_items(producto_id,cantidad)').in('estado',['aprobado','en_preparacion','listo','en_reparto']).order('numero');
   if(error){$('#rv_l').innerHTML='<p class="err">'+esc(error.message)+'</p>';return}
   const ids=data.map(o=>o.id),fac={};
@@ -1337,6 +1381,7 @@ async function vReparto(){
       <ul class="it">${(x.o.pedido_items||[]).map(i=>`<li>${cantTxt(i.producto_id,i.cantidad)} × ${esc(nom(i.producto_id))}</li>`).join('')}</ul>
       <div class="pie"><div class="n"><b>Total: ${$m(x.o.total)}</b>${x.c.condicion_pago_dias?' · Cta. cte. '+x.c.condicion_pago_dias+' días':' · <b>COBRAR CONTADO</b>'}</div><div class="f">Recibí conforme · firma</div></div></div>`).join('')}
     <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close()};
+  $('#rv_rm').onclick=()=>remitos(elegidos());
   $('#rv_wa').onclick=()=>{const E=elegidos().map(linea);
     const txt=`*Reparto ${new Date().toLocaleDateString('es-AR')}* · ${E.length} paradas\n\n`+E.map(x=>`*${x.n}. ${x.c.razon_social}*\n${x.c.domicilio||'(sin domicilio)'}${x.c.telefono?'\nTel. '+x.c.telefono:''}\nPedido N° ${x.o.numero} · ${nf(bultos(x.o))} u. · ${$m(x.o.total)}${x.c.condicion_pago_dias?'':' · COBRAR CONTADO'}${x.c.domicilio?'\nhttps://maps.google.com/?q='+encodeURIComponent(x.c.domicilio):''}`).join('\n\n');
     window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank')};
