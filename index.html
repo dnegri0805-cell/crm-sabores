@@ -8,6 +8,7 @@
 <style>
 :root{--m:#7b2d3e;--n:#17213a;--g:#f3f4f7;--l:#d9dce3;--ok:#1d7a46;--er:#b3261e}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 body{margin:0;font:15px/1.4 system-ui,Segoe UI,sans-serif;color:#1c2333;background:var(--g)}
 header{background:var(--n);color:#fff;display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center;padding:10px 16px}
 header nav{display:flex;gap:4px;flex:1;flex-wrap:wrap}
@@ -37,6 +38,9 @@ small{color:#6a7184}td a{cursor:pointer;color:var(--er)}
 .tag.recibida{background:#d8efe1;color:var(--ok)}.tag.anulada{background:#f6dcda;color:var(--er)}.tag.recibida_parcial{background:#fff1cc;color:#7a5a00}
 #t{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);color:#fff;padding:10px 18px;border-radius:8px;z-index:9;display:none}
 .err{color:var(--er)}
+.promo{display:inline-block;font-size:11px;font-weight:700;color:#fff;background:#1d7a46;border-radius:4px;padding:1px 6px;vertical-align:1px}
+small.hint{color:#1d7a46}td s{color:#6a7184;font-size:13px}
+.pmf{background:#f3f4f7;border-radius:8px;padding:12px;margin-bottom:12px}.chk-row{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin:8px 0;font-size:14px}
 .bulto{display:inline-block;font-size:11px;font-weight:600;color:#7a5a00;background:#fff1cc;border-radius:4px;padding:1px 6px;vertical-align:1px}
 button.bb{width:auto;font-size:13px;white-space:nowrap}small.eq{color:#7a5a00;font-weight:600}
 td input.ub{width:56px;text-align:right;margin:0;padding:5px}td select.tb{width:auto;margin:0;padding:5px}
@@ -149,7 +153,7 @@ async function init(){
     todo(()=>sb.from('clientes').select('*').eq('activo',true).order('razon_social').order('id')),
     todo(()=>sb.from('precios_productos').select(PROD_COLS).order('descripcion').order('producto_id'))]);
   if(c.error||pr.error){app.innerHTML='<div class="box login"><p class="err">No se pudieron cargar los datos: '+esc((c.error||pr.error).message)+'</p><button onclick="out()">Salir</button></div>';return}
-  S.clientes=c.data;S.productos=pr.data;await cargarStock();shell();
+  S.clientes=c.data;S.productos=pr.data;await Promise.all([cargarStock(),cargarPromos()]);shell();
 }
 function shell(){
   app.innerHTML=`<header><b>Sabores de mi País</b><nav>${['inicio','pedidos','reparto','clientes','cobranza','caja','compras','stock','precios','reportes'].filter(t=>!['precios','caja'].includes(t)||S.perfil.rol=='dueno').map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${t[0].toUpperCase()+t.slice(1)}</a>`).join('')}</nav><span>${esc(S.perfil.nombre)} (${S.perfil.rol})<a onclick="out()">Salir</a></span></header><main id="v"></main>`;
@@ -180,6 +184,24 @@ function chipStock(id,pide){if(!S.stockOk||!S.inv)return '';const d=stk(id).d,m=
 const norm=t=>String(t??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 const coincide=(texto,q)=>{const t=norm(texto);return norm(q).split(/\s+/).filter(Boolean).every(w=>t.includes(w))};
 const txtProd=p=>p.descripcion+' '+p.codigo+' '+(p.marca||'')+' '+(p.familia||'');
+
+/* ---------- Promociones ---------- */
+S.promos=[];
+async function cargarPromos(){const{data,error}=await sb.from('promociones').select('*').eq('activa',true);S.promos=error?[]:data}
+function promoPara(id,lista,q){const p=S.productos.find(x=>x.producto_id==id),m=S.min[id]||{},hoy=diaLocal(new Date());if(!p)return null;let best=null;
+  for(const r of S.promos){if(!r.activa||hoy<r.desde||(r.hasta&&hoy>r.hasta))continue;
+    if(r.listas&&r.listas.length&&!r.listas.includes(lista))continue;
+    const av=String(r.alcance_valor||'').toUpperCase();
+    if(r.alcance=='marca'&&String(p.marca||'').toUpperCase()!==av)continue;if(r.alcance=='familia'&&String(p.familia||'').toUpperCase()!==av)continue;if(r.alcance=='producto'&&String(id)!==String(r.alcance_valor))continue;
+    if(r.minimo_tipo=='unidades'&&q<r.minimo_unidades)continue;if(r.minimo_tipo=='bulto'&&!(m.b>1&&q>=m.b))continue;
+    if(!best||+r.descuento_pct>+best.descuento_pct)best=r}
+  return best}
+const condPromo=r=>r.minimo_tipo=='bulto'?'llevando el bulto cerrado':r.minimo_tipo=='unidades'?'desde '+r.minimo_unidades+' u.':'';
+function promoCerca(id,lista){const hoy=diaLocal(new Date()),p=S.productos.find(x=>x.producto_id==id);if(!p)return null;
+  return S.promos.filter(r=>r.activa&&hoy>=r.desde&&(!r.hasta||hoy<=r.hasta)&&(!r.listas?.length||r.listas.includes(lista))&&
+    (r.alcance=='todos'||(r.alcance=='marca'&&String(p.marca||'').toUpperCase()==String(r.alcance_valor).toUpperCase())||(r.alcance=='familia'&&String(p.familia||'').toUpperCase()==String(r.alcance_valor).toUpperCase())||(r.alcance=='producto'&&String(id)==String(r.alcance_valor)))&&
+    (r.minimo_tipo!='bulto'||(S.min[id]?.b>1))).sort((a,b)=>b.descuento_pct-a.descuento_pct)[0]||null}
+const chipPromo=r=>r?`<span class="promo">−${nf(r.descuento_pct)} % ${esc(condPromo(r)||r.nombre)}</span>`:'';
 
 /* ---------- Bultos (caja / pack) ---------- */
 const bul=id=>{const x=S.min[id];return x&&x.b>1?{n:x.b,t:x.tb||'Caja'}:null};
@@ -400,6 +422,7 @@ const pctf=n=>Number(n).toLocaleString('es-AR',{maximumFractionDigits:2})+' %';
 const numAR=x=>{x=String(x??'').trim().replace(/\$|\s/g,'');if(!x)return null;if(x.includes(','))x=x.replace(/\./g,'').replace(',','.');else if(/^\d{1,3}(\.\d{3})+$/.test(x))x=x.replace(/\./g,'');const n=Number(x);return isFinite(n)?n:NaN};
 async function vPrecios(){
   $('#v').innerHTML=`<h2>Precios y márgenes</h2>
+  <div class="box" id="pm"></div>
   <div class="box"><div class="bh"><h3>Lista de precios para clientes</h3><button id="pr_lp">Armar lista de precios</button></div>
     <p><small>Generá la lista mayorista, minorista o especial en PDF, por WhatsApp o para Excel. Para mandársela a un cliente puntual con sus precios, usá el botón <b>Lista de precios</b> de su ficha.</small></p></div>
   <div class="box"><div class="bh"><h3>Margen de cada lista</h3></div>
@@ -421,6 +444,7 @@ SDMP-01279	8.900</pre>
     <textarea id="pr_pg" rows="8" placeholder="Pegá acá las filas copiadas"></textarea>
     <button class="alt" id="pr_rev">Revisar</button><div id="pr_res"></div></details>`;
   $('#pr_lp').onclick=()=>abrirListaPrecios(null);
+  vPromos();
   const[cl,pv,hi]=await Promise.all([sb.from('config_listas').select('*'),sb.from('proveedores').select('id,razon_social').order('razon_social'),
     sb.from('historial_costos').select('producto_id,costo_anterior,costo_nuevo,fecha').order('fecha',{ascending:false}).limit(3000)]);
   await cargarStock();
@@ -621,6 +645,59 @@ async function vCaja(){
     if(error)return toast(error.message,1);toast('Caja cerrada.');vCaja()};
 }
 
+/* ---------- Administrar promociones (en Precios) ---------- */
+async function vPromos(){
+  const box=$('#pm');if(!box)return;
+  const{data,error}=await sb.from('promociones').select('*').order('creado_en',{ascending:false});
+  if(error){box.innerHTML='<h3>Promociones</h3><p class="err"><small>Para usar promociones, corré promociones.sql en Supabase.</small></p>';return}
+  const hoy=diaLocal(new Date()),uniq=k=>[...new Set(S.productos.map(p=>p[k]).filter(Boolean))].sort();
+  const estado=r=>!r.activa?['Apagada','b-cancelado']:hoy<r.desde?['Empieza '+fd(r.desde),'b-pendiente']:r.hasta&&hoy>r.hasta?['Terminó','b-cancelado']:['Vigente','b-entregado'];
+  const alc=r=>r.alcance=='todos'?'Todos los productos':r.alcance=='producto'?(S.productos.find(p=>p.producto_id==r.alcance_valor)?.descripcion||'Producto'):(r.alcance=='marca'?'Marca ':'Familia ')+r.alcance_valor;
+  box.innerHTML=`<div class="bh"><h3>Promociones</h3><button id="pm_n">Nueva promoción</button></div>
+    <div id="pm_f" hidden class="pmf"><div class="g">
+      <label class="f">Nombre<input id="pm_nom" placeholder="Ej.: Pack cerrado Maní JL"></label>
+      <label class="f">Descuento %<input id="pm_pct" type="number" step="0.5" min="0.5" max="89" placeholder="5"></label>
+      <label class="f">Se aplica a<select id="pm_a"><option value="todos">Todos los productos</option><option value="marca">Una marca</option><option value="familia">Una familia</option><option value="producto">Un producto</option></select></label>
+      <label class="f" id="pm_vw" hidden>Cuál<select id="pm_vm"></select><input id="pm_vp" placeholder="Buscá el producto" hidden autocomplete="off"></label>
+      <label class="f">Condición<select id="pm_c"><option value="ninguno">Siempre</option><option value="bulto">Llevando el bulto cerrado (caja/pack)</option><option value="unidades">Desde cierta cantidad</option></select></label>
+      <label class="f" id="pm_uw" hidden>Desde cuántas unidades<input id="pm_u" type="number" min="1" step="1" value="12"></label>
+      <label class="f">Desde<input id="pm_d" type="date" value="${hoy}"></label>
+      <label class="f">Hasta (vacío = sin fin)<input id="pm_h" type="date"></label></div>
+      <div id="pm_r"></div>
+      <div class="chk-row">Listas: ${['mayorista','minorista','especial'].map(l=>`<label class="chk"><input type="checkbox" class="pm_l" value="${l}" checked> ${l}</label>`).join('')}</div>
+      <p id="pm_prev"><small></small></p>
+      <button id="pm_g">Guardar promoción</button> <button class="alt" id="pm_x">Cancelar</button></div>
+    ${data.length?`<div class="tw"><table><tr><th>Promoción</th><th>Aplica a</th><th>Condición</th><th>Vigencia</th><th>Estado</th><th></th></tr>${data.map(r=>{const[e,c]=estado(r);return `<tr>
+      <td><b>${esc(r.nombre)}</b><br><span class="promo">−${nf(r.descuento_pct)} %</span></td><td>${esc(alc(r))}${r.listas?.length&&r.listas.length<3?'<br><small>Listas: '+r.listas.join(', ')+'</small>':''}</td>
+      <td><small>${condPromo(r)||'Siempre'}</small></td><td><small>${fd(r.desde)}${r.hasta?' al '+fd(r.hasta):' · sin fin'}</small></td>
+      <td><span class="badge ${c}">${e}</span></td><td style="white-space:nowrap"><button class="alt" data-pt="${r.id}">${r.activa?'Apagar':'Prender'}</button> <a class="lnk" data-pb="${r.id}">Borrar</a></td></tr>`}).join('')}</table></div>`
+    :'<p><small>Todavía no cargaste promociones. Por ejemplo: 5 % de descuento llevando el pack cerrado de Maní JL.</small></p>'}`;
+  let prodSel=null;
+  const vis=()=>{const a=$('#pm_a').value;$('#pm_vw').hidden=a=='todos';$('#pm_vm').hidden=a=='producto';$('#pm_vp').hidden=a!='producto';
+    if(a=='marca'||a=='familia')$('#pm_vm').innerHTML=uniq(a).map(x=>`<option>${esc(x)}</option>`).join('');
+    $('#pm_uw').hidden=$('#pm_c').value!='unidades';prev()};
+  const prev=()=>{const a=$('#pm_a').value,v=a=='producto'?prodSel?.producto_id:$('#pm_vm').value;
+    const L=S.productos.filter(p=>a=='todos'||(a=='marca'&&p.marca==v)||(a=='familia'&&p.familia==v)||(a=='producto'&&p.producto_id==v));
+    const conB=$('#pm_c').value=='bulto'?L.filter(p=>S.min[p.producto_id]?.b>1).length:L.length;
+    $('#pm_prev small').textContent=L.length?`Alcanza a ${conB} ${conB==1?'producto':'productos'}${$('#pm_c').value=='bulto'&&conB<L.length?' (los que tienen bulto cargado)':''}.`:''};
+  $('#pm_n').onclick=()=>{$('#pm_f').hidden=false;$('#pm_n').hidden=true;vis()};$('#pm_x').onclick=()=>vPromos();
+  $('#pm_a').onchange=vis;$('#pm_c').onchange=vis;$('#pm_vm').onchange=prev;
+  $('#pm_vp').oninput=()=>{const q=$('#pm_vp').value;const r=q.length<2?[]:S.productos.filter(p=>coincide(txtProd(p),q)).slice(0,8);
+    $('#pm_r').innerHTML=r.map(p=>`<div class="r" data-id="${p.producto_id}">${esc(p.descripcion)} <small>${esc(p.codigo)}</small></div>`).join('');
+    $$('#pm_r .r').forEach(d=>d.onclick=()=>{prodSel=S.productos.find(p=>p.producto_id==d.dataset.id);$('#pm_vp').value=prodSel.descripcion;$('#pm_r').innerHTML='';prev()})};
+  $('#pm_g').onclick=async()=>{const n=$('#pm_nom').value.trim(),pct=+$('#pm_pct').value,a=$('#pm_a').value,c=$('#pm_c').value;
+    if(!n)return toast('Ponele un nombre a la promoción.',1);if(!(pct>0&&pct<90))return toast('El descuento tiene que estar entre 0,5 y 89 %.',1);
+    const av=a=='todos'?null:a=='producto'?prodSel?.producto_id:$('#pm_vm').value;if(a!='todos'&&!av)return toast('Elegí a qué se aplica.',1);
+    const ls=[...$$('.pm_l')].filter(x=>x.checked).map(x=>x.value);if(!ls.length)return toast('Marcá al menos una lista.',1);
+    const{error}=await sb.from('promociones').insert({nombre:n,descuento_pct:pct,alcance:a,alcance_valor:av,minimo_tipo:c,minimo_unidades:c=='unidades'?Math.max(1,+$('#pm_u').value||1):0,
+      listas:ls.length==3?null:ls,desde:$('#pm_d').value||hoy,hasta:$('#pm_h').value||null,activa:true});
+    if(error)return toast(error.message,1);await cargarPromos();toast('Promoción guardada.');vPromos()};
+  $$('#pm [data-pt]').forEach(b=>b.onclick=async()=>{const r=data.find(x=>x.id==b.dataset.pt);const{error}=await sb.from('promociones').update({activa:!r.activa}).eq('id',r.id);
+    if(error)return toast(error.message,1);await cargarPromos();toast(r.activa?'Promoción apagada.':'Promoción prendida.');vPromos()});
+  $$('#pm [data-pb]').forEach(a=>a.onclick=async()=>{if(!confirm('¿Borrar esta promoción?'))return;const{error}=await sb.from('promociones').delete().eq('id',a.dataset.pb);
+    if(error)return toast(error.message,1);await cargarPromos();vPromos()});
+}
+
 /* ---------- Reportes de ventas ---------- */
 const MESES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 const PERIODOS=[['mes','Este mes'],['mesant','Mes anterior'],['3m','Últimos 3 meses'],['anio','Este año'],['12m','Últimos 12 meses']];
@@ -794,9 +871,10 @@ async function vPedidos(){
   <h3>Últimos pedidos</h3><table id="pl"></table>`;
   const cli=()=>S.pcli;
   const pr=p=>Number(p['precio_'+(cli()?.lista||'mayorista')]);
+  const lis=()=>cli()?.lista||'mayorista',pi=i=>{const r=promoPara(i.p.producto_id,lis(),i.q);return{r,pu:r?Math.round(pr(i.p)*(1-r.descuento_pct/100)*100)/100:pr(i.p)}};
   const add=(p,q=1)=>{const it=S.items.find(i=>i.p.producto_id==p.producto_id);it?it.q+=q:S.items.push({p,q})};
   const drawI=()=>{let t=0;
-    $('#p_i').innerHTML=S.items.map((i,k)=>{const s=pr(i.p)*i.q;t+=s;return `<tr><td>${esc(i.p.descripcion)} ${i.p.marca?`<span class="marca">${esc(i.p.marca)}</span>`:''}<br>${chipStock(i.p.producto_id,i.q)} ${chipBulto(i.p.producto_id)}</td><td class="qbox"><button class="alt qb" data-m="${k}" aria-label="Restar">−</button><input type="number" min="1" value="${i.q}" data-k="${k}" class="qty"><button class="alt qb" data-p="${k}" aria-label="Sumar">+</button>${bul(i.p.producto_id)?`<button class="alt qb bb" data-bb="${k}">+ ${esc(bul(i.p.producto_id).t)} (${bul(i.p.producto_id).n})</button>`:''}<br><small class="eq">${enBultos(i.p.producto_id,i.q)?'= '+enBultos(i.p.producto_id,i.q):''}</small></td><td class="pu">${$m(pr(i.p))}</td><td class="n">${$m(s)}</td><td><a data-x="${k}">Quitar</a></td></tr>`}).join('');
+    $('#p_i').innerHTML=S.items.map((i,k)=>{const P=pi(i),s=P.pu*i.q;t+=s;const pc=P.r?null:promoCerca(i.p.producto_id,lis());return `<tr><td>${esc(i.p.descripcion)} ${i.p.marca?`<span class="marca">${esc(i.p.marca)}</span>`:''}<br>${chipStock(i.p.producto_id,i.q)} ${chipBulto(i.p.producto_id)}</td><td class="qbox"><button class="alt qb" data-m="${k}" aria-label="Restar">−</button><input type="number" min="1" value="${i.q}" data-k="${k}" class="qty"><button class="alt qb" data-p="${k}" aria-label="Sumar">+</button>${bul(i.p.producto_id)?`<button class="alt qb bb" data-bb="${k}">+ ${esc(bul(i.p.producto_id).t)} (${bul(i.p.producto_id).n})</button>`:''}<br><small class="eq">${enBultos(i.p.producto_id,i.q)?'= '+enBultos(i.p.producto_id,i.q):''}</small></td><td class="pu">${P.r?`<s>${$m(pr(i.p))}</s><br>`:''}${$m(P.pu)}</td><td class="n">${$m(s)}${P.r?`<br>${chipPromo(P.r)}`:pc?`<br><small class="hint">Promo −${nf(pc.descuento_pct)} % ${esc(condPromo(pc))}</small>`:''}</td><td><a data-x="${k}">Quitar</a></td></tr>`}).join('');
     $('#p_t').textContent=S.items.length?S.items.length+(S.items.length==1?' producto':' productos')+' · Total: '+$m(t):'';
     const falta=S.stockOk&&S.inv?S.items.filter(i=>i.q>stk(i.p.producto_id).d).length:0;
     $('#p_av').innerHTML=falta?`<p class="aviso">${falta==1?'Un producto pide':falta+' productos piden'} más de lo disponible. Podés guardar igual; revisá antes de aprobar.</p>`:'';
@@ -831,7 +909,7 @@ async function vPedidos(){
   $('#p_cq').onkeydown=e=>{if(e.key=='Enter'){const r=listaCli();if(r.length)elegir(r[0])}};
   $('#p_cx').onclick=()=>{S.pcli=null;$('#p_sel').hidden=true;$('#p_cq').hidden=false;$('#p_cq').value='';$('#p_cq').focus();drawI()};
   /* Productos: Enter agrega el primero y deja el buscador listo */
-  buscador('#p_q','#p_r',p=>{add(p);drawI();$('#p_q').focus()},p=>`<b>${$m(pr(p))}</b> ${chipStock(p.producto_id)} ${chipBulto(p.producto_id)}`);
+  buscador('#p_q','#p_r',p=>{add(p);drawI();$('#p_q').focus()},p=>`<b>${$m(pr(p))}</b> ${chipStock(p.producto_id)} ${chipBulto(p.producto_id)} ${chipPromo(promoCerca(p.producto_id,lis()))}`);
   $('#p_sc').onclick=()=>escanear('Escanear productos del pedido',p=>{add(p);drawI();const it=S.items.find(i=>i.p.producto_id==p.producto_id);return '✔ '+p.descripcion+' · llevás '+it.q});
   $('#p_q').onkeydown=e=>{if(e.key=='Enter'){const f=$('#p_r .r');if(f)f.click()}};
   if(S.preCli){const c=S.preCli;S.preCli=null;elegir(c)}else $('#p_cq').focus();
@@ -839,7 +917,7 @@ async function vPedidos(){
     $('#p_g').disabled=true;
     const{data:o,error}=await sb.from('pedidos').insert({cliente_id:c.id,vendedor_id:S.perfil.id,lista:c.lista,descuento_pct:c.descuento_pct}).select().single();
     if(error){$('#p_g').disabled=false;return toast(error.message,1)}
-    const{error:e2}=await sb.from('pedido_items').insert(S.items.map(i=>({pedido_id:o.id,producto_id:i.p.producto_id,cantidad:i.q,precio_unitario:pr(i.p)})));
+    const{error:e2}=await sb.from('pedido_items').insert(S.items.map(i=>{const P=pi(i),x={pedido_id:o.id,producto_id:i.p.producto_id,cantidad:i.q,precio_unitario:P.pu};if(P.r)x.promo=P.r.nombre+' (−'+nf(P.r.descuento_pct)+' %)';return x}));
     if(e2){$('#p_g').disabled=false;return toast('El pedido N° '+o.numero+' quedó sin productos: '+e2.message,1)}
     toast('Pedido N° '+o.numero+' guardado.');await cargarStock();vPedidos()};
   listaPedidos();
@@ -906,7 +984,7 @@ async function listaPedidos(){
 async function itemsPedido(o){
   const{data,error}=await sb.from('pedido_items').select('*').eq('pedido_id',o.id);
   if(error){toast('No se pudieron leer los productos: '+error.message,1);return null}
-  return data.map(i=>({d:S.productos.find(p=>p.producto_id==i.producto_id)?.descripcion||'Producto',q:+i.cantidad,qt:cantTxt(i.producto_id,i.cantidad),pu:+i.precio_unitario,st:+i.cantidad*+i.precio_unitario}));
+  return data.map(i=>({d:S.productos.find(p=>p.producto_id==i.producto_id)?.descripcion||'Producto',q:+i.cantidad,qt:cantTxt(i.producto_id,i.cantidad),pr:i.promo||'',pu:+i.precio_unitario,st:+i.cantidad*+i.precio_unitario}));
 }
 function telWA(t){let d=String(t||'').replace(/\D/g,'');if(!d)return '';
   if(d.startsWith('54'))d=d.slice(2);if(d.startsWith('9'))d=d.slice(1);if(d.startsWith('0'))d=d.slice(1);
@@ -916,7 +994,7 @@ async function enviarWA(o){
   const it=await itemsPedido(o);if(!it){w&&w.close();return}
   const c=S.clientes.find(x=>x.id==o.cliente_id)||{};
   const tot=it.reduce((a,i)=>a+i.st,0);
-  const txt=`*Sabores de mi País*\nPedido N° ${o.numero} · ${c.razon_social||''}\n\n`+it.map(i=>`• ${i.qt} x ${i.d} — ${$m(i.st)}`).join('\n')+`\n\n*Total: ${$m(o.total||tot)}*\n\n¡Gracias por tu compra!`;
+  const txt=`*Sabores de mi País*\nPedido N° ${o.numero} · ${c.razon_social||''}\n\n`+it.map(i=>`• ${i.qt} x ${i.d} — ${$m(i.st)}${i.pr?' _('+i.pr+')_':''}`).join('\n')+`\n\n*Total: ${$m(o.total||tot)}*\n\n¡Gracias por tu compra!`;
   const tel=telWA(c.telefono),url='https://wa.me/'+tel+'?text='+encodeURIComponent(txt);
   if(w)w.location.href=url;else location.href=url;
   if(!tel)toast('Este cliente no tiene teléfono cargado: elegí el contacto en WhatsApp.')
@@ -931,7 +1009,7 @@ async function pedidoPDF(o){
   <p class="ayuda">Para guardarlo en PDF: en la ventana de impresión elegí <b>Guardar como PDF</b> como destino.</p>
   <div class="top"><div><h1>Sabores de mi País</h1><div>Nota de pedido</div></div><div class="n"><b>Pedido N° ${o.numero}</b><br>${f}</div></div>
   <p><b>Cliente:</b> ${esc(c.razon_social)}${c.cuit?'<br><b>CUIT:</b> '+esc(c.cuit):''}${c.domicilio?'<br><b>Domicilio:</b> '+esc(c.domicilio):''}</p>
-  <table><tr><th>Producto</th><th class="n">Cant.</th><th class="n">Precio</th><th class="n">Subtotal</th></tr>${it.map(i=>`<tr><td>${esc(i.d)}</td><td class="n">${i.qt}</td><td class="n">${$m(i.pu)}</td><td class="n">${$m(i.st)}</td></tr>`).join('')}
+  <table><tr><th>Producto</th><th class="n">Cant.</th><th class="n">Precio</th><th class="n">Subtotal</th></tr>${it.map(i=>`<tr><td>${esc(i.d)}${i.pr?'<br><small style="color:#1d7a46">Promo: '+esc(i.pr)+'</small>':''}</td><td class="n">${i.qt}</td><td class="n">${$m(i.pu)}</td><td class="n">${$m(i.st)}</td></tr>`).join('')}
   <tr class="tot"><td colspan="3" class="n">Total</td><td class="n">${$m(o.total||tot)}</td></tr></table>
   <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close();
 }
