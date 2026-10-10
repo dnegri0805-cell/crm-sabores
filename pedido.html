@@ -156,6 +156,18 @@ input,textarea{border:2px solid #ece3d6;border-radius:14px}
 .cta,.msg{border:0;border-radius:20px;box-shadow:var(--sombra)}.cta .big{font-family:var(--fd)}
 .hoja .c{border-radius:24px 24px 0 0}.hoja h2,.msg h2,.total{font-family:var(--fd)}
 .mp{border-radius:999px}
+
+/* ===== Banner de portada ===== */
+.ban{position:relative;overflow:hidden;border-radius:24px;margin:16px 0 4px;min-height:190px;padding:20px 18px;display:flex;align-items:center;color:#fff;background:var(--bb,#e0322b);box-shadow:0 14px 28px -14px var(--bb,#e0322b)}
+.ban::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 85% 40%,rgba(255,255,255,.35) 0 22%,transparent 23%),radial-gradient(circle at 70% 110%,rgba(0,0,0,.18) 0 30%,transparent 31%),linear-gradient(120deg,rgba(0,0,0,.18),transparent 60%)}
+.ban .bt{position:relative;z-index:2;width:60%;display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.ban .bk{background:var(--sol);color:#4a3000;font-weight:800;font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;border-radius:999px;transform:rotate(-3deg)}
+.ban h3{margin:2px 0 0;font-family:var(--fd);font-weight:800;font-size:clamp(26px,7.5vw,38px);line-height:.98;letter-spacing:-.03em;text-shadow:0 2px 10px rgba(0,0,0,.18)}
+.ban p{margin:0;font-size:14px;line-height:1.3;opacity:.95}
+.ban button{margin-top:8px;background:#fff;color:var(--bb,#e0322b);font-weight:800;border-radius:999px;padding:10px 18px;font-size:15px;box-shadow:0 6px 14px -6px rgba(0,0,0,.4)}
+.ban img{position:absolute;z-index:1;right:-10%;top:50%;width:54%;max-height:118%;object-fit:contain;transform:translateY(-50%) rotate(6deg);filter:drop-shadow(0 14px 16px rgba(0,0,0,.35))}
+@media(min-width:600px){.ban{min-height:240px;padding:28px 32px}.ban img{width:44%;right:2%}.ban .bt{width:58%}.ban p{font-size:16px}}
+@media (prefers-reduced-motion:no-preference){.ban img{animation:flota 5s ease-in-out infinite}@keyframes flota{50%{transform:translateY(-54%) rotate(4deg)}}}
 </style>
 </head>
 <body>
@@ -189,12 +201,13 @@ function enB(p,q){if(!(p.b>1)||q<p.b)return '';const c=Math.floor(q/p.b),r=q-c*p
 const totalCar=()=>Object.entries(car).reduce((a,[id,q])=>{const p=prod(id);return a+(p?puP(p,q)*q:0)},0);
 
 /* Logo y colores elegidos en el CRM */
-function aplicarMarca(m){if(!m)return;if(m.logo===null||m.logo===undefined)m.logo='logo.png';const r=document.documentElement.style,tinte=(h,k)=>{const n=parseInt(h.slice(1),16),c=[n>>16,n>>8&255,n&255].map(v=>Math.round(v+(255-v)*k));return'#'+c.map(v=>v.toString(16).padStart(2,'0')).join('')};
+let BAN;
+function aplicarMarca(m){if(!m)return;if('banner' in m){try{BAN=m.banner?JSON.parse(m.banner):undefined}catch(e){BAN=undefined}}if(m.logo===null||m.logo===undefined)m.logo='logo.png';const r=document.documentElement.style,tinte=(h,k)=>{const n=parseInt(h.slice(1),16),c=[n>>16,n>>8&255,n&255].map(v=>Math.round(v+(255-v)*k));return'#'+c.map(v=>v.toString(16).padStart(2,'0')).join('')};
   if(/^#[0-9a-f]{6}$/i.test(m.c||'')){r.setProperty('--m',m.c);r.setProperty('--m2',tinte(m.c,.9))}
   if(/^#[0-9a-f]{6}$/i.test(m.n||'')){r.setProperty('--n',m.n);document.querySelector('meta[name=theme-color]').setAttribute('content',m.n)}
   if(m.logo&&(/^data:image\//.test(m.logo)||m.logo=='logo.png'||/\/logo\.png$/.test(m.logo))){const b=$('#hb');b.innerHTML='';const i=new Image();i.alt='';i.src=m.logo;b.append(i,document.createTextNode('Sabores de mi País'))}}
 try{aplicarMarca(JSON.parse(localStorage.getItem('marca_cat')||'null')||{})}catch(e){}
-sb.rpc('marca_publica').then(({data})=>{if(data){aplicarMarca(data);try{localStorage.setItem('marca_cat',JSON.stringify(data))}catch(e){}}});
+sb.rpc('marca_publica').then(({data})=>{if(data){aplicarMarca(data);try{localStorage.setItem('marca_cat',JSON.stringify(data))}catch(e){}if(C&&$('#l')&&!$('#q')?.value)lista()}});
 
 async function iniciar(){
   if(!token){$('#hc').textContent='';$('#m').innerHTML='<div class="msg"><h2>Falta el link</h2><p>Abrí el link que te mandamos por WhatsApp para ver tu catálogo.</p></div>';return}
@@ -268,15 +281,22 @@ function tarjeta(p){const q=car[p.id]||0,r=promoP(p,q),rc=r?null:promoP(p,q,true
     ${p.b>1?`<div class="cb">${esc(p.tb)}: ${$m((rc&&rc.mt=='bulto'?Math.round(p.p*(1-rc.pct/100)*100)/100:pu)*p.b)}</div>`:''}${rc?`<div class="cc">−${nf(rc.pct)} % ${esc(condP(rc,p))}</div>`:''}
     <div class="cq">${q?`<button class="mn" data-r="${p.id}" aria-label="Restar">−</button><input type="number" inputmode="numeric" min="0" value="${q}" data-i="${p.id}" aria-label="Cantidad"><button class="ms" data-s="${p.id}" aria-label="Sumar">+</button>`
       :`<button class="ag" data-s="${p.id}">Agregar</button>${p.b>1?`<button class="bx" data-bb="${p.id}" aria-label="Agregar ${esc(p.tb)} de ${p.b}">+${p.b}</button>`:''}`}</div></div>`}
+
+/* Banner de portada: lo arma el dueño en el CRM. Si todavía no armó ninguno, uno de crocantes JL. */
+function bannerDatos(){if(BAN&&BAN.on===false)return null;if(BAN&&(BAN.t||BAN.img))return BAN;
+  if(P.some(p=>/crocante/i.test(p.d)))return{tag:'Nuevo',t:'Crocantes JL',s:'Maní japonés horneado. Pizza, queso y jamón.',img:'fotos/jl/mix-crocante-65.webp',bg:'#c98a00',q:'crocante'};return null}
+function bannerHTML(){const b=bannerDatos();if(!b)return '';const bg=/^#[0-9a-f]{6}$/i.test(b.bg||'')?b.bg:'#e0322b';
+  return `<div class="ban" style="--bb:${bg}"><div class="bt">${b.tag?`<span class="bk">${esc(b.tag)}</span>`:''}${b.t?`<h3>${esc(b.t)}</h3>`:''}${b.s?`<p>${esc(b.s)}</p>`:''}${b.q?`<button id="banb">${esc(b.btn||'Ver productos')} →</button>`:''}</div>${b.img?`<img src="${esc(String(b.img).replace(/^fotos\/jl\/(?!sf\/)/,'fotos/jl/sf/'))}" alt="">`:''}</div>`}
+function bannerAcc(){const x=$('#banb');if(x)x.onclick=()=>{filtro=bannerDatos()?.q||'';fam='';lim=60;pintar();window.scrollTo({top:0,behavior:'smooth'})}}
 function grilla(L,ws){const busca=ws.length||marca;let html='',n=0;
-  if(!busca&&!fam){const O=P.filter(p=>promoP(p,0,true)).slice(0,14);if(O.length)html+=`<div class="ofb"><div class="sec-t"><h2>🔥 Ofertas</h2><small>${O.length} productos</small></div><div class="ofertas">${O.map(tarjeta).join('')}</div></div>`}
+  if(!busca&&!fam){html+=bannerHTML();const O=P.filter(p=>promoP(p,0,true)).slice(0,14);if(O.length)html+=`<div class="ofb"><div class="sec-t"><h2>🔥 Ofertas</h2><small>${O.length} productos</small></div><div class="ofertas">${O.map(tarjeta).join('')}</div></div>`}
   const G={};for(const p of L)(G[famDe(p)]=G[famDe(p)]||[]).push(p);
   for(const f of familias()){const X=G[f];if(!X||n>=lim)continue;const V=X.slice(0,lim-n);n+=V.length;
     html+=`<div class="sec-t" style="--fc:${colorDe(f)}"><h2>${esc(cap(f))}</h2><small>${X.length} ${X.length==1?'producto':'productos'}</small></div><div class="grid">${V.map(tarjeta).join('')}</div>`;
     if(V.length<X.length)html+=`<button class="sec" data-mas2="1" style="width:100%;margin-top:8px">Ver más de ${esc(cap(f))} (${X.length-V.length})</button>`}
   if(!L.length)html+='<p class="mas">No encontramos productos con esa búsqueda.</p>';
   if(hayFotos)html+='<p class="mas" style="font-size:11px">Algunas fotos: Open Food Facts (CC BY-SA)</p>';
-  $('#l').innerHTML=html;
+  $('#l').innerHTML=html;bannerAcc();
   $$('#l [data-z]').forEach(i=>i.onclick=()=>zoom(prod(i.dataset.z)));
   $$('#l [data-s]').forEach(b=>b.onclick=()=>cambiar(b.dataset.s,1));
   $$('#l [data-r]').forEach(b=>b.onclick=()=>cambiar(b.dataset.r,-1));

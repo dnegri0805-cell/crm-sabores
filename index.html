@@ -512,8 +512,8 @@ const enApp=()=>matchMedia('(display-mode: standalone)').matches||navigator.stan
 if('serviceWorker' in navigator&&location.protocol=='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
 
 function herramientas(){const h=$('#herr');if(!h)return;
-  h.innerHTML=(enApp()?'':'<button id="h_ins">📲 Instalar como app</button>')+(S.perfil?.rol=='dueno'?'<button id="h_mk">🎨 Logo y colores</button>':'');
-  if($('#h_ins'))$('#h_ins').onclick=instalarApp;if($('#h_mk'))$('#h_mk').onclick=editarMarca}
+  h.innerHTML=(enApp()?'':'<button id="h_ins">📲 Instalar como app</button>')+(S.perfil?.rol=='dueno'?'<button id="h_mk">🎨 Logo y colores</button><button id="h_bn">🖼️ Banner del catálogo</button>':'');
+  if($('#h_ins'))$('#h_ins').onclick=instalarApp;if($('#h_mk'))$('#h_mk').onclick=editarMarca;if($('#h_bn'))$('#h_bn').onclick=editarBanner}
 
 async function instalarApp(){
   if(instalarEv){instalarEv.prompt();const r=await instalarEv.userChoice;instalarEv=null;if(r.outcome=='accepted')return;herramientas();return}
@@ -588,6 +588,48 @@ function editarMarca(){
     const{error}=await sb.from('config_app').upsert([{clave:'marca_color',valor:nv.c},{clave:'marca_oscuro',valor:nv.n},{clave:'marca_logo',valor:nv.logo}]);
     if(error){$('#mk_g').disabled=false;return toast('No se pudo guardar: '+error.message,1)}
     MARCA=nv;guardarMarcaLocal();m.remove();shell();toast('Logo y colores guardados.')}}
+
+
+/* ---------- Banner de portada del catálogo online ---------- */
+const BAN_FOTOS=['mix-crocante-65','crocante-pizza-65','crocante-queso-65','crocante-jamon-65','crocante-pizza-500','crocante-queso-500','crocante-jamon-500','crocante-salado-500','crocante-asado-500','crocante-salame-500','mani-salado-sin-piel-85','mani-salado-con-piel-85','mani-tostado-sin-sal-85','mani-salado-sin-piel-500','mani-salado-con-piel-500','mani-tostado-sin-sal-500','manteca-cremosa-360','manteca-chispeada-360','pasta-natural-360'].map(f=>'fotos/jl/'+f+'.webp');
+const BAN_COL=[['Rojo','#e0322b'],['Naranja','#ea6a12'],['Dorado','#c98a00'],['Verde','#2e7d4f'],['Azul','#1f4fa8'],['Noche','#17213a'],['Bordó','#7b2d3e']];
+const BAN_DEF={on:true,tag:'Nuevo',t:'Crocantes JL',s:'Maní japonés horneado. Pizza, queso y jamón.',img:'fotos/jl/mix-crocante-65.webp',bg:'#c98a00',q:'crocante',btn:'Ver productos'};
+async function editarBanner(){
+  const{data}=await sb.from('config_app').select('valor').eq('clave','banner_portada').maybeSingle();
+  let b={...BAN_DEF};try{if(data?.valor)b={...BAN_DEF,...JSON.parse(data.valor)}}catch(e){}
+  const fotosProd=[...new Set(Object.values(S.min||{}).map(x=>x.foto).filter(Boolean))].slice(0,40);
+  const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  m.innerHTML=`<div class="mc"><div class="bh"><h3>Banner del catálogo</h3><button class="alt" id="bn_x">Cerrar</button></div>
+  <p><small>Es lo primero que ven tus clientes al abrir el link del catálogo. Cambialo cuando quieras: una promo, un producto nuevo, un aviso.</small></p>
+  <div id="bn_pv" style="margin:8px 0 14px"></div>
+  <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="bn_on" style="width:auto;margin:0" ${b.on!==false?'checked':''}> Mostrar el banner</label>
+  <div class="g" style="margin-top:8px">
+    <label><small>Etiqueta (ej.: Nuevo, Promo, Oferta)</small><input id="bn_tag" maxlength="18" value="${esc(b.tag||'')}"></label>
+    <label><small>Título</small><input id="bn_t" maxlength="40" value="${esc(b.t||'')}"></label>
+    <label><small>Texto chico</small><input id="bn_s" maxlength="80" value="${esc(b.s||'')}"></label>
+    <label><small>El botón busca… (ej.: crocante, manteca). Vacío = sin botón</small><input id="bn_q" maxlength="40" value="${esc(b.q||'')}"></label>
+    <label><small>Texto del botón</small><input id="bn_btn" maxlength="22" value="${esc(b.btn||'Ver productos')}"></label></div>
+  <label style="margin-top:10px;display:block"><small>Color de fondo</small></label>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 10px">${BAN_COL.map(([n,c])=>`<button class="alt" data-bc="${c}" style="background:${c};color:#fff;border:0;min-width:70px">${n}</button>`).join('')}<input type="color" id="bn_bg" value="${esc(b.bg)}" style="width:52px;height:40px;padding:2px"></div>
+  <label><small>Foto (tocá una)</small></label>
+  <div id="bn_fs" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:6px;max-height:230px;overflow:auto;margin:4px 0 10px">${[...BAN_FOTOS,...fotosProd].map(u=>`<img src="${esc(u)}" data-bf="${esc(u)}" loading="lazy" style="width:100%;aspect-ratio:1;object-fit:contain;background:#fff;border-radius:8px;cursor:pointer;border:3px solid ${u==b.img?'var(--m,#7b2d3e)':'transparent'}">`).join('')}</div>
+  <div class="fc-acc"><button id="bn_sub" class="alt">Subir otra foto</button><a class="lnk" id="bn_sf">Sin foto</a><input type="file" id="bn_f" accept="image/*" hidden></div>
+  <div class="fc-acc" style="margin-top:12px"><button id="bn_g">Guardar banner</button><a class="lnk" id="bn_r">Volver al de crocantes JL</a></div></div>`;
+  const leer=()=>{b.on=$('#bn_on').checked;for(const k of['tag','t','s','q','btn'])b[k]=$('#bn_'+k).value.trim();b.bg=$('#bn_bg').value};
+  const pv=()=>{leer();const bg=b.bg;$('#bn_pv').innerHTML=b.on?`<div style="position:relative;overflow:hidden;border-radius:18px;background:${bg};color:#fff;min-height:150px;padding:16px;display:flex;align-items:center">
+      <div style="position:relative;z-index:1;width:58%">${b.tag?`<span style="background:#ffc93c;color:#4a3000;font-weight:800;font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:99px">${esc(b.tag)}</span>`:''}<div style="font-weight:800;font-size:26px;line-height:1;margin:6px 0 4px">${esc(b.t)}</div><div style="font-size:13px;opacity:.95">${esc(b.s)}</div>${b.q?`<span style="display:inline-block;margin-top:8px;background:#fff;color:${bg};font-weight:800;border-radius:99px;padding:6px 12px;font-size:13px">${esc(b.btn||'Ver productos')} →</span>`:''}</div>
+      ${b.img?`<img src="${esc(String(b.img).replace(/^fotos\/jl\/(?!sf\/)/,'fotos/jl/sf/'))}" alt="" style="position:absolute;right:-6%;top:50%;width:45%;max-height:115%;object-fit:contain;transform:translateY(-50%) rotate(6deg);filter:drop-shadow(0 10px 12px rgba(0,0,0,.35))">`:''}</div>`:'<p><small>El banner está apagado: el catálogo arranca directo con las ofertas.</small></p>';
+    $$('#bn_fs [data-bf]').forEach(i=>i.style.borderColor=i.dataset.bf==b.img?'var(--m,#7b2d3e)':'transparent')};
+  pv();m.querySelectorAll('input').forEach(i=>i.addEventListener('input',pv));$('#bn_on').onchange=pv;
+  $$('[data-bc]').forEach(x=>x.onclick=()=>{$('#bn_bg').value=x.dataset.bc;pv()});
+  $$('#bn_fs [data-bf]').forEach(i=>i.onclick=()=>{b.img=i.dataset.bf;pv()});
+  $('#bn_sf').onclick=()=>{b.img='';pv()};$('#bn_x').onclick=()=>m.remove();
+  $('#bn_r').onclick=()=>{b={...BAN_DEF};for(const k of['tag','t','s','q','btn'])$('#bn_'+k).value=b[k];$('#bn_bg').value=b.bg;$('#bn_on').checked=true;pv()};
+  $('#bn_sub').onclick=()=>$('#bn_f').click();
+  $('#bn_f').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{toast('Subiendo foto…');const blob=await achicarFoto(f,1000);const path='banner/'+Date.now()+'.webp';
+    const up=await sb.storage.from('productos').upload(path,blob,{contentType:'image/webp',upsert:true});if(up.error)throw up.error;b.img=sb.storage.from('productos').getPublicUrl(path).data.publicUrl;pv();toast('Foto lista.')}catch(er){toast('No se pudo subir: '+er.message,1)}};
+  $('#bn_g').onclick=async()=>{leer();$('#bn_g').disabled=true;const{error}=await sb.from('config_app').upsert({clave:'banner_portada',valor:JSON.stringify(b)});$('#bn_g').disabled=false;
+    if(error)return toast('No se pudo guardar: '+error.message,1);m.remove();toast('Banner guardado. Si tus clientes no lo ven, falta correr banner.sql en Supabase.')}}
 
 /* ---------- Clientes ---------- */
 function vClientes(){
