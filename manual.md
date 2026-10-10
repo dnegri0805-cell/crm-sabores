@@ -7,7 +7,7 @@ Guía ordenada por sección para consultar o pasarle al equipo. Cada punto dice 
 - **CRM (uso interno):** https://dnegri0805-cell.github.io/crm-sabores/ — se entra con usuario y contraseña.
 - **Catálogo de cada cliente:** link personal `pedido.html?c=…` que se manda desde la ficha del cliente (botón de WhatsApp). Cada cliente ve sus precios, su cuenta y sus promos.
 - **Catálogo público (sin precios de cliente):** `pedido.html?ver=catalogo` — para redes, folletos y nuevos clientes.
-- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-10.17`). Si algo "no aparece", cerrá y abrí la pestaña.
+- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-10.18`). Si algo "no aparece", cerrá y abrí la pestaña.
 - **En el celular:** abrí el CRM en Chrome → menú ⋮ → *Agregar a pantalla de inicio*. Queda como una app.
 - **Menú principal:** Inicio · Pedidos · Ventas · Reparto · Clientes · Cobranza · Caja · Compras · Stock · Precios · Reportes · Contable · Manual. Los números en rojo indican cosas pendientes.
 
@@ -52,6 +52,12 @@ Se venden **por pieza entera** y se cobran **por el peso real**.
 - **En los pedidos:** cada pieza va al precio estimado (precio por kilo × peso promedio), así los mínimos, descuentos y promos funcionan igual que siempre.
 - **Al preparar:** en el pedido aparece **⚖️ Pesar**. Escribís el peso real de cada renglón (si son varias piezas: **3,52 + 3,61**) y el importe se ajusta solo, con el detalle "7,13 kg × $/kg". Después te ofrece avisarle al cliente el total final por WhatsApp.
 - **Stock:** se cuenta en piezas.
+- **Mientras pesás:** al lado de cada producto te dice **📅 qué pieza usar primero** (la que vence antes). Al guardar, esa pieza se descuenta sola de los vencimientos.
+- **El peso promedio se ajusta solo:** con lo que vas pesando y con los kilos que llegan del proveedor, el peso de la pieza se va corrigiendo, y con él el precio estimado.
+- **🧀 Lista por kilo:** en **Ventas → 📣 Difundir → 🧀 Fiambres por kilo** se arma sola la lista con el precio por kilo (con las ofertas del día), para elegir la lista de precios. Se comparte por WhatsApp, se imprime o se guarda en PDF, o se baja como **imagen para estados e Instagram**. Abajo, **▶ Empezar ráfaga** se la manda a cada cliente que compra fiambres o quesos, con sus precios y su link (una vez por semana).
+- **Remito:** muestra las piezas y los **kilos reales** de cada fiambre o queso (o "≈ kg, se cobra por peso real" si todavía no se pesó), con el total de kilos.
+- **Compras:** la *Sugerencia de compra* muestra cuántas piezas pedir, los **kilos aproximados** y el costo por kilo. La orden de compra impresa sale con piezas, kilos aproximados y costo por kilo. Al **recibir** podés anotar los **kilos que llegaron** (ej.: 3,4 + 3,7); el costo queda siempre por kilo.
+- **Por vencer:** en **Ventas → 🏷️ Ofertas → 📦 Liquidar stock**, cada fiambre o queso por vencer muestra los kilos y tiene **📲 Avisar**: arma la ráfaga para los clientes que lo compran, con el precio por kilo y la fecha.
 
 ## 4. Ventas · Recuperar y cerrar
 
