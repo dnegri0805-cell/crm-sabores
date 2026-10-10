@@ -34,6 +34,17 @@ header>b{display:flex;align-items:center;gap:10px}
 .mk .cols{display:flex;gap:16px;flex-wrap:wrap}.mk input[type=color]{width:64px;height:40px;padding:2px;border:1px solid var(--l);border-radius:8px;background:#fff}
 .mk .pal{display:flex;gap:8px;flex-wrap:wrap}.mk .pal button{width:auto;padding:6px 10px;font-size:13px;color:#fff;border:0}
 .mk .demo{border-radius:8px;overflow:hidden;border:1px solid var(--l)}.mk .demo .dh{background:var(--n);color:#fff;padding:8px 12px;font-weight:600}.mk .demo .db{padding:10px 12px;background:#fff}.mk .demo .db span{display:inline-block;background:var(--m);color:#fff;border-radius:6px;padding:6px 12px;font-size:14px}
+.mesbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:0 0 14px}.mesbar input{width:auto;margin:0}.mesbar b{margin-left:6px}
+.ctsub{overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px}.ctsub button{flex:none}
+.sube{color:var(--ok);font-weight:600}.baja{color:var(--er);font-weight:600}
+.rbar{display:grid;grid-template-columns:110px 1fr auto;gap:8px;align-items:center;margin:6px 0;font-size:14px}
+.rb{height:14px;background:#f1f2f5;border-radius:4px;overflow:hidden}.rb i{display:block;height:100%;background:var(--ok);border-radius:4px}.rb i.neg{background:var(--er)}
+.tscroll{overflow-x:auto}.tscroll table{display:table;min-width:100%}
+table.flujo td,table.flujo th{white-space:nowrap}table.flujo tr.sec td{background:#f3f4f7}td.gris{color:#8a90a0}
+.kp .box.clic{cursor:pointer}.kp .box.sel{border-color:var(--m);box-shadow:inset 0 0 0 1px var(--m)}
+td.acc{white-space:nowrap}td.acc button{padding:4px 8px;font-size:13px}td.acc select{width:auto;margin:0;padding:4px;font-size:13px}
+.lista-ok{margin:6px 0 12px;padding-left:20px}
+@media(max-width:640px){.kp .num{font-size:19px;white-space:nowrap}.rbar{grid-template-columns:62px 1fr auto}}.lista-ok li{margin:3px 0}
 .inst ol{padding-left:20px;margin:8px 0}.inst li{margin:6px 0}
 main{max-width:980px;margin:0 auto;padding:16px}
 h2{margin:8px 0 12px}h3{margin:20px 0 8px}
@@ -178,9 +189,9 @@ async function init(){
   S.clientes=c.data;S.productos=pr.data;await Promise.all([cargarStock(),cargarPromos(),cargarMarca()]);shell();
 }
 function shell(){
-  app.innerHTML=`<header><b>${MARCA.logo?`<img class="hlogo" src="${MARCA.logo}" alt="Sabores de mi País"><span class="hn">Sabores de mi País</span>`:'Sabores de mi País'}</b><nav>${['inicio','pedidos','reparto','clientes','cobranza','caja','compras','stock','precios','reportes'].filter(t=>!['precios','caja'].includes(t)||S.perfil.rol=='dueno').map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${t[0].toUpperCase()+t.slice(1)}</a>`).join('')}</nav><span>${esc(S.perfil.nombre)} (${S.perfil.rol})<a onclick="out()">Salir</a></span></header><main id="v"></main>`;
+  app.innerHTML=`<header><b>${MARCA.logo?`<img class="hlogo" src="${MARCA.logo}" alt="Sabores de mi País"><span class="hn">Sabores de mi País</span>`:'Sabores de mi País'}</b><nav>${['inicio','pedidos','reparto','clientes','cobranza','caja','compras','stock','precios','reportes','contable'].filter(t=>!['precios','caja','contable'].includes(t)||S.perfil.rol=='dueno').map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${t[0].toUpperCase()+t.slice(1)}</a>`).join('')}</nav><span>${esc(S.perfil.nombre)} (${S.perfil.rol})<a onclick="out()">Salir</a></span></header><main id="v"></main>`;
   $$('nav a').forEach(a=>a.onclick=()=>{S.tab=a.dataset.t;shell()});
-  ({inicio:vInicio,pedidos:vPedidos,reparto:vReparto,caja:vCaja,clientes:vClientes,cobranza:vCobranza,compras:vCompras,stock:vStock,precios:vPrecios,reportes:vReportes})[S.tab]();
+  ({inicio:vInicio,pedidos:vPedidos,reparto:vReparto,caja:vCaja,contable:vContable,clientes:vClientes,cobranza:vCobranza,compras:vCompras,stock:vStock,precios:vPrecios,reportes:vReportes})[S.tab]();
 }
 
 /* Supabase devuelve como máximo 1000 filas por pedido: esto trae todas, de a tandas */
@@ -194,7 +205,7 @@ async function cargarStock(){
     todo(()=>sb.from('productos').select('*').order('id'))]);
   S.stockOk=!st.error;S.stock={};S.inv=false;
   for(const r of st.data||[]){S.stock[r.producto_id]={f:+r.fisico||0,r:+r.reservado||0,d:r.disponible!=null?+r.disponible:(+r.fisico||0)-(+r.reservado||0)};if(+r.fisico)S.inv=true}
-  S.min={};S.bultoOk=(mi.data||[]).some(r=>'unidades_bulto' in r);for(const r of mi.data||[])S.min[r.id]={m:+r.stock_minimo||0,a:r.activo!==false,pv:r.proveedor_id,b:Math.max(1,+r.unidades_bulto||1),tb:r.tipo_bulto||'Caja'};
+  S.min={};S.bultoOk=(mi.data||[]).some(r=>'unidades_bulto' in r);for(const r of mi.data||[])S.min[r.id]={m:+r.stock_minimo||0,a:r.activo!==false,pv:r.proveedor_id,b:Math.max(1,+r.unidades_bulto||1),tb:r.tipo_bulto||'Caja',iva:r.alicuota_iva!=null?+r.alicuota_iva:21};
 }
 const stk=id=>S.stock[id]||{f:0,r:0,d:0};
 const nf=n=>Number(n||0).toLocaleString('es-AR',{maximumFractionDigits:2});
@@ -428,7 +439,8 @@ const BK_TABLAS=[['Clientes','clientes'],['Productos y precios','precios_product
   ['Pedidos','pedidos'],['Pedidos - productos','pedido_items'],['Facturas de venta','facturas_venta'],['Recibos','recibos'],['Recibos - imputaciones','recibo_imputaciones'],
   ['Proveedores','proveedores'],['Órdenes de compra','ordenes_compra'],['Órdenes - productos','ordenes_compra_items'],['Recepciones','recepciones'],
   ['Facturas de proveedores','facturas_proveedor'],['Pagos a proveedores','pagos_proveedor'],['Gastos','gastos'],['Cierres de caja','cierres_caja'],
-  ['Promociones','promociones'],['Historial de costos','historial_costos'],['Márgenes de listas','config_listas'],['Avisos de deuda','avisos_deuda']];
+  ['Promociones','promociones'],['Historial de costos','historial_costos'],['Márgenes de listas','config_listas'],['Avisos de deuda','avisos_deuda'],
+  ['Cuentas','cuentas'],['Movimientos de cuentas','movimientos_cuenta'],['Cheques','cheques'],['Retenciones','retenciones']];
 async function cajaBackup(){const b=$('#bk');if(!b)return;
   const{data}=await sb.from('config_app').select('valor').eq('clave','ultima_copia').maybeSingle();
   const u=data?.valor,dias=u?Math.floor((Date.now()-new Date(u))/864e5):null;
@@ -772,7 +784,7 @@ async function vCaja(){
       <label class="f">Categoría<select id="g_c">${CAT_GASTO.map(c=>`<option>${c}</option>`).join('')}</select></label>
       <label class="f">Importe<input id="g_i" type="number" step="0.01" min="0" inputmode="decimal"></label>
       <label class="f">Medio de pago<select id="g_m">${MEDIOS.map(m=>`<option value="${m}">${MED_TXT[m]}</option>`).join('')}</select></label>
-      <label class="f">Detalle (opcional)<input id="g_d" placeholder="Ej.: nafta camioneta"></label></div>
+      <label class="f">Detalle (opcional)<input id="g_d" placeholder="Ej.: nafta camioneta"></label></div><div id="g_x"></div>
       <button id="g_g">Guardar gasto</button></div>
     <div class="box"><h3>Cierre de caja</h3>${ci.data?`<p>Cerrada: debería haber <b>${$m(ci.data.efectivo_esperado)}</b>, se contaron <b>${$m(ci.data.efectivo_contado)}</b>.</p>
       <p class="${Math.abs(ci.data.diferencia)<0.005?'':'mora'}"><b>${Math.abs(ci.data.diferencia)<0.005?'La caja cerró justa.':(ci.data.diferencia>0?'Sobran ':'Faltan ')+$m(Math.abs(ci.data.diferencia))}</b></p>${ci.data.nota?'<p><small>'+esc(ci.data.nota)+'</small></p>':''}<button class="alt" id="cc_re">Volver a cerrar</button>`:''}
@@ -787,9 +799,11 @@ async function vCaja(){
       <tr class="tot"><td><b>Ganancia neta</b></td><td class="n ${netoMes<0?'mora':''}"><b>${netoMes<0?'− '+$m(-netoMes):$m(netoMes)}</b></td></tr></table>
       ${gC.length?`<h3 style="margin-top:14px">Gastos por categoría</h3>${gC.map(([k,v])=>`<div class="gbar"><span>${esc(k)}</span><b>${$m(v)}</b><i style="width:${(v/gMax*100).toFixed(1)}%"></i></div>`).join('')}`:''}
       <p><small>Ventas = pedidos aprobados en adelante. El costo usa el costo actual de cada producto.</small></p></div></div>`;
+  $('#g_m').onchange=()=>extrasPago('#g_x',$('#g_m').value=='cheque'?'transferencia':$('#g_m').value,'gasto');$('#g_m').onchange();
   $('#g_g').onclick=async()=>{const imp=+$('#g_i').value;if(!(imp>0))return toast('Poné el importe del gasto.',1);
     $('#g_g').disabled=true;const{error}=await sb.from('gastos').insert({fecha:d,categoria:$('#g_c').value,descripcion:$('#g_d').value.trim()||null,importe:imp,medio:$('#g_m').value});
-    if(error){$('#g_g').disabled=false;return toast(error.message,1)}toast('Gasto de '+$m(imp)+' guardado.');vCaja()};
+    if(error){$('#g_g').disabled=false;return toast(error.message,1)}
+    await extrasGuardar('gasto',imp,'Gasto: '+$('#g_c').value+($('#g_d').value.trim()?' · '+$('#g_d').value.trim():''));toast('Gasto de '+$m(imp)+' guardado.');vCaja()};
   $$('#cj [data-gb]').forEach(a=>a.onclick=async()=>{if(!confirm('¿Borrar este gasto?'))return;const{error}=await sb.from('gastos').delete().eq('id',a.dataset.gb);error?toast(error.message,1):(toast('Gasto borrado.'),vCaja())});
   const esp=()=>esperado-inicial+(+$('#cc_i').value||0);
   const dif=()=>{const c=$('#cc_c').value;if(c===''){$('#cc_dif').innerHTML='';return}const x=+c-esp();$('#cc_dif').innerHTML=`Debería haber <b>${$m(esp())}</b> · ${Math.abs(x)<0.005?'<b>Cierra justo.</b>':`<b class="mora">${x>0?'Sobran':'Faltan'} ${$m(Math.abs(x))}</b>`}`};
@@ -1225,7 +1239,7 @@ function vCobranza(){setTimeout(()=>{if(S.preCob&&$('#k_c')){$('#k_c').value=S.p
     const F=f.data||[];
     $('#k_s').innerHTML=`<p>Saldo: <b>${$m(s.data?.saldo)}</b> <small>(facturado ${$m(s.data?.facturado)} · cobrado ${$m(s.data?.cobrado)})</small></p>
     <table><tr><th>Factura</th><th>Vence</th><th>Mora</th><th>Pendiente</th></tr>${F.map(x=>`<tr><td>${x.tipo} ${x.numero}</td><td>${x.vencimiento}</td><td>${x.dias_mora?x.dias_mora+' días':'—'}</td><td>${$m(x.pendiente)}</td></tr>`).join('')||'<tr><td colspan="4">No tiene facturas pendientes.</td></tr>'}</table>
-    <div class="g"><input id="k_i" type="number" step="0.01" min="0" placeholder="Importe a cobrar"><select id="k_m"><option>transferencia</option><option>efectivo</option><option>cheque</option><option>tarjeta</option><option>otro</option></select></div>
+    <div class="g"><input id="k_i" type="number" step="0.01" min="0" placeholder="Importe a cobrar"><select id="k_m"><option>transferencia</option><option>efectivo</option><option>cheque</option><option value="echeq">eCheq</option><option>tarjeta</option><option>otro</option></select></div><div id="k_x"></div>
     <button id="k_g">Registrar cobro</button><div id="k_ok"></div><h3>Últimos recibos</h3>
     <table>${(r.data||[]).map(x=>`<tr><td>Recibo ${x.numero}</td><td>${fd(x.fecha)}</td><td>${esc(x.medio)}</td><td class="n">${$m(x.importe)}</td><td style="white-space:nowrap"><button class="alt wa" data-rw="${x.numero}">WhatsApp</button> <button class="alt" data-rp="${x.numero}">PDF</button></td></tr>`).join('')||'<tr><td>Todavía no hay recibos.</td></tr>'}</table>`;
     const cli=S.clientes.find(c=>c.id==id),rec=n=>(r.data||[]).find(x=>x.numero==n);
@@ -1233,13 +1247,38 @@ function vCobranza(){setTimeout(()=>{if(S.preCob&&$('#k_c')){$('#k_c').value=S.p
     $$('#k_s [data-rp]').forEach(b=>b.onclick=()=>reciboPDF(rec(b.dataset.rp),cli));
     if(S.recNuevo){const n=S.recNuevo;S.recNuevo=null;const x=rec(n);if(x){$('#k_ok').innerHTML=`<div class="aviso okb"><b>Recibo N° ${n} registrado.</b> Mandale el comprobante al cliente: <button class="alt wa" id="k_w">WhatsApp</button> <button class="alt" id="k_p">PDF</button></div>`;
       $('#k_w').onclick=()=>reciboWA(x,cli);$('#k_p').onclick=()=>reciboPDF(x,cli)}}
+    $('#k_m').onchange=()=>extrasPago('#k_x',$('#k_m').value,'cobro');$('#k_m').onchange();
     $('#k_g').onclick=async()=>{const total=+$('#k_i').value;if(!(total>0))return toast('Poné el importe a cobrar.',1);
+      if($('#ch_fp')&&!$('#ch_fp').value)return toast('Poné la fecha de pago del cheque.',1);
+      const medio=$('#k_m').value=='echeq'?'cheque':$('#k_m').value;
       let rest=total;const imp=[];
       for(const x of F){if(rest<=0)break;const a=Math.min(rest,x.pendiente);imp.push({factura_id:x.factura_id,importe:+a.toFixed(2)});rest=+(rest-a).toFixed(2)}
-      const{data,error}=await sb.rpc('registrar_cobranza',{p_cliente:id,p_importe:total,p_medio:$('#k_m').value,p_imputaciones:imp});
+      const{data,error}=await sb.rpc('registrar_cobranza',{p_cliente:id,p_importe:total,p_medio:medio,p_imputaciones:imp});
       if(error)return toast(error.message,1);
+      await extrasGuardar('cobro',total,'Cobro recibo N° '+data+' · '+nomCli(id),{cliente:id,ref:'Recibo N° '+data});
       toast('Recibo N° '+data+' registrado'+(rest>0?'. Quedan '+$m(rest)+' a cuenta.':'.'));S.recNuevo=data;$('#k_c').onchange();morosos()}};
 }
+
+/* Extras contables al cobrar, pagar o cargar gastos (solo dueño): cuenta bancaria y cheques */
+async function extrasPago(box,medio,modo,opt={}){const el=$(box);if(!el)return;el.innerHTML='';if(S.perfil.rol!='dueno')return;
+  if(medio=='efectivo')return;
+  const C=await cargarCuentas();if(!C)return;
+  if((medio=='cheque'||medio=='echeq')&&modo=='cobro'){el.innerHTML=`<div class="pmf"><b>Datos del cheque</b> <small>(queda en tu cartera de cheques)</small>${formCheque({echeq:medio=='echeq'})}</div>`;return}
+  if((medio=='cheque'||medio=='echeq')&&modo=='pago'){const{data:H}=await sb.from('cheques').select('*').eq('tipo','recibido').eq('estado','en_cartera').order('fecha_pago');
+    el.innerHTML=`<div class="pmf"><div class="chk-row"><label><input type="radio" name="xp_ch" value="cartera" ${H?.length?'checked':''} style="width:auto;margin:0"> Cheque de la cartera (endosar)</label><label><input type="radio" name="xp_ch" value="propio" ${H?.length?'':'checked'} style="width:auto;margin:0"> Cheque propio</label></div>
+      <div id="xp_car">${H?.length?`<select id="xp_cs">${H.map(x=>`<option value="${x.id}" data-i="${x.importe}">${$m(x.importe)} · ${esc(x.banco||'')} ${x.numero?'N° '+esc(x.numero):''} · cobra ${fd(x.fecha_pago)}${x.cliente_id?' · de '+esc(nomCli(x.cliente_id)):''}</option>`).join('')}</select>`:'<small>No tenés cheques en cartera.</small>'}</div>
+      <div id="xp_pro" hidden>${formCheque({tipo:'emitido',echeq:medio=='echeq'})}${C.filter(c=>c.activa).length?`<label class="f">Cuenta de donde sale<select id="xp_cc">${optCuentas(C)}</select></label>`:''}</div></div>`;
+    const tg=()=>{const v=el.querySelector('[name=xp_ch]:checked')?.value;$('#xp_car').hidden=v!='cartera';$('#xp_pro').hidden=v!='propio';if(v=='cartera'&&$('#xp_cs')&&opt.imp)$(opt.imp).value=$('#xp_cs').selectedOptions[0].dataset.i};
+    el.querySelectorAll('[name=xp_ch]').forEach(r=>r.onchange=tg);if($('#xp_cs'))$('#xp_cs').onchange=tg;tg();return}
+  if(!C.filter(c=>c.activa).length)return;
+  el.innerHTML=`<label class="f">${modo=='cobro'?'¿A qué cuenta entró?':'¿De qué cuenta salió?'}<select id="xp_ct"><option value="">— No anotar en bancos —</option>${optCuentas(C,C.filter(c=>c.activa).length==1?C.find(c=>c.activa).id:'')}</select></label>`}
+async function extrasGuardar(modo,imp,concepto,info={}){if(S.perfil.rol!='dueno')return;let e=null;
+  if($('#xp_ct')&&$('#xp_ct').value)e=await movCuenta($('#xp_ct').value,modo=='cobro'?imp:-imp,concepto,modo,info.ref);
+  if($('#ch_fp')&&modo=='cobro'){const fx={tipo:'recibido',estado:'en_cartera',importe:imp,...leerCheque(),cliente_id:info.cliente||null,notas:info.ref||null};if(!fx.librador&&info.cliente)fx.librador=nomCli(info.cliente);const{error}=await sb.from('cheques').insert(fx);e=e||error}
+  if(modo=='pago'&&document.querySelector('[name=xp_ch]')){const v=document.querySelector('[name=xp_ch]:checked')?.value;
+    if(v=='cartera'&&$('#xp_cs')){const{error}=await sb.from('cheques').update({estado:'endosado',proveedor_id:info.prov||null,destino:info.provNom||null}).eq('id',$('#xp_cs').value);e=e||error}
+    if(v=='propio'){const{error}=await sb.from('cheques').insert({tipo:'emitido',estado:'emitido',importe:imp,...leerCheque(),proveedor_id:info.prov||null,destino:info.provNom||null,cuenta_id:+($('#xp_cc')?.value||0)||null});e=e||error}}
+  if(e)toast('Se guardó, pero no se pudo anotar en bancos/cheques: '+e.message,1)}
 
 /* ---------- Clientes que deben: resumen y aviso ---------- */
 async function morosos(){
@@ -1569,27 +1608,409 @@ function cCuenta(){
       <label class="f">Orden de compra<select id="f_o"><option value="">Sin vincular</option>${(o.data||[]).map(x=>`<option value="${x.id}">OC ${x.id} · ${fd(x.fecha)} · ${$m(x.total)}</option>`).join('')}</select></label>
       <label class="f">Neto gravado<input id="f_ne" type="number" step="0.01" min="0"></label>
       <label class="f">IVA<input id="f_iv" type="number" step="0.01" min="0"></label>
-      <label class="f">Percepciones<input id="f_pe" type="number" step="0.01" min="0" value="0"></label>
+      <label class="f">Percepción IVA<input id="f_pi" type="number" step="0.01" min="0" value="0"></label>
+      <label class="f">Percepción IIBB<input id="f_pb" type="number" step="0.01" min="0" value="0"></label>
+      <label class="f">Otras percepciones<input id="f_pe" type="number" step="0.01" min="0" value="0"></label>
     </div><p><small>Total: <b id="f_tot">${$m(0)}</b> · vence a ${pv.dias_pago||0} días</small></p><button id="f_g">Guardar factura</button>
-    <h3>Registrar pago</h3><div class="g"><input id="g_i" type="number" step="0.01" min="0" placeholder="Importe"><select id="g_m"><option>transferencia</option><option>efectivo</option><option>cheque</option><option>echeq</option><option>otro</option></select><input id="g_r" placeholder="Referencia (N° transf., cheque…)"></div>
+    <h3>Registrar pago</h3><div class="g"><input id="g_i" type="number" step="0.01" min="0" placeholder="Importe"><select id="g_m"><option>transferencia</option><option>efectivo</option><option>cheque</option><option>echeq</option><option>otro</option></select><input id="g_r" placeholder="Referencia (N° transf., cheque…)"></div><div id="g_x"></div>
     <button id="g_g">Registrar pago</button>
     <h3>Facturas</h3><table><tr><th>Comprobante</th><th>Fecha</th><th>Vence</th><th>OC</th><th>Total</th></tr>${(f.data||[]).map(x=>`<tr><td>${x.tipo} ${esc(x.numero)}</td><td>${fd(x.fecha)}</td><td>${fd(x.vencimiento)}</td><td>${x.orden_id||'—'}</td><td>${x.tipo=='NC'?'−':''}${$m(x.total)}</td></tr>`).join('')||'<tr><td colspan="5">No hay facturas cargadas.</td></tr>'}</table>
     <h3>Pagos</h3><table>${(g.data||[]).map(x=>`<tr><td>${fd(x.fecha)}</td><td>${x.medio}</td><td>${esc(x.referencia)}</td><td>${$m(x.importe)}</td></tr>`).join('')||'<tr><td>Todavía no hay pagos.</td></tr>'}</table>`;
-    const tot=()=>(+$('#f_ne').value||0)+(+$('#f_iv').value||0)+(+$('#f_pe').value||0);
-    ['#f_ne','#f_iv','#f_pe'].forEach(k=>$(k).oninput=()=>$('#f_tot').textContent=$m(tot()));
+    const perc=()=>(+$('#f_pi').value||0)+(+$('#f_pb').value||0)+(+$('#f_pe').value||0),tot=()=>(+$('#f_ne').value||0)+(+$('#f_iv').value||0)+perc();
+    ['#f_ne','#f_iv','#f_pe','#f_pi','#f_pb'].forEach(k=>$(k).oninput=()=>$('#f_tot').textContent=$m(tot()));
     $('#f_ne').onchange=()=>{if(!$('#f_iv').value&&$('#f_t').value=='A'){$('#f_iv').value=(+$('#f_ne').value*0.21).toFixed(2);$('#f_tot').textContent=$m(tot())}};
     $('#f_g').onclick=async()=>{const n=$('#f_n').value.trim();if(!n||!(tot()>0))return toast('Completá número e importes de la factura.',1);
       const v=new Date($('#f_f').value+'T12:00');v.setDate(v.getDate()+(pv.dias_pago||0));
-      const{error}=await sb.from('facturas_proveedor').insert({proveedor_id:id,tipo:$('#f_t').value,numero:n,fecha:$('#f_f').value,vencimiento:v.toISOString().slice(0,10),
-        orden_id:+$('#f_o').value||null,neto:+$('#f_ne').value||0,iva:+$('#f_iv').value||0,percepciones:+$('#f_pe').value||0});
+      const fila={proveedor_id:id,tipo:$('#f_t').value,numero:n,fecha:$('#f_f').value,vencimiento:v.toISOString().slice(0,10),
+        orden_id:+$('#f_o').value||null,neto:+$('#f_ne').value||0,iva:+$('#f_iv').value||0,percepciones:+perc().toFixed(2),perc_iva:+$('#f_pi').value||0,perc_iibb:+$('#f_pb').value||0};
+      let{error}=await sb.from('facturas_proveedor').insert(fila);
+      if(error&&/perc_i/.test(error.message)){delete fila.perc_iva;delete fila.perc_iibb;({error}=await sb.from('facturas_proveedor').insert(fila))}
       if(error)return toast(error.code=='23505'?'Esa factura ya estaba cargada.':error.message,1);
       toast('Factura guardada.');$('#a_p').onchange()};
+    $('#g_m').onchange=()=>extrasPago('#g_x',$('#g_m').value,'pago',{imp:'#g_i'});$('#g_m').onchange();
     $('#g_g').onclick=async()=>{const imp=+$('#g_i').value;if(!(imp>0))return toast('Poné el importe del pago.',1);
-      const{error}=await sb.from('pagos_proveedor').insert({proveedor_id:id,importe:imp,medio:$('#g_m').value,referencia:$('#g_r').value.trim()||null});
-      if(error)return toast(error.message,1);toast('Pago de '+$m(imp)+' registrado.');$('#a_p').onchange()};
+      const chq=document.querySelector('[name=xp_ch]:checked')?.value,cs=$('#xp_cs')?.selectedOptions[0];
+      const ref=$('#g_r').value.trim()||(chq=='cartera'&&cs?'Cheque endosado '+cs.textContent.split(' · ').slice(1,2).join(''):chq=='propio'&&$('#ch_n')?.value?'Cheque propio N° '+$('#ch_n').value:null);
+      const{error}=await sb.from('pagos_proveedor').insert({proveedor_id:id,importe:imp,medio:$('#g_m').value,referencia:ref});
+      if(error)return toast(error.message,1);
+      await extrasGuardar('pago',imp,'Pago a '+(pv.razon_social||'proveedor')+(ref?' · '+ref:''),{prov:id,provNom:pv.razon_social,ref});toast('Pago de '+$m(imp)+' registrado.');$('#a_p').onchange()};
   };
   if(S.provSel)$('#a_p').onchange();
 }
+/* ======================= CONTABLE (solo dueño) ======================= */
+const CT_SUBS=[['resultados','Resultados'],['rentab','Rentabilidad'],['iva','IVA'],['ret','Retenciones'],['cheques','Cheques'],['bancos','Bancos'],['flujo','Flujo de caja'],['stockv','Valor del stock'],['contador','Para el contador']];
+const SQL_FALTA='<div class="aviso">Falta correr <b>contable.sql</b> en Supabase (SQL Editor). Después recargá la página.</div>';
+const mesHoy=()=>diaLocal(new Date()).slice(0,7);
+const mesRango=m=>{const[y,mm]=m.split('-').map(Number);return[m+'-01',diaLocal(new Date(y,mm,1))]};
+const mesNom=m=>{const[y,mm]=m.split('-').map(Number);const t=new Date(y,mm-1,15).toLocaleDateString('es-AR',{month:'long',year:'numeric'});return t[0].toUpperCase()+t.slice(1)};
+const mesMas=(m,n)=>{const[y,mm]=m.split('-').map(Number);return diaLocal(new Date(y,mm-1+n,1)).slice(0,7)};
+const tsAR=d=>d+'T00:00:00-03:00';
+const alic=id=>{const a=S.min[id]?.iva;return a==null||isNaN(a)?21:a};
+const costoAct=id=>Number(S.productos.find(p=>p.producto_id==id)?.costo||0);
+const pc1=x=>(x*100).toLocaleString('es-AR',{maximumFractionDigits:1})+' %';
+const $s=n=>n<0?'− '+$m(-n):$m(n);
+const xl=n=>Number(n||0).toFixed(2).replace('.',',');
+const esNC=t=>/^NC/i.test(String(t||''));
+const nomCli=id=>S.clientes.find(c=>c.id==id)?.razon_social||'Cliente';
+const nomProd=id=>S.productos.find(p=>p.producto_id==id)?.descripcion||'Producto';
+const cuitCli=id=>S.clientes.find(c=>c.id==id)?.cuit||'';
+
+function vContable(){
+  if(S.perfil.rol!='dueno'){$('#v').innerHTML='<p>Solo el dueño puede ver esta sección.</p>';return}
+  S.ct=S.ct||'resultados';S.ctMes=S.ctMes||mesHoy();
+  $('#v').innerHTML=`<h2>Contable</h2><div class="sub ctsub">${CT_SUBS.map(([k,t])=>`<button class="${S.ct==k?'':'alt'}" data-ct="${k}">${t}</button>`).join('')}</div><div id="ct">Cargando…</div>`;
+  $$('[data-ct]').forEach(b=>b.onclick=()=>{S.ct=b.dataset.ct;vContable()});
+  ({resultados:ctResultados,rentab:ctRentab,iva:ctIVA,ret:ctRet,cheques:ctCheques,bancos:ctBancos,flujo:ctFlujo,stockv:ctStockV,contador:ctContador})[S.ct]();
+}
+function selMes(fn){return `<div class="mesbar"><button class="alt" id="ms_a" aria-label="Mes anterior">←</button><input type="month" id="ms_m" value="${S.ctMes}"><button class="alt" id="ms_s" aria-label="Mes siguiente">→</button><b>${mesNom(S.ctMes)}</b></div>`}
+function onMes(fn){$('#ms_a').onclick=()=>{S.ctMes=mesMas(S.ctMes,-1);fn()};$('#ms_s').onclick=()=>{S.ctMes=mesMas(S.ctMes,1);fn()};$('#ms_m').onchange=e=>{if(e.target.value){S.ctMes=e.target.value;fn()}}}
+
+/* Ventas (pedidos aprobados en adelante) con neto sin IVA y costo */
+async function ctPedidos(desde,hasta){
+  const base='id,numero,total,estado,cliente_id,creado_en,descuento_pct';
+  let r=await todo(()=>sb.from('pedidos').select(base+',pedido_items(producto_id,cantidad,precio_unitario,costo_unitario)').not('estado','in','(pendiente,cancelado)').gte('creado_en',tsAR(desde)).lt('creado_en',tsAR(hasta)).order('numero'));
+  if(r.error)r=await todo(()=>sb.from('pedidos').select(base+',pedido_items(producto_id,cantidad,precio_unitario)').not('estado','in','(pendiente,cancelado)').gte('creado_en',tsAR(desde)).lt('creado_en',tsAR(hasta)).order('numero'));
+  if(r.error)throw r.error;
+  return r.data.map(o=>{const I=o.pedido_items||[],bruto=I.reduce((a,i)=>a+Number(i.cantidad||0)*Number(i.precio_unitario||0),0),k=bruto>0?Number(o.total||bruto)/bruto:1;
+    let neto=0,costo=0,sinC=false;const items=I.map(i=>{const q=Number(i.cantidad||0),a=alic(i.producto_id),v=q*Number(i.precio_unitario||0)*k,n=v/(1+a/100);
+      const cu=i.costo_unitario!=null?Number(i.costo_unitario):costoAct(i.producto_id),c=cu>0?q*cu/(1+a/100):0;if(!(cu>0))sinC=true;neto+=n;costo+=c;return{id:i.producto_id,q,v,n,c,sc:!(cu>0)}});
+    return{...o,_d:diaLocal(o.creado_en),neto,costo,sinC,items}})}
+
+/* ---------- Resultados ---------- */
+async function ctResultados(){
+  const box=$('#ct');box.innerHTML=selMes()+'<div id="rs">Cargando…</div>';onMes(ctResultados);
+  const m0=mesMas(S.ctMes,-5),[d0]=mesRango(m0),[,d1]=mesRango(S.ctMes);
+  let P,G;try{[P,G]=await Promise.all([ctPedidos(d0,d1),todo(()=>sb.from('gastos').select('*').gte('fecha',d0).lt('fecha',d1).order('fecha'))])}catch(e){$('#rs').innerHTML='<p class="err">No se pudieron leer las ventas: '+esc(e.message)+'</p>';return}
+  if(G.error){$('#rs').innerHTML='<p class="err">No se pudieron leer los gastos: '+esc(G.error.message)+'</p>';return}
+  const meses=[];for(let i=5;i>=0;i--)meses.push(mesMas(S.ctMes,-i));
+  const R=meses.map(m=>{const V=P.filter(o=>o._d.slice(0,7)==m),g=G.data.filter(x=>x.fecha.slice(0,7)==m);
+    const v=V.reduce((a,o)=>a+o.neto,0),c=V.reduce((a,o)=>a+o.costo,0),ga=g.reduce((a,x)=>a+Number(x.importe||0),0);return{m,v,c,mb:v-c,g:ga,r:v-c-ga,sinC:V.some(o=>o.sinC),n:V.length,G:g}});
+  const a=R[5],b=R[4],cmp=(x,y)=>y>0&&x>0?`<small class="${x>=y?'sube':'baja'}">${x>=y?'▲':'▼'} ${pc1(Math.abs(x-y)/Math.abs(y))} vs mes anterior</small>`:'';
+  const gc={};for(const x of a.G)gc[x.categoria]=(gc[x.categoria]||0)+Number(x.importe||0);const gC=Object.entries(gc).sort((x,y)=>y[1]-x[1]),gMax=Math.max(1,...gC.map(x=>x[1]));
+  const maxAbs=Math.max(1,...R.map(x=>Math.abs(x.r)));
+  $('#rs').innerHTML=`<div class="kp">
+    <div class="box"><span class="lab">Ventas sin IVA</span><span class="num">${$m(a.v)}</span><span class="det">${a.n} ${a.n==1?'pedido':'pedidos'} ${cmp(a.v,b.v)}</span></div>
+    <div class="box"><span class="lab">Margen bruto</span><span class="num">${$m(a.mb)}</span><span class="det">${a.v?pc1(a.mb/a.v)+' de las ventas':'—'}</span></div>
+    <div class="box"><span class="lab">Gastos</span><span class="num">${$m(a.g)}</span><span class="det">${a.G.length} ${a.G.length==1?'gasto cargado':'gastos cargados'}</span></div>
+    <div class="box ${a.r<0?'alerta':'ok'}"><span class="lab">Ganancia del mes</span><span class="num">${$s(a.r)}</span><span class="det">${a.v?pc1(a.r/a.v)+' de las ventas ':''}${cmp(a.r,b.r)}</span></div></div>
+  <div class="dos fc2">
+    <div class="box"><h3>Estado de resultados · ${mesNom(S.ctMes)}</h3><table>
+      <tr><td>Ventas (sin IVA)</td><td class="n">${$m(a.v)}</td></tr>
+      <tr><td>− Costo de la mercadería vendida (sin IVA)${a.sinC?' <small class="mora">hay productos sin costo</small>':''}</td><td class="n">− ${$m(a.c)}</td></tr>
+      <tr class="tot"><td><b>Margen bruto</b></td><td class="n"><b>${$m(a.mb)}</b></td></tr>
+      ${gC.map(([k,v])=>`<tr><td>− ${esc(k)}</td><td class="n">− ${$m(v)}</td></tr>`).join('')||'<tr><td>− Gastos</td><td class="n">− '+$m(0)+'</td></tr>'}
+      <tr class="tot"><td><b>Ganancia neta</b></td><td class="n ${a.r<0?'mora':''}"><b>${$s(a.r)}</b></td></tr></table>
+      <p><small>Ventas = pedidos aprobados en adelante, sin IVA. El costo es el de cada producto al momento de la venta, sin IVA. Los gastos se toman como se cargaron en Caja.</small></p></div>
+    <div class="box"><h3>Ganancia de los últimos 6 meses</h3>${R.map(x=>`<div class="rbar"><span>${MESES[+x.m.slice(5)-1]+' '+x.m.slice(2,4)}</span><div class="rb"><i class="${x.r<0?'neg':''}" style="width:${(Math.abs(x.r)/maxAbs*100).toFixed(1)}%"></i></div><b class="${x.r<0?'mora':''}">${$s(x.r)}</b></div>`).join('')}
+      ${gC.length?`<h3 style="margin-top:16px">Gastos de ${mesNom(S.ctMes)}</h3>${gC.map(([k,v])=>`<div class="gbar"><span>${esc(k)}</span><b>${$m(v)}</b><i style="width:${(v/gMax*100).toFixed(1)}%"></i></div>`).join('')}`:''}</div></div>
+  <div class="box"><div class="bh"><h3>Comparativo mensual</h3><button class="alt" id="rs_cp">Copiar para Excel</button></div><div class="tscroll"><table><tr><th>Mes</th><th class="n">Ventas s/IVA</th><th class="n">Costo</th><th class="n">Margen bruto</th><th class="n">Gastos</th><th class="n">Ganancia</th><th class="n">% s/ventas</th></tr>
+    ${R.map(x=>`<tr><td>${mesNom(x.m)}</td><td class="n">${$m(x.v)}</td><td class="n">${$m(x.c)}</td><td class="n">${$m(x.mb)}</td><td class="n">${$m(x.g)}</td><td class="n ${x.r<0?'mora':''}"><b>${$s(x.r)}</b></td><td class="n">${x.v?pc1(x.r/x.v):'—'}</td></tr>`).join('')}</table></div></div>`;
+  $('#rs_cp').onclick=()=>copiarTabla(['Mes','Ventas sin IVA','Costo','Margen bruto','Gastos','Ganancia'],R.map(x=>[mesNom(x.m),xl(x.v),xl(x.c),xl(x.mb),xl(x.g),xl(x.r)]));
+}
+
+/* ---------- Rentabilidad ---------- */
+async function ctRentab(){
+  S.rtP=S.rtP||'3m';S.rtV=S.rtV||'cli';
+  $('#ct').innerHTML=`<div class="sub">${PERIODOS.map(([k,t])=>`<button class="${S.rtP==k?'':'alt'}" data-rt="${k}">${t}</button>`).join('')}</div>
+    <div class="sub">${[['cli','Por cliente'],['prod','Por producto'],['marca','Por marca']].map(([k,t])=>`<button class="${S.rtV==k?'':'alt'}" data-rv="${k}">${t}</button>`).join('')}</div><div id="rt">Cargando…</div>`;
+  $$('[data-rt]').forEach(b=>b.onclick=()=>{S.rtP=b.dataset.rt;ctRentab()});$$('[data-rv]').forEach(b=>b.onclick=()=>{S.rtV=b.dataset.rv;ctRentab()});
+  const[a,b]=rango(S.rtP);let P;try{P=await ctPedidos(a,b)}catch(e){$('#rt').innerHTML='<p class="err">'+esc(e.message)+'</p>';return}
+  const g={};const add=(k,n,o,x)=>{const r=g[k]=g[k]||{n,v:0,c:0,q:0,p:new Set(),sc:false};r.v+=x.n;r.c+=x.c;r.q+=x.q;r.p.add(o.id);if(x.sc)r.sc=true};
+  for(const o of P)for(const x of o.items){
+    if(S.rtV=='cli')add(o.cliente_id,nomCli(o.cliente_id),o,x);
+    else if(S.rtV=='prod')add(x.id,nomProd(x.id),o,x);
+    else{const mk=S.productos.find(p=>p.producto_id==x.id)?.marca||'Sin marca';add(mk,mk,o,x)}}
+  const L=Object.values(g).map(r=>({...r,gan:r.v-r.c,mg:r.v?(r.v-r.c)/r.v:0})).sort((x,y)=>y.gan-x.gan);
+  const tv=L.reduce((s,r)=>s+r.v,0),tg=L.reduce((s,r)=>s+r.gan,0),col=S.rtV=='cli'?'Cliente':S.rtV=='prod'?'Producto':'Marca';
+  const peor=L.filter(r=>r.v>0&&!r.sc).sort((x,y)=>x.mg-y.mg).slice(0,3);
+  $('#rt').innerHTML=`<div class="kp"><div class="box"><span class="lab">Ventas sin IVA</span><span class="num">${$m(tv)}</span><span class="det">${PERIODOS.find(x=>x[0]==S.rtP)[1]}</span></div>
+    <div class="box ok"><span class="lab">Ganancia bruta</span><span class="num">${$m(tg)}</span><span class="det">${tv?pc1(tg/tv)+' de margen promedio':'—'}</span></div>
+    <div class="box"><span class="lab">${col} que más te deja</span><span class="num" style="font-size:18px">${L[0]?esc(L[0].n):'—'}</span><span class="det">${L[0]?$m(L[0].gan)+' de ganancia':''}</span></div>
+    <div class="box"><span class="lab">Margen más bajo</span><span class="num" style="font-size:18px">${peor[0]?esc(peor[0].n):'—'}</span><span class="det">${peor[0]?pc1(peor[0].mg)+' de margen':''}</span></div></div>
+  <div class="box"><div class="bh"><h3>Rentabilidad ${S.rtV=='cli'?'por cliente':S.rtV=='prod'?'por producto':'por marca'}</h3><button class="alt" id="rt_cp">Copiar para Excel</button></div>
+  ${L.length?`<div class="tscroll"><table><tr><th>${col}</th>${S.rtV=='prod'?'<th class="n">Unid.</th>':'<th class="n">Pedidos</th>'}<th class="n">Ventas s/IVA</th><th class="n">Costo</th><th class="n">Ganancia</th><th class="n">Margen</th><th class="n">% de la ganancia</th></tr>
+  ${L.slice(0,60).map(r=>`<tr><td>${esc(r.n)}${r.sc?' <small class="mora">sin costo</small>':''}</td><td class="n">${S.rtV=='prod'?nf(r.q):r.p.size}</td><td class="n">${$m(r.v)}</td><td class="n">${$m(r.c)}</td><td class="n"><b>${$s(r.gan)}</b></td><td class="n ${r.mg<0.1?'mora':''}">${pc1(r.mg)}</td><td class="n">${tg?pc1(r.gan/tg):'—'}</td></tr>`).join('')}</table></div>${L.length>60?`<small>Y ${L.length-60} más (se copian todos).</small>`:''}`:'<p><small>No hay ventas en este período.</small></p>'}
+  <p><small>Ordenado por ganancia en pesos, no por cuánto compra. Margen en rojo = menos del 10 %.</small></p></div>`;
+  $('#rt_cp').onclick=()=>copiarTabla([col,S.rtV=='prod'?'Unidades':'Pedidos','Ventas sin IVA','Costo','Ganancia','Margen %'],L.map(r=>[r.n,S.rtV=='prod'?r.q:r.p.size,xl(r.v),xl(r.c),xl(r.gan),(r.mg*100).toFixed(1).replace('.',',')]));
+}
+
+/* ---------- Valor del stock ---------- */
+async function ctStockV(){
+  await cargarStock();
+  const L=S.productos.map(p=>{const s=stk(p.producto_id).f;return{p,s,c:s*Number(p.costo||0),v:s*Number(p.precio_mayorista||0)}}).filter(x=>x.s>0);
+  const tc=L.reduce((a,x)=>a+x.c,0),tv=L.reduce((a,x)=>a+x.v,0),sinC=L.filter(x=>!(Number(x.p.costo)>0)).length;
+  const mk={};for(const x of L){const k=x.p.marca||'Sin marca';const r=mk[k]=mk[k]||{n:k,c:0,v:0,u:0,i:0};r.c+=x.c;r.v+=x.v;r.u+=x.s;r.i++}
+  const M=Object.values(mk).sort((a,b)=>b.c-a.c),mx=Math.max(1,...M.map(x=>x.c));
+  $('#ct').innerHTML=S.inv?`<div class="kp"><div class="box"><span class="lab">Stock a costo</span><span class="num">${$m(tc)}</span><span class="det">Lo que te costó la mercadería (con IVA)</span></div>
+    <div class="box ok"><span class="lab">Stock a precio mayorista</span><span class="num">${$m(tv)}</span><span class="det">Lo que vale si lo vendés</span></div>
+    <div class="box"><span class="lab">Ganancia que tenés en el depósito</span><span class="num">${$m(tv-tc)}</span><span class="det">${L.length} productos con stock${sinC?' · '+sinC+' sin costo':''}</span></div></div>
+  <div class="dos fc2"><div class="box"><h3>Por marca</h3>${M.map(x=>`<div class="gbar"><span>${esc(x.n)} <small>(${x.i} prod.)</small></span><b>${$m(x.c)}</b><i style="width:${(x.c/mx*100).toFixed(1)}%"></i></div>`).join('')}</div>
+  <div class="box"><div class="bh"><h3>Productos con más plata inmovilizada</h3><button class="alt" id="sv_cp">Copiar todo para Excel</button></div><div class="tscroll"><table><tr><th>Producto</th><th class="n">Stock</th><th class="n">A costo</th><th class="n">A precio</th></tr>
+  ${L.sort((a,b)=>b.c-a.c).slice(0,25).map(x=>`<tr><td>${esc(x.p.descripcion)}</td><td class="n">${nf(x.s)}</td><td class="n">${$m(x.c)}</td><td class="n">${$m(x.v)}</td></tr>`).join('')}</table></div></div></div>`
+  :'<div class="aviso">Todavía no cargaste el inventario. Cuando cargues las cantidades en la pestaña <b>Stock</b>, acá vas a ver cuánta plata tenés en mercadería.</div>';
+  $('#sv_cp')&&($('#sv_cp').onclick=()=>copiarTabla(['Código','Producto','Marca','Stock','Costo unit.','Precio mayorista','Total a costo','Total a precio'],L.map(x=>[x.p.codigo||'',x.p.descripcion,x.p.marca||'',x.s,xl(x.p.costo),xl(x.p.precio_mayorista),xl(x.c),xl(x.v)])));
+}
+
+/* ---------- IVA ---------- */
+async function datosIVA(m){
+  const[a,b]=mesRango(m);
+  const[fv,fp,rt]=await Promise.all([
+    todo(()=>sb.from('facturas_venta').select('*').gte('fecha',a).lt('fecha',b).order('fecha').order('numero')),
+    todo(()=>sb.from('facturas_proveedor').select('*,proveedores(razon_social,cuit)').gte('fecha',a).lt('fecha',b).order('fecha')),
+    todo(()=>sb.from('retenciones').select('*').gte('fecha',a).lt('fecha',b).order('fecha'))]);
+  if(fv.error)throw fv.error;if(fp.error)throw fp.error;
+  const F=fv.data.filter(f=>!f.anulada),ids=[...new Set(F.map(f=>f.pedido_id).filter(Boolean))];let it={};
+  for(let i=0;i<ids.length;i+=150){const{data}=await sb.from('pedido_items').select('pedido_id,producto_id,cantidad,precio_unitario').in('pedido_id',ids.slice(i,i+150));for(const x of data||[])(it[x.pedido_id]=it[x.pedido_id]||[]).push(x)}
+  const V=F.map(f=>{const I=it[f.pedido_id]||[],tot=Number(f.total||0),s=esNC(f.tipo)?-1:1;const br={};let bt=0;
+    for(const x of I){const v=Number(x.cantidad||0)*Number(x.precio_unitario||0),a=alic(x.producto_id);br[a]=(br[a]||0)+v;bt+=v}
+    if(!bt){br[21]=1;bt=1}
+    const r={f,n21:0,i21:0,n105:0,i105:0,nx:0,ix:0,tot:s*tot};
+    for(const[a,v]of Object.entries(br)){const t=tot*v/bt,n=t/(1+a/100),iv=t-n;if(+a==21){r.n21+=s*n;r.i21+=s*iv}else if(+a==10.5){r.n105+=s*n;r.i105+=s*iv}else{r.nx+=s*n;r.ix+=s*iv}}
+    return r});
+  const C=fp.data.map(f=>{const s=esNC(f.tipo)?-1:1,pi=Number(f.perc_iva||0),pb=Number(f.perc_iibb||0),pt=Number(f.percepciones||0);
+    return{f,neto:s*Number(f.neto||0),iva:s*Number(f.iva||0),pi:s*pi,pb:s*pb,po:s*Math.max(0,pt-pi-pb),tot:s*Number(f.total||0)}});
+  const RT=rt.error?[]:rt.data;
+  const sum=(A,k)=>A.reduce((x,r)=>x+r[k],0);
+  const deb=sum(V,'i21')+sum(V,'i105')+sum(V,'ix'),cred=sum(C,'iva'),pIVA=sum(C,'pi'),rIVA=RT.filter(r=>r.impuesto=='IVA').reduce((x,r)=>x+Number(r.importe),0);
+  const pIIBB=sum(C,'pb'),rIIBB=RT.filter(r=>r.impuesto=='IIBB').reduce((x,r)=>x+Number(r.importe),0),rGan=RT.filter(r=>r.impuesto=='Ganancias').reduce((x,r)=>x+Number(r.importe),0);
+  return{V,C,RT,rtErr:rt.error,deb,cred,pIVA,rIVA,pIIBB,rIIBB,rGan,netoV:sum(V,'n21')+sum(V,'n105')+sum(V,'nx'),saldo:deb-cred-pIVA-rIVA}}
+const filaV=r=>[fd(r.f.fecha),r.f.tipo+' '+String(r.f.punto_venta||1).padStart(4,'0')+'-'+String(r.f.numero).padStart(8,'0'),nomCli(r.f.cliente_id),cuitCli(r.f.cliente_id),xl(r.n21),xl(r.i21),xl(r.n105),xl(r.i105),xl(r.nx+r.ix),xl(r.tot)];
+const filaC=r=>[fd(r.f.fecha),r.f.tipo+' '+r.f.numero,r.f.proveedores?.razon_social||'',r.f.proveedores?.cuit||'',xl(r.neto),xl(r.iva),xl(r.pi),xl(r.pb),xl(r.po),xl(r.tot)];
+const HEAD_V=['Fecha','Comprobante','Cliente','CUIT','Neto 21%','IVA 21%','Neto 10,5%','IVA 10,5%','Otras alícuotas','Total'];
+const HEAD_C=['Fecha','Comprobante','Proveedor','CUIT','Neto gravado','IVA','Percepción IVA','Percepción IIBB','Otras percepciones','Total'];
+async function ctIVA(){
+  $('#ct').innerHTML=selMes()+'<div id="iv">Cargando…</div>';onMes(ctIVA);
+  let D;try{D=await datosIVA(S.ctMes)}catch(e){$('#iv').innerHTML='<p class="err">'+esc(e.message)+'</p>';return}
+  const aPagar=D.saldo>0;
+  $('#iv').innerHTML=`${D.rtErr?SQL_FALTA:''}<div class="kp">
+    <div class="box"><span class="lab">IVA de tus ventas (débito)</span><span class="num">${$m(D.deb)}</span><span class="det">${D.V.length} ${D.V.length==1?'factura':'facturas'} · neto ${$m(D.netoV)}</span></div>
+    <div class="box"><span class="lab">IVA de tus compras (crédito)</span><span class="num">${$m(D.cred)}</span><span class="det">${D.C.length} ${D.C.length==1?'factura':'facturas'} de proveedores</span></div>
+    <div class="box"><span class="lab">Percepciones y retenciones de IVA</span><span class="num">${$m(D.pIVA+D.rIVA)}</span><span class="det">Percep. ${$m(D.pIVA)} · Retenc. ${$m(D.rIVA)}</span></div>
+    <div class="box ${aPagar?'alerta':'ok'}"><span class="lab">${aPagar?'IVA a pagar':'Saldo a favor'}</span><span class="num">${$m(Math.abs(D.saldo))}</span><span class="det">Estimado · confirmalo con tu contador</span></div></div>
+  <div class="box"><h3>Ingresos Brutos</h3><table><tr><td>Base imponible estimada (ventas netas facturadas)</td><td class="n">${$m(D.netoV)}</td></tr>
+    <tr><td>Percepciones de IIBB sufridas (en compras)</td><td class="n">${$m(D.pIIBB)}</td></tr><tr><td>Retenciones de IIBB sufridas (en cobros)</td><td class="n">${$m(D.rIIBB)}</td></tr>
+    <tr class="tot"><td><b>Total a descontar de IIBB</b></td><td class="n"><b>${$m(D.pIIBB+D.rIIBB)}</b></td></tr>${D.rGan?`<tr><td>Retenciones de Ganancias sufridas</td><td class="n">${$m(D.rGan)}</td></tr>`:''}</table></div>
+  <div class="box"><div class="bh"><h3>Libro IVA Ventas</h3><button class="alt" id="iv_cv">Copiar para Excel</button></div>
+    ${D.V.length?`<div class="tscroll"><table><tr><th>Fecha</th><th>Comprobante</th><th>Cliente</th><th class="n">Neto 21%</th><th class="n">IVA 21%</th><th class="n">Neto 10,5%</th><th class="n">IVA 10,5%</th><th class="n">Total</th></tr>
+    ${D.V.map(r=>{const x=filaV(r);return`<tr><td>${x[0]}</td><td>${esc(x[1])}</td><td>${esc(x[2])}<br><small>${esc(x[3])}</small></td><td class="n">${$m(r.n21)}</td><td class="n">${$m(r.i21)}</td><td class="n">${$m(r.n105)}</td><td class="n">${$m(r.i105)}</td><td class="n"><b>${$m(r.tot)}</b></td></tr>`}).join('')}</table></div>`:'<p><small>No hay facturas de venta en este mes.</small></p>'}</div>
+  <div class="box"><div class="bh"><h3>Libro IVA Compras</h3><button class="alt" id="iv_cc">Copiar para Excel</button></div>
+    ${D.C.length?`<div class="tscroll"><table><tr><th>Fecha</th><th>Comprobante</th><th>Proveedor</th><th class="n">Neto</th><th class="n">IVA</th><th class="n">Perc. IVA</th><th class="n">Perc. IIBB</th><th class="n">Total</th></tr>
+    ${D.C.map(r=>`<tr><td>${fd(r.f.fecha)}</td><td>${esc(r.f.tipo+' '+r.f.numero)}</td><td>${esc(r.f.proveedores?.razon_social||'')}</td><td class="n">${$m(r.neto)}</td><td class="n">${$m(r.iva)}</td><td class="n">${$m(r.pi)}</td><td class="n">${$m(r.pb)}</td><td class="n"><b>${$m(r.tot)}</b></td></tr>`).join('')}</table></div>`:'<p><small>No hay facturas de proveedores en este mes. Se cargan en Compras → Facturas y pagos.</small></p>'}</div>
+  <div class="box"><h3>Alícuota de IVA de los productos</h3><p><small>Todos los productos están al <b>21 %</b> salvo que los cambies acá. Elegí una marca o familia y la alícuota.</small></p>
+    <div class="g"><select id="al_k"><option value="">Elegí marca o familia…</option>${[...new Set(S.productos.map(p=>p.marca).filter(Boolean))].sort().map(x=>`<option value="m:${esc(x)}">Marca: ${esc(x)}</option>`).join('')}${[...new Set(S.productos.map(p=>p.familia).filter(Boolean))].sort().map(x=>`<option value="f:${esc(x)}">Familia: ${esc(x)}</option>`).join('')}</select>
+    <select id="al_v"><option value="21">21 %</option><option value="10.5">10,5 %</option><option value="27">27 %</option><option value="0">Exento (0 %)</option></select><button id="al_g">Aplicar</button></div>
+    <p id="al_r"><small>${(()=>{const o={};for(const p of S.productos){const a=alic(p.producto_id);o[a]=(o[a]||0)+1}return Object.entries(o).map(([a,n])=>n+' productos al '+String(a).replace('.',',')+' %').join(' · ')})()}</small></p></div>
+  <p><small>Las facturas de venta del CRM son internas hasta que conectemos la factura electrónica de ARCA. Usá estos libros como control y pasáselos a tu contador.</small></p>`;
+  $('#iv_cv').onclick=()=>copiarTabla(HEAD_V,D.V.map(filaV));$('#iv_cc').onclick=()=>copiarTabla(HEAD_C,D.C.map(filaC));
+  $('#al_g').onclick=async()=>{const k=$('#al_k').value,v=+$('#al_v').value;if(!k)return toast('Elegí una marca o familia.',1);
+    const[t,val]=[k.slice(0,1),k.slice(2)],ids=S.productos.filter(p=>(t=='m'?p.marca:p.familia)==val).map(p=>p.producto_id);
+    if(!confirm('¿Poner '+String(v).replace('.',',')+' % de IVA a '+ids.length+' productos de '+val+'?'))return;
+    for(let i=0;i<ids.length;i+=200){const{error}=await sb.from('productos').update({alicuota_iva:v}).in('id',ids.slice(i,i+200));if(error)return toast(/alicuota/.test(error.message)?'Falta correr contable.sql en Supabase.':error.message,1)}
+    await cargarStock();toast('Listo: '+ids.length+' productos al '+String(v).replace('.',',')+' %.');ctIVA()};
+}
+
+/* ---------- Retenciones y percepciones ---------- */
+async function ctRet(){
+  $('#ct').innerHTML=selMes()+'<div id="rr">Cargando…</div>';onMes(ctRet);
+  const[a,b]=mesRango(S.ctMes);const r=await todo(()=>sb.from('retenciones').select('*').gte('fecha',a).lt('fecha',b).order('fecha',{ascending:false}));
+  if(r.error){$('#rr').innerHTML=SQL_FALTA;return}
+  const tot={};for(const x of r.data)tot[x.impuesto]=(tot[x.impuesto]||0)+Number(x.importe);
+  $('#rr').innerHTML=`<div class="dos fc2"><div class="box"><h3>Cargar certificado</h3><p><small>Retenciones que te hacen tus clientes al pagarte, o percepciones que no estén en una factura de proveedor.</small></p><div class="g">
+    <label class="f">Fecha<input type="date" id="rt_f" value="${diaLocal(new Date())}"></label>
+    <label class="f">Tipo<select id="rt_t"><option value="retencion">Retención (al cobrar)</option><option value="percepcion">Percepción</option></select></label>
+    <label class="f">Impuesto<select id="rt_i"><option>IIBB</option><option>IVA</option><option>Ganancias</option><option>SUSS</option><option>Otro</option></select></label>
+    <label class="f">Jurisdicción (IIBB)<input id="rt_j" placeholder="Ej.: CABA, Buenos Aires"></label>
+    <label class="f">Cliente<select id="rt_c"><option value="">—</option>${S.clientes.map(c=>`<option value="${c.id}">${esc(c.razon_social)}</option>`).join('')}</select></label>
+    <label class="f">N° de certificado<input id="rt_n"></label>
+    <label class="f">Importe<input type="number" id="rt_m" step="0.01" min="0" inputmode="decimal"></label></div>
+    <label class="chk-row" id="rt_dl"><input type="checkbox" id="rt_d" style="width:auto;margin:0"> Descontarla de la deuda del cliente (genera un recibo por el importe retenido)</label>
+    <button id="rt_g">Guardar</button></div>
+  <div class="box"><h3>Total de ${mesNom(S.ctMes)}</h3>${Object.keys(tot).length?`<table>${Object.entries(tot).map(([k,v])=>`<tr><td>${k}</td><td class="n"><b>${$m(v)}</b></td></tr>`).join('')}</table>`:'<p><small>No hay certificados cargados este mes.</small></p>'}
+    <p><small>Las percepciones que vienen en las facturas de proveedores se suman solas en la pestaña IVA.</small></p></div></div>
+  <div class="box"><div class="bh"><h3>Certificados del mes</h3><button class="alt" id="rt_cp">Copiar para Excel</button></div>${r.data.length?`<div class="tscroll"><table><tr><th>Fecha</th><th>Tipo</th><th>Impuesto</th><th>Cliente</th><th>Certificado</th><th class="n">Importe</th><th></th></tr>
+    ${r.data.map(x=>`<tr><td>${fd(x.fecha)}</td><td>${x.tipo=='retencion'?'Retención':'Percepción'}</td><td>${x.impuesto}${x.jurisdiccion?' <small>'+esc(x.jurisdiccion)+'</small>':''}</td><td>${x.cliente_id?esc(nomCli(x.cliente_id)):'—'}</td><td>${esc(x.comprobante||'')}</td><td class="n">${$m(x.importe)}</td><td><a class="lnk" data-rb="${x.id}">Borrar</a></td></tr>`).join('')}</table></div>`:'<p><small>Sin certificados.</small></p>'}</div>`;
+  const upd=()=>{$('#rt_dl').hidden=!($('#rt_t').value=='retencion'&&$('#rt_c').value)};$('#rt_t').onchange=upd;$('#rt_c').onchange=upd;upd();
+  $('#rt_g').onclick=async()=>{const imp=+$('#rt_m').value;if(!(imp>0))return toast('Poné el importe.',1);const cli=$('#rt_c').value||null;
+    $('#rt_g').disabled=true;
+    const{error}=await sb.from('retenciones').insert({fecha:$('#rt_f').value,tipo:$('#rt_t').value,impuesto:$('#rt_i').value,jurisdiccion:$('#rt_j').value.trim()||null,cliente_id:cli,comprobante:$('#rt_n').value.trim()||null,importe:imp});
+    if(error){$('#rt_g').disabled=false;return toast(error.message,1)}
+    if(cli&&$('#rt_d').checked&&!$('#rt_dl').hidden){const{data:F}=await sb.from('facturas_estado').select('*').eq('cliente_id',cli).gt('pendiente',0.005).order('vencimiento');
+      let rest=imp;const im=[];for(const x of F||[]){if(rest<=0)break;const v=Math.min(rest,x.pendiente);im.push({factura_id:x.factura_id,importe:+v.toFixed(2)});rest=+(rest-v).toFixed(2)}
+      const{data:n,error:e2}=await sb.rpc('registrar_cobranza',{p_cliente:cli,p_importe:imp,p_medio:'otro',p_imputaciones:im});
+      toast(e2?'Certificado guardado, pero no se pudo descontar de la deuda: '+e2.message:'Certificado guardado y descontado de la deuda (recibo N° '+n+').',!!e2)}
+    else toast('Certificado guardado.');ctRet()};
+  $$('#rr [data-rb]').forEach(a=>a.onclick=async()=>{if(!confirm('¿Borrar este certificado?'))return;const{error}=await sb.from('retenciones').delete().eq('id',a.dataset.rb);error?toast(error.message,1):ctRet()});
+  $('#rt_cp').onclick=()=>copiarTabla(['Fecha','Tipo','Impuesto','Jurisdicción','Cliente','CUIT','Certificado','Importe'],r.data.map(x=>[fd(x.fecha),x.tipo,x.impuesto,x.jurisdiccion||'',x.cliente_id?nomCli(x.cliente_id):'',x.cliente_id?cuitCli(x.cliente_id):'',x.comprobante||'',xl(x.importe)]));
+}
+
+/* ---------- Cuentas (bancos) ---------- */
+async function cargarCuentas(){const[c,m]=await Promise.all([sb.from('cuentas').select('*').order('id'),todo(()=>sb.from('movimientos_cuenta').select('cuenta_id,fecha,importe').order('id'))]);
+  if(c.error)return null;return c.data.map(x=>({...x,saldo:Number(x.saldo_inicial||0)+(m.data||[]).filter(y=>y.cuenta_id==x.id&&y.fecha>=x.fecha_saldo).reduce((a,y)=>a+Number(y.importe),0)}))}
+const optCuentas=(C,sel)=>C.filter(c=>c.activa).map(c=>`<option value="${c.id}" ${sel==c.id?'selected':''}>${esc(c.nombre)}</option>`).join('');
+async function movCuenta(cuenta_id,importe,concepto,origen,ref,fecha){if(!cuenta_id||!importe)return null;
+  const{error}=await sb.from('movimientos_cuenta').insert({cuenta_id:+cuenta_id,importe:+(+importe).toFixed(2),concepto,origen,ref:ref||null,fecha:fecha||diaLocal(new Date())});return error}
+const TIPO_CTA={banco:'Banco',billetera:'Billetera virtual',efectivo:'Efectivo',otro:'Otra'};
+async function ctBancos(){
+  const C=await cargarCuentas();if(!C){$('#ct').innerHTML=SQL_FALTA;return}
+  S.ctaSel=S.ctaSel&&C.some(c=>c.id==S.ctaSel)?S.ctaSel:C[0]?.id;
+  const total=C.filter(c=>c.activa).reduce((a,c)=>a+c.saldo,0);
+  $('#ct').innerHTML=`<div class="kp">${C.filter(c=>c.activa).map(c=>`<div class="box clic ${S.ctaSel==c.id?'sel':''}" data-cs="${c.id}"><span class="lab">${esc(c.nombre)}</span><span class="num ${c.saldo<0?'mora':''}">${$s(c.saldo)}</span><span class="det">${TIPO_CTA[c.tipo]||c.tipo}</span></div>`).join('')}
+    <div class="box ok"><span class="lab">Total en cuentas</span><span class="num">${$s(total)}</span><span class="det">${C.filter(c=>c.activa).length} cuentas</span></div></div>
+  <div class="dos fc2"><div class="box" id="bk_mv">${C.length?'Cargando…':'<p>Todavía no cargaste ninguna cuenta. Agregá tu banco, Mercado Pago, etc. con el saldo que tienen hoy.</p>'}</div>
+  <div class="box"><h3>Agregar cuenta</h3><div class="g"><input id="cn_n" placeholder="Nombre (ej.: Banco Galicia, Mercado Pago)"><select id="cn_t">${Object.entries(TIPO_CTA).filter(x=>x[0]!='efectivo').map(([k,t])=>`<option value="${k}">${t}</option>`).join('')}</select>
+    <label class="f">Saldo de hoy<input id="cn_s" type="number" step="0.01" value="0"></label></div><button id="cn_g">Agregar cuenta</button>
+    ${C.filter(c=>c.activa).length>1?`<h3 style="margin-top:18px">Pasar plata entre cuentas</h3><div class="g"><label class="f">Desde<select id="tr_a">${optCuentas(C)}</select></label><label class="f">Hacia<select id="tr_b">${optCuentas(C,C.filter(c=>c.activa)[1]?.id)}</select></label><label class="f">Importe<input id="tr_m" type="number" step="0.01" min="0"></label></div><button id="tr_g">Transferir</button>`:''}
+    <p><small>Los cobros por transferencia, pagos a proveedores, gastos y cheques depositados se anotan solos en la cuenta que elijas al cargarlos.</small></p></div></div>`;
+  $$('[data-cs]').forEach(b=>b.onclick=()=>{S.ctaSel=+b.dataset.cs;ctBancos()});
+  $('#cn_g').onclick=async()=>{const n=$('#cn_n').value.trim();if(!n)return toast('Poné el nombre de la cuenta.',1);
+    const{data,error}=await sb.from('cuentas').insert({nombre:n,tipo:$('#cn_t').value,saldo_inicial:+$('#cn_s').value||0,fecha_saldo:diaLocal(new Date())}).select().single();if(error)return toast(error.message,1);S.ctaSel=data.id;toast('Cuenta agregada.');ctBancos()};
+  $('#tr_g')&&($('#tr_g').onclick=async()=>{const a=+$('#tr_a').value,b=+$('#tr_b').value,m=+$('#tr_m').value;if(a==b)return toast('Elegí dos cuentas distintas.',1);if(!(m>0))return toast('Poné el importe.',1);
+    const id=crypto.randomUUID(),na=C.find(c=>c.id==a).nombre,nb=C.find(c=>c.id==b).nombre,f=diaLocal(new Date());
+    const{error}=await sb.from('movimientos_cuenta').insert([{cuenta_id:a,importe:-m,concepto:'Transferencia a '+nb,origen:'transferencia',transferencia_id:id,fecha:f},{cuenta_id:b,importe:m,concepto:'Transferencia desde '+na,origen:'transferencia',transferencia_id:id,fecha:f}]);
+    if(error)return toast(error.message,1);toast('Transferencia registrada.');ctBancos()});
+  if(!S.ctaSel)return;
+  const c=C.find(x=>x.id==S.ctaSel);S.ctaMes=S.ctaMes||mesHoy();const[a,b]=mesRango(S.ctaMes);
+  const{data:M,error}=await sb.from('movimientos_cuenta').select('*').eq('cuenta_id',c.id).gte('fecha',a).lt('fecha',b).order('fecha',{ascending:false}).order('id',{ascending:false});
+  if(error){$('#bk_mv').innerHTML='<p class="err">'+esc(error.message)+'</p>';return}
+  $('#bk_mv').innerHTML=`<div class="bh"><h3>${esc(c.nombre)} · ${mesNom(S.ctaMes)}</h3><div class="fc-acc"><button class="alt" id="cm_a">←</button><button class="alt" id="cm_s">→</button></div></div>
+    <div class="g"><input type="date" id="mv_f" value="${diaLocal(new Date())}"><select id="mv_t"><option value="1">Entra plata</option><option value="-1">Sale plata</option></select><input id="mv_m" type="number" step="0.01" min="0" placeholder="Importe"><input id="mv_c" placeholder="Concepto (ej.: comisión banco)"></div><button class="alt" id="mv_g">Agregar movimiento</button>
+    ${M.length?`<table style="margin-top:10px">${M.map(x=>`<tr><td>${fd(x.fecha)}</td><td>${esc(x.concepto)}${x.ref?'<br><small>'+esc(x.ref)+'</small>':''}</td><td class="n ${x.importe<0?'mora':''}">${$s(+x.importe)}</td><td>${x.origen=='manual'||x.origen=='transferencia'?`<a class="lnk" data-mb="${x.id}" data-tr="${x.transferencia_id||''}">Borrar</a>`:''}</td></tr>`).join('')}</table>`:'<p><small>Sin movimientos en este mes.</small></p>'}
+    <p><small>Saldo actual: <b>${$s(c.saldo)}</b> · saldo inicial ${$m(c.saldo_inicial)} al ${fd(c.fecha_saldo)}</small> · <a class="lnk" id="cta_x">${c.activa?'Desactivar cuenta':'Activar'}</a></p>`;
+  $('#cm_a').onclick=()=>{S.ctaMes=mesMas(S.ctaMes,-1);ctBancos()};$('#cm_s').onclick=()=>{S.ctaMes=mesMas(S.ctaMes,1);ctBancos()};
+  $('#mv_g').onclick=async()=>{const m=+$('#mv_m').value,co=$('#mv_c').value.trim();if(!(m>0)||!co)return toast('Poné importe y concepto.',1);
+    const e=await movCuenta(c.id,m*+$('#mv_t').value,co,'manual',null,$('#mv_f').value);e?toast(e.message,1):(toast('Movimiento agregado.'),ctBancos())};
+  $$('#bk_mv [data-mb]').forEach(x=>x.onclick=async()=>{if(!confirm('¿Borrar este movimiento?'))return;const q=sb.from('movimientos_cuenta').delete();
+    const{error}=x.dataset.tr?await q.eq('transferencia_id',x.dataset.tr):await q.eq('id',x.dataset.mb);error?toast(error.message,1):ctBancos()});
+  $('#cta_x').onclick=async()=>{const{error}=await sb.from('cuentas').update({activa:!c.activa}).eq('id',c.id);error?toast(error.message,1):ctBancos()};
+}
+
+/* ---------- Cheques ---------- */
+const EST_CH={en_cartera:'En cartera',depositado:'Depositado',endosado:'Endosado',cobrado:'Cobrado',rechazado:'Rechazado',emitido:'Emitido (a debitar)',debitado:'Debitado',anulado:'Anulado'};
+function formCheque(pre={}){return `<div class="g chq">
+  <label class="f">N° de cheque<input id="ch_n" value="${esc(pre.numero||'')}"></label><label class="f">Banco<input id="ch_b" value="${esc(pre.banco||'')}"></label>
+  ${pre.tipo=='emitido'?'':`<label class="f">Librador (quién lo firma)<input id="ch_l" value="${esc(pre.librador||'')}"></label><label class="f">CUIT del librador<input id="ch_cu" value="${esc(pre.cuit_librador||'')}"></label>`}
+  <label class="f">Fecha de pago (cobro)<input type="date" id="ch_fp" value="${pre.fecha_pago||diaLocal(new Date())}"></label>
+  <label class="f">&nbsp;<span class="chk-row" style="margin:6px 0"><input type="checkbox" id="ch_e" style="width:auto;margin:0" ${pre.echeq?'checked':''}> Es eCheq</span></label></div>`}
+const leerCheque=()=>({numero:$('#ch_n').value.trim()||null,banco:$('#ch_b').value.trim()||null,librador:$('#ch_l')?.value.trim()||null,cuit_librador:$('#ch_cu')?.value.trim()||null,fecha_pago:$('#ch_fp').value,echeq:$('#ch_e').checked});
+async function ctCheques(){
+  S.chF=S.chF||'cartera';
+  const[ch,C]=await Promise.all([todo(()=>sb.from('cheques').select('*').order('fecha_pago')),cargarCuentas()]);
+  if(ch.error||!C){$('#ct').innerHTML=SQL_FALTA;return}
+  const H=ch.data,hoy=diaLocal(new Date()),en7=diaLocal(new Date(Date.now()+7*864e5));
+  const cart=H.filter(x=>x.tipo=='recibido'&&x.estado=='en_cartera'),emi=H.filter(x=>x.tipo=='emitido'&&x.estado=='emitido');
+  const s=A=>A.reduce((a,x)=>a+Number(x.importe),0);
+  const L=S.chF=='cartera'?cart:S.chF=='emitidos'?emi:H.slice().reverse();
+  $('#ct').innerHTML=`<div class="kp"><div class="box ok"><span class="lab">Cheques en cartera</span><span class="num">${$m(s(cart))}</span><span class="det">${cart.length} cheques recibidos</span></div>
+    <div class="box"><span class="lab">Para depositar ya</span><span class="num">${$m(s(cart.filter(x=>x.fecha_pago<=hoy)))}</span><span class="det">${cart.filter(x=>x.fecha_pago<=hoy).length} con fecha cumplida</span></div>
+    <div class="box ${s(emi.filter(x=>x.fecha_pago<=en7))?'alerta':''}"><span class="lab">Tus cheques a debitar (7 días)</span><span class="num">${$m(s(emi.filter(x=>x.fecha_pago<=en7)))}</span><span class="det">Total emitidos pendientes ${$m(s(emi))}</span></div></div>
+  <div class="sub">${[['cartera','En cartera'],['emitidos','Emitidos pendientes'],['todos','Todos']].map(([k,t])=>`<button class="${S.chF==k?'':'alt'}" data-chf="${k}">${t}</button>`).join('')}<button id="ch_nv">+ Cargar cheque</button></div>
+  <div id="ch_form"></div>
+  <div class="box">${L.length?`<div class="tscroll"><table><tr><th>Pago</th><th>Cheque</th><th>De / Para</th><th class="n">Importe</th><th>Estado</th><th></th></tr>
+    ${L.map(x=>{const venc=x.fecha_pago<=hoy&&['en_cartera','emitido'].includes(x.estado);return`<tr><td class="${venc?'mora':''}">${fd(x.fecha_pago)}</td><td>${x.echeq?'<span class="badge b-online">eCheq</span> ':''}${esc(x.banco||'')} ${x.numero?'N° '+esc(x.numero):''}<br><small>${x.tipo=='recibido'?'Recibido':'Propio'}${x.librador?' · '+esc(x.librador):''}</small></td>
+    <td>${x.cliente_id?'De: '+esc(nomCli(x.cliente_id)):''}${x.destino?(x.cliente_id?'<br>':'')+'Para: '+esc(x.destino):''}</td><td class="n"><b>${$m(x.importe)}</b></td><td><span class="badge b-${x.estado=='rechazado'?'mora30':['depositado','cobrado','debitado'].includes(x.estado)?'entregado':'aprobado'}">${EST_CH[x.estado]}</span></td>
+    <td class="acc">${x.estado=='en_cartera'?`<button class="alt" data-chd="${x.id}">Depositar</button> <button class="alt" data-che="${x.id}">Endosar</button> <select data-chx="${x.id}"><option value="">Más…</option><option value="cobrado">Cobrado por ventanilla</option><option value="rechazado">Rechazado</option><option value="anulado">Anular</option></select>`
+      :x.estado=='emitido'?`<button class="alt" data-chb="${x.id}">Debitado</button> <select data-chx="${x.id}"><option value="">Más…</option><option value="anulado">Anular</option></select>`:''}</td></tr>`}).join('')}</table></div>`:'<p><small>No hay cheques en esta lista.</small></p>'}</div>`;
+  $$('[data-chf]').forEach(b=>b.onclick=()=>{S.chF=b.dataset.chf;ctCheques()});
+  const ch1=id=>H.find(x=>x.id==id);
+  $('#ch_nv').onclick=()=>{$('#ch_form').innerHTML=`<div class="box"><h3>Cargar cheque</h3><div class="g"><label class="f">Tipo<select id="ch_t"><option value="recibido">Recibido de un cliente</option><option value="emitido">Propio (lo firmo yo)</option></select></label>
+    <label class="f">Importe<input id="ch_m" type="number" step="0.01" min="0"></label><label class="f" id="ch_cl">Cliente<select id="ch_c"><option value="">—</option>${S.clientes.map(c=>`<option value="${c.id}">${esc(c.razon_social)}</option>`).join('')}</select></label>
+    <label class="f" id="ch_pl" hidden>Para (proveedor u otro)<input id="ch_d"></label><label class="f" id="ch_ctl" hidden>Cuenta de donde sale<select id="ch_ct"><option value="">—</option>${optCuentas(C)}</select></label></div><div id="ch_ff">${formCheque()}</div><button id="ch_g">Guardar cheque</button></div>`;
+    const tg=()=>{const e=$('#ch_t').value=='emitido';$('#ch_cl').hidden=e;$('#ch_pl').hidden=!e;$('#ch_ctl').hidden=!e;const v=leerCheque();$('#ch_ff').innerHTML=formCheque({...v,tipo:e?'emitido':'recibido'})};$('#ch_t').onchange=tg;
+    $('#ch_g').onclick=async()=>{const m=+$('#ch_m').value;if(!(m>0))return toast('Poné el importe.',1);const e=$('#ch_t').value=='emitido';
+      const{error}=await sb.from('cheques').insert({tipo:e?'emitido':'recibido',estado:e?'emitido':'en_cartera',importe:m,...leerCheque(),cliente_id:e?null:($('#ch_c').value||null),destino:e?($('#ch_d').value.trim()||null):null,cuenta_id:e?(+$('#ch_ct').value||null):null});
+      error?toast(error.message,1):(toast('Cheque guardado.'),ctCheques())}};
+  const pedirCuenta=(titulo,cb)=>{if(!C.filter(c=>c.activa).length)return toast('Primero agregá una cuenta en Contable → Bancos.',1);
+    const m=document.createElement('div');m.className='modal';m.innerHTML=`<div class="mc"><h3>${titulo}</h3><label class="f">Cuenta<select id="pc_c">${optCuentas(C)}</select></label><label class="f">Fecha<input type="date" id="pc_f" value="${diaLocal(new Date())}"></label><div><button id="pc_ok">Confirmar</button> <button class="alt" id="pc_x">Cancelar</button></div></div>`;
+    document.body.appendChild(m);$('#pc_x').onclick=()=>m.remove();$('#pc_ok').onclick=async()=>{$('#pc_ok').disabled=true;await cb(+$('#pc_c').value,$('#pc_f').value);m.remove()}};
+  $$('[data-chd]').forEach(b=>b.onclick=()=>{const x=ch1(b.dataset.chd);pedirCuenta('Depositar cheque de '+$m(x.importe),async(cu,f)=>{
+    const{error}=await sb.from('cheques').update({estado:'depositado',cuenta_id:cu}).eq('id',x.id);if(error)return toast(error.message,1);
+    const e=await movCuenta(cu,+x.importe,'Depósito cheque '+(x.numero?'N° '+x.numero:'')+(x.cliente_id?' de '+nomCli(x.cliente_id):''),'cheque',x.banco,f>x.fecha_pago?f:x.fecha_pago);
+    toast(e?e.message:'Cheque depositado.',!!e);ctCheques()})});
+  $$('[data-chb]').forEach(b=>b.onclick=()=>{const x=ch1(b.dataset.chb);const fin=async(cu,f)=>{const{error}=await sb.from('cheques').update({estado:'debitado',cuenta_id:cu}).eq('id',x.id);if(error)return toast(error.message,1);
+    const e=await movCuenta(cu,-x.importe,'Débito cheque propio '+(x.numero?'N° '+x.numero:'')+(x.destino?' a '+x.destino:''),'cheque',null,f);toast(e?e.message:'Cheque debitado.',!!e);ctCheques()};
+    x.cuenta_id?fin(x.cuenta_id,diaLocal(new Date())):pedirCuenta('¿De qué cuenta se debitó?',fin)});
+  $$('[data-che]').forEach(b=>b.onclick=()=>{const x=ch1(b.dataset.che);const pv=(S.prov&&S.prov.length?S.prov:[]);
+    const m=document.createElement('div');m.className='modal';m.innerHTML=`<div class="mc"><h3>Endosar cheque de ${$m(x.importe)}</h3><label class="f">A quién se lo das<select id="en_p"><option value="">Otro (escribir abajo)</option></select></label><input id="en_o" placeholder="Nombre si no es un proveedor">
+      <label class="chk-row"><input type="checkbox" id="en_r" checked style="width:auto;margin:0"> Registrarlo como pago al proveedor</label><div><button id="en_ok">Endosar</button> <button class="alt" id="en_x">Cancelar</button></div></div>`;
+    document.body.appendChild(m);$('#en_x').onclick=()=>m.remove();
+    sb.from('proveedores').select('id,razon_social').eq('activo',true).order('razon_social').then(({data})=>{$('#en_p').innerHTML+=(data||[]).map(p=>`<option value="${p.id}">${esc(p.razon_social)}</option>`).join('');$('#en_p').dataset.l=JSON.stringify(data||[])});
+    $('#en_ok').onclick=async()=>{const pid=$('#en_p').value,nom=pid?JSON.parse($('#en_p').dataset.l||'[]').find(p=>p.id==pid)?.razon_social:$('#en_o').value.trim();if(!nom)return toast('Elegí a quién se lo endosás.',1);
+      $('#en_ok').disabled=true;const{error}=await sb.from('cheques').update({estado:'endosado',proveedor_id:pid||null,destino:nom}).eq('id',x.id);if(error)return toast(error.message,1);
+      if(pid&&$('#en_r').checked){const{error:e2}=await sb.from('pagos_proveedor').insert({proveedor_id:pid,importe:+x.importe,medio:'cheque',referencia:'Cheque endosado '+(x.banco||'')+' '+(x.numero?'N° '+x.numero:'')});if(e2)toast('Endosado, pero no se pudo registrar el pago: '+e2.message,1)}
+      m.remove();toast('Cheque endosado a '+nom+'.');ctCheques()}});
+  $$('[data-chx]').forEach(s=>s.onchange=async()=>{const v=s.value;if(!v)return;const x=ch1(s.dataset.chx);
+    if(!confirm('¿Marcar el cheque de '+$m(x.importe)+' como «'+EST_CH[v]+'»?')){s.value='';return}
+    const{error}=await sb.from('cheques').update({estado:v}).eq('id',x.id);if(error)return toast(error.message,1);
+    toast(v=='rechazado'?'Cheque marcado como rechazado. Acordate de reclamarle a '+(x.cliente_id?nomCli(x.cliente_id):'quien te lo dio')+' y de cargarle el importe.':'Listo.',v=='rechazado');ctCheques()});
+}
+
+/* ---------- Flujo de caja proyectado ---------- */
+async function ctFlujo(){
+  const hoy=new Date();hoy.setHours(12,0,0,0);const lun=new Date(hoy);lun.setDate(hoy.getDate()-((hoy.getDay()+6)%7));
+  const W=[];for(let i=0;i<8;i++){const a=new Date(lun);a.setDate(lun.getDate()+7*i);const b=new Date(a);b.setDate(a.getDate()+7);W.push({a:diaLocal(a),b:diaLocal(b),l:a.toLocaleDateString('es-AR',{day:'numeric',month:'short'})})}
+  const sem=d=>{if(!d)return -1;if(d<W[0].a)return -1;return W.findIndex(w=>d>=w.a&&d<w.b)};
+  const h3=diaLocal(new Date(hoy.getFullYear(),hoy.getMonth()-3,1)),h0=diaLocal(new Date(hoy.getFullYear(),hoy.getMonth(),1));
+  const[fe,fp,pg,ch,ga,C,cj]=await Promise.all([todo(()=>sb.from('facturas_estado').select('*').gt('pendiente',0.005).order('vencimiento')),
+    todo(()=>sb.from('facturas_proveedor').select('id,proveedor_id,tipo,vencimiento,total').order('vencimiento')),todo(()=>sb.from('pagos_proveedor').select('proveedor_id,importe').order('id')),
+    todo(()=>sb.from('cheques').select('*').in('estado',['en_cartera','emitido']).order('fecha_pago')),todo(()=>sb.from('gastos').select('fecha,importe').gte('fecha',h3).lt('fecha',h0).order('fecha')),cargarCuentas(),
+    sb.from('cierres_caja').select('fecha,efectivo_contado').order('fecha',{ascending:false}).limit(1)]);
+  const z=()=>Array(8).fill(0),fila=(n,t)=>({n,t,v:z(),atr:0});
+  const cob=fila('Cobros de clientes (facturas que vencen)','+'),chr=fila('Cheques en cartera que se cobran','+'),pv=fila('Pagos a proveedores (facturas que vencen)','−'),che=fila('Tus cheques que se debitan','−'),gas=fila('Gastos (promedio de los últimos 3 meses)','−');
+  const put=(f,d,v)=>{const i=sem(d);if(i<0){if(d&&d<W[0].a)f.atr+=v}else if(i<8)f.v[i]+=v};
+  for(const x of fe.data||[])put(cob,x.vencimiento,Number(x.pendiente));
+  for(const x of ch.data||[])x.tipo=='recibido'?put(chr,x.fecha_pago,+x.importe):put(che,x.fecha_pago,+x.importe);
+  const pag={};for(const x of pg.data||[])pag[x.proveedor_id]=(pag[x.proveedor_id]||0)+Number(x.importe);
+  const porP={};for(const f of fp.data||[]){if(esNC(f.tipo))pag[f.proveedor_id]=(pag[f.proveedor_id]||0)+Number(f.total);else(porP[f.proveedor_id]=porP[f.proveedor_id]||[]).push(f)}
+  for(const[p,F]of Object.entries(porP)){let r=pag[p]||0;for(const f of F){const t=Number(f.total),use=Math.min(r,t);r-=use;if(t-use>0.005)put(pv,f.vencimiento,t-use)}}
+  const gm=(ga.data||[]).reduce((a,x)=>a+Number(x.importe),0)/3/4.33;gas.v=gas.v.map(()=>gm);
+  const banc=C?C.filter(c=>c.activa).reduce((a,c)=>a+c.saldo,0):0,ef=Number(cj.data?.[0]?.efectivo_contado||0),ini=banc+ef;
+  const ent=[cob,chr],sal=[pv,che,gas];let acc=ini;const neto=z(),acum=z();
+  for(let i=0;i<8;i++){neto[i]=ent.reduce((a,f)=>a+f.v[i],0)-sal.reduce((a,f)=>a+f.v[i],0);acc+=neto[i];acum[i]=acc}
+  const malI=acum.findIndex(v=>v<0);
+  $('#ct').innerHTML=`<div class="kp"><div class="box"><span class="lab">Plata disponible hoy</span><span class="num">${$s(ini)}</span><span class="det">Cuentas ${$m(banc)} · efectivo ${$m(ef)}${cj.data?.[0]?' (último cierre)':''}</span></div>
+    <div class="box ok"><span class="lab">Entra en 8 semanas</span><span class="num">${$m(ent.reduce((a,f)=>a+f.v.reduce((x,y)=>x+y,0),0))}</span><span class="det">+ ${$m(cob.atr+chr.atr)} atrasado sin cobrar</span></div>
+    <div class="box"><span class="lab">Sale en 8 semanas</span><span class="num">${$m(sal.reduce((a,f)=>a+f.v.reduce((x,y)=>x+y,0),0))}</span><span class="det">+ ${$m(pv.atr+che.atr)} vencido sin pagar</span></div>
+    <div class="box ${malI>=0?'alerta':'ok'}"><span class="lab">${malI>=0?'Te falta plata':'Saldo en 8 semanas'}</span><span class="num">${malI>=0?$m(-acum[malI]):$s(acum[7])}</span><span class="det">${malI>=0?'en la semana del '+W[malI].l:'si todo se cobra y paga a tiempo'}</span></div></div>
+  ${C?'':SQL_FALTA}${malI>=0?`<div class="aviso">⚠️ Si todo se cobra y paga en fecha, en la semana del <b>${W[malI].l}</b> te faltarían <b>${$m(-acum[malI])}</b>. Conviene apurar cobros o correr algún pago.</div>`:''}
+  <div class="box"><div class="bh"><h3>Próximas 8 semanas</h3><button class="alt" id="fl_cp">Copiar para Excel</button></div><div class="tscroll"><table class="flujo"><tr><th></th><th class="n">Atrasado</th>${W.map(w=>`<th class="n">Sem. ${w.l}</th>`).join('')}</tr>
+    <tr class="sec"><td colspan="10"><b>Entra</b></td></tr>${ent.map(f=>`<tr><td>${f.n}</td><td class="n gris">${f.atr?$m(f.atr):'—'}</td>${f.v.map(v=>`<td class="n">${v?$m(v):'—'}</td>`).join('')}</tr>`).join('')}
+    <tr class="sec"><td colspan="10"><b>Sale</b></td></tr>${sal.map(f=>`<tr><td>${f.n}</td><td class="n gris">${f.atr?$m(f.atr):'—'}</td>${f.v.map(v=>`<td class="n">${v?$m(v):'—'}</td>`).join('')}</tr>`).join('')}
+    <tr class="tot"><td><b>Neto de la semana</b></td><td></td>${neto.map(v=>`<td class="n ${v<0?'mora':''}">${$s(v)}</td>`).join('')}</tr>
+    <tr class="tot"><td><b>Saldo acumulado</b><br><small>arranca con ${$s(ini)}</small></td><td></td>${acum.map(v=>`<td class="n ${v<0?'mora':''}"><b>${$s(v)}</b></td>`).join('')}</tr></table></div>
+  <p><small>"Atrasado" son facturas y cheques con fecha ya pasada: no se suman al saldo porque no se sabe cuándo se cobran o pagan. Los pagos a proveedores descuentan lo que ya les pagaste, empezando por la factura más vieja.</small></p></div>`;
+  $('#fl_cp').onclick=()=>copiarTabla(['Concepto','Atrasado',...W.map(w=>'Sem. '+w.l)],[...ent,...sal].map(f=>[f.t+' '+f.n,xl(f.atr),...f.v.map(xl)]).concat([['Neto','',...neto.map(xl)],['Saldo acumulado','',...acum.map(xl)]]));
+}
+
+/* ---------- Para el contador ---------- */
+function ctContador(){
+  $('#ct').innerHTML=selMes()+`<div class="box"><h3>Paquete mensual para el contador</h3><p>Arma <b>un solo Excel</b> de ${mesNom(S.ctMes)} con una hoja para cada cosa:</p>
+  <ul class="lista-ok"><li>Resumen del mes (IVA, IIBB, resultado)</li><li>Libro IVA Ventas y Libro IVA Compras</li><li>Retenciones y percepciones</li><li>Gastos</li><li>Cobros (recibos) y pagos a proveedores</li><li>Cheques y movimientos de bancos</li></ul>
+  <button id="cx_g">Descargar Excel de ${mesNom(S.ctMes)}</button><p id="cx_e"></p><p><small>Después mandáselo por mail o WhatsApp a tu contador.</small></p></div>`;
+  onMes(ctContador);
+  $('#cx_g').onclick=async()=>{const b=$('#cx_g'),est=t=>$('#cx_e').textContent=t;b.disabled=true;
+    try{est('Cargando el generador de Excel…');if(!window.XLSX)await cargarScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
+      const m=S.ctMes,[a,z]=mesRango(m);est('Juntando los datos del mes…');
+      const[D,P,ga,re,pp,ch,mv,C]=await Promise.all([datosIVA(m),ctPedidos(a,z),todo(()=>sb.from('gastos').select('*').gte('fecha',a).lt('fecha',z).order('fecha')),
+        todo(()=>sb.from('recibos').select('*').eq('anulado',false).gte('fecha',tsAR(a)).lt('fecha',tsAR(z)).order('numero')),
+        todo(()=>sb.from('pagos_proveedor').select('*,proveedores(razon_social,cuit)').gte('fecha',a).lt('fecha',z).order('fecha')),
+        todo(()=>sb.from('cheques').select('*').order('fecha_pago')),todo(()=>sb.from('movimientos_cuenta').select('*').gte('fecha',a).lt('fecha',z).order('fecha')),cargarCuentas()]);
+      const n=v=>+Number(v||0).toFixed(2),wb=XLSX.utils.book_new(),hoja=(nom,head,rows)=>XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([head,...rows]),nom);
+      const vN=P.reduce((s,o)=>s+o.neto,0),vC=P.reduce((s,o)=>s+o.costo,0),gT=(ga.data||[]).reduce((s,x)=>s+Number(x.importe),0);
+      hoja('Resumen',['Concepto','Importe'],[['Sabores de mi País · '+mesNom(m),''],['',''],['IVA débito fiscal (ventas)',n(D.deb)],['IVA crédito fiscal (compras)',n(D.cred)],['Percepciones de IVA sufridas',n(D.pIVA)],['Retenciones de IVA sufridas',n(D.rIVA)],['Saldo IVA (positivo = a pagar)',n(D.saldo)],['',''],
+        ['Ventas netas facturadas (base IIBB)',n(D.netoV)],['Percepciones de IIBB sufridas',n(D.pIIBB)],['Retenciones de IIBB sufridas',n(D.rIIBB)],['Retenciones de Ganancias sufridas',n(D.rGan)],['',''],
+        ['Ventas sin IVA (todos los pedidos)',n(vN)],['Costo de la mercadería vendida sin IVA',n(vC)],['Gastos',n(gT)],['Resultado del mes',n(vN-vC-gT)]]);
+      const num=r=>r.map((v,i)=>i>=4&&typeof v=='string'&&/^-?\d+,\d\d$/.test(v)?n(v.replace(',','.')):v);
+      hoja('IVA Ventas',HEAD_V,D.V.map(r=>num(filaV(r))));hoja('IVA Compras',HEAD_C,D.C.map(r=>num(filaC(r))));
+      hoja('Retenciones',['Fecha','Tipo','Impuesto','Jurisdicción','Cliente','CUIT','Certificado','Importe'],D.RT.map(x=>[x.fecha,x.tipo,x.impuesto,x.jurisdiccion||'',x.cliente_id?nomCli(x.cliente_id):'',x.cliente_id?cuitCli(x.cliente_id):'',x.comprobante||'',n(x.importe)]));
+      hoja('Gastos',['Fecha','Categoría','Detalle','Medio','Importe'],(ga.data||[]).map(x=>[x.fecha,x.categoria,x.descripcion||'',MED_TXT[x.medio]||x.medio,n(x.importe)]));
+      hoja('Cobros',['Fecha','Recibo','Cliente','CUIT','Medio','Importe'],(re.data||[]).map(x=>[diaLocal(x.fecha),x.numero,nomCli(x.cliente_id),cuitCli(x.cliente_id),MED_TXT[x.medio]||x.medio,n(x.importe)]));
+      hoja('Pagos a proveedores',['Fecha','Proveedor','CUIT','Medio','Referencia','Importe'],(pp.data||[]).map(x=>[x.fecha,x.proveedores?.razon_social||'',x.proveedores?.cuit||'',MED_TXT[x.medio]||x.medio,x.referencia||'',n(x.importe)]));
+      hoja('Cheques',['Tipo','eCheq','Banco','Número','Librador','Fecha de pago','Importe','Estado','Cliente','Destino'],(ch.data||[]).filter(x=>(x.fecha_pago>=a&&x.fecha_pago<z)||['en_cartera','emitido'].includes(x.estado)).map(x=>[x.tipo,x.echeq?'Sí':'No',x.banco||'',x.numero||'',x.librador||'',x.fecha_pago,n(x.importe),EST_CH[x.estado],x.cliente_id?nomCli(x.cliente_id):'',x.destino||'']));
+      hoja('Bancos',['Fecha','Cuenta','Concepto','Referencia','Importe'],(mv.data||[]).map(x=>[x.fecha,C?.find(c=>c.id==x.cuenta_id)?.nombre||'',x.concepto,x.ref||'',n(x.importe)]));
+      est('Armando el archivo…');XLSX.writeFile(wb,'Contador Sabores '+m+'.xlsx',{compression:true});est('Listo: se descargó «Contador Sabores '+m+'.xlsx».')}
+    catch(e){est('No se pudo armar el Excel: '+(e.message||e))}b.disabled=false};
+}
+
 init();
 </script>
 </body>
