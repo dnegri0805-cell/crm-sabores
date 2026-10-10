@@ -38,6 +38,8 @@ small{color:#6a7184}td a{cursor:pointer;color:var(--er)}
 .tag.recibida{background:#d8efe1;color:var(--ok)}.tag.anulada{background:#f6dcda;color:var(--er)}.tag.recibida_parcial{background:#fff1cc;color:#7a5a00}
 #t{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);color:#fff;padding:10px 18px;border-radius:8px;z-index:9;display:none}
 .err{color:var(--er)}
+.bkav{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:14px}.bkp{margin:-6px 0 12px}
+.barra{height:8px;background:#eceef3;border-radius:4px;overflow:hidden}.barra i{display:block;height:100%;width:0;background:var(--m);transition:width .2s}
 .promo{display:inline-block;font-size:11px;font-weight:700;color:#fff;background:#1d7a46;border-radius:4px;padding:1px 6px;vertical-align:1px}
 small.hint{color:#1d7a46}td s{color:#6a7184;font-size:13px}
 .pmf{background:#f3f4f7;border-radius:8px;padding:12px;margin-bottom:12px}.chk-row{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin:8px 0;font-size:14px}
@@ -268,6 +270,7 @@ async function vInicio(){
   const hoyD=new Date(),hoy=diaLocal(hoyD),mes=hoy.slice(0,7);
   const en7=new Date();en7.setDate(en7.getDate()+7);const lim7=diaLocal(en7);
   $('#v').innerHTML=`<h2>Hoy, ${hoyD.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}</h2>
+  <div id="bk"></div>
   <div class="kp">
     <div class="box" id="k1"><span class="lab">Facturado hoy</span><span class="num">…</span><span class="det"></span></div>
     <div class="box" id="k2"><span class="lab">Pedidos por aprobar</span><span class="num">…</span><span class="det"></span></div>
@@ -283,6 +286,7 @@ async function vInicio(){
   </div>`;
   const kp=(id,num,det,cls)=>{const b=$('#'+id);b.querySelector('.num').textContent=num;b.querySelector('.det').textContent=det||'';if(cls)b.classList.add(cls)};
   const fallo=(id,e)=>kp(id,'—','No se pudo leer: '+e.message);
+  if(S.perfil.rol=='dueno')cajaBackup();
   const cli=id=>esc(S.clientes.find(c=>c.id==id)?.razon_social||'Cliente');
   const [fv,pe,fe,sp,fp]=await Promise.all([
     sb.from('facturas_venta').select('*').order('id',{ascending:false}).limit(500),
@@ -396,6 +400,37 @@ SDMP-01281	36</pre>
       if(err){$('#s_res').innerHTML='<p class="err">Se cargaron '+ok+' datos y después falló: '+esc(err.message)+'</p>';return}
       $('#s_pg').value='';$('#s_res').innerHTML='<p class="ok">Listo: '+plan.length+' productos cargados.</p>';toast('Planilla cargada.')})};
 }
+
+/* ---------- Copia de seguridad en Excel ---------- */
+const BK_TABLAS=[['Clientes','clientes'],['Productos y precios','precios_productos'],['Productos (ficha)','productos'],['Stock','stock'],['Movimientos de stock','movimientos_stock'],
+  ['Pedidos','pedidos'],['Pedidos - productos','pedido_items'],['Facturas de venta','facturas_venta'],['Recibos','recibos'],['Recibos - imputaciones','recibo_imputaciones'],
+  ['Proveedores','proveedores'],['Órdenes de compra','ordenes_compra'],['Órdenes - productos','ordenes_compra_items'],['Recepciones','recepciones'],
+  ['Facturas de proveedores','facturas_proveedor'],['Pagos a proveedores','pagos_proveedor'],['Gastos','gastos'],['Cierres de caja','cierres_caja'],
+  ['Promociones','promociones'],['Historial de costos','historial_costos'],['Márgenes de listas','config_listas'],['Avisos de deuda','avisos_deuda']];
+async function cajaBackup(){const b=$('#bk');if(!b)return;
+  const{data}=await sb.from('config_app').select('valor').eq('clave','ultima_copia').maybeSingle();
+  const u=data?.valor,dias=u?Math.floor((Date.now()-new Date(u))/864e5):null;
+  if(u&&dias<7){b.innerHTML=`<p class="bkp"><small>Última copia de seguridad: ${fd(u)}.</small> <a class="lnk" id="bk_d">Descargar otra</a></p>`}
+  else b.innerHTML=`<div class="aviso bkav"><span>${u?'Hace '+dias+' días que no hacés una copia de seguridad.':'Todavía no hiciste ninguna copia de seguridad de tus datos.'}</span><button id="bk_d">Descargar copia de seguridad</button></div>`;
+  $('#bk_d').onclick=descargarBackup}
+async function descargarBackup(){
+  const m=document.createElement('div');m.className='modal';m.innerHTML=`<div class="mc"><h3>Copia de seguridad</h3><p id="bk_e">Preparando…</p><div class="barra"><i id="bk_b"></i></div></div>`;document.body.appendChild(m);
+  const est=t=>$('#bk_e').textContent=t,bar=p=>$('#bk_b').style.width=p+'%';
+  try{
+    if(!window.XLSX){est('Cargando el generador de Excel…');await cargarScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js')}
+    const wb=XLSX.utils.book_new(),res=[];let i=0;
+    for(const[n,t] of BK_TABLAS){i++;est('Copiando '+n.toLowerCase()+'… ('+i+' de '+BK_TABLAS.length+')');bar(i/BK_TABLAS.length*90);
+      const{data,error}=await todo(()=>sb.from(t).select('*'));if(error){res.push(n+': no se pudo leer');continue}
+      const filas=data.map(r=>{const o={};for(const[k,v] of Object.entries(r)){if(k=='token_pedidos')continue;o[k]=v!==null&&typeof v=='object'?JSON.stringify(v):v}return o});
+      XLSX.utils.book_append_sheet(wb,filas.length?XLSX.utils.json_to_sheet(filas):XLSX.utils.aoa_to_sheet([['(sin datos)']]),n.slice(0,31));res.push(n+': '+filas.length)}
+    const hoy=diaLocal(new Date()),info=[['Copia de seguridad · Sabores de mi País'],['Fecha',new Date().toLocaleString('es-AR')],['Hecha por',S.perfil.nombre],[],['Hoja','Filas'],...res.map(r=>r.split(': '))];
+    const hi=XLSX.utils.aoa_to_sheet(info);wb.SheetNames.unshift('Resumen');wb.Sheets['Resumen']=hi;
+    est('Armando el archivo…');bar(96);
+    XLSX.writeFile(wb,'Copia CRM Sabores '+hoy+'.xlsx',{compression:true});
+    await sb.from('config_app').upsert({clave:'ultima_copia',valor:new Date().toISOString()});
+    bar(100);m.querySelector('.mc').innerHTML=`<h3>Copia descargada</h3><p>Se guardó <b>Copia CRM Sabores ${hoy}.xlsx</b> en tu carpeta de descargas. Guardala también en Google Drive o un pendrive.</p><p><small>${res.join(' · ')}</small></p><button id="bk_ok">Listo</button>`;
+    $('#bk_ok').onclick=()=>{m.remove();cajaBackup()}
+  }catch(e){m.querySelector('.mc').innerHTML=`<h3>No se pudo descargar</h3><p class="err">${esc(e.message||String(e))}</p><button id="bk_ok">Cerrar</button>`;$('#bk_ok').onclick=()=>m.remove()}}
 
 /* ---------- Clientes ---------- */
 function vClientes(){
