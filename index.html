@@ -626,7 +626,7 @@ async function vPrecios(){
     <p><small>El precio de venta se calcula solo: <b>costo ÷ (1 − margen)</b>. Con 30 %, un producto que te cuesta $ 700 se vende a $ 1.000 y te deja $ 300.</small></p>
     <div class="g" id="pr_l">Cargando…</div><button id="pr_lg">Guardar márgenes</button>
     <div class="g" style="margin-top:12px"><label class="f">Avisarme cuando un producto deje menos de (%) de ganancia<input type="number" id="pr_mm" min="0" max="89" step="1" value="${S.margenMin??15}"></label></div></div>
-  <div class="box"><div class="bh"><h3>Productos</h3><div class="fc-acc"><button class="alt" id="pr_fa">🔎 Fotos automáticas</button><button class="alt" id="pr_et">🏷️ Imprimir etiquetas del filtro</button></div></div>
+  <div class="box"><div class="bh"><h3>Productos</h3><div class="fc-acc"><button class="alt" id="pr_fjl">🥜 Fotos Maní JL</button><button class="alt" id="pr_fot">🔎 Fotos automáticas</button><button class="alt" id="pr_et">🏷️ Imprimir etiquetas del filtro</button></div></div>
     <div class="g"><div class="conscan"><input id="pr_q" placeholder="Buscar por nombre o código" autocomplete="off">${btnScan('pr_sc')}</div>
       <select id="pr_pv"><option value="">Todos los proveedores</option></select>
       <select id="pr_ma"><option value="">Todas las marcas</option></select>
@@ -720,7 +720,8 @@ SDMP-01279	8.900</pre>
       await recargarProductos();vPrecios();toast((data??ok.length)+' costos actualizados desde la lista del proveedor.')})};
   importadorLista();
   $('#pr_et').onclick=()=>etiquetas(sel.slice(0,300).map(p=>p.producto_id));
-  $('#pr_fa').onclick=()=>fotosAutomaticas(sel);
+  $('#pr_fot').onclick=()=>fotosAutomaticas(sel);
+  $('#pr_fjl').onclick=()=>fotosJL();
   $('#pr_mm').onchange=async e=>{const v=+e.target.value;if(!(v>=0&&v<90))return toast('Poné un porcentaje entre 0 y 89.',1);S.margenMin=v;const{error}=await sb.from('config_app').upsert({clave:'margen_minimo',valor:String(v)});toast(error?error.message:'Listo: te aviso cuando la ganancia baje del '+v+' %.',!!error)};
 }
 
@@ -2376,6 +2377,63 @@ async function fotosAutomaticas(lista){
       catch(e){mal++;if(/fijar_foto|bucket/i.test(e.message||'')){est('Falta correr mejoras-clientes.sql en Supabase.');break}}}
     $('#fa_ok').disabled=false;R.splice(0,R.length,...R.filter(r=>!r.hecho));pintar();
     est(`Guardé <b>${k-mal}</b> fotos.${mal?' '+mal+' no se pudieron bajar.':''}`);toast((k-mal)+' fotos guardadas.')};
+}
+
+/* ======================= FOTOS MANÍ JL (folleto oficial) ======================= */
+// Fotos sacadas del folleto de JL Productos Alimenticios, guardadas en fotos/jl/.
+// Cruza por código de barras, si no por código del fabricante y, como último recurso, por nombre.
+const FOTOS_JL=[
+ ['7798148380568','10005','mani-salado-sin-piel-85','Maní salado sin piel 85 g'],
+ ['7798148380186','10007','mani-salado-sin-piel-500','Maní salado sin piel 500 g'],
+ ['7798148380483','10053','mani-salado-con-piel-85','Maní salado con piel 85 g'],
+ ['7798148380346','10055','mani-salado-con-piel-500','Maní salado con piel 500 g'],
+ ['7798148380490','10073','mani-tostado-sin-sal-85','Maní tostado sin sal 85 g'],
+ ['7798148380384','10075','mani-tostado-sin-sal-500','Maní tostado sin sal 500 g'],
+ ['7798148381107','10503','mix-crocante-65','Mix crocante 3 sabores 65 g'],
+ ['7798148380711','10513','crocante-pizza-65','Crocante pizza 65 g'],
+ ['7798148381299','10515','crocante-pizza-500','Crocante pizza 500 g'],
+ ['7798148380728','10523','crocante-queso-65','Crocante queso 65 g'],
+ ['7798148381305','10525','crocante-queso-500','Crocante queso 500 g'],
+ ['7798148380704','10533','crocante-jamon-65','Crocante jamón 65 g'],
+ ['7798148381312','10535','crocante-jamon-500','Crocante jamón 500 g'],
+ ['7798148380209','10545','crocante-salado-500','Crocante salado 500 g'],
+ ['7798148381336','10555','crocante-asado-500','Crocante asado 500 g'],
+ ['7798148381329','10565','crocante-salame-500','Crocante salame 500 g'],
+ ['7798148381398','10601','manteca-cremosa-360','Manteca de maní cremosa 360 g'],
+ ['7798148381381','10611','manteca-chispeada-360','Manteca de maní chispeada 360 g'],
+ ['','','pasta-natural-360','Pasta de maní natural 360 g',/pasta/,/natural/]];
+function cruzarFotosJL(){const sinT=t=>String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();const R=[],usados=new Set();
+  for(const[ean,cod,arch,nom,r1,r2]of FOTOS_JL){
+    let p=ean&&S.productos.find(x=>String(x.ean||'').trim()==ean&&!usados.has(x.producto_id));
+    if(!p&&cod)p=S.productos.find(x=>String(S.min[x.producto_id]?.cf||'').trim()==cod&&!usados.has(x.producto_id));
+    if(!p&&r1)p=S.productos.find(x=>{const d=sinT(x.descripcion);return r1.test(d)&&r2.test(d)&&/man[ií]|mani/.test(d)&&!usados.has(x.producto_id)});
+    if(!p)continue;usados.add(p.producto_id);const ya=!!S.min[p.producto_id]?.foto;
+    R.push({p,nom,img:'fotos/jl/'+arch+'.webp',ya,ok:!ya})}
+  return R}
+function fotosJL(){
+  const R=cruzarFotosJL(),faltan=FOTOS_JL.length-R.length;
+  const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  const est=t=>$('#fj_e').innerHTML=t;
+  const pintar=()=>{$('#fj_r').innerHTML=R.map((r,i)=>`<label class="fa-it ${r.ok?'on':''}"><input type="checkbox" data-fj="${i}" ${r.ok?'checked':''}><img src="${esc(r.img)}" alt="" loading="lazy"><b>${esc(r.p.descripcion)}</b><small>Foto: ${esc(r.nom)}</small>${r.ya?'<small class="mora">Ya tiene foto: si la marcás, se reemplaza</small>':''}</label>`).join('');
+    $('#fj_acc').hidden=!R.length;$$('#fj_r [data-fj]').forEach(c=>c.onchange=()=>{R[c.dataset.fj].ok=c.checked;c.parentElement.classList.toggle('on',c.checked)})};
+  m.innerHTML=`<div class="mc fa"><div class="bh"><h3>Fotos Maní JL</h3><button class="alt" id="fj_x">Cerrar</button></div>
+    <p>Fotos oficiales del folleto de <b>JL Productos Alimenticios</b>. Las crucé con tus productos por código de barras. Marcá las que querés usar y guardalas: aparecen en el catálogo de clientes y en el catálogo PDF.</p>
+    <p><small>${R.length} productos tuyos con foto disponible${faltan?` · ${faltan} del folleto no los encontré en tu lista (revisá que tengan cargado el código de barras)`:''}.</small></p>
+    <div id="fj_r" class="fa-grid"></div><p id="fj_e"></p>
+    <div class="fc-acc" id="fj_acc" hidden><button id="fj_ok">Guardar las fotos marcadas</button><a class="lnk" id="fj_all">Marcar todas</a> · <a class="lnk" id="fj_none">Desmarcar todas</a></div></div>`;
+  $('#fj_x').onclick=()=>m.remove();pintar();
+  if(!R.length)est('No encontré productos de Maní JL en tu lista. Cargá primero la lista de JL (lista-manijl-2026-01.sql) con los códigos de barras.');
+  $('#fj_all').onclick=()=>{R.forEach(r=>r.ok=true);pintar()};$('#fj_none').onclick=()=>{R.forEach(r=>r.ok=false);pintar()};
+  $('#fj_ok').onclick=async()=>{const A=R.filter(r=>r.ok&&!r.hecho);if(!A.length)return toast('No marcaste ninguna foto.',1);
+    $('#fj_ok').disabled=true;let k=0,mal=0;
+    for(const r of A){k++;est(`Guardando ${k} de ${A.length}…`);
+      try{const res=await fetch(r.img);if(!res.ok)throw new Error('foto no disponible');const bl=await res.blob();
+        const path=r.p.producto_id+'/jl-'+Date.now()+'.webp';const up=await sb.storage.from('productos').upload(path,bl,{contentType:'image/webp',upsert:true});if(up.error)throw up.error;
+        const url=sb.storage.from('productos').getPublicUrl(path).data.publicUrl;const{error}=await sb.rpc('fijar_foto',{p_producto:r.p.producto_id,p_url:url});if(error)throw error;
+        S.min[r.p.producto_id]=Object.assign(S.min[r.p.producto_id]||{},{foto:url});r.hecho=true;r.ya=true;r.ok=false}
+      catch(e){mal++;if(/fijar_foto|bucket/i.test(e.message||'')){est('Falta correr mejoras-clientes.sql en Supabase.');break}}}
+    $('#fj_ok').disabled=false;pintar();est(`Guardé <b>${k-mal}</b> fotos.${mal?' '+mal+' no se pudieron guardar.':''}`);toast((k-mal)+' fotos guardadas.');
+    if(typeof vPrecios=='function'&&$('#pr_q'))vPrecios()};
 }
 
 /* ======================= CONTABLE (solo dueño) ======================= */
