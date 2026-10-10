@@ -233,7 +233,7 @@ input,textarea{border:2px solid #ece3d6;border-radius:14px}
 <div id="t" class="toast" hidden></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
-const VERSION='2026-10-10.9';
+const VERSION='2026-10-10.10';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -242,7 +242,8 @@ const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const $m=n=>'$ '+Number(n||0).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const norm=t=>String(t??'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
-const QS=new URLSearchParams(location.search),SUG=QS.has('sug'),RUB=(QS.get('rubro')||'').trim().slice(0,40),token=QS.get('c')||'',ENC=QS.get('enc'),PRE=QS.get('pre'),REF=(QS.get('ref')||'').trim().toUpperCase().slice(0,12);
+const QS=new URLSearchParams(location.search),SUG=QS.has('sug'),RUB=(QS.get('rubro')||'').trim().slice(0,40),token=QS.get('c')||'',ENC=QS.get('enc'),PRE=QS.get('pre'),REF=(QS.get('ref')||'').trim().toUpperCase().slice(0,12),QRC=(()=>{let q=(QS.get('qr')||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,16);try{if(q)sessionStorage.setItem('qrc',q);else q=sessionStorage.getItem('qrc')||''}catch(e){}return q})();
+const marcarQR=tel=>{if(QRC&&tel)sb.rpc('marcar_campania',{p_codigo:QRC,p_telefono:tel}).then(()=>{},()=>{})};
 const PUB=!token&&QS.has('ver');
 const K='carrito_'+(PUB?'publico':token);
 let C=null,P=[],car={},filtro='',marca='',lim=60;
@@ -298,6 +299,7 @@ sb.rpc('marca_publica').then(({data})=>{if(data){aplicarMarca(data);try{localSto
 
 async function iniciar(){
   if(ENC)return encuesta();if(PRE)return presupuesto();
+  if(PUB&&QRC){try{if(!sessionStorage.getItem('qrv'+QRC)){sessionStorage.setItem('qrv'+QRC,'1');sb.rpc('registrar_qr',{p_codigo:QRC}).then(()=>{},()=>{})}}catch(e){}}
   if(PUB){const a={};if(REF)a.p_ref=REF;if(RUB)a.p_rubro=RUB;const{data,error}=Object.keys(a).length?await sb.rpc('catalogo_publico',a):await sb.rpc('catalogo_publico');
     if(error){$('#hc').textContent='';$('#m').innerHTML=`<div class="msg"><h2>Catálogo no disponible</h2><p class="err">${esc(/catalogo_publico/.test(error.message)?'El catálogo todavía no está activado.':error.message)}</p></div>`;return}
     C=data;P=(data.productos||[]).filter(p=>p.p>0);hayFotos=P.some(p=>p.img);armarCombos();cargarCarrito();
@@ -485,7 +487,7 @@ function altaCliente(){const h=document.createElement('div');h.className='hoja';
   h.querySelector('#ag').onclick=async e=>{const v=k=>h.querySelector(k).value.trim();if(v('#an').length<2)return toast('Poné el nombre del negocio.');if(!telLimpio(v('#at')))return toast('Poné un WhatsApp válido.');
     e.target.disabled=true;const{error}=await sb.rpc('alta_web',{p_nombre:v('#an'),p_telefono:v('#at'),p_domicilio:v('#ad'),p_rubro:v('#ar'),p_contacto:v('#ac'),p_cuit:v('#ai'),p_nota:REF&&C.ref_nombre?'Lo recomendó '+C.ref_nombre:null});
     if(error){e.target.disabled=false;const tel=telLimpio(C.tel);if(/alta_web|function|schema/i.test(error.message)&&tel){window.open('https://wa.me/'+tel+'?text='+encodeURIComponent('¡Hola! Quiero ser cliente. Mi negocio: '+v('#an')+(v('#ad')?' ('+v('#ad')+')':'')+(v('#ar')?' · '+v('#ar'):'')),'_blank');h.remove();return}return toast(error.message)}
-    h.querySelector('.c').innerHTML='<div class="msg" style="border:0;box-shadow:none;margin:0"><div class="ok">✓</div><h2>¡Gracias!</h2><p>Te escribimos por WhatsApp a la brevedad. Mientras, podés mirar el catálogo y hacer tu primer pedido.</p><button class="prim" id="ok2">Ver el catálogo</button></div>';
+    marcarQR(v('#at'));h.querySelector('.c').innerHTML='<div class="msg" style="border:0;box-shadow:none;margin:0"><div class="ok">✓</div><h2>¡Gracias!</h2><p>Te escribimos por WhatsApp a la brevedad. Mientras, podés mirar el catálogo y hacer tu primer pedido.</p><button class="prim" id="ok2">Ver el catálogo</button></div>';
     h.querySelector('#ok2').onclick=()=>h.remove()}}
 
 /* Encuesta después de la entrega */
@@ -662,7 +664,7 @@ function revisar(){
       if(!telLimpio(h._tel)){toast('Poné tu WhatsApp para que te confirmemos el pedido.');$('#ptel').focus();return}
       const b=e.target;b.disabled=true;b.textContent='Enviando…';
       const{data:pw,error:pe}=await sb.rpc('pedido_publico',{p_nombre:nom,p_telefono:h._tel.trim(),p_domicilio:(h._dir||'').trim(),p_items:I.map(([id,q])=>({id,q})),p_nota:h._nota||null,p_ref:REF||null,p_cupon:h._cup?.codigo||null,p_rubro:RUB||C.rubro||null});
-      if(!pe){car={};guardar();h.remove();$('#bar').hidden=true;
+      if(!pe){marcarQR(h._tel.trim());car={};guardar();h.remove();$('#bar').hidden=true;
         $('#m').innerHTML=`<div class="msg"><div class="ok">✓</div><h2>¡Recibimos tu pedido!</h2><p>Pedido N° <b>${pw.numero}</b> · ${pw.productos} ${pw.productos==1?'producto':'productos'} · <b>${$m(pw.total)}</b></p><p>Te escribimos por WhatsApp al <b>${esc(h._tel)}</b> para confirmar stock y entrega. ¡Gracias!</p>${telLimpio(C.tel)?`<a class="sec" style="display:block;text-decoration:none;margin:10px 0" target="_blank" rel="noopener" href="https://wa.me/${telLimpio(C.tel)}?text=${encodeURIComponent('¡Hola! Soy '+nom+'. Les acabo de mandar el pedido N° '+pw.numero+' desde el catálogo.')}">Avisar por WhatsApp</a>`:''}<button class="sec" id="otro">Volver al catálogo</button></div>`;
         $('#otro').onclick=()=>{filtro='';pintar()};window.scrollTo(0,0);return}
       if(!/pedido_publico|function|schema/i.test(pe.message)){b.disabled=false;b.textContent='Enviar pedido';toast(pe.message);return}

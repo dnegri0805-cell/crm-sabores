@@ -7,7 +7,7 @@ Guía ordenada por sección para consultar o pasarle al equipo. Cada punto dice 
 - **CRM (uso interno):** https://dnegri0805-cell.github.io/crm-sabores/ — se entra con usuario y contraseña.
 - **Catálogo de cada cliente:** link personal `pedido.html?c=…` que se manda desde la ficha del cliente (botón de WhatsApp). Cada cliente ve sus precios, su cuenta y sus promos.
 - **Catálogo público (sin precios de cliente):** `pedido.html?ver=catalogo` — para redes, folletos y nuevos clientes.
-- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-10.9`). Si algo "no aparece", cerrá y abrí la pestaña.
+- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-10.10`). Si algo "no aparece", cerrá y abrí la pestaña.
 - **En el celular:** abrí el CRM en Chrome → menú ⋮ → *Agregar a pantalla de inicio*. Queda como una app.
 - **Menú principal:** Inicio · Pedidos · Ventas · Reparto · Clientes · Cobranza · Caja · Compras · Stock · Precios · Reportes · Contable · Manual. Los números en rojo indican cosas pendientes.
 
@@ -17,6 +17,7 @@ Es el tablero del día. Arriba muestra el **objetivo del mes y la proyección** 
 
 Debajo aparecen tarjetas de aviso; cada una lleva a la pantalla donde se actúa:
 
+- **⚡ Cola del día:** cuántos mensajes hay listos para mandar hoy, con botón *Empezar*.
 - **Plan del día:** a quién llamar o visitar hoy, ya priorizado.
 - **Les toca comprar:** clientes que por su frecuencia ya deberían pedir.
 - **Fidelización, comprando menos, clientes que crecen, servicio y fieles:** alertas de clientes que bajan, suben o merecen un reconocimiento.
@@ -43,8 +44,10 @@ Debajo aparecen tarjetas de aviso; cada una lleva a la pantalla donde se actúa:
 
 ## 4. Ventas · Recuperar y cerrar
 
-**Dónde:** menú *Ventas* (abre en *Plan del día*). Los botones de arriba cambian de pantalla; casi todas tienen botón de **WhatsApp con el mensaje ya armado**.
+**Dónde:** menú *Ventas* (abre en *Cola del día*). Los botones de arriba cambian de pantalla; casi todas tienen botón de **WhatsApp con el mensaje ya armado**.
 
+- **⚡ Cola del día:** todos los mensajes que conviene mandar hoy, ya escritos y ordenados: carritos sin enviar, miraron el catálogo, llegó lo que esperaban, les toca comprar (con su **pedido sugerido**), secuencias para que vuelvan, **cupón automático a dormidos**, clientes nuevos, deudas, ofertas automáticas y prospectos. Tocás **▶ Empezar ráfaga**: se abre WhatsApp con el mensaje, lo mandás, volvés y sigue el próximo. Cada cliente aparece una vez por día y nada se repite. Abajo, **Resultados**: cuántos compraron en los 7 días siguientes y cuántos cupones se usaron.
+- **⚙️ Automatizaciones:** las reglas de la cola. Secuencia para que vuelvan a comprar (por días sin comprar: mensaje, mensaje, llamada), cupón a dormidos (días, %, vencimiento), pedido sugerido el día justo, **ofertas automáticas** por sobrestock o vencimiento (opcional: que se creen solas), primeros 90 días, secuencia de prospección (día 0 presentación, día 3 kit de primer pedido, día 7 visita), carritos, miraron y deudas. Todos los textos se pueden editar.
 - **📋 Plan del día:** lista priorizada de a quién contactar hoy y por qué. Empezá el día por acá.
 - **📞 Les toca comprar:** clientes que ya deberían pedir. Trae **pedido sugerido** y un **📋 Guion** de llamada.
 - **👀 Miraron el catálogo:** entraron a su link pero no pidieron. Momento ideal para escribirles.
@@ -55,8 +58,10 @@ Debajo aparecen tarjetas de aviso; cada una lleva a la pantalla donde se actúa:
 - **📝 Presupuestos:** presupuestos enviados, aceptados o vencidos. Los pedidos del catálogo público entran acá como 🌐 Catálogo.
 - **🧪 Muestras:** registrá muestras entregadas y hacé el seguimiento.
 - **👋 Bienvenida y aniversarios:** mensajes para clientes nuevos y para quienes cumplen tiempo con nosotros.
+- **🌱 Primeros 90 días:** clientes nuevos y en qué pedido van (●○○). Si no hacen el 2° pedido les llega un mensaje; si no hacen el 3°, un cupón. Muestra qué % quedó como cliente fijo.
 - **🆘 Reclamos:** reclamos hechos desde "Mi cuenta" del cliente; respondé y cerralos.
 - **🧲 Embudo de prospectos:** Nuevo → Contactado → Visitado → Interesado → Ya es cliente.
+- **🚶 Ruta de prospección:** con tu ubicación (o una dirección) arma el recorrido con los prospectos más cercanos, con una frase para cada rubro. En cada negocio tocás 👍 Le interesa · 🔁 Volver · 👎 No · 🧾 Hizo pedido (lo da de alta en el momento). Botón para abrir la ruta en Google Maps.
 - **🗺️ Buscar negocios:** busca kioscos, almacenes, dietéticas, etc. en una zona y los carga como prospectos.
 - **🧊 Exhibidores:** heladeras y exhibidores prestados en comodato: a quién, desde cuándo y si rinde.
 
@@ -81,6 +86,7 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 
 ## 6. Ventas · Difundir
 
+- **🔳 QR por campaña:** un QR propio para cada volante, cartel, vendedor o zona. Ves escaneos, pedidos de alta, pedidos web, clientes y cuánto compraron. Se descarga el QR o se imprimen 4 volantes por hoja.
 - **📣 Campañas:** mensaje masivo por WhatsApp a un grupo de clientes (por zona, rubro, nivel, etc.), uno por uno con su link.
 - **📋 Novedades semanal:** arma el mensaje semanal con ofertas y novedades listo para enviar.
 - **📅 Fechas:** calendario comercial (Día del Padre, Pascuas, Navidad…) con productos sugeridos para cada fecha.
@@ -94,6 +100,7 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 
 ## 7. Ventas · Analizar
 
+- **🧲 Captación:** prospectos nuevos, cuántos pasaron a cliente, clientes nuevos y su venta, semana a semana, **de dónde vienen** (QR, Buscar negocios, catálogo público, recomendación, visita) y por vendedor.
 - **📊 Resumen semanal:** cómo fue la semana contra la anterior.
 - **🏭 Metas y reintegros:** objetivos por proveedor/marca y reintegros que te deben.
 - **🕐 Cuándo piden:** días y horarios en que entran los pedidos (para saber cuándo mandar mensajes).
@@ -115,7 +122,7 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 - **Agenda de visitas:** recorrido del día; el botón **📍 Visita** registra la visita y el resultado. También sugiere **prospectos de paso** cerca del recorrido.
 - **Mapa:** clientes coloreados por **última compra** o deuda, y los prospectos.
 - **Dormidos:** clientes que hace mucho no compran.
-- **Prospectos:** negocios a conquistar, con su estado.
+- **Prospectos:** negocios a conquistar, con su estado. **⚡ Alta exprés:** lo da de alta y le manda por WhatsApp su catálogo personal con la bienvenida y el kit de primer pedido.
 - **Pedidos fijos:** pedidos que se repiten solos (semanal, quincenal…).
 
 ## 9. Reparto, cobranza y caja
@@ -158,6 +165,8 @@ Se abre con su link personal. Pasos para el cliente: **buscar → agregar → Ve
 - Muestra productos sin datos de cliente; se puede filtrar por rubro.
 - Botón **Quiero ser cliente**: el interesado deja sus datos y entra como prospecto.
 - Si arma un pedido, llega a *Ventas → Presupuestos* marcado 🌐 Catálogo, para confirmarlo vos.
+- Los que piden ser clientes aparecen arriba de todo en la **Cola del día** para el alta exprés.
+- Con un QR de campaña el link lleva `&qr=CÓDIGO` y todo lo que haga esa persona queda anotado a esa campaña.
 
 ## 13. Configuración inicial recomendada
 
@@ -169,7 +178,8 @@ Una sola vez, en este orden:
 4. **Ventas → Precio sugerido:** márgenes de reventa por rubro.
 5. **Clientes:** completar rubro, zona y teléfono de cada cliente (son la base de campañas y análisis).
 6. **Mandar a cada cliente su link** de catálogo desde la ficha.
-7. Desde ahí, la rutina diaria: **Inicio → Plan del día → Pedidos por aprobar → Reparto → Cobranza**.
+7. **Ventas → Automatizaciones:** revisá los días y los textos de cada regla.
+8. Desde ahí, la rutina diaria: **Ventas → Cola del día (ráfaga) → Plan del día → Pedidos por aprobar → Reparto → Cobranza**.
 
 ## 14. Copias de seguridad y preguntas frecuentes
 
@@ -178,4 +188,5 @@ Una sola vez, en este orden:
 - **"El cliente no puede enviar el pedido":** revisá si no llega al mínimo, si pasó la hora de corte o si tiene deuda vencida con freno en *bloquear*.
 - **"El cliente perdió su link":** reenvialo desde su ficha.
 - **Seguridad:** nunca compartas la clave secreta de la base de datos; el link de cada cliente es personal.
-- **Próximamente:** factura electrónica ARCA, usuarios para vendedores y choferes, y resumen diario por email.
+- **Mails automáticos:** a las 7:45 llega *Tu cola de hoy* con botón para empezar, y a las 20:30 el resumen del día. Se activan cuando se cargan los datos de Gmail en GitHub.
+- **Próximamente:** factura electrónica ARCA y usuarios para vendedores y choferes.

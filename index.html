@@ -179,13 +179,18 @@ header>b{grid-column:1;grid-row:1;align-self:center}header>span{grid-column:2;gr
 header nav{grid-column:1/-1;grid-row:2;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -12px;padding:0 12px 4px}header nav::-webkit-scrollbar{display:none}
 header nav a{flex:none;padding:8px 12px}
 #p_i td.qbox{white-space:normal;min-width:150px}#p_i button.bb{margin-top:4px}}
+/* ===== Ventas 9 ===== */
+button.big{font-size:16px;padding:12px 20px}.rf textarea{width:100%;font-size:15px;line-height:1.4}.rfbar{height:6px;background:#eceef3;border-radius:9px;overflow:hidden;margin-top:6px}.rfbar span{display:block;height:100%;background:var(--ok,#1d7a46)}
+.paso{border-left:3px solid var(--l);padding:4px 0 4px 10px;margin:8px 0}.paso textarea{width:100%}.kp.mini .box{padding:8px 10px}.kp.mini .num{font-size:20px}
+.cbar{display:flex;gap:6px;align-items:flex-end;overflow-x:auto;padding-bottom:4px}.cb{flex:1;min-width:46px;text-align:center;display:flex;flex-direction:column;gap:2px}.cb .bars{height:110px;display:flex;gap:3px;align-items:flex-end;justify-content:center}.cb .bars span{width:12px;border-radius:4px 4px 0 0;min-height:2px}
+.bp{background:#93a3c4}.bc{background:#1d7a46}.leg{display:inline-block;width:10px;height:10px;border-radius:3px;vertical-align:middle;margin:0 2px 0 8px}
 </style>
 </head>
 <body>
 <div id="app"></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
-const VERSION='2026-10-10.9';
+const VERSION='2026-10-10.10';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -215,7 +220,9 @@ async function init(){
     todo(()=>sb.from('clientes').select('*').eq('activo',true).order('razon_social').order('id')),
     todo(()=>sb.from('precios_productos').select(PROD_COLS).order('descripcion').order('producto_id'))]);
   if(c.error||pr.error){app.innerHTML='<div class="box login"><p class="err">No se pudieron cargar los datos: '+esc((c.error||pr.error).message)+'</p><button onclick="out()">Salir</button></div>';return}
-  S.clientes=c.data;S.productos=pr.data;await Promise.all([cargarStock(),cargarPromos(),cargarMarca(),cargarVentasCfg()]);shell();
+  S.clientes=c.data;S.productos=pr.data;await Promise.all([cargarStock(),cargarPromos(),cargarMarca(),cargarVentasCfg()]);
+  if(location.hash=='#cola'){S.tab='ventas';S.vs='cola';try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
+  shell();
 }
 function shell(){
   app.innerHTML=`<header><b>${MARCA.logo?`<img class="hlogo" src="${MARCA.logo}" alt="Sabores de mi País"><span class="hn">Sabores de mi País</span>`:'Sabores de mi País'}</b><nav>${['inicio','pedidos','ventas','reparto','clientes','cobranza','caja','compras','stock','precios','reportes','contable','manual'].filter(t=>!['precios','caja','contable'].includes(t)||S.perfil.rol=='dueno').map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${t=='manual'?'📖 Manual':t[0].toUpperCase()+t.slice(1)}</a>`).join('')}</nav><span>${esc(S.perfil.nombre)} (${S.perfil.rol}) <small style="opacity:.6">v${VERSION}</small><a onclick="out()">Salir</a></span></header><main id="v"></main>`;
@@ -360,7 +367,7 @@ async function vInicio(){
   <div id="bk"></div>
   <div class="herr" id="herr"></div>
   <div id="alm"></div>
-  <div id="plani"></div><div id="toca"></div><div id="fidel"></div><div id="masi"></div><div id="creci"></div><div id="servi"></div><div id="fieli"></div><div id="fechas"></div>
+  <div id="colai"></div><div id="plani"></div><div id="toca"></div><div id="fidel"></div><div id="masi"></div><div id="creci"></div><div id="servi"></div><div id="fieli"></div><div id="fechas"></div>
   <div id="obj"></div>
   <div class="kp">
     <div class="box" id="k1"><span class="lab">Facturado hoy</span><span class="num">…</span><span class="det"></span></div>
@@ -378,7 +385,7 @@ async function vInicio(){
   const kp=(id,num,det,cls)=>{const b=$('#'+id);b.querySelector('.num').textContent=num;b.querySelector('.det').textContent=det||'';if(cls)b.classList.add(cls)};
   const fallo=(id,e)=>kp(id,'—','No se pudo leer: '+e.message);
   if(S.perfil.rol=='dueno')cajaBackup();
-  herramientas();generarFijos();alertasMargen();objetivoMes();tocaInicio();fidelInicio().catch(()=>{});masInicio().catch(()=>{});crecerInicio().catch(()=>{});fielesInicio().catch(()=>{});servInicio().catch(()=>{});planInicio().catch(()=>{});avisosEnVivo();fechasInicio();
+  herramientas();generarFijos();alertasMargen();objetivoMes();tocaInicio();fidelInicio().catch(()=>{});masInicio().catch(()=>{});crecerInicio().catch(()=>{});fielesInicio().catch(()=>{});servInicio().catch(()=>{});planInicio().catch(()=>{});colaInicio().catch(()=>{});avisosEnVivo();fechasInicio();
   const cli=id=>esc(S.clientes.find(c=>c.id==id)?.razon_social||'Cliente');
   const [fv,pe,fe,sp,fp]=await Promise.all([
     sb.from('facturas_venta').select('*').order('id',{ascending:false}).limit(500),
@@ -1967,7 +1974,7 @@ async function vProspectos(){
     <td><b>${esc(x.nombre)}</b>${x.rubro?' <small>· '+esc(x.rubro)+'</small>':''}<br><small>${esc([x.domicilio,x.zona].filter(Boolean).join(' · '))}${x.telefono?' · '+esc(x.telefono):''}${x.contacto?' · '+esc(x.contacto):''}</small>${x.observaciones?'<br><small><i>'+esc(x.observaciones)+'</i></small>':''}</td>
     <td><select data-pe="${x.id}" style="width:auto;margin:0">${Object.entries(EST_PR).map(([k,t])=>`<option value="${k}" ${(x.estado||'nuevo')==k?'selected':''}>${t}</option>`).join('')}</select></td>
     <td><input type="date" data-psf="${x.id}" value="${x.proximo_seguimiento||''}" style="width:auto;margin:0" class="${x.proximo_seguimiento&&x.proximo_seguimiento<=hoy&&!['cliente','no_interesado'].includes(x.estado)?'venc-in':''}"></td>
-    <td class="acc">${x.telefono?`<button class="alt wa" data-pw="${x.id}">WhatsApp</button> `:''}${x.domicilio?`<button class="alt" data-pm="${x.id}">Mapa</button> `:''}<button class="alt" data-pn="${x.id}">Nota</button> ${x.estado!='cliente'?`<button data-pc="${x.id}">Pasar a cliente</button>`:x.cliente_id?`<button class="alt" data-pfc="${x.cliente_id}">Ver ficha</button>`:''}</td></tr>`).join('')}</table></div>`:'<p><small>No hay prospectos en esta lista.</small></p>'}</div>`;
+    <td class="acc">${x.telefono?`<button class="alt wa" data-pw="${x.id}">WhatsApp</button> `:''}${x.domicilio?`<button class="alt" data-pm="${x.id}">Mapa</button> `:''}<button class="alt" data-pn="${x.id}">Nota</button> ${x.estado!='cliente'?`${x.telefono?`<button data-px2="${x.id}" title="Alta y le mandamos su catálogo por WhatsApp">⚡ Alta exprés</button> `:''}<button class="alt" data-pc="${x.id}">Pasar a cliente</button>`:x.cliente_id?`<button class="alt" data-pfc="${x.cliente_id}">Ver ficha</button>`:''}</td></tr>`).join('')}</table></div>`:'<p><small>No hay prospectos en esta lista.</small></p>'}</div>`;
   $$('[data-pf2]').forEach(b=>b.onclick=()=>{S.prF=b.dataset.pf2;vProspectos()});
   const P=id=>data.find(x=>x.id==id),upd=async(id,o,msg)=>{const{error}=await sb.from('prospectos').update({...o,actualizado_en:new Date().toISOString()}).eq('id',id);if(error)return toast(error.message,1);if(msg)toast(msg);vProspectos()};
   $('#ps_g').onclick=async()=>{const n=$('#ps_n').value.trim();if(!n)return toast('Poné el nombre del negocio.',1);
@@ -1980,8 +1987,9 @@ async function vProspectos(){
   $$('#cs [data-pm]').forEach(b=>b.onclick=()=>window.open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(P(b.dataset.pm).domicilio),'_blank'));
   $$('#cs [data-pn]').forEach(b=>b.onclick=()=>{const x=P(b.dataset.pn),t=prompt('Nota sobre '+x.nombre+':',x.observaciones||'');if(t!==null)upd(x.id,{observaciones:t.trim()||null,ultimo_contacto:diaLocal(new Date())},'Nota guardada.')});
   $$('#cs [data-pfc]').forEach(b=>b.onclick=()=>fichaCliente(S.clientes.find(c=>c.id==b.dataset.pfc)));
+  $$('#cs [data-px2]').forEach(b=>b.onclick=async()=>{const x=P(b.dataset.px2);if(!confirm('¿Dar de alta a «'+x.nombre+'» y mandarle su catálogo por WhatsApp?'))return;const w=window.open('','_blank');if(await altaExpres(x,w))vProspectos()});
   $$('#cs [data-pc]').forEach(b=>b.onclick=async()=>{const x=P(b.dataset.pc);if(!confirm('¿Dar de alta a «'+x.nombre+'» como cliente? Después completás CUIT y lista en su ficha.'))return;
-    const{data:c,error}=await sb.from('clientes').insert({razon_social:x.nombre,telefono:x.telefono,domicilio:x.domicilio,condicion_iva:'consumidor_final',lista:'mayorista',condicion_pago_dias:0,vendedor_id:S.perfil.id,observaciones:x.observaciones,...('rubro' in (S.clientes[0]||{})&&x.rubro?{rubro:x.rubro}:{})}).select().single();
+    const{data:c,error}=await insertCliente({razon_social:x.nombre,telefono:x.telefono,domicilio:x.domicilio,condicion_iva:'consumidor_final',lista:'mayorista',condicion_pago_dias:0,vendedor_id:S.perfil.id,observaciones:x.observaciones,rubro:x.rubro||null,lat:x.lat??null,lng:x.lng??null,origen:x.campania?'qr':(x.origen||'prospecto'),campania:x.campania||null});
     if(error)return toast(error.message,1);await sb.from('prospectos').update({estado:'cliente',cliente_id:c.id,actualizado_en:new Date().toISOString()}).eq('id',x.id);
     S.clientes.push(c);S.clientes.sort((a,b)=>a.razon_social.localeCompare(b.razon_social));toast('¡'+x.nombre+' ya es cliente! Completá sus datos.');fichaCliente(c);setTimeout(()=>$('#fc_ed')?.click(),50)});
 }
@@ -2697,14 +2705,14 @@ const comboTxt=c=>(c.items||[]).map(x=>{const b=bul(x.id);return(b&&x.q%b.n==0?(
 const nomCorto=c=>{const n=String(c.contacto||'').trim().split(/\s+/)[0];return n||c.razon_social};
 
 function vVentas(){
-  S.vs=S.vs||'plan';const due=S.perfil.rol=='dueno';
-  const GR=[['Recuperar y cerrar',[['plan','📋 Plan del día'],['toca','📞 Les toca comprar'],['miraron','👀 Miraron el catálogo'],['menos','📉 Comprando menos'],['carritos','🛒 Carritos sin enviar'],['esperan','🔔 Esperan productos'],['encuestas','⭐ Encuestas'],['presupuestos','📝 Presupuestos'],['muestras','🧪 Muestras'],['bienvenida','👋 Bienvenida y aniversarios'],['reclamos','🆘 Reclamos'],['embudo','🧲 Embudo de prospectos'],['buscarneg','🗺️ Buscar negocios'],['comodatos','🧊 Exhibidores']]],
+  S.vs=S.vs||'cola';const due=S.perfil.rol=='dueno';
+  const GR=[['Recuperar y cerrar',[['cola','⚡ Cola del día'],['auto','⚙️ Automatizaciones'],['plan','📋 Plan del día'],['toca','📞 Les toca comprar'],['miraron','👀 Miraron el catálogo'],['menos','📉 Comprando menos'],['carritos','🛒 Carritos sin enviar'],['esperan','🔔 Esperan productos'],['encuestas','⭐ Encuestas'],['presupuestos','📝 Presupuestos'],['muestras','🧪 Muestras'],['bienvenida','👋 Bienvenida y aniversarios'],['nuevos90','🌱 Primeros 90 días'],['reclamos','🆘 Reclamos'],['embudo','🧲 Embudo de prospectos'],['ruta','🚶 Ruta de prospección'],['buscarneg','🗺️ Buscar negocios'],['comodatos','🧊 Exhibidores']]],
     ['Ofertas',[['relampago','⚡ Relámpago'],['personal','🎯 Ofertas personales'],['niveles','🥇 Niveles'],['pvp','💰 Precio sugerido'],['combos','🎁 Combos'],['cantidad','🏷️ Precio por cantidad'],['cupones','🎟️ Cupones'],['liquidar','📦 Liquidar stock'],['preventa','🔜 Preventa'],['bultos','📦 Venta por bulto'],['redondeo','🏷️ Precios redondeados'],['aumento','📈 Aviso de aumento'],['novedades','✨ Novedades'],['reglas','💲 Descuentos y mínimo']]],
-    ['Difundir',[['campanias','📣 Campañas'],['novsem','📋 Novedades semanal'],['fechas','📅 Fechas'],['rubros','🏪 Por rubro'],['difusion','🖼️ Folletos y catálogo'],['puntos','🏆 Puntos y desafío'],['sorteo','🎟️ Sorteo del mes'],['cambios','📢 Cambios de precio'],['estados','📱 Estados de WhatsApp'],['tarjeta','🖼️ Tarjeta de producto']]],
-    ['Analizar',[['semana','📊 Resumen semanal'],['proveedores','🏭 Metas y reintegros'],['horarios','🕐 Cuándo piden'],['abc','🅰️ ABC'],['marcas','🏭 Por marca'],['competencia','🏁 Competencia'],['nocompra','🚶 Por qué no compran'],['perdidas','💸 Ventas perdidas'],['potencial','📊 Potencial'],['zonas','🗺️ Por zona'],['buscan','🔎 Qué buscan y piden']]]];
+    ['Difundir',[['campanias','📣 Campañas'],['novsem','📋 Novedades semanal'],['fechas','📅 Fechas'],['rubros','🏪 Por rubro'],['difusion','🖼️ Folletos y catálogo'],['qr','🔳 QR por campaña'],['puntos','🏆 Puntos y desafío'],['sorteo','🎟️ Sorteo del mes'],['cambios','📢 Cambios de precio'],['estados','📱 Estados de WhatsApp'],['tarjeta','🖼️ Tarjeta de producto']]],
+    ['Analizar',[['semana','📊 Resumen semanal'],['captacion','🧲 Captación'],['proveedores','🏭 Metas y reintegros'],['horarios','🕐 Cuándo piden'],['abc','🅰️ ABC'],['marcas','🏭 Por marca'],['competencia','🏁 Competencia'],['nocompra','🚶 Por qué no compran'],['perdidas','💸 Ventas perdidas'],['potencial','📊 Potencial'],['zonas','🗺️ Por zona'],['buscan','🔎 Qué buscan y piden']]]];
   $('#v').innerHTML=`<h2>Ventas</h2>${GR.map(([g,L])=>`<div class="vgr"><small>${g}</small><div class="sub ctsub">${L.map(([k,t])=>`<button class="${S.vs==k?'':'alt'}" data-vs="${k}">${t}</button>`).join('')}</div></div>`).join('')}<div id="vs">Cargando…</div>`;
   $$('[data-vs]').forEach(b=>b.onclick=()=>{S.vs=b.dataset.vs;vVentas()});
-  ({buscarneg:vBuscarNegocios,comodatos:vComodatos,proveedores:vProveedores,horarios:vHorarios,plan:vPlan,semana:vSemana,embudo:vEmbudo,preventa:vPreventa,bultos:vBultos,redondeo:vRedondeo,reclamos:vReclamos,niveles:vNiveles,estados:vEstados,tarjeta:vTarjeta,perdidas:vPerdidas,potencial:vPotencial,zonas:vZonas,miraron:vMiraron,bienvenida:vBienvenida,personal:vPersonal,pvp:vPVP,sorteo:vSorteo,cambios:vCambiosPrecio,muestras:vMuestras,aumento:vAumento,novsem:vNovSemana,marcas:vMarcas,competencia:vCompetencia,nocompra:vNoCompra,carritos:vCarritos,esperan:vEsperan,liquidar:vLiquidar,relampago:vRelampago,buscan:vBuscan,abc:vABC,rubros:vRubros,fechas:vFechas,toca:vToca,menos:vMenos,encuestas:vEncuestas,presupuestos:vPresupuestos,cantidad:vCantidad,cupones:vCupones,puntos:vPuntos,campanias:vCampanias,combos:vCombos,novedades:vNovedades,reglas:vReglas,difusion:()=>{$('#vs').innerHTML='<div class="box" id="pr_vd"></div>';cajaVender()}})[S.vs]();
+  ({cola:vCola,auto:vAuto,nuevos90:vNuevos90,ruta:vRuta,qr:vQR,captacion:vCaptacion,buscarneg:vBuscarNegocios,comodatos:vComodatos,proveedores:vProveedores,horarios:vHorarios,plan:vPlan,semana:vSemana,embudo:vEmbudo,preventa:vPreventa,bultos:vBultos,redondeo:vRedondeo,reclamos:vReclamos,niveles:vNiveles,estados:vEstados,tarjeta:vTarjeta,perdidas:vPerdidas,potencial:vPotencial,zonas:vZonas,miraron:vMiraron,bienvenida:vBienvenida,personal:vPersonal,pvp:vPVP,sorteo:vSorteo,cambios:vCambiosPrecio,muestras:vMuestras,aumento:vAumento,novsem:vNovSemana,marcas:vMarcas,competencia:vCompetencia,nocompra:vNoCompra,carritos:vCarritos,esperan:vEsperan,liquidar:vLiquidar,relampago:vRelampago,buscan:vBuscan,abc:vABC,rubros:vRubros,fechas:vFechas,toca:vToca,menos:vMenos,encuestas:vEncuestas,presupuestos:vPresupuestos,cantidad:vCantidad,cupones:vCupones,puntos:vPuntos,campanias:vCampanias,combos:vCombos,novedades:vNovedades,reglas:vReglas,difusion:()=>{$('#vs').innerHTML='<div class="box" id="pr_vd"></div>';cajaVender()}})[S.vs]();
 }
 
 /* ---------- Les toca comprar ---------- */
@@ -4044,7 +4052,7 @@ async function vEmbudo(){const{data,error}=await sb.from('prospectos').select('*
   $$('#vs [data-em]').forEach(a=>a.onclick=()=>upd(a.dataset.em,{estado:a.dataset.e,ultimo_contacto:diaLocal(new Date())}));
   $$('#vs [data-en]').forEach(a=>a.onclick=()=>{if(confirm('¿Marcar como "No le interesa"?'))upd(a.dataset.en,{estado:'no_interesado'})});
   $$('#vs [data-ew]').forEach(a=>a.onclick=()=>{const x=P(a.dataset.ew);window.open('https://wa.me/'+telWA(x.telefono)+'?text='+encodeURIComponent(`¡Hola! Te escribo de *Sabores de mi País*, distribuidora de alimentos 👋`+(x.rubro?' Te paso nuestro catálogo para '+x.rubro.toLowerCase()+'s:\n'+linkRubro(x.rubro):'')),'_blank');if(x.estado=='nuevo')upd(x.id,{estado:'contactado',ultimo_contacto:diaLocal(new Date())})});
-  $$('#vs [data-ec]').forEach(a=>a.onclick=()=>{S.tab='clientes';S.cs='prospectos';shell();toast('Tocá "Dar de alta" en '+P(a.dataset.ec).nombre+'.')})}
+  $$('#vs [data-ec]').forEach(a=>a.onclick=async()=>{const x=P(a.dataset.ec);if(!confirm('¿Dar de alta a «'+x.nombre+'» como cliente'+(x.telefono?' y mandarle su catálogo por WhatsApp':'')+'?'))return;const w=x.telefono?window.open('','_blank'):null;if(await altaExpres(x,w))vEmbudo()})}
 
 /* ---------- 12. Precios redondeados ---------- */
 async function vRedondeo(){const due=S.perfil.rol=='dueno';
@@ -4061,6 +4069,317 @@ async function vRedondeo(){const due=S.perfil.rol=='dueno';
   $('#rd_g')&&($('#rd_g').onclick=async()=>{const o={};$$('[data-rl]').forEach(s=>{const[pa,fi]=s.value.split('|').map(Number);if(pa)o[s.dataset.rl]={paso:pa,fin:fi}});
     if(!confirm('¿Aplicar el redondeo a todas las listas de precios?'))return;const{error}=await sb.from('config_app').upsert({clave:'redondeo_precios',valor:JSON.stringify(o)});if(error)return toast(error.message,1);
     await recargarProductos();toast('Listo: precios redondeados. Si no ves el cambio, falta correr ventas-plan.sql.');vRedondeo()})}
+
+/* ======================= VENTAS 9: automatizar la venta y conseguir clientes ======================= */
+const SQL_AUT='<div class="aviso">Falta correr <b>ventas-auto.sql</b> en Supabase (SQL Editor). Después recargá la página.</div>';
+const AUTO_DEF={
+  sugerido:{activa:true},
+  carritos:{activa:true,txt:'¡Hola {nombre}! 👋 Vi que te quedó un pedido armado de *{monto}* en tu catálogo de *Sabores de mi País*. ¿Lo terminamos? Está guardado acá:\n{link}'},
+  miraron:{activa:true,txt:'¡Hola {nombre}! Vi que estuviste mirando el catálogo de *Sabores de mi País* 👀 ¿Encontraste lo que buscabas? Si querés te ayudo a armar el pedido:\n{link}'},
+  deuda:{activa:true,dias:7,txt:'¡Hola {nombre}! Te escribo de *Sabores de mi País*. Te recuerdo que tenés un saldo vencido de *{monto}*. Podés ver el detalle y pagar acá:\n{link}\n¡Muchas gracias!'},
+  reactivar:{activa:true,pasos:[
+    {dias:15,tipo:'mensaje',txt:'¡Hola {nombre}! 👋 Hace unos días que no hablamos. ¿Te preparo el pedido? Esta semana hay ofertas nuevas en tu catálogo:\n{link}'},
+    {dias:25,tipo:'mensaje',txt:'¡Hola {nombre}! ¿Cómo va todo? En *Sabores de mi País* tenemos novedades y promos que le vienen bien a tu negocio 🔥 Miralas acá:\n{link}'},
+    {dias:40,tipo:'llamar',txt:'Llamarlo: hace {dias} días que no compra. Preguntarle si pasó algo y ofrecerle el pedido de siempre.'}]},
+  dormidos:{activa:true,dias:60,pct:10,vence:10,txt:'¡Hola {nombre}! Te extrañamos en *Sabores de mi País* 😊\n\n🎁 Para que vuelvas te regalamos *{pct} % de descuento* con tu cupón personal *{cupon}* (válido hasta el {hasta}).\nHacé tu pedido acá y escribilo en el carrito:\n{link}'},
+  ofertas:{activa:true,crear:false,venc_dias:30,pct_venc:25,sobre_meses:3,pct_sobre:15,max_dia:30,txt:'¡Hola {nombre}! 🔥 Oferta en *Sabores de mi País*: *{producto}* con *{pct} % de descuento* (hasta el {hasta}). Vos lo llevás seguido, ¡aprovechá!\n{link}'},
+  nuevos:{activa:true,dias2:10,dias3:15,pct3:5,txt2:'¡Hola {nombre}! ¿Cómo salieron los productos de tu primer pedido? 😊 Si querés reponer, lo repetís con un toque desde acá:\n{link}',
+    txt3:'¡Hola {nombre}! Gracias por tus pedidos 🙌 Para el próximo te regalamos *{pct} % de descuento* con tu cupón *{cupon}* (válido hasta el {hasta}):\n{link}'},
+  prospectos:{activa:true,max_dia:15,pasos:[
+    {dias:0,tipo:'mensaje',txt:'¡Hola{contacto}! Te escribo de *Sabores de mi País*, distribuidora de alimentos 👋 Trabajamos con muchos negocios de la zona. Te dejo nuestro catálogo con precios:\n{link}\n¿Te interesa que te pase a visitar?'},
+    {dias:3,tipo:'mensaje',txt:'¡Hola{contacto}! ¿Pudiste mirar el catálogo? 🎁 Para tu *primer pedido* tenemos un kit de bienvenida con descuento. Lo hacés desde acá en 2 minutos:\n{link}'},
+    {dias:7,tipo:'visitar',txt:'Pasar a visitarlo: llevá el catálogo impreso y una muestra.'}]}};
+const COLA_T={alta:['🌐','Quieren ser clientes'],carrito:['🛒','Carritos sin enviar'],llego:['🔔','Llegó lo que esperaba'],miro:['👀','Miraron el catálogo'],nuevo:['🌱','Primeros 90 días'],toca:['📞','Les toca comprar'],
+  reactivar:['🔁','Reactivar'],bienvenida:['👋','Bienvenida'],dormido:['🎟️','Cupón a dormidos'],aniv:['🎂','Aniversarios'],deuda:['💸','Deuda vencida'],oferta:['🔥','Ofertas automáticas'],prospecto:['🧲','Prospectos']};
+const plantilla=(t,o)=>String(t||'').replace(/\{(\w+)\}/g,(m,k)=>o[k]!=null?o[k]:m);
+const dDesde=f=>Math.floor((Date.now()-new Date(f))/864e5);
+async function cfgAuto(){const{data}=await sb.from('config_app').select('valor').eq('clave','automatizaciones').maybeSingle();let c={};try{c=JSON.parse(data?.valor||'{}')||{}}catch(e){}
+  const o={};for(const k of Object.keys(AUTO_DEF))o[k]={...AUTO_DEF[k],...(c[k]||{})};return S.autoCfg=o}
+async function histAuto(){if(S.hA&&Date.now()-S.hA.t<90e3)return S.hA;
+  const{data}=await todo(()=>sb.from('pedidos').select('id,cliente_id,numero,total,creado_en,pedido_items(producto_id,cantidad)').neq('estado','cancelado').gte('creado_en',new Date(Date.now()-400*864e5).toISOString()).order('numero'));
+  const C={};for(const o of data||[]){const r=C[o.cliente_id]=C[o.cliente_id]||{n:0,f:[],t:0,pr:new Set()};r.n++;r.f.push(o.creado_en);r.t+=+o.total||0;if(dDesde(o.creado_en)<=180)for(const i of o.pedido_items||[])r.pr.add(String(i.producto_id))}
+  for(const r of Object.values(C)){r.f.sort();r.ult=r.f[r.f.length-1];r.pri=r.f[0];r.tk=r.t/r.n}
+  return S.hA={t:Date.now(),C,P:data||[],ini:(data||[]).reduce((m,o)=>!m||o.creado_en<m?o.creado_en:m,null)}}
+const esNuevo=(c,r)=>{if(!r||dDesde(r.pri)>90||(c.cliente_desde&&dDesde(c.cliente_desde)>95))return false;const ini=S.hA?.ini;return c.cliente_desde?true:!!c.creado_en&&dDesde(c.creado_en)<=120&&(!ini||new Date(c.creado_en)-new Date(ini)>14*864e5)};
+const lunes=()=>{const d=new Date();d.setDate(d.getDate()-((d.getDay()+6)%7));return diaLocal(d)};
+const linkProsp=x=>x.rubro?linkRubro(x.rubro):urlBase('ver=catalogo');
+
+/* Ofertas que se arman solas (sobrestock y por vencer) */
+async function autoOfertas(A){if(!A.ofertas.activa||!A.ofertas.crear||S.perfil.rol!='dueno')return 0;const k='autoof_'+diaLocal(new Date());try{if(localStorage.getItem(k))return 0}catch(e){}
+  await Promise.all([cargarStock(),cargarPromos()]);const hoy=diaLocal(new Date()),H=await histAuto();
+  const[ve,pr]=await Promise.all([sb.from('vencimientos').select('producto_id,vence').eq('retirado',false).gte('vence',hoy).lte('vence',diaLocal(new Date(Date.now()+A.ofertas.venc_dias*864e5))),
+    sb.from('promociones').select('alcance_valor,creado_en').eq('alcance','producto').gte('creado_en',new Date(Date.now()-60*864e5).toISOString())]);
+  const ya=new Set([...(pr.data||[]).map(p=>String(p.alcance_valor)),...S.promos.filter(p=>p.alcance=='producto'&&(!p.hasta||p.hasta>=hoy)).map(p=>String(p.alcance_valor))]),N=[];
+  for(const v of ve.data||[])if(!ya.has(String(v.producto_id))&&S.productos.some(p=>p.producto_id==v.producto_id)&&N.length<5){ya.add(String(v.producto_id));N.push({nombre:LIQ,descuento_pct:A.ofertas.pct_venc,alcance_valor:v.producto_id,hasta:v.vence})}
+  if(S.inv){const vend={};for(const o of H.P)if(dDesde(o.creado_en)<=90)for(const i of o.pedido_items||[])vend[i.producto_id]=(vend[i.producto_id]||0)+(+i.cantidad||0);
+    const SO=S.productos.map(p=>{const d=S.stock[p.producto_id]?.d||0,mes=(vend[p.producto_id]||0)/3;return{p,d,cob:mes>0?d/mes:99,val:d*(+p.costo||0)}}).filter(x=>x.d>0&&x.cob>=A.ofertas.sobre_meses&&x.cob<99&&x.val>0).sort((a,b)=>b.val-a.val);
+    for(const x of SO){if(N.length>=5)break;if(ya.has(String(x.p.producto_id)))continue;ya.add(String(x.p.producto_id));N.push({nombre:SOBRE,descuento_pct:A.ofertas.pct_sobre,alcance_valor:x.p.producto_id,hasta:diaLocal(new Date(Date.now()+30*864e5))})}}
+  if(N.length){const{error}=await sb.from('promociones').insert(N.map(n=>({...n,alcance:'producto',minimo_tipo:'ninguno',minimo_unidades:0,listas:null,desde:hoy,activa:true})));if(!error){await cargarPromos();toast('🔥 Se crearon '+N.length+' ofertas automáticas: '+N.map(n=>nomProd(n.alcance_valor)).join(', '))}}
+  try{localStorage.setItem(k,'1')}catch(e){}return N.length}
+
+/* Arma la cola del día con todo lo que hay que mandar */
+async function datosCola(crear){const A=await cfgAuto();if(crear)await autoOfertas(A).catch(()=>{});
+  const sf=f=>Promise.resolve(f).catch(()=>null),hoy=diaLocal(new Date()),ini=new Date(tsAR(hoy)).toISOString();
+  const[H,ev,co,ca,vi,av,toca,bi,an,fe,pr]=await Promise.all([histAuto(),todo(()=>sb.from('envios_auto').select('clave,tipo,cliente_id,prospecto_id,enviado_en').gte('enviado_en',new Date(Date.now()-400*864e5).toISOString()).order('id')),
+    sf(sb.from('contactos_clientes').select('cliente_id').gte('fecha',ini)),sf(sb.from('carritos').select('*').is('contactado_en',null)),
+    sf(sb.from('vistas_catalogo').select('cliente_id,ultima').gte('ultima',new Date(Date.now()-864e5).toISOString())),sf(sb.from('avisos_stock').select('id,producto_id,cliente_id').is('avisado_en',null)),
+    sf(datosRecompra()),sf(datosBienvenida()),sf(datosAniversario()),sf(sb.from('facturas_estado').select('cliente_id,pendiente,dias_mora').gt('pendiente',0.005).gt('dias_mora',0)),
+    sf(sb.from('prospectos').select('*').in('estado',['nuevo','contactado','visitado','interesado']).order('creado_en',{ascending:false}).limit(2000))]);
+  if(ev.error)return{err:true};
+  const E=new Map(ev.data.map(x=>[x.clave,x])),hoyC=new Set([...(co?.data||[]).map(x=>x.cliente_id),...ev.data.filter(x=>x.enviado_en>=ini&&x.cliente_id).map(x=>x.cliente_id)]);
+  const hoyP=new Set(H.P.filter(o=>o.creado_en>=ini).map(o=>o.cliente_id)),cli=id=>S.clientes.find(c=>c.id==id),L=[],ok=c=>c&&c.telefono&&!hoyC.has(c.id)&&!hoyP.has(c.id);
+  const add=o=>{if(!E.has(o.k))L.push(o)},tk=id=>H.C[id]?.tk||0,lk=c=>c.token_pedidos?linkPedidos(c):'';
+  for(const x of(ca?.data||[]).filter(x=>A.carritos.activa&&dDesde(x.actualizado_en)>=0&&Date.now()-new Date(x.actualizado_en)>3600e3&&+x.total>0)){const c=cli(x.cliente_id);if(!ok(c))continue;
+    add({k:'ca:'+c.id+':'+String(x.actualizado_en).slice(0,16),tipo:'carrito',c,pri:90,val:+x.total,mot:'Dejó un carrito de '+$m(x.total),txt:plantilla(A.carritos.txt,{nombre:nomCorto(c),monto:$m(x.total),link:lk(c)}),
+      after:()=>sb.from('carritos').update({contactado_en:new Date().toISOString()}).eq('cliente_id',c.id)})}
+  if(av?.data?.length){await cargarStock();for(const a of av.data){const c=cli(a.cliente_id);if(!ok(c)||!((S.stock[a.producto_id]?.d||0)>0))continue;
+    add({k:'av:'+a.id,tipo:'llego',c,pri:85,val:tk(c.id),mot:'Llegó '+nomProd(a.producto_id),txt:`¡Hola ${nomCorto(c)}! 🔔 Ya llegó *${nomProd(a.producto_id)}*, que estabas esperando. Pedilo acá antes de que se termine:\n${lk(c)}`,
+      after:()=>sb.from('avisos_stock').update({avisado_en:new Date().toISOString()}).eq('id',a.id)})}}
+  if(A.miraron.activa)for(const id of new Set((vi?.data||[]).map(v=>v.cliente_id))){const c=cli(id);if(!ok(c))continue;add({k:'vi:'+id+':'+hoy,tipo:'miro',c,pri:80,val:tk(id)||50000,mot:'Miró el catálogo y no pidió',txt:plantilla(A.miraron.txt,{nombre:nomCorto(c),link:lk(c)})})}
+  if(A.nuevos.activa)for(const c of S.clientes){const r=H.C[c.id];if(!ok(c)||!c.token_pedidos||!esNuevo(c,r))continue;
+    if(r.n==1&&dDesde(r.ult)>=A.nuevos.dias2)add({k:'nv2:'+c.id,tipo:'nuevo',c,pri:75,val:r.tk,mot:'Hizo 1 pedido hace '+dDesde(r.ult)+' días: que haga el 2°',txt:plantilla(A.nuevos.txt2,{nombre:nomCorto(c),link:lk(c)})});
+    else if(r.n==2&&dDesde(r.ult)>=A.nuevos.dias3)add({k:'nv3:'+c.id,tipo:'nuevo',c,pri:75,val:r.tk,mot:'Lleva 2 pedidos: cupón para el 3°',cupon:{pct:A.nuevos.pct3,dias:10,pre:'BIEN',nota:'Cupón 3er pedido'},txt:plantilla(A.nuevos.txt3,{nombre:nomCorto(c),pct:nf(A.nuevos.pct3),hasta:fd(diaLocal(new Date(Date.now()+10*864e5))),link:lk(c)})})}
+  for(const x of(toca||[]).filter(x=>!x.cont)){const c=x.c;if(!ok(c))continue;const sug=A.sugerido.activa&&c.token_pedidos;
+    add({k:'tc:'+c.id+':'+hoy,tipo:'toca',c,pri:70,val:x.tk,mot:'Le toca comprar (cada ~'+x.ciclo+' días'+(x.atraso>0?', '+x.atraso+' tarde':'')+')'+(sug?' · va su pedido sugerido':''),
+      txt:sug?async()=>{const S2=await sugeridoDe(c);return S2.length?txtSug(c,S2):`¡Hola ${nomCorto(c)}! ¿Te preparo el pedido de siempre? Lo armás acá:\n${lk(c)}`}:`¡Hola ${nomCorto(c)}! Te escribo de *Sabores de mi País* 👋 ¿Te preparo el pedido de siempre (${x.top.slice(0,2).map(nomProd).join(', ')})?`+(c.token_pedidos?'\n\nTambién lo podés armar vos acá:\n'+lk(c):'')})}
+  const PA=[...(A.reactivar.pasos||[])].sort((a,b)=>a.dias-b.dias);
+  for(const c of S.clientes){const r=H.C[c.id];if(!r||!ok(c))continue;const d=dDesde(r.ult),u=String(r.ult).slice(0,10);
+    if(A.dormidos.activa&&d>=A.dormidos.dias&&d<=365&&c.token_pedidos){add({k:'dor:'+c.id+':'+u,tipo:'dormido',c,pri:55,val:r.tk,mot:'Dormido: no compra hace '+d+' días',cupon:{pct:A.dormidos.pct,dias:A.dormidos.vence,pre:'VOLVE',nota:'Cupón automático (dormido)'},
+      txt:plantilla(A.dormidos.txt,{nombre:nomCorto(c),pct:nf(A.dormidos.pct),hasta:fd(diaLocal(new Date(Date.now()+A.dormidos.vence*864e5))),link:lk(c)})});continue}
+    if(!A.reactivar.activa||(A.dormidos.activa&&d>=A.dormidos.dias))continue;let i=-1;PA.forEach((p,j)=>{if(d>=p.dias)i=j});if(i<0)continue;
+    const k='rea:'+c.id+':'+u+':'+i;if(PA.slice(i).some((p,j)=>E.has('rea:'+c.id+':'+u+':'+(i+j))))continue;const p=PA[i];
+    add({k,tipo:'reactivar',c,pri:65,val:r.tk,acc:p.tipo=='llamar'?'tel':'wa',mot:'Paso '+(i+1)+': no compra hace '+d+' días'+(p.tipo=='llamar'?' · 📞 llamarlo':''),txt:plantilla(p.txt,{nombre:nomCorto(c),dias:d,link:lk(c)})})}
+  for(const b of bi||[])if(ok(b.c))add({k:'bi:'+b.c.id+':'+b.i,tipo:'bienvenida',c:b.c,pri:60,val:10000,mot:'Bienvenida: '+PASOS[b.i][1],txt:PASOS[b.i][2](b.c),after:()=>sb.from('contactos_clientes').insert({cliente_id:b.c.id,tipo:'bienvenida',detalle:PASOS[b.i][1]})});
+  for(const a of an||[])if(ok(a.c))add({k:'an:'+a.c.id+':'+new Date().getFullYear(),tipo:'aniv',c:a.c,pri:50,val:8000,mot:a.anios+' '+(a.anios==1?'año':'años')+' comprándote',
+    txt:`¡Hola ${nomCorto(a.c)}! 🎂 ¡Cumplimos ${a.anios} ${a.anios==1?'año':'años'} trabajando juntos! Gracias por confiar en *Sabores de mi País* 🙌`+(a.c.token_pedidos?'\n'+lk(a.c):''),after:()=>sb.from('contactos_clientes').insert({cliente_id:a.c.id,tipo:'aniversario',detalle:String(new Date().getFullYear())})});
+  if(A.deuda.activa){const D={};for(const f of fe?.data||[])if(+f.dias_mora>=A.deuda.dias)D[f.cliente_id]=(D[f.cliente_id]||0)+ +f.pendiente;
+    for(const[id,v]of Object.entries(D)){const c=cli(id);if(!ok(c)||v<1)continue;add({k:'de:'+id+':'+lunes(),tipo:'deuda',c,pri:45,val:0,mot:'Debe '+$m(v)+' vencido',txt:plantilla(A.deuda.txt,{nombre:nomCorto(c),monto:$m(v),link:linkCuenta(c)||''})})}}
+  if(A.ofertas.activa){if(!S.promos)await cargarPromos();let n=0;const P=(S.promos||[]).filter(p=>p.alcance=='producto'&&(p.nombre.startsWith(LIQ)||p.nombre.startsWith(SOBRE))&&(!p.hasta||p.hasta>=hoy)&&dDesde(p.desde||p.creado_en||hoy)<=21);
+    for(const p of P)for(const c of S.clientes){if(n>=A.ofertas.max_dia)break;const r=H.C[c.id];if(!r||!r.pr.has(String(p.alcance_valor))||!ok(c)||!c.token_pedidos)continue;const k='of:'+p.id+':'+c.id;if(E.has(k))continue;n++;
+      add({k,tipo:'oferta',c,pri:40,val:r.tk*.3,mot:'Oferta −'+nf(p.descuento_pct)+' % en '+nomProd(p.alcance_valor)+' (lo compra)',txt:plantilla(A.ofertas.txt,{nombre:nomCorto(c),producto:nomProd(p.alcance_valor),pct:nf(p.descuento_pct),hasta:p.hasta?fd(p.hasta):'agotar stock',link:lk(c)})})}}
+  /* Prospectos: alta exprés y secuencia */
+  for(const x of pr?.data||[])if(x.origen=='catalogo'&&x.estado=='nuevo'&&!x.cliente_id)L.push({k:'al:'+x.id,tipo:'alta',p:x,pri:100,val:0,acc:'alta',mot:'Pidió ser cliente desde el catálogo'+(x.campania?' (QR '+x.campania+')':''),txt:'Dar de alta y mandarle su catálogo personal con la bienvenida.'});
+  if(A.prospectos.activa){const PP=A.prospectos.pasos||[];let nv=0;
+    for(const x of pr?.data||[]){if(x.origen=='catalogo'&&x.estado=='nuevo')continue;const hech=PP.map((p,i)=>E.get('pr:'+x.id+':'+i)).map(e=>e||null);const last=hech.reduce((a,e,i)=>e?i:a,-1),j=last+1;if(j>=PP.length)continue;const p=PP[j];
+      if(j==0){if(x.estado!='nuevo'||nv>=A.prospectos.max_dia)continue}else{const base=hech.find(Boolean)?.enviado_en;if(!base||dDesde(base)<p.dias)continue}
+      if(p.tipo!='visitar'&&!x.telefono)continue;if(p.tipo!='visitar'&&j==0)nv++;
+      L.push({k:'pr:'+x.id+':'+j,tipo:'prospecto',p:x,pri:p.tipo=='visitar'?20:30,val:0,acc:p.tipo=='visitar'?'map':'wa',mot:'Paso '+(j+1)+' de '+PP.length+(p.tipo=='visitar'?' · 📍 visitarlo':''),
+        txt:plantilla(p.txt,{contacto:x.contacto?' '+String(x.contacto).split(/\s+/)[0]:'',nombre:x.contacto||x.nombre,link:linkProsp(x)}),after:()=>x.estado=='nuevo'&&p.tipo!='visitar'?sb.from('prospectos').update({estado:'contactado',ultimo_contacto:hoy,actualizado_en:new Date().toISOString()}).eq('id',x.id):null})}}
+  const vis=new Map();for(const o of L.sort((a,b)=>b.pri-a.pri||b.val-a.val)){const id=o.c?'c'+o.c.id:'p'+o.p.id;if(!vis.has(id))vis.set(id,o)}
+  return{L:[...vis.values()],hoyN:ev.data.filter(x=>x.enviado_en>=ini).length,A}}
+
+const nomItem=it=>it.c?it.c.razon_social:it.p.nombre,telItem=it=>(it.c||it.p).telefono;
+const skipKey=()=>'cola_skip_'+diaLocal(new Date());
+const skips=()=>{try{return new Set(JSON.parse(localStorage.getItem(skipKey())||'[]'))}catch(e){return new Set()}};
+function saltear(k){const s=skips();s.add(k);try{localStorage.setItem(skipKey(),JSON.stringify([...s]))}catch(e){}}
+/* Manda (o abre) un ítem de la cola y lo registra */
+async function enviarItem(it,txt){const acc=it.acc||'wa';let w=null,cup=null;
+  if(acc=='wa'&&!telItem(it))return toast('No tiene teléfono cargado.',1),false;
+  if(acc=='wa')w=window.open('','_blank');
+  if(acc=='alta'){w=window.open('','_blank');const c=await altaExpres(it.p,w);if(!c)return false;it.c=c}
+  else if(it.cupon&&/\{cupon\}/.test(txt)){cup=await crearCuponPersonal(it.c,it.cupon.pct,it.cupon.dias,it.cupon.nota,it.cupon.pre);if(!cup){w&&w.close();return false}txt=txt.replace(/\{cupon\}/g,cup)}
+  if(acc=='wa'){const u='https://wa.me/'+telWA(telItem(it))+'?text='+encodeURIComponent(txt);w?w.location.href=u:window.open(u,'_blank')}
+  else if(acc=='tel'){const t=String(telItem(it)||'').replace(/[^\d+]/g,'');if(t)location.href='tel:'+t;else toast('No tiene teléfono: '+txt)}
+  else if(acc=='map'){const x=it.p||it.c,q=x.lat!=null&&x.lng!=null?x.lat+','+x.lng:(x.domicilio||x.nombre);window.open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q),'_blank');
+    if(it.p)sb.from('prospectos').update({ultimo_contacto:diaLocal(new Date()),actualizado_en:new Date().toISOString()}).eq('id',it.p.id).then(()=>{})}
+  const{error}=await sb.from('envios_auto').insert({clave:it.k,tipo:it.tipo,cliente_id:it.c?.id||null,prospecto_id:it.p?.id||null,detalle:it.mot,cupon:cup});
+  if(error&&!/duplicate|unique/i.test(error.message))toast(error.message,1);
+  if(it.c&&acc!='alta')sb.from('contactos_clientes').insert({cliente_id:it.c.id,tipo:acc=='tel'?'llamada':acc=='map'?'visita':'whatsapp',detalle:'Cola: '+it.mot}).then(()=>{});
+  try{const r=it.after&&it.after();r&&r.then&&r.then(()=>{})}catch(e){}S.hA=null;return true}
+
+async function vCola(){$('#vs').innerHTML='<p>Armando la cola del día…</p>';const R=await datosCola(true);if(R.err){$('#vs').innerHTML=SQL_AUT;return}
+  const SK=skips(),T=R.L.filter(x=>!SK.has(x.k)),f=S.colaF&&T.some(x=>x.tipo==S.colaF)?S.colaF:'todos',V=f=='todos'?T:T.filter(x=>x.tipo==f),cnt={};for(const x of T)cnt[x.tipo]=(cnt[x.tipo]||0)+1;
+  const plata=T.filter(x=>x.c&&!['deuda','aniv','bienvenida'].includes(x.tipo)).reduce((a,x)=>a+(+x.val||0),0);
+  $('#vs').innerHTML=`<div class="kp"><div class="box ${T.length?'alerta':'ok'}"><span class="lab">Mensajes listos</span><span class="num">${T.length}</span><span class="det">${SK.size?SK.size+' salteados hoy':'para mandar hoy'}</span></div>
+    <div class="box"><span class="lab">Venta posible</span><span class="num">${$m(plata)}</span><span class="det">sumando su pedido promedio</span></div><div class="box ok"><span class="lab">Enviados hoy</span><span class="num">${R.hoyN}</span><span class="det">desde la cola</span></div></div>
+  <div class="box cola-hd"><h3>⚡ Cola del día</h3><p><small>Todo lo que conviene mandar hoy, ya escrito y en orden de importancia. Tocá <b>Empezar ráfaga</b>: se abre WhatsApp con el mensaje listo, lo mandás, volvés y sigue el próximo. Cada cliente aparece una sola vez por día y nada se repite.</small></p>
+    ${T.length?`<button class="wa big" id="co_go">▶ Empezar ráfaga (${V.length})</button>`:''} <button class="alt" id="co_cfg">⚙️ Automatizaciones</button>
+    <div class="sub ctsub" style="margin-top:10px"><button class="${f=='todos'?'':'alt'}" data-cf="todos">Todos (${T.length})</button>${Object.keys(COLA_T).filter(k=>cnt[k]).map(k=>`<button class="${f==k?'':'alt'}" data-cf="${k}">${COLA_T[k][0]} ${COLA_T[k][1]} (${cnt[k]})</button>`).join('')}</div></div>
+  <div class="box">${V.length?`<div class="ag">${V.map((x,i)=>`<div class="vi"><span class="badge b-pendiente" style="font-size:18px">${COLA_T[x.tipo][0]}</span><div><b>${esc(nomItem(x))}</b><br><small>${esc(x.mot)}</small>${typeof x.txt=='string'?`<br><small style="color:#6b7280">${esc(x.txt.slice(0,90))}${x.txt.length>90?'…':''}</small>`:''}</div>
+      <div class="acc"><button class="${x.acc=='alta'?'':'alt wa'}" data-ci="${i}">${x.acc=='alta'?'✅ Alta exprés':x.acc=='tel'?'📞 Llamar':x.acc=='map'?'📍 Visitar':'WhatsApp'}</button><button class="alt" data-cs="${i}" title="No mandar hoy">Saltear</button></div></div>`).join('')}</div>`
+    :'<p><small>¡No hay nada pendiente en la cola! 🎉 Mirá <b>Automatizaciones</b> para sumar más reglas, o mandá una campaña.</small></p>'}</div><div id="co_res"></div>`;
+  $$('#vs [data-cf]').forEach(b=>b.onclick=()=>{S.colaF=b.dataset.cf;vCola()});
+  $('#co_cfg').onclick=()=>{S.vs='auto';vVentas()};
+  $('#co_go')&&($('#co_go').onclick=()=>rafaga(V));
+  $$('#vs [data-ci]').forEach(b=>b.onclick=()=>rafaga([V[+b.dataset.ci]]));
+  $$('#vs [data-cs]').forEach(b=>b.onclick=()=>{saltear(V[+b.dataset.cs].k);vCola()});
+  resultadosAuto($('#co_res')).catch(()=>{})}
+
+function rafaga(L){const m=document.createElement('div');m.className='modal';document.body.appendChild(m);let i=0,env=0;
+  const fin=()=>{m.remove();if(S.vs=='cola'&&$('#vs'))vCola()};
+  const draw=async()=>{if(i>=L.length){m.innerHTML=`<div class="mc" style="text-align:center"><h2>🎉 ¡Listo!</h2><p>Mandaste <b>${env}</b> ${env==1?'mensaje':'mensajes'}.</p><button id="rf_x">Cerrar</button></div>`;m.querySelector('#rf_x').onclick=fin;return}
+    const it=L[i],[ic,tl]=COLA_T[it.tipo],acc=it.acc||'wa';
+    m.innerHTML=`<div class="mc rf"><div class="bh"><small>${i+1} de ${L.length} · ${ic} ${esc(tl)}</small><button class="alt" id="rf_x">Cerrar</button></div><div class="rfbar"><span style="width:${Math.round(i/L.length*100)}%"></span></div>
+      <h3 style="margin:10px 0 2px">${esc(nomItem(it))}</h3><p style="margin:0 0 8px"><small>${esc(it.mot)}${telItem(it)?' · '+esc(telItem(it)):''}</small></p>
+      <textarea id="rf_t" rows="8" ${acc=='alta'?'disabled':''}>Preparando el mensaje…</textarea>${it.cupon?'<p><small>🎟️ El código del cupón (<b>{cupon}</b>) se crea solo al enviar.</small></p>':''}
+      <div class="fc-acc" style="margin-top:8px"><button class="${acc=='wa'?'wa big':'big'}" id="rf_s" disabled>${acc=='alta'?'✅ Dar de alta y mandar bienvenida':acc=='tel'?'📞 Llamar':acc=='map'?'📍 Abrir en Maps':'Enviar por WhatsApp ▶'}</button><button class="alt" id="rf_n">Saltear</button></div></div>`;
+    m.querySelector('#rf_x').onclick=fin;m.querySelector('#rf_n').onclick=()=>{saltear(it.k);i++;draw()};
+    let t;try{t=typeof it.txt=='function'?await it.txt():it.txt}catch(e){t=''}const ta=m.querySelector('#rf_t');if(!ta)return;ta.value=t;const b=m.querySelector('#rf_s');b.disabled=false;
+    b.onclick=async()=>{b.disabled=true;if(await enviarItem(it,ta.value)){env++;i++;draw()}else b.disabled=false}};
+  draw()}
+
+/* Resultados: cuántos compraron después del mensaje */
+async function resultadosAuto(box){if(!box)return;const d30=new Date(Date.now()-30*864e5).toISOString();
+  const[ev,H,cu]=await Promise.all([todo(()=>sb.from('envios_auto').select('tipo,cliente_id,prospecto_id,enviado_en,cupon').gte('enviado_en',d30).order('id')),histAuto(),sb.from('cupones_usos').select('codigo').gte('fecha',d30)]);
+  if(ev.error||!ev.data.length){box.innerHTML='';return}const usados=new Set((cu.data||[]).map(x=>String(x.codigo).toUpperCase())),{data:pr}=await sb.from('prospectos').select('id,estado').in('id',[...new Set(ev.data.filter(x=>x.prospecto_id).map(x=>x.prospecto_id))].slice(0,500));
+  const G={};for(const e of ev.data){const g=G[e.tipo]=G[e.tipo]||{n:0,c:0,v:0,cu:0,cuU:0};g.n++;
+    if(e.cliente_id){const P=H.P.filter(o=>o.cliente_id==e.cliente_id&&o.creado_en>e.enviado_en&&new Date(o.creado_en)-new Date(e.enviado_en)<7*864e5);if(P.length){g.c++;g.v+=P.reduce((a,o)=>a+ +o.total,0)}}
+    else if(e.prospecto_id&&(pr||[]).some(p=>p.id==e.prospecto_id&&p.estado=='cliente'))g.c++;
+    if(e.cupon){g.cu++;if(usados.has(String(e.cupon).toUpperCase()))g.cuU++}}
+  const tot=Object.values(G).reduce((a,g)=>({n:a.n+g.n,c:a.c+g.c,v:a.v+g.v}),{n:0,c:0,v:0});
+  box.innerHTML=`<div class="box"><h3>📈 Resultados de la cola (últimos 30 días)</h3><p><small>Cuántos compraron en los 7 días siguientes al mensaje (en prospectos: cuántos ya son clientes).</small></p>
+    <div class="tw"><table><tr><th>Tipo</th><th class="n">Enviados</th><th class="n">Compraron</th><th class="n">Venta</th><th class="n">Cupones usados</th></tr>${Object.entries(G).sort((a,b)=>b[1].v-a[1].v).map(([k,g])=>`<tr><td>${COLA_T[k]?COLA_T[k][0]+' '+COLA_T[k][1]:esc(k)}</td><td class="n">${g.n}</td><td class="n">${g.c} <small>(${g.n?Math.round(g.c/g.n*100):0} %)</small></td><td class="n">${$m(g.v)}</td><td class="n">${g.cu?g.cuU+' de '+g.cu:'—'}</td></tr>`).join('')}
+    <tr><td><b>Total</b></td><td class="n"><b>${tot.n}</b></td><td class="n"><b>${tot.c}</b></td><td class="n"><b>${$m(tot.v)}</b></td><td></td></tr></table></div></div>`}
+
+async function colaInicio(){const box=$('#colai');if(!box)return;const R=await datosCola(false);if(R.err){box.innerHTML='';return}const SK=skips(),T=R.L.filter(x=>!SK.has(x.k));
+  box.innerHTML=T.length?`<div class="box toca-i"><div class="bh"><h3 style="margin:0">⚡ Cola del día: ${T.length} ${T.length==1?'mensaje listo':'mensajes listos'}</h3><button id="ci_go">Empezar</button></div><p><small>${T.slice(0,5).map(x=>COLA_T[x.tipo][0]+' '+esc(nomItem(x))).join(' · ')}${T.length>5?' · y '+(T.length-5)+' más':''}</small></p></div>`:'';
+  $('#ci_go')&&($('#ci_go').onclick=()=>{S.tab='ventas';S.vs='cola';shell()})}
+
+/* ---------- Configuración de las automatizaciones ---------- */
+async function vAuto(){const A=await cfgAuto(),due=S.perfil.rol=='dueno',dis=due?'':'disabled';
+  const tg=(k,t,d)=>`<label class="chk"><input type="checkbox" data-ak="${k}" ${A[k].activa?'checked':''} ${dis}> <b>${t}</b></label><p><small>${d}</small></p>`;
+  const num=(k,f,t,w=70)=>`<label class="f">${t}<input type="number" min="0" data-an="${k}.${f}" value="${A[k][f]}" style="width:${w}px" ${dis}></label>`;
+  const txa=(k,f,t)=>`<label class="f">${t||'Mensaje'}<textarea rows="3" data-at="${k}.${f}" ${dis}>${esc(A[k][f])}</textarea></label>`;
+  const pasos=k=>`<div data-ps="${k}">${(A[k].pasos||[]).map((p,i)=>`<div class="paso"><div class="g"><label class="f">Paso ${i+1}: a los<input type="number" min="0" data-pd="${i}" value="${p.dias}" style="width:70px" ${dis}> días</label>
+    <label class="f">Qué hace<select data-pt="${i}" ${dis}>${(k=='prospectos'?[['mensaje','WhatsApp'],['visitar','Visitarlo']]:[['mensaje','WhatsApp'],['llamar','Llamarlo']]).map(([v,t])=>`<option value="${v}" ${p.tipo==v?'selected':''}>${t}</option>`).join('')}</select></label>
+    ${due?`<button class="alt" data-px="${i}">Quitar</button>`:''}</div><textarea rows="3" data-pm="${i}" ${dis}>${esc(p.txt)}</textarea></div>`).join('')}${due?`<button class="alt" data-pa="${k}">+ Agregar paso</button>`:''}</div>`;
+  $('#vs').innerHTML=`<div class="box"><h3>⚙️ Automatizaciones</h3><p><small>Acá definís las reglas. El sistema las revisa solo todos los días y pone cada mensaje en la <b>Cola del día</b>, ya escrito. En los mensajes podés usar: <code>{nombre}</code> <code>{link}</code> <code>{cupon}</code> <code>{pct}</code> <code>{hasta}</code> <code>{monto}</code> <code>{dias}</code> <code>{producto}</code>.</small></p>${due?'':'<p class="aviso">Solo el dueño puede cambiar las reglas.</p>'}</div>
+  <div class="box">${tg('reactivar','🔁 Secuencia para que vuelvan a comprar','Según los días sin comprar. Cuando el cliente compra, la secuencia se corta sola y vuelve a empezar desde cero.')}${pasos('reactivar')}</div>
+  <div class="box">${tg('dormidos','🎟️ Cupón automático para dormidos','Al cliente dormido le llega un cupón personal de un solo uso. En los resultados ves cuántos lo usaron.')}<div class="g">${num('dormidos','dias','Dormido desde (días)')}${num('dormidos','pct','Descuento %')}${num('dormidos','vence','Vence a los (días)')}</div>${txa('dormidos','txt')}</div>
+  <div class="box">${tg('sugerido','📞 Pedido sugerido el día justo','El día que a cada cliente le toca comprar, entra en la cola con su pedido de siempre armado y un link para confirmarlo con un toque.')}</div>
+  <div class="box">${tg('ofertas','🔥 Ofertas automáticas por stock','Las ofertas de "Últimas unidades" y "Liquidación" se mandan solas a los clientes que compran ese producto.')}
+    <label class="chk"><input type="checkbox" id="au_crear" ${A.ofertas.crear?'checked':''} ${dis}> Crear las ofertas solas (hasta 5 por día) cuando hay sobrestock o algo por vencer</label>
+    <div class="g">${num('ofertas','venc_dias','Por vencer en (días)')}${num('ofertas','pct_venc','Descuento por vencer %')}${num('ofertas','sobre_meses','Sobrestock desde (meses de stock)')}${num('ofertas','pct_sobre','Descuento sobrestock %')}${num('ofertas','max_dia','Máximo de mensajes por día')}</div>${txa('ofertas','txt')}</div>
+  <div class="box">${tg('nuevos','🌱 Primeros 90 días','Para que el cliente nuevo llegue al 2° y al 3° pedido, que es cuando queda fijo.')}<div class="g">${num('nuevos','dias2','Sin 2° pedido a los (días)')}${num('nuevos','dias3','Sin 3° pedido a los (días)')}${num('nuevos','pct3','Cupón para el 3° %')}</div>${txa('nuevos','txt2','Mensaje para el 2° pedido')}${txa('nuevos','txt3','Mensaje con cupón para el 3°')}</div>
+  <div class="box">${tg('prospectos','🧲 Secuencia de prospección','Cada prospecto nuevo con teléfono recibe la secuencia. Los días se cuentan desde el primer mensaje. Los que piden ser clientes desde el catálogo aparecen arriba de la cola para el alta exprés.')}${num('prospectos','max_dia','Prospectos nuevos por día',80)}${pasos('prospectos')}</div>
+  <div class="box">${tg('carritos','🛒 Carritos sin enviar','')}${txa('carritos','txt')}${tg('miraron','👀 Miraron el catálogo y no pidieron','')}${txa('miraron','txt')}${tg('deuda','💸 Recordatorio de deuda vencida','Como máximo una vez por semana por cliente.')}${num('deuda','dias','Con más de (días de mora)')}${txa('deuda','txt')}</div>
+  ${due?'<div class="box"><button id="au_g">Guardar las automatizaciones</button> <button class="alt" id="au_r">Volver a los mensajes de fábrica</button></div>':''}`;
+  if(!due)return;
+  const leer=()=>{const o=JSON.parse(JSON.stringify(A));$$('[data-ak]').forEach(c=>o[c.dataset.ak].activa=c.checked);o.ofertas.crear=$('#au_crear').checked;
+    $$('[data-an]').forEach(i=>{const[k,f]=i.dataset.an.split('.');o[k][f]=Math.max(0,+i.value||0)});$$('[data-at]').forEach(t=>{const[k,f]=t.dataset.at.split('.');o[k][f]=t.value});
+    $$('[data-ps]').forEach(d=>{const k=d.dataset.ps;o[k].pasos=[...d.querySelectorAll('.paso')].map(p=>({dias:Math.max(0,+p.querySelector('[data-pd]').value||0),tipo:p.querySelector('[data-pt]').value,txt:p.querySelector('[data-pm]').value}))});return o};
+  $$('[data-pa]').forEach(b=>b.onclick=()=>{const o=leer(),k=b.dataset.pa,u=o[k].pasos.slice(-1)[0];o[k].pasos.push({dias:(u?.dias||0)+7,tipo:'mensaje',txt:'¡Hola {nombre}! '});S.autoCfg=o;guardaAuto(o,true)});
+  $$('[data-px]').forEach(b=>b.onclick=()=>{const o=leer(),k=b.closest('[data-ps]').dataset.ps;o[k].pasos.splice(+b.dataset.px,1);guardaAuto(o,true)});
+  $('#au_g').onclick=()=>guardaAuto(leer());
+  $('#au_r').onclick=()=>{if(!confirm('¿Volver todas las reglas y mensajes a como vinieron de fábrica?'))return;guardaAuto(JSON.parse(JSON.stringify(AUTO_DEF)))}}
+async function guardaAuto(o,silencio){const{error}=await sb.from('config_app').upsert({clave:'automatizaciones',valor:JSON.stringify(o)});if(error)return toast(error.message,1);if(!silencio)toast('Automatizaciones guardadas.');vAuto()}
+
+/* ---------- Alta exprés ---------- */
+async function insertCliente(row){let r=row;for(let k=0;k<6;k++){const{data,error}=await sb.from('clientes').insert(r).select().single();if(!error)return{data};
+  const col=Object.keys(r).find(c=>new RegExp("'"+c+"'|\\b"+c+"\\b").test(error.message)&&!['razon_social','telefono'].includes(c));if(!col)return{error};const{[col]:_,...rest}=r;r=rest}return{error:{message:'No se pudo dar de alta.'}}}
+async function altaExpres(x,w){if(x.cliente_id){const c=S.clientes.find(c=>c.id==x.cliente_id);if(c)return c}
+  const cod=(String(x.observaciones||'').match(/código ([A-Z0-9]{4,12})/)||[])[1],ref=cod?S.clientes.find(c=>c.codigo_ref==cod):null;
+  const{data:c,error}=await insertCliente({razon_social:x.nombre,telefono:x.telefono,domicilio:x.domicilio,condicion_iva:'consumidor_final',lista:'mayorista',condicion_pago_dias:0,vendedor_id:S.perfil.id,observaciones:x.observaciones,
+    rubro:x.rubro||null,lat:x.lat??null,lng:x.lng??null,origen:x.campania?'qr':ref?'referido':(x.origen||'prospecto'),campania:x.campania||null,referido_por:ref?.id||null});
+  if(error){w&&w.close();toast(error.message,1);return null}
+  await sb.from('prospectos').update({estado:'cliente',cliente_id:c.id,actualizado_en:new Date().toISOString()}).eq('id',x.id);x.estado='cliente';x.cliente_id=c.id;
+  S.clientes.push(c);S.clientes.sort((a,b)=>a.razon_social.localeCompare(b.razon_social));
+  if(c.telefono&&c.token_pedidos){const{data:kit}=await sb.from('combos').select('id').eq('solo_nuevos',true).eq('activo',true).limit(1);
+    const t=PASOS[0][2](c)+(kit?.length?'\n\n🎁 Para tu *primer pedido* tenés un kit de bienvenida con descuento: lo ves arriba de todo en el catálogo.':'');
+    const u='https://wa.me/'+telWA(c.telefono)+'?text='+encodeURIComponent(t);w?w.location.href=u:window.open(u,'_blank');
+    sb.from('contactos_clientes').insert({cliente_id:c.id,tipo:'bienvenida',detalle:PASOS[0][1]}).then(()=>{})}else w&&w.close();
+  toast('¡'+c.razon_social+' ya es cliente! Le mandamos su catálogo. Completá CUIT y lista en su ficha cuando puedas.');return c}
+
+/* ---------- Primeros 90 días ---------- */
+async function vNuevos90(){const[A,H,ev]=await Promise.all([cfgAuto(),histAuto(),sb.from('envios_auto').select('clave,enviado_en').like('clave','nv%')]);if(ev.error){$('#vs').innerHTML=SQL_AUT;return}
+  const E=new Set((ev.data||[]).map(x=>x.clave)),N=S.clientes.map(c=>({c,r:H.C[c.id]})).filter(x=>esNuevo(x.c,x.r)).sort((a,b)=>a.r.pri<b.r.pri?1:-1);
+  const n2=N.filter(x=>x.r.n>=2).length,n3=N.filter(x=>x.r.n>=3).length,venta=N.reduce((a,x)=>a+x.r.t,0);
+  const est=x=>x.r.n>=3?['b-entregado','✅ Ya es cliente fijo']:x.r.n==2?(dDesde(x.r.ult)>=A.nuevos.dias3?['b-mora30','Le toca el cupón para el 3°']:['b-pendiente','Esperando el 3° pedido']):(dDesde(x.r.ult)>=A.nuevos.dias2?['b-mora30','No hizo el 2° pedido']:['b-pendiente','Esperando el 2° pedido']);
+  $('#vs').innerHTML=`<div class="kp"><div class="box"><span class="lab">Clientes nuevos (90 días)</span><span class="num">${N.length}</span><span class="det">venta ${$m(venta)}</span></div><div class="box"><span class="lab">Hicieron el 2° pedido</span><span class="num">${N.length?Math.round(n2/N.length*100):0} %</span><span class="det">${n2} de ${N.length}</span></div>
+    <div class="box ok"><span class="lab">Quedaron fijos (3 pedidos)</span><span class="num">${N.length?Math.round(n3/N.length*100):0} %</span><span class="det">${n3} de ${N.length}</span></div></div>
+  <div class="box"><h3>🌱 Primeros 90 días</h3><p><small>El cliente nuevo se gana en los primeros 3 pedidos. Si a los ${A.nuevos.dias2} días no hizo el 2°, le llega un mensaje para repetir. Si a los ${A.nuevos.dias3} días del 2° no hizo el 3°, un cupón de ${nf(A.nuevos.pct3)} %. Todo entra solo en la <b>Cola del día</b>.</small></p>
+    ${N.length?`<div class="tw"><table><tr><th>Cliente</th><th>Pedidos</th><th>Último</th><th>Estado</th></tr>${N.map(x=>{const[b,t]=est(x);return`<tr><td><a class="lnk" data-nf="${x.c.id}"><b>${esc(x.c.razon_social)}</b></a><br><small>1° pedido ${fd(diaLocal(new Date(x.r.pri)))} · ${$m(x.r.t)}</small></td>
+      <td style="white-space:nowrap;font-size:18px;letter-spacing:2px">${[1,2,3].map(k=>x.r.n>=k?'●':'○').join('')}</td><td>hace ${dDesde(x.r.ult)} d</td><td><span class="badge ${b}">${t}</span>${E.has('nv2:'+x.c.id)||E.has('nv3:'+x.c.id)?'<br><small class="sube">✓ mensaje enviado</small>':''}</td></tr>`}).join('')}</table></div>`
+    :'<p><small>No hay clientes con su primer pedido en los últimos 90 días.</small></p>'}<p><button class="alt" id="nv_cola">Ir a la cola del día</button> <button class="alt" id="nv_cfg">⚙️ Cambiar días y mensajes</button></p></div>`;
+  $$('#vs [data-nf]').forEach(a=>a.onclick=()=>{S.tab='clientes';shell();fichaCliente(S.clientes.find(c=>c.id==a.dataset.nf))});
+  $('#nv_cola').onclick=()=>{S.vs='cola';S.colaF='nuevo';vVentas()};$('#nv_cfg').onclick=()=>{S.vs='auto';vVentas()}}
+
+/* ---------- QR por campaña y vendedor ---------- */
+const TIPOS_QR=[['volante','Volante'],['cartel','Cartel en un local'],['vendedor','Vendedor'],['zona','Zona'],['redes','Redes sociales'],['otro','Otro']];
+const linkQR=x=>urlBase('ver=catalogo&qr='+encodeURIComponent(x.codigo)+(x.rubro?'&rubro='+encodeURIComponent(x.rubro):''));
+async function vQR(){const due=S.perfil.rol=='dueno';
+  const[cq,vi,pr,pp,ve,H]=await Promise.all([sb.from('campanias_qr').select('*').order('creado_en',{ascending:false}),sb.from('qr_visitas').select('*'),sb.from('prospectos').select('campania,estado').not('campania','is',null),
+    sb.from('presupuestos').select('campania,total').not('campania','is',null),sb.rpc('vendedores'),histAuto()]);
+  if(cq.error){$('#vs').innerHTML=SQL_AUT;return}const V=ve.data||[],rubros=[...new Set(S.clientes.map(c=>c.rubro).filter(Boolean))].sort();
+  const st=k=>{const cl=S.clientes.filter(c=>c.campania==k);return{vis:(vi.data||[]).filter(x=>x.codigo==k).reduce((a,x)=>a+x.n,0),alt:(pr.data||[]).filter(x=>x.campania==k).length,ped:(pp.data||[]).filter(x=>x.campania==k).length,cli:cl.length,venta:cl.reduce((a,c)=>a+(H.C[c.id]?.t||0),0)}};
+  $('#vs').innerHTML=`<div class="box"><h3>🔳 QR por campaña y vendedor</h3><p><small>Cada volante, cartel, vendedor o zona lleva su propio QR al catálogo público. Así sabés cuántos lo escanearon, cuántos pidieron ser clientes, cuántos hicieron pedido y cuánto compraron.</small></p>
+    ${due?`<div class="g"><label class="f">Nombre<input id="qr_n" placeholder="Ej.: Volante Belgrano octubre"></label><label class="f">Tipo<select id="qr_t">${TIPOS_QR.map(([v,t])=>`<option value="${v}">${t}</option>`).join('')}</select></label>
+      <label class="f">Vendedor (opcional)<select id="qr_v"><option value="">—</option>${V.map(v=>`<option value="${v.id}">${esc(v.nombre)}</option>`).join('')}</select></label><label class="f">Zona (opcional)<input id="qr_z" placeholder="Ej.: Belgrano"></label>
+      <label class="f">Abrir el catálogo en el rubro (opcional)<select id="qr_r"><option value="">Todos los productos</option>${rubros.map(r=>`<option>${esc(r)}</option>`).join('')}</select></label></div><button id="qr_g">Crear QR</button>`:''}</div>
+  ${(cq.data||[]).map(x=>{const s=st(x.codigo);return`<div class="box ${x.activa?'':'hecho-vi'}"><div class="bh"><h3 style="margin:0">${esc(x.nombre)}</h3><span class="badge">${esc(x.codigo)}</span></div>
+    <p><small>${esc(TIPOS_QR.find(t=>t[0]==x.tipo)?.[1]||x.tipo)}${x.vendedor_id?' · '+esc(V.find(v=>v.id==x.vendedor_id)?.nombre||''):''}${x.zona?' · '+esc(x.zona):''}${x.rubro?' · rubro '+esc(x.rubro):''}${x.activa?'':' · <b>pausado</b>'}</small></p>
+    <div class="kp mini"><div class="box"><span class="lab">Escaneos</span><span class="num">${s.vis}</span></div><div class="box"><span class="lab">Pidieron alta</span><span class="num">${s.alt}</span></div><div class="box"><span class="lab">Pedidos web</span><span class="num">${s.ped}</span></div><div class="box ok"><span class="lab">Clientes</span><span class="num">${s.cli}</span><span class="det">${$m(s.venta)}</span></div></div>
+    <div class="fc-acc"><button class="alt" data-qd="${x.codigo}">⬇️ Descargar QR</button><button class="alt" data-qp="${x.codigo}">🖨️ Imprimir volantes</button><button class="alt" data-qc="${x.codigo}">Copiar link</button>${due?`<button class="alt" data-qa="${x.codigo}">${x.activa?'Pausar':'Activar'}</button>`:''}</div></div>`}).join('')||'<div class="box"><p><small>Todavía no creaste ningún QR.</small></p></div>'}`;
+  const Q=k=>cq.data.find(x=>x.codigo==k);
+  $('#qr_g')&&($('#qr_g').onclick=async()=>{const n=$('#qr_n').value.trim();if(!n)return toast('Poné un nombre.',1);let cod;
+    for(let k=0;k<5;k++){cod=(norm(n).replace(/[^a-z]/g,'').slice(0,4).toUpperCase()||'QR')+Math.random().toString(36).slice(2,4).toUpperCase();if(!cq.data.some(x=>x.codigo==cod))break}
+    const{error}=await sb.from('campanias_qr').insert({codigo:cod,nombre:n,tipo:$('#qr_t').value,vendedor_id:$('#qr_v').value||null,zona:$('#qr_z').value.trim()||null,rubro:$('#qr_r').value||null});if(error)return toast(error.message,1);toast('QR creado: '+cod);vQR()});
+  $$('#vs [data-qa]').forEach(b=>b.onclick=async()=>{const x=Q(b.dataset.qa);await sb.from('campanias_qr').update({activa:!x.activa}).eq('codigo',x.codigo);vQR()});
+  $$('#vs [data-qc]').forEach(b=>b.onclick=async()=>{const u=linkQR(Q(b.dataset.qc));try{await navigator.clipboard.writeText(u);toast('Link copiado.')}catch(e){prompt('Copiá el link:',u)}});
+  $$('#vs [data-qd]').forEach(b=>b.onclick=async()=>{const x=Q(b.dataset.qd),q=await qrURL(linkQR(x),600);if(!q)return toast('No se pudo generar el QR. Probá de nuevo.',1);
+    const im=new Image();im.onload=()=>{const cv=document.createElement('canvas');cv.width=680;cv.height=800;const g=cv.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,680,800);g.drawImage(im,40,40,600,600);
+      g.fillStyle='#1c2333';g.textAlign='center';g.font='bold 34px Arial';g.fillText('Escaneá y hacé tu pedido',340,700);g.font='24px Arial';g.fillText('Sabores de mi País · '+x.codigo,340,745);
+      const a=document.createElement('a');a.href=cv.toDataURL('image/png');a.download='QR-'+x.codigo+'.png';a.click()};im.src=q});
+  $$('#vs [data-qp]').forEach(b=>b.onclick=async()=>{const x=Q(b.dataset.qp),q=await qrURL(linkQR(x),400);if(!q)return toast('No se pudo generar el QR.',1);const w=window.open('','_blank');if(!w)return;
+    const card=`<div class="c">${MARCA.logo?`<img class="l" src="${MARCA.logo}">`:''}<h2>¿Tenés un kiosco, almacén o dietética?</h2><p>Mirá nuestro catálogo con precios mayoristas y hacé tu pedido online.</p><img class="q" src="${q}"><b>Escaneá con la cámara</b><small>Sabores de mi País · ${esc(x.codigo)}</small></div>`;
+    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Volantes ${esc(x.codigo)}</title><style>@page{size:A4;margin:8mm}body{margin:0;font-family:Arial,sans-serif}.h{display:grid;grid-template-columns:1fr 1fr;gap:6mm}.c{border:1px dashed #999;border-radius:4mm;padding:6mm;text-align:center;height:132mm;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2mm}.l{max-height:20mm}.q{width:55mm;height:55mm}h2{font-size:15pt;margin:0}p{font-size:11pt;margin:0}small{color:#666}</style></head><body><div class="h">${card.repeat(4)}</div><script>window.onload=()=>setTimeout(()=>window.print(),400)<\/script></body></html>`);w.document.close()})}
+
+/* ---------- Ruta de prospección ---------- */
+const GUION_R={kiosco:'Golosinas y alfajores de alta rotación: margen alto y entrega rápida.',almac:'Reponé surtido sin ir al mayorista: te lo llevamos al local.',dietet:'Frutos secos, snacks y productos sin TACC a precio mayorista.',autoserv:'Variedad y precio por bulto para góndola.',panader:'Golosinas y alfajores para la caja: suman venta a cada ticket.',rotiser:'Bebidas y snacks para acompañar.',verdul:'Frutos secos y snacks: suman ticket.'};
+const guionR=r=>{const n=norm(r||'');const k=Object.keys(GUION_R).find(k=>n.includes(k));return k?GUION_R[k]:'Mostrale el catálogo en el celu y ofrecé el kit de primer pedido.'};
+async function vRuta(){S.ruN=S.ruN||8;S.ruE=S.ruE||['nuevo','contactado','interesado'];
+  const{data,error}=await sb.from('prospectos').select('*').in('estado',['nuevo','contactado','visitado','interesado']).limit(3000);if(error){$('#vs').innerHTML='<p class="err">'+esc(error.message)+'</p>';return}
+  const rub=[...new Set(data.map(x=>x.rubro).filter(Boolean))].sort(),hoy=diaLocal(new Date());
+  const C=data.filter(x=>S.ruE.includes(x.estado)&&(!S.ruR||x.rubro==S.ruR)&&!(x.ultimo_contacto&&dDesde(x.ultimo_contacto)<3&&x.ultimo_contacto!=hoy)),con=C.filter(x=>x.lat!=null&&x.lng!=null),sin=C.length-con.length;
+  let R=[];if(S.ruO&&con.length){let p=S.ruO;const pool=[...con];while(R.length<S.ruN&&pool.length){pool.sort((a,b)=>distKm(p,[+a.lat,+a.lng])-distKm(p,[+b.lat,+b.lng]));const x=pool.shift();x._d=distKm(p,[+x.lat,+x.lng]);R.push(x);p=[+x.lat,+x.lng]}}
+  S.ruL=R;const km=R.reduce((a,x)=>a+x._d,0);
+  $('#vs').innerHTML=`<div class="box"><h3>🚶 Ruta de prospección</h3><p><small>Arma el recorrido del día con los prospectos más cercanos entre sí, empezando desde donde estás. En cada negocio marcás cómo te fue con un toque y queda registrado.</small></p>
+    <div class="g"><label class="f">Salgo desde<input id="ru_o" placeholder="Dirección (o usá tu ubicación)" value="${esc(S.ruOt||'')}"></label><label class="f">Cuántos negocios<select id="ru_n">${[5,8,10,15].map(v=>`<option ${S.ruN==v?'selected':''}>${v}</option>`).join('')}</select></label>
+      <label class="f">Rubro<select id="ru_r"><option value="">Todos</option>${rub.map(r=>`<option ${S.ruR==r?'selected':''}>${esc(r)}</option>`).join('')}</select></label></div>
+    <div class="chk-row">${[['nuevo','Nuevos'],['contactado','Contactados'],['interesado','Interesados'],['visitado','Ya visitados']].map(([k,t])=>`<label class="chk"><input type="checkbox" class="ru_e" value="${k}" ${S.ruE.includes(k)?'checked':''}> ${t}</label>`).join('')}</div>
+    <button id="ru_gps">📍 Usar mi ubicación</button> <button class="alt" id="ru_go">Armar ruta desde la dirección</button>
+    <p><small>${con.length} prospectos con ubicación${sin?` · ${sin} sin ubicación (cargalos desde "Buscar negocios" o agregales la dirección)`:''}.</small></p></div>
+  ${R.length?`<div class="box"><div class="bh"><h3 style="margin:0">Tu ruta: ${R.length} negocios · ~${nf(Math.round(km*10)/10)} km</h3><button class="wa" id="ru_maps">Abrir en Google Maps</button></div>
+    <div class="ag">${R.map((x,i)=>`<div class="vi" id="ru_${x.id}"><span class="badge b-pendiente" style="font-size:16px">${i+1}</span><div><b>${esc(x.nombre)}</b> <small>· ${esc(x.rubro||'')} · ${x._d<1?Math.round(x._d*1000)+' m':nf(Math.round(x._d*10)/10)+' km'}</small><br><small>${esc(x.domicilio||'')}${x.telefono?' · '+esc(x.telefono):''} · <span class="badge">${esc(EST_PR[x.estado]||x.estado)}</span></small><br><small>💬 ${esc(guionR(x.rubro))}</small></div>
+      <div class="acc"><button class="alt" data-rv="${x.id}" data-r="si">👍 Le interesa</button><button class="alt" data-rv="${x.id}" data-r="volver">🔁 Volver</button><button class="alt" data-rv="${x.id}" data-r="no">👎 No</button><button data-ra="${x.id}">🧾 Hizo pedido</button></div></div>`).join('')}</div></div>`
+    :S.ruO?'<div class="box"><p><small>No hay prospectos con ubicación para esos filtros.</small></p></div>':''}`;
+  $('#ru_n').onchange=e=>{S.ruN=+e.target.value;vRuta()};$('#ru_r').onchange=e=>{S.ruR=e.target.value;vRuta()};
+  $$('.ru_e').forEach(c=>c.onchange=()=>{S.ruE=[...$$('.ru_e')].filter(x=>x.checked).map(x=>x.value);vRuta()});
+  $('#ru_gps').onclick=()=>{if(!navigator.geolocation)return toast('Tu navegador no da la ubicación. Escribí la dirección.',1);toast('Buscando tu ubicación…');
+    navigator.geolocation.getCurrentPosition(p=>{S.ruO=[p.coords.latitude,p.coords.longitude];S.ruOt='';vRuta()},()=>toast('No se pudo obtener la ubicación. Escribí la dirección.',1),{enableHighAccuracy:true,timeout:15000})};
+  $('#ru_go').onclick=async()=>{const z=$('#ru_o').value.trim();if(!z)return toast('Escribí desde dónde salís.',1);let c;
+    try{const r=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=ar&q='+encodeURIComponent(z),{headers:{'Accept-Language':'es'}});c=(await r.json())[0]}catch(e){}
+    if(!c)return toast('No encontré esa dirección.',1);S.ruO=[+c.lat,+c.lon];S.ruOt=z;vRuta()};
+  $('#ru_maps')&&($('#ru_maps').onclick=()=>{const P=R.slice(0,10).map(x=>x.lat+','+x.lng);window.open('https://www.google.com/maps/dir/?api=1&travelmode=walking&origin='+S.ruO.join(',')+'&destination='+P[P.length-1]+(P.length>1?'&waypoints='+encodeURIComponent(P.slice(0,-1).join('|')):''),'_blank')});
+  const marca=(id,html)=>{const d=$('#ru_'+id);if(d){d.classList.add('hecho-vi');d.querySelector('.acc').innerHTML=html}};
+  $$('#vs [data-rv]').forEach(b=>b.onclick=async()=>{const x=R.find(y=>y.id==b.dataset.rv),r=b.dataset.r,M={si:['interesado',3,'Le interesó'],volver:['visitado',7,'Volver otro día'],no:['no_interesado',null,'No le interesa']}[r];
+    const nota=prompt('Nota de la visita (opcional):','');if(nota===null)return;
+    const{error}=await sb.from('prospectos').update({estado:M[0],ultimo_contacto:hoy,proximo_seguimiento:M[1]?diaLocal(new Date(Date.now()+M[1]*864e5)):null,observaciones:('Visita '+fd(hoy)+': '+M[2]+(nota?' — '+nota:'')+(x.observaciones?'\n'+x.observaciones:'')).slice(0,1000),actualizado_en:new Date().toISOString()}).eq('id',x.id);
+    if(error)return toast(error.message,1);marca(x.id,'<small class="sube">✓ '+M[2]+'</small>')});
+  $$('#vs [data-ra]').forEach(b=>b.onclick=async()=>{const x=R.find(y=>y.id==b.dataset.ra);if(!confirm('¿Dar de alta a «'+x.nombre+'» y cargarle el pedido?'))return;const c=await altaExpres(x,null);if(!c)return;
+    marca(x.id,'<small class="sube">✓ Ya es cliente</small>');if(confirm('¿Cargar el pedido de '+c.razon_social+' ahora?')){S.preCli=c;S.tab='pedidos';shell()}})}
+
+/* ---------- Tablero de captación ---------- */
+const origenCli=c=>c.campania?'🔳 QR '+c.campania:c.origen=='mapa'?'🗺️ Buscar negocios':c.origen=='catalogo'?'🌐 Catálogo público':(c.referido_por||c.origen=='referido')?'🤝 Recomendación':c.origen=='qr'?'🔳 QR':c.origen=='prospecto'?'🧲 Prospecto (visita o carga)':'— Sin dato (cargado a mano)';
+const origenPr=x=>x.campania?'🔳 QR '+x.campania:x.origen=='mapa'?'🗺️ Buscar negocios':x.origen=='catalogo'?(/recomend/i.test(x.observaciones||'')?'🤝 Recomendación':'🌐 Catálogo público'):'🧲 Prospecto (visita o carga)';
+async function vCaptacion(){S.caP=S.caP||28;const[pr,H,ve]=await Promise.all([todo(()=>sb.from('prospectos').select('*').order('creado_en')),histAuto(),sb.rpc('vendedores')]);
+  if(pr.error){$('#vs').innerHTML='<p class="err">'+esc(pr.error.message)+'</p>';return}const desde=Date.now()-S.caP*864e5,en=f=>f&&new Date(f)>=desde;
+  const P=pr.data.filter(x=>en(x.creado_en)),conv=pr.data.filter(x=>x.estado=='cliente'&&en(x.actualizado_en));
+  const N=S.clientes.filter(c=>{const r=H.C[c.id];return r&&en(r.pri)&&dDesde(r.pri)<=S.caP&&(!c.creado_en||new Date(c.creado_en)>=desde-60*864e5)});
+  const venta=N.reduce((a,c)=>a+H.C[c.id].t,0),G={};
+  for(const x of P){const k=origenPr(x),g=G[k]=G[k]||{p:0,c:0,v:0};g.p++}
+  for(const c of N){const k=origenCli(c),g=G[k]=G[k]||{p:0,c:0,v:0};g.c++;g.v+=H.C[c.id].t}
+  const sem=Math.ceil(S.caP/7),W=[...Array(sem)].map((_,i)=>{const a=Date.now()-(sem-i)*7*864e5,b=a+7*864e5;return{t:new Date(a).toLocaleDateString('es-AR',{day:'numeric',month:'numeric'}),p:pr.data.filter(x=>{const t=new Date(x.creado_en);return t>=a&&t<b}).length,c:S.clientes.filter(c=>{const r=H.C[c.id];if(!r)return false;const t=new Date(r.pri);return t>=a&&t<b}).length}});
+  const mx=Math.max(1,...W.map(w=>Math.max(w.p,w.c))),VD={};for(const c of N){const k=c.vendedor_id||'—';const g=VD[k]=VD[k]||{n:0,v:0};g.n++;g.v+=H.C[c.id].t}
+  $('#vs').innerHTML=`<div class="sub">${[[28,'Últimas 4 semanas'],[90,'Últimos 3 meses'],[180,'Últimos 6 meses']].map(([v,t])=>`<button class="${S.caP==v?'':'alt'}" data-cp="${v}">${t}</button>`).join('')}</div>
+  <div class="kp"><div class="box"><span class="lab">Prospectos nuevos</span><span class="num">${P.length}</span><span class="det">${P.filter(x=>x.estado!='nuevo').length} ya contactados</span></div><div class="box ok"><span class="lab">Pasaron a cliente</span><span class="num">${conv.length}</span><span class="det">en el período</span></div>
+    <div class="box"><span class="lab">Clientes nuevos que compraron</span><span class="num">${N.length}</span><span class="det">primer pedido en el período</span></div><div class="box ok"><span class="lab">Venta de clientes nuevos</span><span class="num">${$m(venta)}</span><span class="det">${N.length?'promedio '+$m(venta/N.length):''}</span></div></div>
+  <div class="box"><h3>📊 Semana a semana</h3><div class="cbar">${W.map(w=>`<div class="cb"><div class="bars"><span class="bp" style="height:${Math.round(w.p/mx*100)}%" title="${w.p} prospectos"></span><span class="bc" style="height:${Math.round(w.c/mx*100)}%" title="${w.c} clientes"></span></div><small>${w.t}</small><small><b>${w.p}</b>/<b class="sube">${w.c}</b></small></div>`).join('')}</div>
+    <p><small><span class="leg bp"></span> Prospectos nuevos <span class="leg bc"></span> Clientes nuevos (primer pedido)</small></p></div>
+  <div class="dos"><div class="box"><h3>🧭 ¿De dónde vienen?</h3><div class="tw"><table><tr><th>Origen</th><th class="n">Prospectos</th><th class="n">Clientes nuevos</th><th class="n">Venta</th></tr>${Object.entries(G).sort((a,b)=>b[1].v-a[1].v||b[1].p-a[1].p).map(([k,g])=>`<tr><td>${esc(k)}</td><td class="n">${g.p}</td><td class="n">${g.c}</td><td class="n">${$m(g.v)}</td></tr>`).join('')||'<tr><td colspan="4"><small>Sin datos en el período.</small></td></tr>'}</table></div></div>
+    <div class="box"><h3>👤 Clientes nuevos por vendedor</h3>${Object.keys(VD).length?`<table>${Object.entries(VD).sort((a,b)=>b[1].v-a[1].v).map(([id,g])=>`<tr><td>${esc((ve.data||[]).find(v=>v.id==id)?.nombre||'Sin vendedor')}</td><td class="n">${g.n}</td><td class="n">${$m(g.v)}</td></tr>`).join('')}</table>`:'<p><small>Sin clientes nuevos en el período.</small></p>'}
+      <h3 style="margin-top:14px">🆕 Los clientes nuevos</h3>${N.length?N.sort((a,b)=>H.C[b.id].t-H.C[a.id].t).slice(0,15).map(c=>`<div class="bh cpf"><span>${esc(c.razon_social)} <small>· ${esc(origenCli(c))}</small></span><b>${$m(H.C[c.id].t)}</b></div>`).join(''):'<p><small>—</small></p>'}</div></div>`;
+  $$('#vs [data-cp]').forEach(b=>b.onclick=()=>{S.caP=+b.dataset.cp;vCaptacion()})}
 
 /* ======================= VENTAS 8: conseguir clientes, proveedores y margen ======================= */
 const SQL_PRV='<div class="aviso">Falta correr <b>ventas-proveedores.sql</b> en Supabase (SQL Editor). Después recargá la página.</div>';
