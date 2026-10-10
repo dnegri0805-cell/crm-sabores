@@ -7,7 +7,7 @@ Guía ordenada por sección para consultar o pasarle al equipo. Cada punto dice 
 - **CRM (uso interno):** https://dnegri0805-cell.github.io/crm-sabores/ — se entra con usuario y contraseña.
 - **Catálogo de cada cliente:** link personal `pedido.html?c=…` que se manda desde la ficha del cliente (botón de WhatsApp). Cada cliente ve sus precios, su cuenta y sus promos.
 - **Catálogo público (sin precios de cliente):** `pedido.html?ver=catalogo` — para redes, folletos y nuevos clientes.
-- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-10.14`). Si algo "no aparece", cerrá y abrí la pestaña.
+- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-10.15`). Si algo "no aparece", cerrá y abrí la pestaña.
 - **En el celular:** abrí el CRM en Chrome → menú ⋮ → *Agregar a pantalla de inicio*. Queda como una app.
 - **Menú principal:** Inicio · Pedidos · Ventas · Reparto · Clientes · Cobranza · Caja · Compras · Stock · Precios · Reportes · Contable · Manual. Los números en rojo indican cosas pendientes.
 
@@ -45,7 +45,7 @@ Debajo aparecen tarjetas de aviso; cada una lleva a la pantalla donde se actúa:
 
 ## 4. Ventas · Recuperar y cerrar
 
-**Dónde:** menú *Ventas* (abre en *Cola del día*). Los botones de arriba cambian de pantalla; casi todas tienen botón de **WhatsApp con el mensaje ya armado**.
+**Dónde:** menú *Ventas* (abre en *Cola del día*). Arriba hay solapas: **⚡ Hoy** (Cola, Plan de ataque, Plan del día, Automatizaciones) · **🤝 Clientes** · **🧲 Prospectos** · **🏷️ Ofertas** · **📣 Difundir** · **📸 Instagram** · **📊 Analizar**. Al tocar una solapa aparecen sus pantallas. Con **🔎 Buscar pantalla…** escribís, por ejemplo, "cupo" y la encontrás aunque esté en otra solapa. Casi todas tienen botón de **WhatsApp con el mensaje ya armado**.
 
 - **⚡ Cola del día:** todos los mensajes que conviene mandar hoy, ya escritos y ordenados por importancia. Tocás **▶ Empezar ráfaga**: se abre WhatsApp con el mensaje, lo mandás, volvés y sigue el próximo. Cada cliente aparece una vez por día y nada se repite. Qué entra:
   - *Para cerrar ventas:* carritos sin enviar, miraron el catálogo, les toca comprar (con su **pedido sugerido**), aviso de **cierre de pedidos** (el día antes de su entrega), presupuestos y sugeridos **sin respuesta**, **volvió el stock**, **bajó el precio**, ofertas automáticas, **venta cruzada** y campañas programadas.
