@@ -224,6 +224,7 @@ input,textarea{border:2px solid #ece3d6;border-radius:14px}
 .conv{background:#fff8e6;border-radius:14px;padding:8px 12px;margin:10px 0}.conv h3{margin:0 0 4px;font-size:15px}.conv .fila{padding:6px 0;font-size:14px}.conv button{border:0;background:var(--m);color:#fff;border-radius:999px;padding:6px 12px;font-weight:700;white-space:nowrap}
 .mor{background:#fdecea;color:#7f1d1d;border-radius:16px;padding:12px 14px;margin:10px 0;font-size:14px}.mor .mp{margin-top:8px}
 .inst{display:flex;gap:10px;align-items:center;background:#17213a;color:#fff;border-radius:16px;padding:10px 12px;margin:8px 0;font-size:14px}.inst img{width:40px;height:40px;border-radius:10px;background:#fff}.inst div{flex:1}.inst button{border:0;border-radius:999px;padding:8px 12px;font-weight:700;background:var(--sol,#ffc93c);color:#4a3000}.inst a{color:#fff;opacity:.7;cursor:pointer;padding:0 4px}
+.liga{background:linear-gradient(120deg,#fff4d1,#ffe6a8);border-radius:16px;padding:10px 14px;margin:8px 0;font-size:14px}.acu{background:#eef4ff;color:#1e3a8a;border-radius:14px;padding:10px 12px;margin:8px 0;font-size:14px}.acu .pgb{margin-top:6px}
 .opi{margin:16px 0}.opi h3{margin:0 0 8px}.opl{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x mandatory}.op{flex:0 0 240px;scroll-snap-align:start;background:#fff;border-radius:16px;padding:12px;box-shadow:var(--sombra)}.op p{margin:6px 0;font-size:14px}.op small{color:var(--mu)}.op .es{color:#e0a100;letter-spacing:2px}
 </style>
 </head>
@@ -234,7 +235,7 @@ input,textarea{border:2px solid #ece3d6;border-radius:14px}
 <div id="t" class="toast" hidden></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
-const VERSION='2026-10-10.12';
+const VERSION='2026-10-10.13';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -244,7 +245,12 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const $m=n=>'$ '+Number(n||0).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const norm=t=>String(t??'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
 const QS=new URLSearchParams(location.search),SUG=QS.has('sug'),RUB=(QS.get('rubro')||'').trim().slice(0,40),token=QS.get('c')||'',ENC=QS.get('enc'),PRE=QS.get('pre'),REF=(QS.get('ref')||'').trim().toUpperCase().slice(0,12),QRC=(()=>{let q=(QS.get('qr')||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,16);try{if(q)sessionStorage.setItem('qrc',q);else q=sessionStorage.getItem('qrc')||''}catch(e){}return q})();
-let OPI=[];const marcarQR=tel=>{if(QRC&&tel)sb.rpc('marcar_campania',{p_codigo:QRC,p_telefono:tel}).then(()=>{},()=>{})};
+let OPI=[],EST={};const cargarEst=()=>sb.rpc('estrategia_cliente',{p_token:PUB?null:token}).then(({data})=>{if(data&&typeof data=='object'){EST=data;if(P.length&&typeof lista=='function')lista()}},()=>{});
+function ligaHTML(){const g=EST.liga;if(PUB||!g||!g.pos)return '';const pr=g.premios||[];
+  return `<div class="liga">🏆 <b>Liga de ${esc(String(g.rubro).toLowerCase())}s</b> de este mes: vas <b>${g.pos}° de ${g.total}</b>. ${g.pos==1?'¡Vas primero! 🥇':g.falta>0?'Te faltan <b>'+$m(g.falta)+'</b> en compras para subir al '+(g.pos-1)+'°.':''}${pr.length?`<br><small>Premios: 🥇 ${esc(pr[0]||'')} · 🥈 ${esc(pr[1]||'')} · 🥉 ${esc(pr[2]||'')}</small>`:''}</div>`}
+function acuerdoHTML(){const a=EST.acuerdo;if(PUB||!a||!(+a.monto>0))return '';const p=Math.min(100,Math.round(+a.lleva/+a.monto*100));
+  return `<div class="acu">🤝 <b>Tu acuerdo</b> (${a.tipo=='pct'?nf(a.pct)+' % de descuento':'precio congelado'}): este mes llevás <b>${$m(a.lleva)}</b> de ${$m(a.monto)}.<div class="pgb"><i style="width:${p}%"></i></div></div>`}
+const marcarQR=tel=>{if(QRC&&tel)sb.rpc('marcar_campania',{p_codigo:QRC,p_telefono:tel}).then(()=>{},()=>{})};
 const PUB=!token&&QS.has('ver');
 const K='carrito_'+(PUB?'publico':token);
 let C=null,P=[],car={},filtro='',marca='',lim=60;
@@ -301,6 +307,7 @@ sb.rpc('marca_publica').then(({data})=>{if(data){aplicarMarca(data);try{localSto
 async function iniciar(){
   if(ENC)return encuesta();if(PRE)return presupuesto();
   if(PUB&&QRC){try{if(!sessionStorage.getItem('qrv'+QRC)){sessionStorage.setItem('qrv'+QRC,'1');sb.rpc('registrar_qr',{p_codigo:QRC}).then(()=>{},()=>{})}}catch(e){}}
+  cargarEst();
   if(PUB)sb.rpc('opiniones_publicas').then(({data})=>{if(Array.isArray(data)&&data.length){OPI=data;if(typeof lista=='function'&&P.length)lista()}},()=>{});
   if(PUB){const a={};if(REF)a.p_ref=REF;if(RUB)a.p_rubro=RUB;const{data,error}=Object.keys(a).length?await sb.rpc('catalogo_publico',a):await sb.rpc('catalogo_publico');
     if(error){$('#hc').textContent='';$('#m').innerHTML=`<div class="msg"><h2>Catálogo no disponible</h2><p class="err">${esc(/catalogo_publico/.test(error.message)?'El catálogo todavía no está activado.':error.message)}</p></div>`;return}
@@ -529,7 +536,7 @@ function pintar(){
   $('#m').innerHTML=`<div class="busca"><div class="vbar"><input id="q" type="search" placeholder="Buscar producto (ej.: maní 85, crocante pizza)" value="${esc(filtro)}" autocomplete="off" aria-label="Buscar producto"><button class="vbtn" id="scb" aria-label="Escanear código de barras" title="Escanear el código de un producto">📷</button><button class="vbtn" id="vt" aria-label="${vista=='grilla'?'Ver como lista':'Ver con fotos'}" title="${vista=='grilla'?'Ver como lista':'Ver con fotos'}">${vista=='grilla'?'☰':'▦'}</button></div>
     ${fams.length>1?`<div class="cats"><button class="cat ${fam?'':'on'}" data-fm=""><i style="background:var(--m)">★</i><span>Todo</span></button>${fams.map(f=>{const ph=P.find(p=>famDe(p)==f&&p.img);return `<button class="cat ${fam==f?'on':''}" data-fm="${esc(f)}"><i style="background:${colorDe(f)}">${ph?`<img src="${esc(ph.img)}" alt="" loading="lazy">`:esc(f[0]||'?')}</i><span>${esc(cap(f))}</span></button>`}).join('')}</div>`:''}
     ${marcas.length>1?`<select class="msel" id="mk" aria-label="Marca"><option value="">Todas las marcas</option>${marcas.map(m=>`<option ${marca==m?'selected':''}>${esc(m)}</option>`).join('')}</select>`:''}</div>
-    ${instHTML()}${morosoHTML()}${nivelHTML()}${entregaHTML()}${creditoHTML()}
+    ${instHTML()}${morosoHTML()}${ligaHTML()}${acuerdoHTML()}${nivelHTML()}${entregaHTML()}${creditoHTML()}
     ${C.aumento&&C.aumento.fecha?`<div class="aum">⚠️ <b>${esc(C.aumento.texto||'Aumentan los precios')}</b> a partir del ${new Date(C.aumento.fecha+'T12:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'numeric'})}. ¡Comprá antes con los precios de hoy!<br><small data-ca="${esc(C.aumento.fecha)}">…</small></div>`:''}
     ${PUB?'<button class="sec rep" id="alta">🏪 ¿Tenés un negocio? Quiero ser cliente</button>':''}${PUB&&OPI.length?`<div class="opi"><h3>⭐ Lo que dicen nuestros clientes</h3><div class="opl">${OPI.map(o=>`<div class="op"><div class="es">${'★'.repeat(+o.p||5)}</div><p>“${esc(o.t)}”</p><small>${esc(o.n)}${o.r?' · '+esc(o.r):''}</small></div>`).join('')}</div></div>`:''}
     ${PUB&&C.ref_nombre?`<div class="inv">🤝 Te invitó <b>${esc(C.ref_nombre)}</b>. Hacé tu primer pedido y los dos reciben un regalo en puntos.</div>`:''}
@@ -572,7 +579,7 @@ function lista(){
 function tarjeta(p){const q=car[p.id]||0,r=promoP(p,q),rc=r?null:promoP(p,q,true),pu=puP(p,q);
   return `<div class="card ${q?'sel':''}" style="--fc:${colorDe(famDe(p))}">${p.img?`<div class="ph" data-z="${p.id}"><img src="${esc(p.img)}" alt="" loading="lazy">${FVB(p)}</div>`:`<div class="ph ini" style="background:${colorDe(p.m||famDe(p))}1a;color:${colorDe(p.m||famDe(p))}">${esc((p.d||'?')[0])}${FVB(p)}</div>`}
     ${p.ss?'<span class="rib ss">Sin stock</span>':p.pac?'<span class="rib pac">Tu precio</span>':r?`<span class="rib ${/^⚡/.test(r.n||'')?'rl':''}">${r.bon?esc(String(r.n).replace('Bonificación ','')):(/^⚡/.test(r.n||'')?'⚡ ':'')+'−'+nf(r.pct)+' %'}</span>`:rc?`<span class="rib cerca">${rc.bon?esc(String(rc.n).replace('Bonificación ','')):'−'+nf(rc.pct)+' %'}</span>`:''}
-    ${p.combo?`<span class="rib">−${nf(p.pct)} %</span>`:''}${/^Últimas/.test((r||rc||{}).n||'')?'<span class="nuevo ult">ÚLTIMAS UNIDADES</span>':p.nv?'<span class="nuevo">NUEVO</span>':''}
+    ${p.combo?`<span class="rib">−${nf(p.pct)} %</span>`:''}${EST.cupos&&EST.cupos[(r||rc||{}).n]!=null?'<span class="nuevo ult">🔥 QUEDAN '+EST.cupos[(r||rc||{}).n]+'</span>':/^Últimas/.test((r||rc||{}).n||'')?'<span class="nuevo ult">ÚLTIMAS UNIDADES</span>':p.nv?'<span class="nuevo">NUEVO</span>':''}
     <div class="cn">${p.combo?'🎁 ':''}${esc(p.d)}</div><div class="cm">${p.combo?'':esc(p.m||'')}${p.b>1?' · '+esc(p.tb)+' × '+p.b:''}</div>${p.sb?`<div class="sbt">📦 Solo por ${esc(String(p.tb||'caja').toLowerCase())} cerrada</div>`:''}${p.combo&&p.nuevo?'<div class="kitn">🎁 Solo para tu primer pedido</div>':''}${p.combo?`<div class="cdet">${esc(p.det)}</div>`:''}
     <div class="cp">${r?`<s>${$m(p.p)}</s>`:p.combo?`<s>${$m(p.ant)}</s>`:''}${$m(pu)}${kgHTML(p,pu)}</div>
     ${p.b>1?`<div class="cb">${esc(p.tb)}: ${$m((rc&&rc.mt=='bulto'?Math.round(p.p*(1-rc.pct/100)*100)/100:pu)*p.b)}</div>`:''}${pvpHTML(p,q)}${rc?`<div class="cc">${rc.bon?'🎁 '+esc(condP(rc,p)):'−'+nf(rc.pct)+' % '+esc(condP(rc,p))}</div>`:''}

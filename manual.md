@@ -7,7 +7,7 @@ Guía ordenada por sección para consultar o pasarle al equipo. Cada punto dice 
 - **CRM (uso interno):** https://dnegri0805-cell.github.io/crm-sabores/ — se entra con usuario y contraseña.
 - **Catálogo de cada cliente:** link personal `pedido.html?c=…` que se manda desde la ficha del cliente (botón de WhatsApp). Cada cliente ve sus precios, su cuenta y sus promos.
 - **Catálogo público (sin precios de cliente):** `pedido.html?ver=catalogo` — para redes, folletos y nuevos clientes.
-- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-10.12`). Si algo "no aparece", cerrá y abrí la pestaña.
+- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-10.13`). Si algo "no aparece", cerrá y abrí la pestaña.
 - **En el celular:** abrí el CRM en Chrome → menú ⋮ → *Agregar a pantalla de inicio*. Queda como una app.
 - **Menú principal:** Inicio · Pedidos · Ventas · Reparto · Clientes · Cobranza · Caja · Compras · Stock · Precios · Reportes · Contable · Manual. Los números en rojo indican cosas pendientes.
 
@@ -54,6 +54,9 @@ Debajo aparecen tarjetas de aviso; cada una lleva a la pantalla donde se actúa:
   - Si hay clientes que suelen pedir a otra hora, se divide en **⏰ Mandar ahora** y **🕐 Más tarde**. En la ráfaga, **💬 Respuestas** tiene las respuestas rápidas.
   - Los últimos 5 días del mes, si no llegás al objetivo, arriba aparece el **🏁 Empujón de fin de mes**.
   - Abajo, **Resultados**: cuántos compraron en los 7 días siguientes, cuántos cupones se usaron y cómo va cada prueba A/B.
+- **🗓️ Plan de ataque:** cada lunes se arma solo el plan de la semana (zona a atacar, prospectos y visitas, categoría a empujar, cuentas clave que bajaron, oferta por cupo, reconquista). Tildás lo que hacés y ves cómo vas: venta de la semana, mensajes, prospectos trabajados y clientes nuevos.
+- **👑 Cuentas clave:** tus mejores clientes juntos, con su compra de los últimos 30 días contra su promedio y hace cuánto no hablás con cada uno. Si uno baja 15 %, entra arriba de la Cola para llamarlo. Se marcan acá o desde la ficha.
+- **⚔️ Ataque a la competencia:** con los precios de competencia cargados, muestra a cada cliente cuánto se ahorra por mes comprándote a vos (con ráfaga de WhatsApp), dónde la competencia es más barata (botón **Igualar** por 30 días, solo si tu margen no baja del mínimo) y los clientes **perdidos a la competencia** con su plan de reconquista (30, 60 y 90 días).
 - **⚙️ Automatizaciones:** las reglas de la cola. Secuencia para que vuelvan a comprar (por días sin comprar: mensaje, mensaje, llamada), cupón a dormidos (días, %, vencimiento), pedido sugerido el día justo, **ofertas automáticas** por sobrestock o vencimiento (opcional: que se creen solas), primeros 90 días, secuencia de prospección (día 0 presentación, día 3 kit de primer pedido, día 7 visita), seguimiento de lo que quedó sin respuesta, después de la entrega, aviso de malas notas, venta cruzada (con cupón para probar), pedir recomendación y reseña en Google, revivir prospectos fríos, cierre de pedidos, volvió el stock, bajó el precio, cumpleaños, lanzamiento de zona, carritos, miraron y deudas. Todos los textos se pueden editar. **🧪 Prueba A/B:** en varios mensajes podés escribir una *versión B*; la mitad de los clientes recibe cada una y a las 2 semanas queda sola la que más vendió. Al final, las **💬 Respuestas rápidas** (pedido mínimo, entregas, pago, zona, cómo pedir, lista de precios).
 - **📋 Plan del día:** lista priorizada de a quién contactar hoy y por qué. Empezá el día por acá.
 - **📞 Les toca comprar:** clientes que ya deberían pedir. Trae **pedido sugerido** y un **📋 Guion** de llamada.
@@ -91,6 +94,9 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 - **🏷️ Precios redondeados:** redondea las listas (ej. mayorista a $10, minorista terminado en 90).
 - **📈 Aviso de aumento:** avisá a los clientes que sube el precio para que compren antes.
 - **✨ Novedades:** productos nuevos destacados en el catálogo.
+- **🔥 Oferta por cupo:** precio especial solo para los primeros N pedidos. En el catálogo se ve "🔥 QUEDAN 7" real y se apaga sola al completarse.
+- **📜 Acuerdos comerciales:** el cliente se compromete a un monto por mes y tiene descuento o precio congelado en lo que siempre lleva (como precios pactados). Ve su avance en el catálogo; si viene atrasado, entra en la Cola. Al terminar, sus precios vuelven a como estaban.
+- **📦 Pedido quincenal:** clientes que piden todas las semanas; se les ofrece un cupón para pedidos grandes cada 15 días (mínimo: el doble de su promedio) y ves cuánto ahorrás en reparto.
 - **💲 Descuentos y mínimo:** escalas por monto, pedido mínimo, costo de envío, descuento por pronto pago, días de entrega y **hora de corte**, y **freno a morosos** (avisar o bloquear pedidos con deuda vencida).
 
 ## 6. Ventas · Difundir
@@ -103,6 +109,7 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 - **🏪 Por rubro:** mensajes y productos pensados para kioscos, dietéticas, almacenes, etc.
 - **🖼️ Folletos y catálogo:** genera folleto/catálogo para imprimir o compartir, y el link al catálogo público (por rubro y con código de quien refiere).
 - **🏆 Puntos y desafío:** programa de puntos (cuánto suma cada $, valor del punto, tope de canje, premio por recomendar) y el desafío del mes.
+- **🏆 Liga de clientes:** ranking mensual por rubro. Cada cliente ve en su catálogo en qué puesto va y cuánto le falta para subir (sin ver a los demás). A fin de mes premiás a los 3 primeros (puntos y mensaje).
 - **🎟️ Sorteo del mes:** cada pedido da chances; el sistema elige ganador.
 - **📢 Cambios de precio:** lista de lo que subió o bajó para avisar a clientes.
 - **📱 Estados de WhatsApp:** imágenes listas para subir a tus estados.
@@ -111,6 +118,8 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 ## 7. Ventas · Analizar
 
 - **🧲 Captación:** prospectos nuevos, cuántos pasaron a cliente, clientes nuevos y su venta, semana a semana, **de dónde vienen** (QR, Buscar negocios, catálogo público, recomendación, visita) y por vendedor. Abajo, las **🎯 metas de captación semanales** (prospectos contactados, visitas y clientes nuevos), que se ven en Inicio con su avance.
+- **💼 Rentabilidad por cliente:** cuánto te deja cada cliente después de reparto, devoluciones y mora, con qué hacer con los que no rinden.
+- **🧪 Simulador de aumento:** elegís marca o familia y %: ganancia extra, cuánto volumen podés perder sin salir perdiendo, dónde quedarías más caro que la competencia y a qué clientes cuidar.
 - **📊 Resumen semanal:** cómo fue la semana contra la anterior.
 - **🏭 Metas y reintegros:** objetivos por proveedor/marca y reintegros que te deben.
 - **🕐 Cuándo piden:** días y horarios en que entran los pedidos (para saber cuándo mandar mensajes).
@@ -128,7 +137,7 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 **Dónde:** menú *Clientes*. Pestañas: Clientes · Agenda de visitas · Mapa · Dormidos · Prospectos · Pedidos fijos.
 
 - **Clientes:** buscador y filtros (con deuda, por zona, por lista). Tocando un cliente se abre su **ficha**.
-- **Ficha del cliente:** datos, lista de precios, **rubro**, **cliente desde**, **🎂 cumpleaños**, **quién lo recomendó**, **puntos**, **precios pactados**, historial, deuda y el **📋 guion** de venta. Desde acá se manda su **link de catálogo** por WhatsApp.
+- **Ficha del cliente:** datos, lista de precios, **rubro**, **cliente desde**, **🎂 cumpleaños**, **👑 cuenta clave**, **🚩 se fue a la competencia** (con quién y por qué), **🧮 Negociar** (hasta cuánto podés bajarle sin perder plata, producto por producto), **quién lo recomendó**, **puntos**, **precios pactados**, historial, deuda y el **📋 guion** de venta. Desde acá se manda su **link de catálogo** por WhatsApp.
 - **Agenda de visitas:** recorrido del día; el botón **📍 Visita** registra la visita y el resultado. También sugiere **prospectos de paso** cerca del recorrido.
 - **Mapa:** clientes coloreados por **última compra** o deuda, y los prospectos.
 - **Dormidos:** clientes que hace mucho no compran.
@@ -153,7 +162,7 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 
 Se abre con su link personal. Pasos para el cliente: **buscar → agregar → Ver pedido → Enviar**.
 
-- **Arriba:** su nivel, días de entrega y **hora de corte**, crédito disponible, aviso si tiene deuda vencida (si está en *bloquear*, no puede enviar hasta pagar) y botón para **instalar el catálogo como app**.
+- **Arriba:** su puesto en la **🏆 liga** de su rubro, el avance de su **🤝 acuerdo**, su nivel, días de entrega y **hora de corte**, crédito disponible, aviso si tiene deuda vencida (si está en *bloquear*, no puede enviar hasta pagar) y botón para **instalar el catálogo como app**.
 - **Para pedir rápido:** ⚡ **Pedido rápido** (sus productos de siempre en una lista), **pedido sugerido**, **repetir último pedido**, **favoritos** ❤️ y **escanear** 📷 el código de barras.
 - **Ofertas visibles:** relámpago con reloj, **últimas unidades**, preventa con botón *Reservar*, combos, bonificación 12+1, precio por cantidad.
 - **En cada producto:** precio, **precio por kilo/litro**, PVP "**vendelo a**" con su ganancia, y si es solo por caja cerrada.
