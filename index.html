@@ -67,6 +67,9 @@ td.bajo,td .bajo{color:#7a5a00}
 .fa-it input{position:absolute;top:8px;left:8px;width:20px;height:20px;margin:0}.fa-it img{width:100%;aspect-ratio:1;object-fit:contain;background:#fff;border-radius:6px}.fa-it small{color:#6a7184}
 .fo-l{max-height:34vh;overflow:auto;border:1px solid var(--l);border-radius:8px;padding:6px 10px;display:grid;gap:4px;font-size:14px}.fo-l label{display:flex;gap:6px;align-items:center}.fo-l input{width:auto;margin:0}.fo-l .sinf{font-size:11px;color:#b45309}
 .fo-out{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:10px 0}.fo-out img{width:100%;border-radius:8px;border:1px solid var(--l);display:block}
+.ag .vi.hecho-vi{opacity:.6}a.btnl{display:inline-flex;align-items:center;padding:6px 10px;border-radius:6px;border:1px solid var(--m);color:var(--m);text-decoration:none;font-size:13px}
+.wa-prev{white-space:pre-wrap;background:#e7f7e7;border-radius:10px;padding:10px 12px;font:14px system-ui;margin:6px 0 10px;max-width:520px}
+.cpf{border-bottom:1px solid var(--l);padding:6px 0}.cpf.ok span{color:#6a7184}.toca-i{border-color:var(--ok)}
 .inst ol{padding-left:20px;margin:8px 0}.inst li{margin:6px 0}
 main{max-width:980px;margin:0 auto;padding:16px}
 h2{margin:8px 0 12px}h3{margin:20px 0 8px}
@@ -208,12 +211,12 @@ async function init(){
     todo(()=>sb.from('clientes').select('*').eq('activo',true).order('razon_social').order('id')),
     todo(()=>sb.from('precios_productos').select(PROD_COLS).order('descripcion').order('producto_id'))]);
   if(c.error||pr.error){app.innerHTML='<div class="box login"><p class="err">No se pudieron cargar los datos: '+esc((c.error||pr.error).message)+'</p><button onclick="out()">Salir</button></div>';return}
-  S.clientes=c.data;S.productos=pr.data;await Promise.all([cargarStock(),cargarPromos(),cargarMarca()]);shell();
+  S.clientes=c.data;S.productos=pr.data;await Promise.all([cargarStock(),cargarPromos(),cargarMarca(),cargarVentasCfg()]);shell();
 }
 function shell(){
-  app.innerHTML=`<header><b>${MARCA.logo?`<img class="hlogo" src="${MARCA.logo}" alt="Sabores de mi País"><span class="hn">Sabores de mi País</span>`:'Sabores de mi País'}</b><nav>${['inicio','pedidos','reparto','clientes','cobranza','caja','compras','stock','precios','reportes','contable'].filter(t=>!['precios','caja','contable'].includes(t)||S.perfil.rol=='dueno').map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${t[0].toUpperCase()+t.slice(1)}</a>`).join('')}</nav><span>${esc(S.perfil.nombre)} (${S.perfil.rol})<a onclick="out()">Salir</a></span></header><main id="v"></main>`;
+  app.innerHTML=`<header><b>${MARCA.logo?`<img class="hlogo" src="${MARCA.logo}" alt="Sabores de mi País"><span class="hn">Sabores de mi País</span>`:'Sabores de mi País'}</b><nav>${['inicio','pedidos','ventas','reparto','clientes','cobranza','caja','compras','stock','precios','reportes','contable'].filter(t=>!['precios','caja','contable'].includes(t)||S.perfil.rol=='dueno').map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${t[0].toUpperCase()+t.slice(1)}</a>`).join('')}</nav><span>${esc(S.perfil.nombre)} (${S.perfil.rol})<a onclick="out()">Salir</a></span></header><main id="v"></main>`;
   $$('nav a').forEach(a=>a.onclick=()=>{S.tab=a.dataset.t;shell()});
-  ({inicio:vInicio,pedidos:vPedidos,reparto:vReparto,caja:vCaja,contable:vContable,clientes:vClientes,cobranza:vCobranza,compras:vCompras,stock:vStock,precios:vPrecios,reportes:vReportes})[S.tab]();
+  ({inicio:vInicio,pedidos:vPedidos,ventas:vVentas,reparto:vReparto,caja:vCaja,contable:vContable,clientes:vClientes,cobranza:vCobranza,compras:vCompras,stock:vStock,precios:vPrecios,reportes:vReportes})[S.tab]();
 }
 
 /* Supabase devuelve como máximo 1000 filas por pedido: esto trae todas, de a tandas */
@@ -227,7 +230,7 @@ async function cargarStock(){
     todo(()=>sb.from('productos').select('*').order('id'))]);
   S.stockOk=!st.error;S.stock={};S.inv=false;
   for(const r of st.data||[]){S.stock[r.producto_id]={f:+r.fisico||0,r:+r.reservado||0,d:r.disponible!=null?+r.disponible:(+r.fisico||0)-(+r.reservado||0)};if(+r.fisico)S.inv=true}
-  S.min={};S.bultoOk=(mi.data||[]).some(r=>'unidades_bulto' in r);for(const r of mi.data||[])S.min[r.id]={m:+r.stock_minimo||0,a:r.activo!==false,pv:r.proveedor_id,b:Math.max(1,+r.unidades_bulto||1),tb:r.tipo_bulto||'Caja',iva:r.alicuota_iva!=null?+r.alicuota_iva:21,foto:r.foto||'',uc:r.ultimo_conteo||null,cf:r.codigo_fabricante||''};
+  S.min={};S.bultoOk=(mi.data||[]).some(r=>'unidades_bulto' in r);for(const r of mi.data||[])S.min[r.id]={m:+r.stock_minimo||0,a:r.activo!==false,pv:r.proveedor_id,b:Math.max(1,+r.unidades_bulto||1),tb:r.tipo_bulto||'Caja',iva:r.alicuota_iva!=null?+r.alicuota_iva:21,foto:r.foto||'',uc:r.ultimo_conteo||null,cf:r.codigo_fabricante||'',nv:!!r.nuevo_hasta&&r.nuevo_hasta>=diaLocal(new Date()),nvh:r.nuevo_hasta||null};
 }
 const stk=id=>S.stock[id]||{f:0,r:0,d:0};
 const nf=n=>Number(n||0).toLocaleString('es-AR',{maximumFractionDigits:2});
@@ -326,6 +329,7 @@ async function vInicio(){
   <div id="bk"></div>
   <div class="herr" id="herr"></div>
   <div id="alm"></div>
+  <div id="toca"></div>
   <div id="obj"></div>
   <div class="kp">
     <div class="box" id="k1"><span class="lab">Facturado hoy</span><span class="num">…</span><span class="det"></span></div>
@@ -343,7 +347,7 @@ async function vInicio(){
   const kp=(id,num,det,cls)=>{const b=$('#'+id);b.querySelector('.num').textContent=num;b.querySelector('.det').textContent=det||'';if(cls)b.classList.add(cls)};
   const fallo=(id,e)=>kp(id,'—','No se pudo leer: '+e.message);
   if(S.perfil.rol=='dueno')cajaBackup();
-  herramientas();generarFijos();alertasMargen();objetivoMes();
+  herramientas();generarFijos();alertasMargen();objetivoMes();tocaInicio();
   const cli=id=>esc(S.clientes.find(c=>c.id==id)?.razon_social||'Cliente');
   const [fv,pe,fe,sp,fp]=await Promise.all([
     sb.from('facturas_venta').select('*').order('id',{ascending:false}).limit(500),
@@ -466,7 +470,7 @@ const BK_TABLAS=[['Clientes','clientes'],['Productos y precios','precios_product
   ['Proveedores','proveedores'],['Órdenes de compra','ordenes_compra'],['Órdenes - productos','ordenes_compra_items'],['Recepciones','recepciones'],
   ['Facturas de proveedores','facturas_proveedor'],['Pagos a proveedores','pagos_proveedor'],['Gastos','gastos'],['Cierres de caja','cierres_caja'],
   ['Promociones','promociones'],['Historial de costos','historial_costos'],['Márgenes de listas','config_listas'],['Avisos de deuda','avisos_deuda'],
-  ['Cuentas','cuentas'],['Movimientos de cuentas','movimientos_cuenta'],['Cheques','cheques'],['Retenciones','retenciones'],['Pedidos fijos','pedidos_fijos'],['Prospectos','prospectos'],['Notas de crédito','notas_credito'],['Vencimientos','vencimientos']];
+  ['Cuentas','cuentas'],['Movimientos de cuentas','movimientos_cuenta'],['Cheques','cheques'],['Retenciones','retenciones'],['Pedidos fijos','pedidos_fijos'],['Prospectos','prospectos'],['Notas de crédito','notas_credito'],['Vencimientos','vencimientos'],['Combos','combos'],['Contactos con clientes','contactos_clientes']];
 async function cajaBackup(){const b=$('#bk');if(!b)return;
   const{data}=await sb.from('config_app').select('valor').eq('clave','ultima_copia').maybeSingle();
   const u=data?.valor,dias=u?Math.floor((Date.now()-new Date(u))/864e5):null;
@@ -664,7 +668,6 @@ const numAR=x=>{x=String(x??'').trim().replace(/\$|\s/g,'');if(!x)return null;if
 async function vPrecios(){
   $('#v').innerHTML=`<h2>Precios y márgenes</h2>
   <div class="box" id="pm"></div>
-  <div class="box" id="pr_vd"></div>
   <div class="box"><div class="bh"><h3>Lista de precios para clientes</h3><button id="pr_lp">Armar lista de precios</button></div>
     <p><small>Generá la lista mayorista, minorista o especial en PDF, por WhatsApp o para Excel. Para mandársela a un cliente puntual con sus precios, usá el botón <b>Lista de precios</b> de su ficha.</small></p></div>
   <div class="box"><div class="bh"><h3>Margen de cada lista</h3></div>
@@ -763,7 +766,7 @@ SDMP-01279	8.900</pre>
       const{data,error}=await sb.rpc('fijar_costos',{p_items:ok.map(x=>({id:x.p.producto_id,costo:x.n}))});
       if(error){$('#pr_ap2').disabled=false;return toast(error.message,1)}
       await recargarProductos();vPrecios();toast((data??ok.length)+' costos actualizados desde la lista del proveedor.')})};
-  importadorLista();cajaVender();
+  importadorLista();
   $('#pr_et').onclick=()=>etiquetas(sel.slice(0,300).map(p=>p.producto_id));
   $('#pr_fot').onclick=()=>fotosAutomaticas(sel);
   $('#pr_fjl').onclick=()=>fotosJL();
@@ -1110,6 +1113,7 @@ async function fichaCliente(c){
     <div class="box"><h3>Pagos recibidos</h3><div id="fc_pa">Cargando…</div></div>
     <div class="box"><h3>Pedidos</h3><div id="fc_pe">Cargando…</div></div>
     <div class="box"><h3>Lo que más compra</h3><div id="fc_pr">Cargando…</div></div>
+    <div class="box" id="fc_op"><h3>💡 Oportunidades</h3><p><small>Buscando…</small></p></div>
   </div>`;
   $('#fc_vol').onclick=()=>vClientes();
   $('#fc_lp').onclick=()=>abrirListaPrecios(c);
@@ -1134,6 +1138,7 @@ async function fichaCliente(c){
     Object.assign(c,cambios);toast('Datos guardados.');fichaCliente(c)};
   const kp=(id,num,det,cls)=>{const b=$('#'+id);b.querySelector('.num').textContent=num;b.querySelector('.det').textContent=det||'';if(cls)b.classList.add(cls)};
   const anio=String(new Date().getFullYear());
+  oportunidades(c);
   const[sa,fe,re,pe]=await Promise.all([
     sb.from('saldos_clientes').select('*').eq('cliente_id',c.id).maybeSingle(),
     sb.from('facturas_estado').select('*').eq('cliente_id',c.id).gt('pendiente',0.005).order('vencimiento'),
@@ -1169,16 +1174,21 @@ async function vPedidos(){
   $('#v').innerHTML=`<h2>Pedidos</h2><div class="box">
   <input id="p_cq" placeholder="Cliente: escribí nombre o CUIT" autocomplete="off"><div id="p_cr"></div>
   <div id="p_sel" hidden><div class="clirow"><b id="p_cn"></b> <small id="p_cl"></small> <a id="p_cx">Cambiar</a></div>
-    <div id="p_rep"></div><div id="p_fav" class="chips"></div></div>
+    <div id="p_rep"></div><div id="p_fav" class="chips"></div></div><div id="p_cb" class="chips sug"></div>
   <div class="conscan"><input id="p_q" placeholder="Buscar producto (Enter agrega el primero)" autocomplete="off">${btnScan('p_sc')}</div><div id="p_r"></div><table id="p_i"></table><p><b id="p_t"></b></p><div id="p_av"></div><div id="p_sug" class="chips sug"></div><button id="p_g">Guardar pedido</button></div>
   <h3>Últimos pedidos</h3><table id="pl"></table>`;
   const cli=()=>S.pcli;
   const pr=p=>Number(p['precio_'+(cli()?.lista||'mayorista')]);
-  const lis=()=>cli()?.lista||'mayorista',pi=i=>{const r=promoPara(i.p.producto_id,lis(),i.q);return{r,pu:r?Math.round(pr(i.p)*(1-r.descuento_pct/100)*100)/100:pr(i.p)}};
-  const add=(p,q=1)=>{const it=S.items.find(i=>i.p.producto_id==p.producto_id);it?it.q+=q:S.items.push({p,q})};
-  const drawI=()=>{let t=0;
-    $('#p_i').innerHTML=S.items.map((i,k)=>{const P=pi(i),s=P.pu*i.q;t+=s;const pc=P.r?null:promoCerca(i.p.producto_id,lis());return `<tr><td>${esc(i.p.descripcion)} ${i.p.marca?`<span class="marca">${esc(i.p.marca)}</span>`:''}<br>${chipStock(i.p.producto_id,i.q)} ${chipBulto(i.p.producto_id)}</td><td class="qbox"><button class="alt qb" data-m="${k}" aria-label="Restar">−</button><input type="number" min="1" value="${i.q}" data-k="${k}" class="qty"><button class="alt qb" data-p="${k}" aria-label="Sumar">+</button>${bul(i.p.producto_id)?`<button class="alt qb bb" data-bb="${k}">+ ${esc(bul(i.p.producto_id).t)} (${bul(i.p.producto_id).n})</button>`:''}<br><small class="eq">${enBultos(i.p.producto_id,i.q)?'= '+enBultos(i.p.producto_id,i.q):''}</small></td><td class="pu">${P.r?`<s>${$m(pr(i.p))}</s><br>`:''}${$m(P.pu)}</td><td class="n">${$m(s)}${P.r?`<br>${chipPromo(P.r)}`:pc?`<br><small class="hint">Promo −${nf(pc.descuento_pct)} % ${esc(condPromo(pc))}</small>`:''}</td><td><a data-x="${k}">Quitar</a></td></tr>`}).join('');
-    $('#p_t').textContent=S.items.length?S.items.length+(S.items.length==1?' producto':' productos')+' · Total: '+$m(t):'';
+  const lis=()=>cli()?.lista||'mayorista',pi=i=>{if(i.cb){const c=S.combos.find(x=>x.id==i.cb);return{r:null,lab:/^combo/i.test(c?.nombre||'')?c.nombre:'Combo '+(c?.nombre||''),pu:Math.round(pr(i.p)*(1-(c?.descuento_pct||0)/100)*100)/100}}
+    const r=promoPara(i.p.producto_id,lis(),i.q);return{r,pu:r?Math.round(pr(i.p)*(1-r.descuento_pct/100)*100)/100:pr(i.p)}};
+  const add=(p,q=1)=>{const it=S.items.find(i=>i.p.producto_id==p.producto_id&&!i.cb);it?it.q+=q:S.items.push({p,q})};
+  const addCombo=(c,n=1)=>{for(const x of c.items||[]){const p=S.productos.find(y=>y.producto_id==x.id);if(!p)continue;const it=S.items.find(i=>i.cb==c.id&&i.p.producto_id==x.id);it?it.q+=x.q*n:S.items.push({p,q:x.q*n,cb:c.id})}};
+  const pintaCombos=()=>{$('#p_cb').innerHTML=S.combos.length?'<small>🎁 Combos:</small>'+S.combos.map(c=>`<button class="chip" data-cbp="${c.id}">+ ${esc(c.nombre)} (${$m(comboPrecio(c,lis()).p)})</button>`).join(''):'';
+    $$('#p_cb [data-cbp]').forEach(b=>b.onclick=()=>{addCombo(S.combos.find(c=>c.id==b.dataset.cbp));drawI();toast('Combo agregado.')})};pintaCombos();
+  const drawI=()=>{pintaCombos();let t=0;
+    $('#p_i').innerHTML=S.items.map((i,k)=>{const P=pi(i),s=P.pu*i.q;t+=s;const pc=P.r?null:promoCerca(i.p.producto_id,lis());return `<tr><td>${esc(i.p.descripcion)} ${i.p.marca?`<span class="marca">${esc(i.p.marca)}</span>`:''}${i.cb?` <span class="promo">${esc(P.lab)}</span>`:''}<br>${chipStock(i.p.producto_id,i.q)} ${chipBulto(i.p.producto_id)}</td><td class="qbox"><button class="alt qb" data-m="${k}" aria-label="Restar">−</button><input type="number" min="1" value="${i.q}" data-k="${k}" class="qty"><button class="alt qb" data-p="${k}" aria-label="Sumar">+</button>${bul(i.p.producto_id)?`<button class="alt qb bb" data-bb="${k}">+ ${esc(bul(i.p.producto_id).t)} (${bul(i.p.producto_id).n})</button>`:''}<br><small class="eq">${enBultos(i.p.producto_id,i.q)?'= '+enBultos(i.p.producto_id,i.q):''}</small></td><td class="pu">${P.r?`<s>${$m(pr(i.p))}</s><br>`:''}${$m(P.pu)}</td><td class="n">${$m(s)}${P.r?`<br>${chipPromo(P.r)}`:pc?`<br><small class="hint">Promo −${nf(pc.descuento_pct)} % ${esc(condPromo(pc))}</small>`:''}</td><td><a data-x="${k}">Quitar</a></td></tr>`}).join('');
+    const esc_=escalaDe(t),nx=proxEscala(t);S.pesc=esc_;
+    $('#p_t').innerHTML=S.items.length?S.items.length+(S.items.length==1?' producto':' productos')+(esc_?' · Subtotal '+$m(t)+' · <span class="sube">Descuento por monto '+nf(esc_)+' %: −'+$m(t*esc_/100)+'</span> · Total: '+$m(t*(1-esc_/100)):' · Total: '+$m(t))+(nx?` <small class="hint">(faltan ${$m(nx.desde-t)} para el ${nf(nx.pct)} %)</small>`:''):'';
     const falta=S.stockOk&&S.inv?S.items.filter(i=>i.q>stk(i.p.producto_id).d).length:0;
     $('#p_av').innerHTML=falta?`<p class="aviso">${falta==1?'Un producto pide':falta+' productos piden'} más de lo disponible. Podés guardar igual; revisá antes de aprobar.</p>`:'';
     $$('.qty').forEach(e=>e.onchange=()=>{S.items[e.dataset.k].q=Math.max(1,+e.value||1);setTimeout(drawI)});
@@ -1219,13 +1229,16 @@ async function vPedidos(){
   buscador('#p_q','#p_r',p=>{add(p);drawI();$('#p_q').focus()},p=>`<b>${$m(pr(p))}</b> ${chipStock(p.producto_id)} ${chipBulto(p.producto_id)} ${chipPromo(promoCerca(p.producto_id,lis()))}`);
   $('#p_sc').onclick=()=>escanear('Escanear productos del pedido',p=>{add(p);drawI();const it=S.items.find(i=>i.p.producto_id==p.producto_id);return '✔ '+p.descripcion+' · llevás '+it.q});
   $('#p_q').onkeydown=e=>{if(e.key=='Enter'){const f=$('#p_r .r');if(f)f.click()}};
-  if(S.preCli){const c=S.preCli;S.preCli=null;elegir(c)}else $('#p_cq').focus();
+  if(S.preCli){const c=S.preCli;S.preCli=null;elegir(c);if(S.preItems){for(const id of S.preItems){const p=S.productos.find(x=>x.producto_id==id);if(p)add(p,bul(id)?.n||1)}S.preItems=null;setTimeout(drawI,50)}}else $('#p_cq').focus();
   $('#p_g').onclick=async()=>{const c=cli();if(!c||!S.items.length)return toast('Elegí un cliente y agregá productos.',1);
-    if(!await chequearCredito(c,S.items.reduce((a,i)=>a+pi(i).pu*i.q,0)))return;
+    const sub=S.items.reduce((a,i)=>a+pi(i).pu*i.q,0),pe=escalaDe(sub);
+    if(!await chequearCredito(c,sub*(1-pe/100)))return;
     $('#p_g').disabled=true;
     const{data:o,error}=await sb.from('pedidos').insert({cliente_id:c.id,vendedor_id:S.perfil.id,lista:c.lista,descuento_pct:c.descuento_pct}).select().single();
     if(error){$('#p_g').disabled=false;return toast(error.message,1)}
-    const{error:e2}=await sb.from('pedido_items').insert(S.items.map(i=>{const P=pi(i),x={pedido_id:o.id,producto_id:i.p.producto_id,cantidad:i.q,precio_unitario:P.pu};if(P.r)x.promo=P.r.nombre+' (−'+nf(P.r.descuento_pct)+' %)';return x}));
+    const ag={};for(const i of S.items){const P=pi(i),k=i.p.producto_id,a=ag[k]=ag[k]||{q:0,t:0,l:new Set()};a.q+=i.q;a.t+=P.pu*i.q;if(P.r)a.l.add(P.r.nombre+' (−'+nf(P.r.descuento_pct)+' %)');if(P.lab)a.l.add(P.lab)}
+    if(pe)Object.values(ag).forEach(a=>a.l.add('Descuento por monto '+nf(pe)+' %'));
+    const{error:e2}=await sb.from('pedido_items').insert(Object.entries(ag).map(([k,a])=>{const x={pedido_id:o.id,producto_id:k,cantidad:a.q,precio_unitario:Math.round(a.t/a.q*(1-pe/100)*100)/100};if(a.l.size)x.promo=[...a.l].join(' + ');return x}));
     if(e2){$('#p_g').disabled=false;return toast('El pedido N° '+o.numero+' quedó sin productos: '+e2.message,1)}
     toast('Pedido N° '+o.numero+' guardado.');await cargarStock();vPedidos()};
   listaPedidos();
@@ -2545,6 +2558,7 @@ async function folletoOfertas(){
       <label class="f">Título<input id="fo_ti" value="OFERTAS" maxlength="22"></label>
       <label class="f">Vigencia<input id="fo_vg" value="Válido hasta el ${fin.toLocaleDateString('es-AR',{day:'numeric',month:'long'})} o hasta agotar stock" maxlength="70"></label></div>
     <div class="conscan"><input id="fo_q" placeholder="Agregar otro producto (nombre o código)" autocomplete="off">${btnScan('fo_sc')}</div><div id="fo_r"></div>
+    ${S.combos.length?'<label class="chk"><input type="checkbox" id="fo_cb" checked> Incluir los combos ('+S.combos.length+')</label>':''}
     <div id="fo_lst"></div><button id="fo_g">Armar folleto</button><div id="fo_out"></div></div>`;
   $('#fo_x').onclick=()=>m.remove();
   const cand=()=>{const l=$('#fo_l').value,f=$('#fo_f').value;const base=S.productos.filter(p=>+p['precio_'+l]>0&&(!f||(p.familia||'').trim()==f));
@@ -2562,6 +2576,7 @@ async function folletoOfertas(){
     $('#fo_g').disabled=true;$('#fo_out').innerHTML='<p>Armando…</p>';
     const items=sel.map(p=>{const r=promoCerca(p.producto_id,l),base=+p['precio_'+l],b=bul(p.producto_id);const pr=r?Math.round(base*(1-r.descuento_pct/100)*100)/100:base;
       return{d:p.descripcion,img:S.min[p.producto_id]?.foto||'',p:pr,ant:r?base:null,pct:r?+r.descuento_pct:0,cond:r&&condPromo(r)?condPromo(r):'',bulto:b?b.t+' × '+b.n+': '+$m(pr*b.n):''}});
+    if($('#fo_cb')?.checked)items.unshift(...S.combos.map(c=>{const v=comboPrecio(c,l);return{d:'🎁 '+c.nombre,img:S.min[(c.items||[]).find(x=>S.min[x.id]?.foto)?.id]?.foto||'',p:v.p,ant:v.s,pct:+c.descuento_pct,cond:comboTxt(c)}}));
     const pags=[];for(let i=0;i<items.length;i+=F.n)pags.push(items.slice(i,i+F.n));
     const cvs=[];for(const [k,pg] of pags.entries())cvs.push(await dibujarFolleto(pg,{fmt,lista:l,titulo:$('#fo_ti').value.trim().toUpperCase(),sub:f?cap1(f):'de la semana',vig:$('#fo_vg').value.trim(),pie:pags.length>1?(k+1)+'/'+pags.length:''}));
     const blobs=await Promise.all(cvs.map(cv=>new Promise(ok=>cv.toBlob(ok,'image/jpeg',.9))));
@@ -2575,6 +2590,184 @@ async function folletoOfertas(){
       try{if(navigator.canShare({files}))await navigator.share({files,text:'Ofertas de Sabores de mi País'+(S.telEmp?' · Pedí por WhatsApp '+S.telEmp:'')});else $('#fo_dl').click()}catch(e){}})};
 }
 const cap1=t=>{t=String(t||'').toLowerCase();return t.charAt(0).toUpperCase()+t.slice(1)};
+
+/* ======================= VENTAS ======================= */
+S.vcfg={escalas:[],minimo:null,envio:null};S.combos=[];
+async function cargarVentasCfg(){const[cf,cb]=await Promise.all([sb.from('config_app').select('clave,valor').in('clave',['escalas_descuento','pedido_minimo','envio_gratis_desde']),sb.from('combos').select('*').order('id')]);
+  const g=k=>(cf.data||[]).find(x=>x.clave==k)?.valor;let es=[];try{es=JSON.parse(g('escalas_descuento')||'[]')}catch(e){}
+  S.vcfg={escalas:es.filter(x=>+x.desde>0&&+x.pct>0).sort((a,b)=>a.desde-b.desde),minimo:+g('pedido_minimo')||null,envio:+g('envio_gratis_desde')||null};
+  const hoy=diaLocal(new Date());S.combos=(cb.data||[]).filter(c=>c.activo&&c.desde<=hoy&&(!c.hasta||c.hasta>=hoy));S.combosTodos=cb.data||[];S.combosOk=!cb.error}
+const escalaDe=t=>{let p=0;for(const e of S.vcfg.escalas)if(t>=+e.desde)p=Math.max(p,+e.pct);return p};
+const proxEscala=t=>S.vcfg.escalas.find(e=>t<+e.desde)||null;
+const precioLista=(id,l)=>Number(S.productos.find(p=>p.producto_id==id)?.['precio_'+(l||'mayorista')]||0);
+const comboPrecio=(c,l)=>{const s=(c.items||[]).reduce((a,x)=>a+precioLista(x.id,l)*x.q,0);return{s,p:Math.round(s*(1-c.descuento_pct/100)*100)/100}};
+const comboTxt=c=>(c.items||[]).map(x=>{const b=bul(x.id);return(b&&x.q%b.n==0?(x.q/b.n)+' '+plural(b.t,x.q/b.n):nf(x.q)+' u.')+' '+nomProd(x.id)}).join(' + ');
+const nomCorto=c=>{const n=String(c.contacto||'').trim().split(/\s+/)[0];return n||c.razon_social};
+
+function vVentas(){
+  S.vs=S.vs||'toca';const due=S.perfil.rol=='dueno';
+  const SUBS=[['toca','📞 Les toca comprar'],['campanias','📣 Campañas'],['combos','🎁 Combos'],['novedades','✨ Novedades'],['reglas','💲 Descuentos y mínimo'],['difusion','🖼️ Folletos y catálogo']];
+  $('#v').innerHTML=`<h2>Ventas</h2><div class="sub ctsub">${SUBS.map(([k,t])=>`<button class="${S.vs==k?'':'alt'}" data-vs="${k}">${t}</button>`).join('')}</div><div id="vs">Cargando…</div>`;
+  $$('[data-vs]').forEach(b=>b.onclick=()=>{S.vs=b.dataset.vs;vVentas()});
+  ({toca:vToca,campanias:vCampanias,combos:vCombos,novedades:vNovedades,reglas:vReglas,difusion:()=>{$('#vs').innerHTML='<div class="box" id="pr_vd"></div>';cajaVender()}})[S.vs]();
+}
+
+/* ---------- Les toca comprar ---------- */
+async function datosRecompra(){
+  const desde=new Date(Date.now()-400*864e5).toISOString();
+  const[pe,co]=await Promise.all([todo(()=>sb.from('pedidos').select('cliente_id,numero,total,creado_en,pedido_items(producto_id)').neq('estado','cancelado').gte('creado_en',desde).order('numero')),
+    sb.from('contactos_clientes').select('cliente_id,fecha,tipo').gte('fecha',new Date(Date.now()-3*864e5).toISOString())]);
+  const g={};for(const o of pe.data||[]){const r=g[o.cliente_id]=g[o.cliente_id]||{f:[],t:0,pr:{}};r.f.push(new Date(o.creado_en));r.t+=Number(o.total||0);for(const i of o.pedido_items||[])r.pr[i.producto_id]=(r.pr[i.producto_id]||0)+1}
+  const cont={};for(const x of co.data||[])if(!cont[x.cliente_id]||x.fecha>cont[x.cliente_id])cont[x.cliente_id]=x.fecha;
+  const hoy=Date.now(),L=[];
+  for(const c of S.clientes){const r=g[c.id];if(!r||r.f.length<3)continue;const f=r.f.sort((a,b)=>a-b),gaps=[];for(let i=1;i<f.length;i++){const d=(f[i]-f[i-1])/864e5;if(d>=1)gaps.push(d)}
+    if(gaps.length<2)continue;const u=gaps.slice(-6).sort((a,b)=>a-b),ciclo=Math.max(3,Math.round(u[Math.floor(u.length/2)])),dias=Math.floor((hoy-f[f.length-1])/864e5);
+    if(dias>=ciclo*.85&&dias<=ciclo*3)L.push({c,ciclo,dias,tk:r.t/f.length,top:Object.entries(r.pr).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]),cont:cont[c.id],atraso:dias-ciclo})}
+  return L.sort((a,b)=>!!a.cont-!!b.cont||b.tk-a.tk)}
+async function vToca(){
+  const L=await datosRecompra(),pend=L.filter(x=>!x.cont);
+  $('#vs').innerHTML=`<div class="kp"><div class="box ${pend.length?'alerta':'ok'}"><span class="lab">Para contactar hoy</span><span class="num">${pend.length}</span><span class="det">clientes que ya deberían haber pedido</span></div>
+    <div class="box"><span class="lab">Venta posible</span><span class="num">${$m(pend.reduce((a,x)=>a+x.tk,0))}</span><span class="det">sumando su pedido promedio</span></div>
+    <div class="box ok"><span class="lab">Ya contactados</span><span class="num">${L.length-pend.length}</span><span class="det">en los últimos 3 días</span></div></div>
+  <div class="box"><p><small>El CRM mira cada cuántos días compra cada cliente (con al menos 3 pedidos) y te muestra los que ya están en fecha. Más arriba, los que más te compran.</small></p>
+    ${L.length?`<div class="ag">${L.map(x=>`<div class="vi ${x.cont?'hecho-vi':''}"><span class="badge ${x.atraso>3?'b-mora30':'b-pendiente'}">${x.atraso>0?x.atraso+' d tarde':'hoy'}</span>
+      <div><a class="lnk" data-fc="${x.c.id}"><b>${esc(x.c.razon_social)}</b></a><br><small>Compra cada ~${x.ciclo} días · último pedido hace ${x.dias} días · promedio ${$m(x.tk)}</small><br><small>Suele llevar: ${x.top.map(id=>esc(nomProd(id))).join(', ')}</small>${x.cont?`<br><small class="sube">✓ Contactado ${fd(diaLocal(x.cont))}</small>`:''}</div>
+      <div class="acc">${x.c.telefono?`<button class="alt wa" data-tw="${x.c.id}">WhatsApp</button><a class="alt btnl" href="tel:${esc(String(x.c.telefono).replace(/[^\d+]/g,''))}" data-tl="${x.c.id}">📞 Llamar</a>`:'<small>sin teléfono</small>'}<button data-tp="${x.c.id}">Cargar pedido</button>${x.cont?'':`<button class="alt" data-tk="${x.c.id}" title="Marcar como contactado">✓</button>`}</div></div>`).join('')}</div>`
+    :'<p><small>Hoy no hay clientes en fecha de compra. Para que esto funcione, cada cliente necesita al menos 3 pedidos cargados.</small></p>'}</div>`;
+  const cli=id=>S.clientes.find(c=>c.id==id),marca=async(id,tipo)=>{await sb.from('contactos_clientes').insert({cliente_id:id,tipo,detalle:'Recordatorio de compra'})};
+  $$('#vs [data-fc]').forEach(a=>a.onclick=()=>{S.tab='clientes';shell();fichaCliente(cli(a.dataset.fc))});
+  $$('#vs [data-tw]').forEach(b=>b.onclick=async()=>{const c=cli(b.dataset.tw),x=L.find(y=>y.c.id==c.id);
+    const t=`¡Hola ${nomCorto(c)}! ¿Cómo andás? Te escribo de *Sabores de mi País* 👋 ¿Te preparo el pedido de siempre (${x.top.slice(0,2).map(nomProd).join(', ')})?`+(c.token_pedidos?'\n\nTambién lo podés armar vos acá:\n'+linkPedidos(c):'');
+    window.open('https://wa.me/'+telWA(c.telefono)+'?text='+encodeURIComponent(t),'_blank');await marca(c.id,'whatsapp');setTimeout(vToca,800)});
+  $$('#vs [data-tl]').forEach(a=>a.addEventListener('click',()=>marca(a.dataset.tl,'llamada')));
+  $$('#vs [data-tk]').forEach(b=>b.onclick=async()=>{await marca(b.dataset.tk,'manual');vToca()});
+  $$('#vs [data-tp]').forEach(b=>b.onclick=()=>{S.preCli=cli(b.dataset.tp);S.tab='pedidos';shell()});
+}
+async function tocaInicio(){const box=$('#toca');if(!box)return;try{const L=(await datosRecompra()).filter(x=>!x.cont);
+  box.innerHTML=L.length?`<div class="box toca-i"><div class="bh"><h3 style="margin:0">📞 Les toca comprar hoy: ${L.length} ${L.length==1?'cliente':'clientes'}</h3><button id="tc_go">Ver y escribirles</button></div><p><small>${L.slice(0,5).map(x=>esc(x.c.razon_social)).join(' · ')}${L.length>5?' · y '+(L.length-5)+' más':''} — venta posible ${$m(L.reduce((a,x)=>a+x.tk,0))}</small></p></div>`:'';
+  $('#tc_go')&&($('#tc_go').onclick=()=>{S.tab='ventas';S.vs='toca';shell()})}catch(e){}}
+
+/* ---------- Campañas por WhatsApp ---------- */
+const PRESETS={ofertas:'¡Hola {nombre}! 👋 Te escribimos de *Sabores de mi País*. Esta semana tenemos *ofertas especiales* 🔥\nMirá todo y hacé tu pedido acá:\n{link}',
+  novedades:'¡Hola {nombre}! ✨ Llegaron *productos nuevos* a *Sabores de mi País*:\n{novedades}\n\nMiralos y pedí acá:\n{link}',
+  combo:'¡Hola {nombre}! 🎁 Armamos *combos con descuento* para vos:\n{combos}\n\nPedí acá:\n{link}',
+  vuelta:'¡Hola {nombre}! Te extrañamos en *Sabores de mi País* 😊 ¿Necesitás reponer algo? Tenemos promos y novedades.\n{link}'};
+async function vCampanias(pre){
+  const fams=[...new Set(S.productos.map(p=>(p.familia||'').trim()).filter(Boolean))].sort(),mks=[...new Set(S.productos.map(p=>p.marca).filter(Boolean))].sort();
+  $('#vs').innerHTML=`<div class="box"><h3>1. ¿A quién le escribimos?</h3><div class="g">
+    <label class="f">Clientes<select id="cp_s"><option value="todos">Todos los clientes</option><option value="familia">Los que compran una familia…</option><option value="marca">Los que compran una marca…</option><option value="dormidos">Dormidos (no compran hace un tiempo)</option><option value="toca">Les toca comprar</option><option value="dia">Los que visito un día…</option><option value="lista">Por lista de precios…</option><option value="nunca">Clientes que nunca compraron</option></select></label>
+    <label class="f" id="cp_xl" hidden>Cuál<select id="cp_x"></select></label>
+    <label class="f">No repetir a los contactados en los últimos<select id="cp_r"><option value="0">— mandar a todos —</option><option value="3" selected>3 días</option><option value="7">7 días</option></select></label></div><p id="cp_n"></p></div>
+  <div class="box"><h3>2. El mensaje</h3><div class="fc-acc">${Object.keys(PRESETS).map(k=>`<button class="alt" data-pre="${k}">${{ofertas:'Ofertas',novedades:'Novedades',combo:'Combos',vuelta:'Volvé a comprar'}[k]}</button>`).join('')}</div>
+    <textarea id="cp_m" rows="6" style="width:100%;margin-top:8px;font:inherit;padding:10px;border:1px solid #b9bfcc;border-radius:8px">${esc(PRESETS[pre]||PRESETS.ofertas)}</textarea>
+    <p><small>Se reemplaza solo: <b>{nombre}</b> = nombre del cliente · <b>{link}</b> = su link de pedidos con sus precios · <b>{novedades}</b> y <b>{combos}</b> = la lista actual.</small></p>
+    <p><small>💡 Para mandar también la <b>imagen del folleto</b>: armala en "Folletos y catálogo", guardala en el celu y adjuntala en cada chat (o mandala a una <b>lista de difusión</b> de WhatsApp Business).</small></p>
+    <div class="ej" id="cp_ej"></div><button id="cp_go">Armar la fila de envíos</button></div><div id="cp_q"></div>`;
+  let D=null;const dat=async()=>{if(D)return D;const desde=new Date(Date.now()-365*864e5).toISOString();
+    const[pe,co]=await Promise.all([todo(()=>sb.from('pedidos').select('cliente_id,creado_en,pedido_items(producto_id)').neq('estado','cancelado').gte('creado_en',desde).order('numero')),sb.from('contactos_clientes').select('cliente_id,fecha').gte('fecha',new Date(Date.now()-7*864e5).toISOString())]);
+    const ult={},pr={};for(const o of pe.data||[]){if(!ult[o.cliente_id]||o.creado_en>ult[o.cliente_id])ult[o.cliente_id]=o.creado_en;const s=pr[o.cliente_id]=pr[o.cliente_id]||new Set();for(const i of o.pedido_items||[])s.add(i.producto_id)}
+    const cont={};for(const x of co.data||[])if(!cont[x.cliente_id]||x.fecha>cont[x.cliente_id])cont[x.cliente_id]=x.fecha;
+    return D={ult,pr,cont,toca:new Set((await datosRecompra()).map(x=>x.c.id))}};
+  const opts=()=>{const s=$('#cp_s').value,X={familia:fams,marca:mks,dormidos:[['30','Más de 30 días'],['45','Más de 45 días'],['60','Más de 60 días'],['90','Más de 90 días']],dia:DIAS.slice(0,6).map(([n,t])=>[String(n),t]),lista:['mayorista','minorista','especial']}[s];
+    $('#cp_xl').hidden=!X;if(X)$('#cp_x').innerHTML=X.map(x=>Array.isArray(x)?`<option value="${x[0]}">${x[1]}</option>`:`<option>${esc(x)}</option>`).join('');cuenta()};
+  const lista=async()=>{const d=await dat(),s=$('#cp_s').value,x=$('#cp_x').value,r=+$('#cp_r').value,lim=Date.now()-r*864e5;
+    const fam=id=>(S.productos.find(p=>p.producto_id==id)?.familia||'').trim(),mk=id=>S.productos.find(p=>p.producto_id==id)?.marca;
+    return S.clientes.filter(c=>c.telefono&&telWA(c.telefono)).filter(c=>{const P=d.pr[c.id]||new Set(),u=d.ult[c.id];
+      if(s=='familia')return [...P].some(id=>fam(id)==x);if(s=='marca')return [...P].some(id=>mk(id)==x);
+      if(s=='dormidos')return u&&(Date.now()-new Date(u))/864e5>=+x;if(s=='toca')return d.toca.has(c.id);if(s=='dia')return (c.dias_visita||[]).includes(+x);
+      if(s=='lista')return c.lista==x;if(s=='nunca')return !u;return true}).filter(c=>!r||!d.cont[c.id]||new Date(d.cont[c.id])<lim)};
+  const armar=(c,m)=>{const nov=S.productos.filter(p=>S.min[p.producto_id]?.nv).slice(0,8).map(p=>'• '+p.descripcion).join('\n')||'(sin novedades cargadas)';
+    const cb=S.combos.map(k=>{const v=comboPrecio(k,c.lista);return '• '+k.nombre+': '+$m(v.p)+' ('+comboTxt(k)+')'}).join('\n')||'(sin combos activos)';
+    return m.replace(/\{nombre\}/g,nomCorto(c)).replace(/\{link\}/g,c.token_pedidos?linkPedidos(c):'').replace(/\{novedades\}/g,nov).replace(/\{combos\}/g,cb)};
+  const cuenta=async()=>{const L=await lista();$('#cp_n').innerHTML=`<b>${L.length}</b> ${L.length==1?'cliente':'clientes'} con WhatsApp en este grupo.`;
+    $('#cp_ej').innerHTML=L[0]?`<small>Así le llega a ${esc(L[0].razon_social)}:</small><pre class="wa-prev">${esc(armar(L[0],$('#cp_m').value))}</pre>`:''};
+  $('#cp_s').onchange=opts;$('#cp_x').onchange=cuenta;$('#cp_r').onchange=cuenta;$('#cp_m').oninput=()=>{clearTimeout(S._cpt);S._cpt=setTimeout(cuenta,300)};
+  $$('[data-pre]').forEach(b=>b.onclick=()=>{$('#cp_m').value=PRESETS[b.dataset.pre];if(b.dataset.pre=='vuelta'){$('#cp_s').value='dormidos';opts()}else cuenta()});
+  opts();
+  $('#cp_go').onclick=async()=>{const L=await lista();if(!L.length)return toast('No hay clientes con WhatsApp en ese grupo.',1);const msg=$('#cp_m').value,nom=$('#cp_s').selectedOptions[0].text+($('#cp_xl').hidden?'':' · '+$('#cp_x').selectedOptions[0].text);
+    const hechos=new Set();
+    const draw=()=>{$('#cp_q').innerHTML=`<div class="box"><div class="bh"><h3>3. Enviar (${hechos.size} de ${L.length})</h3><div class="barra" style="width:160px"><i style="width:${hechos.size/L.length*100}%"></i></div></div>
+      <p><small>Tocá <b>Enviar</b> en cada uno: se abre WhatsApp con el mensaje listo, lo mandás y volvés acá para el siguiente.</small></p>
+      ${L.map(c=>`<div class="bh cpf ${hechos.has(c.id)?'ok':''}"><span>${esc(c.razon_social)} <small>${esc(c.telefono)}</small></span><button class="${hechos.has(c.id)?'alt hecho':'wa'}" data-cs="${c.id}">${hechos.has(c.id)?'✓ Enviado':'Enviar'}</button></div>`).join('')}</div>`;
+      $$('#cp_q [data-cs]').forEach(b=>b.onclick=async()=>{const c=L.find(x=>x.id==b.dataset.cs);window.open('https://wa.me/'+telWA(c.telefono)+'?text='+encodeURIComponent(armar(c,msg)),'_blank');
+        if(!hechos.has(c.id)){hechos.add(c.id);sb.from('contactos_clientes').insert({cliente_id:c.id,tipo:'campaña',detalle:nom}).then(()=>{})}draw()})};
+    draw();$('#cp_q').scrollIntoView({behavior:'smooth'})};
+}
+
+/* ---------- Combos ---------- */
+async function vCombos(){await cargarVentasCfg();const due=S.perfil.rol=='dueno';
+  if(!S.combosOk){$('#vs').innerHTML='<div class="aviso">Falta correr <b>ventas.sql</b> en Supabase.</div>';return}
+  const hoy=diaLocal(new Date());
+  $('#vs').innerHTML=`<div class="box"><div class="bh"><h3>Combos</h3>${due?'<button id="cb_n">+ Nuevo combo</button>':''}</div>
+    <p><small>Varios productos juntos con un descuento. Aparecen en el catálogo online, en el catálogo público, en los folletos y al cargar pedidos.</small></p>
+    ${S.combosTodos.length?`<div class="tw"><table><tr><th>Combo</th><th>Incluye</th><th class="n">Mayorista</th><th class="n">Minorista</th><th>Estado</th><th></th></tr>${S.combosTodos.map(c=>{const a=comboPrecio(c,'mayorista'),b=comboPrecio(c,'minorista'),vig=c.activo&&c.desde<=hoy&&(!c.hasta||c.hasta>=hoy);
+      return`<tr><td><b>${esc(c.nombre)}</b> <span class="promo">−${nf(c.descuento_pct)} %</span>${c.descripcion?'<br><small>'+esc(c.descripcion)+'</small>':''}</td><td><small>${esc(comboTxt(c))}</small></td><td class="n"><s><small>${$m(a.s)}</small></s><br><b>${$m(a.p)}</b></td><td class="n"><s><small>${$m(b.s)}</small></s><br><b>${$m(b.p)}</b></td>
+        <td><span class="badge ${vig?'b-entregado':'b-cancelado'}">${vig?'Activo':c.activo?'Fuera de fecha':'Pausado'}</span>${c.hasta?'<br><small>hasta '+fd(c.hasta)+'</small>':''}</td><td>${due?`<button class="alt" data-cbe="${c.id}">Editar</button>`:''}</td></tr>`}).join('')}</table></div>`:'<p><small>Todavía no armaste combos. Ejemplo: "Combo Kiosco": 1 caja de maní 500 g + 1 pack de crocantes + 1 manteca, con 8 % de descuento.</small></p>'}</div>`;
+  $('#cb_n')&&($('#cb_n').onclick=()=>editarCombo(null));$$('#vs [data-cbe]').forEach(b=>b.onclick=()=>editarCombo(S.combosTodos.find(c=>c.id==b.dataset.cbe)));
+}
+function editarCombo(c0){const c=c0?{...c0,items:[...(c0.items||[])]}:{nombre:'',descripcion:'',items:[],descuento_pct:8,activo:true,hasta:null};
+  const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  m.innerHTML=`<div class="mc"><div class="bh"><h3>${c0?'Editar combo':'Nuevo combo'}</h3><button class="alt" id="ce_x">Cerrar</button></div>
+    <div class="g"><label class="f">Nombre<input id="ce_n" value="${esc(c.nombre)}" placeholder="Ej.: Combo Kiosco"></label><label class="f">Descuento %<input id="ce_p" type="number" min="0" max="89" step="0.5" value="${c.descuento_pct}"></label>
+      <label class="f">Válido hasta (opcional)<input id="ce_h" type="date" value="${c.hasta||''}"></label><label class="f">Descripción (opcional)<input id="ce_d" value="${esc(c.descripcion||'')}" placeholder="Ej.: Ideal para reponer el kiosco"></label></div>
+    <div class="conscan"><input id="ce_q" placeholder="Agregar producto (nombre o código)" autocomplete="off">${btnScan('ce_sc')}</div><div id="ce_r"></div><div id="ce_l"></div>
+    <label class="chk"><input type="checkbox" id="ce_a" ${c.activo?'checked':''}> Activo</label>
+    <div class="fc-acc"><button id="ce_g">Guardar combo</button>${c0?'<button class="alt" id="ce_b">Borrar</button>':''}</div></div>`;
+  const draw=()=>{const a=comboPrecio({...c,descuento_pct:+$('#ce_p').value||0},'mayorista'),b=comboPrecio({...c,descuento_pct:+$('#ce_p').value||0},'minorista');
+    $('#ce_l').innerHTML=(c.items.length?c.items.map((x,i)=>`<div class="pf-it"><span>${esc(nomProd(x.id))}${enBultos(x.id,x.q)?' <small class="eq">'+enBultos(x.id,x.q)+'</small>':''}</span><input type="number" min="1" step="1" value="${x.q}" data-cq="${i}"><a class="lnk" data-cx="${i}">Quitar</a></div>`).join(''):'<p><small>Agregá los productos del combo.</small></p>')+
+      (c.items.length?`<p>Mayorista: <s>${$m(a.s)}</s> → <b>${$m(a.p)}</b> · Minorista: <s>${$m(b.s)}</s> → <b>${$m(b.p)}</b></p>`:'');
+    $$('#ce_l [data-cq]').forEach(e=>e.onchange=()=>{c.items[e.dataset.cq].q=Math.max(1,Math.round(+e.value||1));setTimeout(draw)});
+    $$('#ce_l [data-cx]').forEach(a=>a.onclick=()=>{c.items.splice(+a.dataset.cx,1);draw()})};
+  const add=p=>{const x=c.items.find(y=>y.id==p.producto_id),b=bul(p.producto_id)?.n||1;x?x.q+=b:c.items.push({id:p.producto_id,q:b});draw()};
+  buscador('#ce_q','#ce_r',add);$('#ce_sc').onclick=()=>escanear('Agregar al combo',p=>{add(p);return '✔ '+p.descripcion});$('#ce_p').oninput=draw;
+  $('#ce_x').onclick=()=>m.remove();draw();
+  $('#ce_g').onclick=async()=>{const n=$('#ce_n').value.trim();if(!n)return toast('Ponele un nombre al combo.',1);if(c.items.length<2)return toast('Un combo necesita al menos 2 productos.',1);
+    const row={nombre:n,descripcion:$('#ce_d').value.trim()||null,items:c.items,descuento_pct:+$('#ce_p').value||0,activo:$('#ce_a').checked,hasta:$('#ce_h').value||null};
+    const{error}=c0?await sb.from('combos').update(row).eq('id',c0.id):await sb.from('combos').insert(row);if(error)return toast(error.message,1);m.remove();toast('Combo guardado.');vCombos()};
+  $('#ce_b')&&($('#ce_b').onclick=async()=>{if(!confirm('¿Borrar el combo «'+c0.nombre+'»?'))return;const{error}=await sb.from('combos').delete().eq('id',c0.id);if(error)return toast(error.message,1);m.remove();vCombos()});
+}
+
+/* ---------- Novedades ---------- */
+async function vNovedades(){await cargarStock();const due=S.perfil.rol=='dueno';const N=S.productos.filter(p=>S.min[p.producto_id]?.nv);
+  $('#vs').innerHTML=`<div class="box"><div class="bh"><h3>✨ Novedades</h3>${N.length?'<button id="nv_av">Avisar a los clientes</button>':''}</div>
+    <p><small>Los productos marcados como nuevos salen con la etiqueta <b>NUEVO</b> y en una sección propia arriba del catálogo, durante los días que elijas.</small></p>
+    ${due?`<div class="g"><div class="conscan"><input id="nv_q" placeholder="Agregar producto nuevo (nombre o código)" autocomplete="off">${btnScan('nv_sc')}</div><label class="f">Mostrar como nuevo durante<select id="nv_d"><option value="15">15 días</option><option value="30" selected>30 días</option><option value="60">60 días</option></select></label></div><div id="nv_r"></div>`:''}
+    ${N.length?`<table>${N.map(p=>`<tr><td>${S.min[p.producto_id]?.foto?`<img src="${esc(S.min[p.producto_id].foto)}" style="width:40px;height:40px;object-fit:contain">`:''}</td><td>${esc(p.descripcion)}<br><small>hasta ${fd(S.min[p.producto_id].nvh)}</small></td><td>${due?`<a class="lnk" data-nvx="${p.producto_id}">Quitar</a>`:''}</td></tr>`).join('')}</table>`:'<p><small>No hay productos marcados como nuevos.</small></p>'}</div>`;
+  const fijar=async(ids,d)=>{const{error}=await sb.rpc('fijar_nuevo',{p_ids:ids,p_dias:d});if(error)return toast(/fijar_nuevo/.test(error.message)?'Falta correr ventas.sql en Supabase.':error.message,1);vNovedades()};
+  if(due){buscador('#nv_q','#nv_r',p=>fijar([p.producto_id],+$('#nv_d').value));$('#nv_sc').onclick=()=>escanear('Producto nuevo',p=>{fijar([p.producto_id],+$('#nv_d').value);return '✔ '+p.descripcion})}
+  $$('#vs [data-nvx]').forEach(a=>a.onclick=()=>fijar([a.dataset.nvx],0));
+  $('#nv_av')&&($('#nv_av').onclick=()=>{S.vs='campanias';vVentas();setTimeout(()=>{$('#cp_m').value=PRESETS.novedades;$('#cp_m').oninput()},400)});
+}
+
+/* ---------- Descuentos por monto, pedido mínimo, envío gratis ---------- */
+async function vReglas(){await cargarVentasCfg();const due=S.perfil.rol=='dueno';let E=S.vcfg.escalas.map(e=>({...e}));
+  const draw=()=>{$('#vs').innerHTML=`<div class="box"><h3>💲 Más comprás, más ahorrás</h3><p><small>Descuento automático según el total del pedido. En el catálogo el cliente ve cuánto le falta para el siguiente escalón, y se aplica solo.</small></p>
+    <table>${E.map((e,i)=>`<tr><td>Desde $</td><td><input type="number" min="0" step="1000" value="${e.desde}" data-ed="${i}" style="width:140px;margin:0" ${due?'':'disabled'}></td><td><input type="number" min="0" max="50" step="0.5" value="${e.pct}" data-ep="${i}" style="width:80px;margin:0" ${due?'':'disabled'}> %</td><td>${due?`<a class="lnk" data-ex="${i}">Quitar</a>`:''}</td></tr>`).join('')||'<tr><td><small>Sin escalones de descuento.</small></td></tr>'}</table>
+    ${due?'<button class="alt" id="es_a">+ Agregar escalón</button>':''}
+    <h3 style="margin-top:18px">Pedido mínimo y envío gratis</h3><div class="g">
+      <label class="f">Pedido mínimo online $ (vacío = sin mínimo)<input id="es_m" type="number" min="0" step="1000" value="${S.vcfg.minimo||''}" ${due?'':'disabled'}></label>
+      <label class="f">Envío gratis desde $ (vacío = no mostrar)<input id="es_e" type="number" min="0" step="1000" value="${S.vcfg.envio||''}" ${due?'':'disabled'}></label></div>
+    ${due?'<button id="es_g">Guardar</button>':''}
+    <p><small>Ejemplo de lo que ve el cliente: "Te faltan $ 18.000 para el 5 % de descuento" y "Te faltan $ 40.000 para el envío gratis". El pedido mínimo no deja mandar pedidos online más chicos. Los pedidos que cargás vos en el CRM también llevan el descuento por monto.</small></p></div>`;
+    $$('[data-ed]').forEach(i=>i.onchange=()=>E[i.dataset.ed].desde=+i.value||0);$$('[data-ep]').forEach(i=>i.onchange=()=>E[i.dataset.ep].pct=+i.value||0);
+    $$('[data-ex]').forEach(a=>a.onclick=()=>{E.splice(+a.dataset.ex,1);draw()});$('#es_a')&&($('#es_a').onclick=()=>{const u=E[E.length-1];E.push({desde:u?u.desde*2:150000,pct:u?u.pct+2:3});draw()});
+    $('#es_g')&&($('#es_g').onclick=async()=>{const es=E.filter(e=>e.desde>0&&e.pct>0).sort((a,b)=>a.desde-b.desde);
+      const{error}=await sb.from('config_app').upsert([{clave:'escalas_descuento',valor:JSON.stringify(es)},{clave:'pedido_minimo',valor:$('#es_m').value||''},{clave:'envio_gratis_desde',valor:$('#es_e').value||''}]);
+      if(error)return toast(error.message,1);await cargarVentasCfg();toast('Guardado.');vReglas()})};draw()}
+
+/* ---------- Oportunidades por cliente (ficha) ---------- */
+async function oportunidades(c){const box=$('#fc_op');if(!box)return;
+  const{data}=await todo(()=>sb.from('pedidos').select('cliente_id,pedido_items(producto_id)').neq('estado','cancelado').gte('creado_en',new Date(Date.now()-240*864e5).toISOString()).order('numero'));
+  const P={};for(const o of data||[]){const s=P[o.cliente_id]=P[o.cliente_id]||new Set();for(const i of o.pedido_items||[])s.add(i.producto_id)}
+  const A=P[c.id];if(!A||!A.size){box.innerHTML='<h3>Oportunidades</h3><p><small>Cuando tenga pedidos, acá te sugiero qué más ofrecerle.</small></p>';return}
+  const vec=Object.entries(P).filter(([id])=>id!=c.id).map(([id,B])=>{let i=0;for(const x of A)if(B.has(x))i++;return{B,s:i/(A.size+B.size-i)}}).filter(x=>x.s>0.05).sort((a,b)=>b.s-a.s).slice(0,15);
+  const sc={},n={};for(const v of vec)for(const x of v.B)if(!A.has(x)){sc[x]=(sc[x]||0)+v.s;n[x]=(n[x]||0)+1}
+  const L=Object.entries(sc).filter(([id])=>n[id]>=2&&S.productos.some(p=>p.producto_id==id)).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  box.innerHTML=`<h3>💡 Oportunidades</h3>${L.length?`<p><small>Productos que compran clientes parecidos a ${esc(c.razon_social)} y él todavía no:</small></p><table>${L.map(([id])=>`<tr><td>${esc(nomProd(id))}<br><small>lo compran ${n[id]} clientes parecidos</small></td><td class="n">${$m(precioLista(id,c.lista))}</td></tr>`).join('')}</table>
+    <div class="fc-acc"><button id="op_p">Armar pedido con estos</button>${c.telefono?'<button class="alt wa" id="op_w">Ofrecérselos por WhatsApp</button>':''}</div>`:'<p><small>Todavía no hay suficientes datos de clientes parecidos.</small></p>'}`;
+  $('#op_p')&&($('#op_p').onclick=()=>{S.preCli=c;S.preItems=L.map(([id])=>id);S.tab='pedidos';shell()});
+  $('#op_w')&&($('#op_w').onclick=()=>window.open('https://wa.me/'+telWA(c.telefono)+'?text='+encodeURIComponent(`¡Hola ${nomCorto(c)}! Te escribo de *Sabores de mi País*. Estos productos se están vendiendo mucho en negocios como el tuyo y te pueden servir:\n`+L.slice(0,5).map(([id])=>'• '+nomProd(id)+' — '+$m(precioLista(id,c.lista))).join('\n')+(c.token_pedidos?'\n\nPedilos acá:\n'+linkPedidos(c):'')),'_blank'));
+}
 
 /* ======================= CONTABLE (solo dueño) ======================= */
 const CT_SUBS=[['resultados','Resultados'],['rentab','Rentabilidad'],['iva','IVA'],['ret','Retenciones'],['cheques','Cheques'],['bancos','Bancos'],['flujo','Flujo de caja'],['stockv','Valor del stock'],['contador','Para el contador']];
