@@ -37,10 +37,11 @@ small{color:#6a7184}td a{cursor:pointer;color:var(--er)}
 .tag.recibida{background:#d8efe1;color:var(--ok)}.tag.anulada{background:#f6dcda;color:var(--er)}.tag.recibida_parcial{background:#fff1cc;color:#7a5a00}
 #t{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);color:#fff;padding:10px 18px;border-radius:8px;z-index:9;display:none}
 .err{color:var(--er)}
+.badge.b-mora30{background:#f6dcda;color:#b3261e}
 .modal{position:fixed;inset:0;background:rgba(23,33,58,.45);z-index:20;display:flex;align-items:flex-start;justify-content:center;padding:6vh 16px;overflow:auto}
 .modal .mc{background:#fff;border-radius:12px;padding:16px;width:100%;max-width:640px;display:grid;gap:10px}
 .modal .mc p{margin:0}
-.b-online{background:#e4f3ea;color:#1d7a46}
+.badge.b-online{background:#e4f3ea;color:#1d7a46}
 .link-ped input{font-size:13px;color:#6a7184}
 .okb{background:#d8efe1;color:#14532d;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 b.parada{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--m);color:#fff;font-size:13px}
@@ -779,7 +780,8 @@ async function pedidoPDF(o){
 
 /* ---------- Cobranza ---------- */
 function vCobranza(){setTimeout(()=>{if(S.preCob&&$('#k_c')){$('#k_c').value=S.preCob;S.preCob=null;$('#k_c').onchange()}});
-  $('#v').innerHTML=`<h2>Cobranza</h2><div class="box"><select id="k_c"><option value="">Elegí un cliente</option>${S.clientes.map(c=>`<option value="${c.id}">${esc(c.razon_social)}</option>`).join('')}</select><div id="k_s"></div></div>`;
+  $('#v').innerHTML=`<h2>Cobranza</h2><div id="mor"></div><h3>Registrar un cobro</h3><div class="box"><select id="k_c"><option value="">Elegí un cliente</option>${S.clientes.map(c=>`<option value="${c.id}">${esc(c.razon_social)}</option>`).join('')}</select><div id="k_s"></div></div>`;
+  morosos();
   $('#k_c').onchange=async()=>{const id=$('#k_c').value;if(!id){$('#k_s').innerHTML='';return}
     const[s,f,r]=await Promise.all([
       sb.from('saldos_clientes').select('*').eq('cliente_id',id).maybeSingle(),
@@ -801,8 +803,72 @@ function vCobranza(){setTimeout(()=>{if(S.preCob&&$('#k_c')){$('#k_c').value=S.p
       for(const x of F){if(rest<=0)break;const a=Math.min(rest,x.pendiente);imp.push({factura_id:x.factura_id,importe:+a.toFixed(2)});rest=+(rest-a).toFixed(2)}
       const{data,error}=await sb.rpc('registrar_cobranza',{p_cliente:id,p_importe:total,p_medio:$('#k_m').value,p_imputaciones:imp});
       if(error)return toast(error.message,1);
-      toast('Recibo N° '+data+' registrado'+(rest>0?'. Quedan '+$m(rest)+' a cuenta.':'.'));S.recNuevo=data;$('#k_c').onchange()}};
+      toast('Recibo N° '+data+' registrado'+(rest>0?'. Quedan '+$m(rest)+' a cuenta.':'.'));S.recNuevo=data;$('#k_c').onchange();morosos()}};
 }
+
+/* ---------- Clientes que deben: resumen y aviso ---------- */
+async function morosos(){
+  const box=$('#mor');if(!box)return;box.innerHTML='<div class="box">Cargando deudas…</div>';
+  const[fe,av,cf]=await Promise.all([todo(()=>sb.from('facturas_estado').select('*').gt('pendiente',0.005).order('vencimiento')),
+    todo(()=>sb.from('avisos_deuda').select('cliente_id,fecha').order('fecha',{ascending:false})),
+    sb.from('config_app').select('valor').eq('clave','datos_pago').maybeSingle()]);
+  if(fe.error){box.innerHTML='<p class="err">'+esc(fe.error.message)+'</p>';return}
+  const sinAvisos=!!av.error,ult={};for(const a of av.data||[])if(!ult[a.cliente_id])ult[a.cliente_id]=a.fecha;
+  S.datosPago=cf.data?.valor??S.datosPago??'';
+  const G={};for(const f of fe.data){const g=G[f.cliente_id]=G[f.cliente_id]||{id:f.cliente_id,F:[],t:0,v:0,mora:0};g.F.push(f);g.t+=Number(f.pendiente);if(f.dias_mora>0){g.v+=Number(f.pendiente);g.mora=Math.max(g.mora,f.dias_mora)}}
+  const L=Object.values(G).map(g=>({...g,c:S.clientes.find(c=>c.id==g.id)||{id:g.id,razon_social:'Cliente'}}));
+  const tot=L.reduce((a,g)=>a+g.t,0),tv=L.reduce((a,g)=>a+g.v,0),nv=L.filter(g=>g.v>0).length;
+  S.morF=S.morF||'vencidos';S.morTono=S.morTono||'amable';
+  box.innerHTML=`<div class="kp">
+    <div class="box"><span class="lab">Te deben en total</span><span class="num">${$m(tot)}</span><span class="det">${L.length} ${L.length==1?'cliente':'clientes'}</span></div>
+    <div class="box ${tv?'alerta':'ok'}"><span class="lab">Vencido</span><span class="num">${$m(tv)}</span><span class="det">${nv} ${nv==1?'cliente':'clientes'} con deuda vencida</span></div></div>
+  <div class="box"><div class="bh"><h3>Clientes que deben</h3><div class="sub" style="margin:0">${[['vencidos','Con deuda vencida'],['todos','Todos']].map(([k,t])=>`<button class="${S.morF==k?'':'alt'}" data-mf="${k}">${t}</button>`).join('')}</div></div>
+    <div class="g"><label class="f">Tono del mensaje<select id="mo_t"><option value="amable" ${S.morTono=='amable'?'selected':''}>Recordatorio amable</option><option value="firme" ${S.morTono=='firme'?'selected':''}>Aviso firme</option></select></label>
+      <label class="f">Datos para el pago (van al final del mensaje)<input id="mo_d" placeholder="Ej.: Alias SABORES.MP · CBU 0000…" value="${esc(S.datosPago)}"></label></div>
+    <div id="mo_l"></div>${sinAvisos?'<p><small class="err">Para registrar cuándo le avisaste a cada cliente, corré avisos-deuda.sql en Supabase.</small></p>':''}</div>`;
+  $$('#mor [data-mf]').forEach(b=>b.onclick=()=>{S.morF=b.dataset.mf;morosos()});
+  $('#mo_t').onchange=e=>S.morTono=e.target.value;
+  $('#mo_d').onchange=async e=>{S.datosPago=e.target.value.trim();const{error}=await sb.from('config_app').upsert({clave:'datos_pago',valor:S.datosPago});
+    toast(error?'Se usa en este mensaje, pero no se pudo guardar: corré avisos-deuda.sql.':'Datos para el pago guardados.',!!error)};
+  const V=(S.morF=='vencidos'?L.filter(g=>g.v>0):L).sort((a,b)=>b.v-a.v||b.t-a.t);
+  const hace=d=>{if(!d)return'Nunca';const n=Math.floor((Date.now()-new Date(d))/864e5);return n<=0?'Hoy':n==1?'Ayer':'Hace '+n+' días'};
+  $('#mo_l').innerHTML=V.length?`<div class="tw"><table><tr><th>Cliente</th><th class="n">Debe</th><th class="n">Vencido</th><th>Mora</th><th>Último aviso</th><th></th></tr>${V.map(g=>`<tr>
+    <td><a class="lnk" data-fc="${g.id}">${esc(g.c.razon_social)}</a><br><small>${g.F.length} ${g.F.length==1?'factura':'facturas'}${g.c.telefono?'':' · sin teléfono'}</small></td>
+    <td class="n">${$m(g.t)}</td><td class="n ${g.v?'mora':''}">${g.v?$m(g.v):'—'}</td><td>${g.mora?`<span class="badge ${g.mora>30?'b-mora30':'b-pendiente'}">${g.mora} días</span>`:'<small>Al día</small>'}</td>
+    <td><small>${sinAvisos?'—':hace(ult[g.id])}</small></td>
+    <td style="white-space:nowrap"><button class="alt wa" data-mw="${g.id}">WhatsApp</button> <button class="alt" data-mp="${g.id}">PDF</button> <button class="alt" data-mc="${g.id}">Cobrar</button></td></tr>`).join('')}</table></div>`
+    :`<p><small>${S.morF=='vencidos'?'Ningún cliente tiene deuda vencida. ':'Nadie te debe. '}</small></p>`;
+  const gr=id=>V.find(g=>g.id==id);
+  $$('#mo_l [data-fc]').forEach(a=>a.onclick=()=>{S.tab='clientes';shell();fichaCliente(S.clientes.find(c=>c.id==a.dataset.fc))});
+  $$('#mo_l [data-mc]').forEach(b=>b.onclick=()=>{$('#k_c').value=b.dataset.mc;$('#k_c').onchange();$('#k_c').scrollIntoView({behavior:'smooth'})});
+  $$('#mo_l [data-mp]').forEach(b=>b.onclick=()=>resumenPDF(gr(b.dataset.mp)));
+  $$('#mo_l [data-mw]').forEach(b=>b.onclick=async()=>{const g=gr(b.dataset.mw);avisoWA(g,$('#mo_t').value,$('#mo_d').value.trim());
+    const{error}=await sb.from('avisos_deuda').insert({cliente_id:g.id,medio:'whatsapp',monto:+g.t.toFixed(2)});
+    if(!error){b.closest('tr').querySelector('td:nth-child(5) small').textContent='Hoy'}});
+}
+function avisoWA(g,tono,pago){const c=g.c,hoy=new Date().toLocaleDateString('es-AR');
+  const lin=g.F.map(f=>`• Factura ${f.tipo} N° ${f.numero} · vence ${fd(f.vencimiento)}${f.dias_mora>0?' ('+f.dias_mora+' días vencida)':''}: ${$m(f.pendiente)}`).join('\n');
+  const intro=tono=='firme'
+    ?`Hola, te escribimos de *Sabores de mi País*. Tu cuenta tiene ${g.v?'*'+$m(g.v)+' vencidos*':'saldo pendiente'} y necesitamos regularizarla a la brevedad.`
+    :`¡Hola! ¿Cómo estás? Te escribimos de *Sabores de mi País* para pasarte el resumen de tu cuenta al ${hoy}.`;
+  const cierre=tono=='firme'
+    ?`Por favor, coordiná el pago o avisanos la fecha en que lo vas a hacer. Si ya pagaste, mandanos el comprobante y lo imputamos.`
+    :`Cuando puedas, avisanos cómo vas a abonar. Si ya pagaste, mandanos el comprobante así lo registramos. ¡Gracias!`;
+  const t=`${intro}\n\n${lin}\n\n*Total adeudado: ${$m(g.t)}*${g.v&&g.v<g.t?'\n(Vencido: '+$m(g.v)+')':''}${pago?'\n\n*Datos para el pago:*\n'+pago:''}\n\n${cierre}`;
+  const tel=telWA(c.telefono);window.open('https://wa.me/'+tel+'?text='+encodeURIComponent(t),'_blank');
+  if(!tel)toast('Este cliente no tiene teléfono cargado: elegí el contacto en WhatsApp.')}
+function resumenPDF(g){const c=g.c,w=window.open('','_blank');if(!w)return toast('Permití las ventanas emergentes para generar el PDF.',1);
+  const pago=($('#mo_d')?.value||S.datosPago||'').trim();
+  w.document.write(`<html><head><meta charset="utf-8"><title>Resumen de cuenta - ${esc(c.razon_social)}</title><style>body{font:14px system-ui,Segoe UI,sans-serif;margin:32px;color:#1c2333;max-width:760px}h1{color:#7b2d3e;margin:0}.top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #7b2d3e;padding-bottom:12px}table{width:100%;border-collapse:collapse;margin:16px 0}th,td{border-bottom:1px solid #ccc;padding:6px;text-align:left}.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}.v{color:#b3261e;font-weight:600}.tot td{font-weight:700;font-size:16px;border-bottom:0}.pago{background:#f3f4f7;padding:10px 12px;border-radius:6px;white-space:pre-line}.ayuda{background:#f6e9ec;padding:10px;border-radius:6px}@media print{.ayuda{display:none}}</style></head><body>
+  <p class="ayuda">Para guardarlo en PDF: en la ventana de impresión elegí <b>Guardar como PDF</b> como destino.</p>
+  <div class="top"><div><h1>Sabores de mi País</h1><div>Resumen de cuenta</div></div><div class="n">Al ${new Date().toLocaleDateString('es-AR')}</div></div>
+  <p><b>Cliente:</b> ${esc(c.razon_social)}${c.cuit?'<br><b>CUIT:</b> '+esc(c.cuit):''}${c.domicilio?'<br><b>Domicilio:</b> '+esc(c.domicilio):''}</p>
+  <table><tr><th>Factura</th><th>Vencimiento</th><th>Estado</th><th class="n">Pendiente</th></tr>
+  ${g.F.map(f=>`<tr><td>${f.tipo} N° ${f.numero}</td><td>${fd(f.vencimiento)}</td><td class="${f.dias_mora>0?'v':''}">${f.dias_mora>0?'Vencida hace '+f.dias_mora+' días':'A vencer'}</td><td class="n">${$m(f.pendiente)}</td></tr>`).join('')}
+  <tr class="tot"><td colspan="3" class="n">Total adeudado</td><td class="n">${$m(g.t)}</td></tr>${g.v&&g.v<g.t?`<tr><td colspan="3" class="n v">Vencido</td><td class="n v">${$m(g.v)}</td></tr>`:''}</table>
+  ${pago?`<p class="pago"><b>Datos para el pago</b>\n${esc(pago)}</p>`:''}
+  <p>Si ya realizó el pago, le pedimos que nos envíe el comprobante para registrarlo. ¡Gracias!</p>
+  <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close()}
 
 /* ---------- Recibo de cobro: WhatsApp y PDF ---------- */
 async function datosRecibo(x,c){
