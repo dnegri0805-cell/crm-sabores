@@ -185,6 +185,10 @@ header nav a{flex:none;padding:8px 12px}
 <div id="app"></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
+const VERSION='2026-10-10.4';
+/* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
+(function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
+  if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
 const sb=supabase.createClient('https://ggfqdkgqtpnkvxoykoty.supabase.co','sb_publishable_kfvkZgS8FewPabohJrKf9Q_UDyEcQiR');
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s),app=$('#app');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -214,7 +218,7 @@ async function init(){
   S.clientes=c.data;S.productos=pr.data;await Promise.all([cargarStock(),cargarPromos(),cargarMarca(),cargarVentasCfg()]);shell();
 }
 function shell(){
-  app.innerHTML=`<header><b>${MARCA.logo?`<img class="hlogo" src="${MARCA.logo}" alt="Sabores de mi País"><span class="hn">Sabores de mi País</span>`:'Sabores de mi País'}</b><nav>${['inicio','pedidos','ventas','reparto','clientes','cobranza','caja','compras','stock','precios','reportes','contable'].filter(t=>!['precios','caja','contable'].includes(t)||S.perfil.rol=='dueno').map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${t[0].toUpperCase()+t.slice(1)}</a>`).join('')}</nav><span>${esc(S.perfil.nombre)} (${S.perfil.rol})<a onclick="out()">Salir</a></span></header><main id="v"></main>`;
+  app.innerHTML=`<header><b>${MARCA.logo?`<img class="hlogo" src="${MARCA.logo}" alt="Sabores de mi País"><span class="hn">Sabores de mi País</span>`:'Sabores de mi País'}</b><nav>${['inicio','pedidos','ventas','reparto','clientes','cobranza','caja','compras','stock','precios','reportes','contable'].filter(t=>!['precios','caja','contable'].includes(t)||S.perfil.rol=='dueno').map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${t[0].toUpperCase()+t.slice(1)}</a>`).join('')}</nav><span>${esc(S.perfil.nombre)} (${S.perfil.rol}) <small style="opacity:.6">v${VERSION}</small><a onclick="out()">Salir</a></span></header><main id="v"></main>`;
   $$('nav a').forEach(a=>a.onclick=()=>{S.tab=a.dataset.t;shell()});
   ({inicio:vInicio,pedidos:vPedidos,ventas:vVentas,reparto:vReparto,caja:vCaja,contable:vContable,clientes:vClientes,cobranza:vCobranza,compras:vCompras,stock:vStock,precios:vPrecios,reportes:vReportes})[S.tab]();
 }
