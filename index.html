@@ -37,6 +37,9 @@ small{color:#6a7184}td a{cursor:pointer;color:var(--er)}
 .tag.recibida{background:#d8efe1;color:var(--ok)}.tag.anulada{background:#f6dcda;color:var(--er)}.tag.recibida_parcial{background:#fff1cc;color:#7a5a00}
 #t{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);color:#fff;padding:10px 18px;border-radius:8px;z-index:9;display:none}
 .err{color:var(--er)}
+.bulto{display:inline-block;font-size:11px;font-weight:600;color:#7a5a00;background:#fff1cc;border-radius:4px;padding:1px 6px;vertical-align:1px}
+button.bb{width:auto;font-size:13px;white-space:nowrap}small.eq{color:#7a5a00;font-weight:600}
+td input.ub{width:56px;text-align:right;margin:0;padding:5px}td select.tb{width:auto;margin:0;padding:5px}
 .gbar{position:relative;display:flex;justify-content:space-between;gap:8px;padding:6px 8px;margin:4px 0;border-radius:6px;overflow:hidden;font-size:14px}.gbar span,.gbar b{position:relative;z-index:1}.gbar i{position:absolute;left:0;top:0;bottom:0;background:#f6e9ec;border-radius:6px}
 tr.tot td{border-top:2px solid #d9dce3}
 .conscan{display:flex;gap:6px;align-items:flex-start}.conscan input{flex:1;min-width:0}
@@ -96,7 +99,7 @@ pre.ej{background:#f3f4f7;padding:8px;border-radius:6px;font-size:13px;margin:6p
 .chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:10px}.chips small{width:100%}
 .chip{background:#f6e9ec;color:var(--m);border:1px solid #e5c9d0;border-radius:16px;padding:6px 12px;font-size:14px}
 td.qbox{white-space:nowrap}button.wa{color:#1d7a46;border-color:#1d7a46}.chip:hover{filter:none;background:#efd8de}
-@media(max-width:640px){#p_i .pu{display:none}#p_i{display:table}}td.qbox input{width:56px;text-align:center}td button.qb{padding:4px 10px;min-width:34px}
+@media(max-width:640px){#p_i .pu{display:none}}td.qbox input{width:56px;text-align:center}td button.qb{padding:4px 10px;min-width:34px}
 .kp{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px;margin-bottom:14px}
 .kp .box{margin:0;display:grid;gap:4px}
 .kp .lab{font-size:13px;color:#6a7184;text-transform:uppercase;letter-spacing:.04em}
@@ -108,7 +111,12 @@ td.qbox{white-space:nowrap}button.wa{color:#1d7a46;border-color:#1d7a46}.chip:ho
 .dos .box{margin:0;min-width:0}.dos h3{margin:0 0 8px}
 td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .mora{color:var(--er);font-weight:600}
-@media(max-width:640px){table{display:block;overflow-x:auto}}
+@media(max-width:640px){table{display:block;overflow-x:auto}
+header{display:grid;grid-template-columns:1fr auto;gap:8px;padding:10px 12px 6px}
+header>b{grid-column:1;grid-row:1;align-self:center}header>span{grid-column:2;grid-row:1;align-self:center;font-size:14px}
+header nav{grid-column:1/-1;grid-row:2;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -12px;padding:0 12px 4px}header nav::-webkit-scrollbar{display:none}
+header nav a{flex:none;padding:8px 12px}
+#p_i td.qbox{white-space:normal;min-width:150px}#p_i button.bb{margin-top:4px}}
 </style>
 </head>
 <body>
@@ -157,10 +165,10 @@ const PROD_COLS='producto_id,codigo,ean,descripcion,familia,marca,costo,precio_m
 S.stock={};S.stockOk=false;S.min={};
 async function cargarStock(){
   const[st,mi]=await Promise.all([todo(()=>sb.from('stock').select('producto_id,fisico,reservado,disponible').order('producto_id')),
-    todo(()=>sb.from('productos').select('id,stock_minimo,activo,proveedor_id').order('id'))]);
+    todo(()=>sb.from('productos').select('*').order('id'))]);
   S.stockOk=!st.error;S.stock={};S.inv=false;
   for(const r of st.data||[]){S.stock[r.producto_id]={f:+r.fisico||0,r:+r.reservado||0,d:r.disponible!=null?+r.disponible:(+r.fisico||0)-(+r.reservado||0)};if(+r.fisico)S.inv=true}
-  S.min={};for(const r of mi.data||[])S.min[r.id]={m:+r.stock_minimo||0,a:r.activo!==false,pv:r.proveedor_id};
+  S.min={};S.bultoOk=(mi.data||[]).some(r=>'unidades_bulto' in r);for(const r of mi.data||[])S.min[r.id]={m:+r.stock_minimo||0,a:r.activo!==false,pv:r.proveedor_id,b:Math.max(1,+r.unidades_bulto||1),tb:r.tipo_bulto||'Caja'};
 }
 const stk=id=>S.stock[id]||{f:0,r:0,d:0};
 const nf=n=>Number(n||0).toLocaleString('es-AR',{maximumFractionDigits:2});
@@ -172,6 +180,13 @@ function chipStock(id,pide){if(!S.stockOk||!S.inv)return '';const d=stk(id).d,m=
 const norm=t=>String(t??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 const coincide=(texto,q)=>{const t=norm(texto);return norm(q).split(/\s+/).filter(Boolean).every(w=>t.includes(w))};
 const txtProd=p=>p.descripcion+' '+p.codigo+' '+(p.marca||'')+' '+(p.familia||'');
+
+/* ---------- Bultos (caja / pack) ---------- */
+const bul=id=>{const x=S.min[id];return x&&x.b>1?{n:x.b,t:x.tb||'Caja'}:null};
+const plural=(t,n)=>{t=String(t||'Caja').toLowerCase();return n==1?t:(t.endsWith('s')?t:t+'s')};
+function enBultos(id,q){const b=bul(id);q=Number(q)||0;if(!b||q<b.n)return '';const c=Math.floor(q/b.n),r=q-c*b.n;return c+' '+plural(b.t,c)+(r?' + '+nf(r)+' u.':'')}
+const cantTxt=(id,q)=>{const e=enBultos(id,q);return nf(q)+(e?' ('+e+')':'')};
+const chipBulto=id=>{const b=bul(id);return b?`<span class="bulto">${esc(b.t)} × ${b.n}</span>`:''};
 
 /* ---------- Escáner de códigos de barras con la cámara ---------- */
 const solo=x=>String(x??'').replace(/\D/g,'').replace(/^0+/,'');
@@ -430,15 +445,20 @@ SDMP-01279	8.900</pre>
   const upd=()=>{const n=Object.keys(nuevo).length;$('#pr_n').textContent=n?n+(n==1?' costo cambiado sin guardar':' costos cambiados sin guardar'):''};
   const draw=()=>{sel=filtrar();$('#pr_cnt').textContent=sel.length+(sel.length==1?' producto':' productos');
     const V=sel.slice(0,150);
-    $('#pr_t').innerHTML='<tr><th>Producto</th><th class="n">Costo</th><th class="n">Mayorista</th><th class="n">Minorista</th><th class="n">Especial</th><th class="n">Ganás (may.)</th><th>Último cambio</th></tr>'+
+    $('#pr_t').innerHTML='<tr><th>Producto</th><th class="n">Costo</th><th class="n">Mayorista</th><th class="n">Minorista</th><th class="n">Especial</th><th class="n">Ganás (may.)</th><th>Bulto</th><th>Último cambio</th></tr>'+
       V.map(p=>{const id=p.producto_id,c=nuevo[id]??+p.costo,pm=precio(c,'mayorista'),u=ult[id];
         return `<tr${nuevo[id]!=null?' class="cambio"':''}><td>${esc(p.descripcion)} <small>${esc(p.codigo)}</small></td>
         <td class="n"><input type="number" step="0.01" min="0" class="cs" data-id="${id}" value="${nuevo[id]??''}" placeholder="${p.costo!=null?nf(p.costo):'—'}"></td>
         <td class="n">${pm!=null?$m(pm):'—'}</td><td class="n">${precio(c,'minorista')!=null?$m(precio(c,'minorista')):'—'}</td><td class="n">${precio(c,'especial')!=null?$m(precio(c,'especial')):'—'}</td>
         <td class="n">${pm!=null?$m(pm-c):'—'}</td>
+        <td style="white-space:nowrap"><select class="tb" data-id="${id}" aria-label="Tipo de bulto">${['Caja','Pack','Bolsa','Fardo','Display'].map(t=>`<option ${(S.min[id]?.tb||'Caja')==t?'selected':''}>${t}</option>`).join('')}</select> × <input type="number" min="1" step="1" class="ub" data-id="${id}" value="${S.min[id]?.b||1}" aria-label="Unidades por bulto"></td>
         <td><small>${u?fd(u.fecha)+' · '+(u.costo_anterior>0?(u.costo_nuevo>=u.costo_anterior?'+':'')+pctf((u.costo_nuevo/u.costo_anterior-1)*100):'nuevo'):'—'}</small></td></tr>`}).join('')+
-      (sel.length>V.length?`<tr><td colspan="7"><small>Se muestran 150 de ${sel.length}. El aumento por porcentaje se aplica a los ${sel.length}.</small></td></tr>`:'')+
-      (sel.length?'':'<tr><td colspan="7"><small>No hay productos con ese filtro.</small></td></tr>');
+      (sel.length>V.length?`<tr><td colspan="8"><small>Se muestran 150 de ${sel.length}. El aumento por porcentaje se aplica a los ${sel.length}.</small></td></tr>`:'')+
+      (sel.length?'':'<tr><td colspan="8"><small>No hay productos con ese filtro.</small></td></tr>');
+    const gb=async id=>{const u=Math.max(1,Math.round(+$(`.ub[data-id="${id}"]`).value||1)),t=$(`.tb[data-id="${id}"]`).value;
+      const{error}=await sb.rpc('fijar_bulto',{p_producto:id,p_unidades:u,p_tipo:t});if(error)return toast(error.message.includes('fijar_bulto')?'Corré bultos.sql en Supabase.':error.message,1);
+      S.min[id]=Object.assign(S.min[id]||{},{b:u,tb:t});toast(u>1?'Bulto guardado: '+t+' × '+u+'.':'Se vende por unidad.')};
+    $$('.ub').forEach(e=>e.onchange=()=>gb(e.dataset.id));$$('.tb').forEach(e=>e.onchange=()=>gb(e.dataset.id));
     $$('.cs').forEach(e=>e.onchange=()=>{const n=numAR(e.value);if(e.value===''||n===null)delete nuevo[e.dataset.id];else if(n>0)nuevo[e.dataset.id]=n;setTimeout(draw);upd()})};
   ['#pr_q','#pr_pv','#pr_ma','#pr_fa'].forEach(k=>$(k)[k=='#pr_q'?'oninput':'onchange']=()=>{$('#pr_conf').innerHTML='';draw()});
   draw();
@@ -776,13 +796,14 @@ async function vPedidos(){
   const pr=p=>Number(p['precio_'+(cli()?.lista||'mayorista')]);
   const add=(p,q=1)=>{const it=S.items.find(i=>i.p.producto_id==p.producto_id);it?it.q+=q:S.items.push({p,q})};
   const drawI=()=>{let t=0;
-    $('#p_i').innerHTML=S.items.map((i,k)=>{const s=pr(i.p)*i.q;t+=s;return `<tr><td>${esc(i.p.descripcion)} ${i.p.marca?`<span class="marca">${esc(i.p.marca)}</span>`:''}<br>${chipStock(i.p.producto_id,i.q)}</td><td class="qbox"><button class="alt qb" data-m="${k}" aria-label="Restar">−</button><input type="number" min="1" value="${i.q}" data-k="${k}" class="qty"><button class="alt qb" data-p="${k}" aria-label="Sumar">+</button></td><td class="pu">${$m(pr(i.p))}</td><td class="n">${$m(s)}</td><td><a data-x="${k}">Quitar</a></td></tr>`}).join('');
+    $('#p_i').innerHTML=S.items.map((i,k)=>{const s=pr(i.p)*i.q;t+=s;return `<tr><td>${esc(i.p.descripcion)} ${i.p.marca?`<span class="marca">${esc(i.p.marca)}</span>`:''}<br>${chipStock(i.p.producto_id,i.q)} ${chipBulto(i.p.producto_id)}</td><td class="qbox"><button class="alt qb" data-m="${k}" aria-label="Restar">−</button><input type="number" min="1" value="${i.q}" data-k="${k}" class="qty"><button class="alt qb" data-p="${k}" aria-label="Sumar">+</button>${bul(i.p.producto_id)?`<button class="alt qb bb" data-bb="${k}">+ ${esc(bul(i.p.producto_id).t)} (${bul(i.p.producto_id).n})</button>`:''}<br><small class="eq">${enBultos(i.p.producto_id,i.q)?'= '+enBultos(i.p.producto_id,i.q):''}</small></td><td class="pu">${$m(pr(i.p))}</td><td class="n">${$m(s)}</td><td><a data-x="${k}">Quitar</a></td></tr>`}).join('');
     $('#p_t').textContent=S.items.length?S.items.length+(S.items.length==1?' producto':' productos')+' · Total: '+$m(t):'';
     const falta=S.stockOk&&S.inv?S.items.filter(i=>i.q>stk(i.p.producto_id).d).length:0;
     $('#p_av').innerHTML=falta?`<p class="aviso">${falta==1?'Un producto pide':falta+' productos piden'} más de lo disponible. Podés guardar igual; revisá antes de aprobar.</p>`:'';
     $$('.qty').forEach(e=>e.onchange=()=>{S.items[e.dataset.k].q=Math.max(1,+e.value||1);setTimeout(drawI)});
     $$('#p_i [data-m]').forEach(b=>b.onclick=()=>{const i=S.items[b.dataset.m];i.q>1?i.q--:S.items.splice(b.dataset.m,1);drawI()});
     $$('#p_i [data-p]').forEach(b=>b.onclick=()=>{S.items[b.dataset.p].q++;drawI()});
+    $$('#p_i [data-bb]').forEach(b=>b.onclick=()=>{const i=S.items[b.dataset.bb];i.q+=bul(i.p.producto_id).n;drawI()});
     $$('#p_i [data-x]').forEach(a=>a.onclick=()=>{S.items.splice(a.dataset.x,1);drawI()})};
   drawI();
   /* Cliente: buscador */
@@ -810,7 +831,7 @@ async function vPedidos(){
   $('#p_cq').onkeydown=e=>{if(e.key=='Enter'){const r=listaCli();if(r.length)elegir(r[0])}};
   $('#p_cx').onclick=()=>{S.pcli=null;$('#p_sel').hidden=true;$('#p_cq').hidden=false;$('#p_cq').value='';$('#p_cq').focus();drawI()};
   /* Productos: Enter agrega el primero y deja el buscador listo */
-  buscador('#p_q','#p_r',p=>{add(p);drawI();$('#p_q').focus()},p=>`<b>${$m(pr(p))}</b> ${chipStock(p.producto_id)}`);
+  buscador('#p_q','#p_r',p=>{add(p);drawI();$('#p_q').focus()},p=>`<b>${$m(pr(p))}</b> ${chipStock(p.producto_id)} ${chipBulto(p.producto_id)}`);
   $('#p_sc').onclick=()=>escanear('Escanear productos del pedido',p=>{add(p);drawI();const it=S.items.find(i=>i.p.producto_id==p.producto_id);return '✔ '+p.descripcion+' · llevás '+it.q});
   $('#p_q').onkeydown=e=>{if(e.key=='Enter'){const f=$('#p_r .r');if(f)f.click()}};
   if(S.preCli){const c=S.preCli;S.preCli=null;elegir(c)}else $('#p_cq').focus();
@@ -885,7 +906,7 @@ async function listaPedidos(){
 async function itemsPedido(o){
   const{data,error}=await sb.from('pedido_items').select('*').eq('pedido_id',o.id);
   if(error){toast('No se pudieron leer los productos: '+error.message,1);return null}
-  return data.map(i=>({d:S.productos.find(p=>p.producto_id==i.producto_id)?.descripcion||'Producto',q:+i.cantidad,pu:+i.precio_unitario,st:+i.cantidad*+i.precio_unitario}));
+  return data.map(i=>({d:S.productos.find(p=>p.producto_id==i.producto_id)?.descripcion||'Producto',q:+i.cantidad,qt:cantTxt(i.producto_id,i.cantidad),pu:+i.precio_unitario,st:+i.cantidad*+i.precio_unitario}));
 }
 function telWA(t){let d=String(t||'').replace(/\D/g,'');if(!d)return '';
   if(d.startsWith('54'))d=d.slice(2);if(d.startsWith('9'))d=d.slice(1);if(d.startsWith('0'))d=d.slice(1);
@@ -895,7 +916,7 @@ async function enviarWA(o){
   const it=await itemsPedido(o);if(!it){w&&w.close();return}
   const c=S.clientes.find(x=>x.id==o.cliente_id)||{};
   const tot=it.reduce((a,i)=>a+i.st,0);
-  const txt=`*Sabores de mi País*\nPedido N° ${o.numero} · ${c.razon_social||''}\n\n`+it.map(i=>`• ${i.q} x ${i.d} — ${$m(i.st)}`).join('\n')+`\n\n*Total: ${$m(o.total||tot)}*\n\n¡Gracias por tu compra!`;
+  const txt=`*Sabores de mi País*\nPedido N° ${o.numero} · ${c.razon_social||''}\n\n`+it.map(i=>`• ${i.qt} x ${i.d} — ${$m(i.st)}`).join('\n')+`\n\n*Total: ${$m(o.total||tot)}*\n\n¡Gracias por tu compra!`;
   const tel=telWA(c.telefono),url='https://wa.me/'+tel+'?text='+encodeURIComponent(txt);
   if(w)w.location.href=url;else location.href=url;
   if(!tel)toast('Este cliente no tiene teléfono cargado: elegí el contacto en WhatsApp.')
@@ -910,7 +931,7 @@ async function pedidoPDF(o){
   <p class="ayuda">Para guardarlo en PDF: en la ventana de impresión elegí <b>Guardar como PDF</b> como destino.</p>
   <div class="top"><div><h1>Sabores de mi País</h1><div>Nota de pedido</div></div><div class="n"><b>Pedido N° ${o.numero}</b><br>${f}</div></div>
   <p><b>Cliente:</b> ${esc(c.razon_social)}${c.cuit?'<br><b>CUIT:</b> '+esc(c.cuit):''}${c.domicilio?'<br><b>Domicilio:</b> '+esc(c.domicilio):''}</p>
-  <table><tr><th>Producto</th><th class="n">Cant.</th><th class="n">Precio</th><th class="n">Subtotal</th></tr>${it.map(i=>`<tr><td>${esc(i.d)}</td><td class="n">${i.q}</td><td class="n">${$m(i.pu)}</td><td class="n">${$m(i.st)}</td></tr>`).join('')}
+  <table><tr><th>Producto</th><th class="n">Cant.</th><th class="n">Precio</th><th class="n">Subtotal</th></tr>${it.map(i=>`<tr><td>${esc(i.d)}</td><td class="n">${i.qt}</td><td class="n">${$m(i.pu)}</td><td class="n">${$m(i.st)}</td></tr>`).join('')}
   <tr class="tot"><td colspan="3" class="n">Total</td><td class="n">${$m(o.total||tot)}</td></tr></table>
   <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close();
 }
@@ -1080,7 +1101,7 @@ async function vReparto(){
     <div class="top"><div><h1>Sabores de mi País · Hoja de reparto</h1><div>${hoy}</div></div><div class="n"><b>${E.length} paradas</b><br>${$m(E.reduce((a,x)=>a+Number(x.o.total||0),0))}</div></div>
     ${E.map(x=>`<div class="p"><h2>${x.n}. ${esc(x.c.razon_social)} <span style="font-weight:400">· Pedido N° ${x.o.numero}${x.f?' · Factura '+x.f.tipo+' N° '+x.f.numero:''}</span></h2>
       <div>${esc(x.c.domicilio||'Sin domicilio cargado')}${x.c.telefono?' · Tel. '+esc(x.c.telefono):''}</div>
-      <ul class="it">${(x.o.pedido_items||[]).map(i=>`<li>${nf(i.cantidad)} × ${esc(nom(i.producto_id))}</li>`).join('')}</ul>
+      <ul class="it">${(x.o.pedido_items||[]).map(i=>`<li>${cantTxt(i.producto_id,i.cantidad)} × ${esc(nom(i.producto_id))}</li>`).join('')}</ul>
       <div class="pie"><div class="n"><b>Total: ${$m(x.o.total)}</b>${x.c.condicion_pago_dias?' · Cta. cte. '+x.c.condicion_pago_dias+' días':' · <b>COBRAR CONTADO</b>'}</div><div class="f">Recibí conforme · firma</div></div></div>`).join('')}
     <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close()};
   $('#rv_wa').onclick=()=>{const E=elegidos().map(linea);
@@ -1118,11 +1139,12 @@ async function cOrdenes(){
   <div id="rx"></div><h3>Órdenes</h3><table id="ol"></table>`;
   const drawI=()=>{let t=0;
     $('#o_i').innerHTML=S.oc.length?'<tr><th>Producto</th><th>Cant.</th><th>Costo unit.</th><th>Subtotal</th><th></th></tr>'+S.oc.map((i,k)=>{const s=i.c*i.q;t+=s;
-      return `<tr><td>${esc(i.p.descripcion)}</td><td><input type="number" min="1" value="${i.q}" data-k="${k}" class="oq"></td><td><input type="number" min="0" step="0.01" value="${i.c}" data-k="${k}" class="oc" style="width:110px"></td><td>${$m(s)}</td><td><a data-x="${k}">Quitar</a></td></tr>`}).join(''):'';
+      return `<tr><td>${esc(i.p.descripcion)}</td><td style="white-space:nowrap"><input type="number" min="1" value="${i.q}" data-k="${k}" class="oq">${bul(i.p.producto_id)?` <button class="alt qb bb" data-ob="${k}">+ ${esc(bul(i.p.producto_id).t)} (${bul(i.p.producto_id).n})</button><br><small class="eq">${enBultos(i.p.producto_id,i.q)?'= '+enBultos(i.p.producto_id,i.q):''}</small>`:''}</td><td><input type="number" min="0" step="0.01" value="${i.c}" data-k="${k}" class="oc" style="width:110px"></td><td>${$m(s)}</td><td><a data-x="${k}">Quitar</a></td></tr>`}).join(''):'';
     $('#o_t').textContent=S.oc.length?'Total: '+$m(t):'';
     $$('.oq').forEach(e=>e.onchange=()=>{S.oc[e.dataset.k].q=Math.max(1,+e.value||1);setTimeout(drawI)});
     $$('.oc').forEach(e=>e.onchange=()=>{S.oc[e.dataset.k].c=Math.max(0,+e.value||0);setTimeout(drawI)});
-    $$('#o_i [data-x]').forEach(a=>a.onclick=()=>{S.oc.splice(a.dataset.x,1);drawI()})};
+    $$('#o_i [data-x]').forEach(a=>a.onclick=()=>{S.oc.splice(a.dataset.x,1);drawI()});
+    $$('#o_i [data-ob]').forEach(b=>b.onclick=()=>{const i=S.oc[b.dataset.ob];i.q+=bul(i.p.producto_id).n;drawI()})};
   drawI();
   $('#o_sc').onclick=()=>escanear('Escanear productos de la orden',p=>{agregarOC(p);return '✔ '+p.descripcion});
   const agregarOC=async p=>{const it=S.oc.find(i=>i.p.producto_id==p.producto_id);if(it){it.q++;return drawI()}

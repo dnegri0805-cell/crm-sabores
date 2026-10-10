@@ -52,6 +52,10 @@ button{font:inherit;cursor:pointer;border:0;border-radius:10px}
 .msg{background:#fff;border:1px solid var(--l);border-radius:14px;padding:24px 18px;margin-top:24px;text-align:center}
 .msg h2{margin:0 0 8px}.msg .ok{font-size:44px;line-height:1;color:var(--ok)}
 .err{color:var(--er)}
+.bulto{display:inline-block;font-size:11px;font-weight:600;color:#7a5a00;background:#fff1cc;border-radius:4px;padding:1px 6px;margin-right:4px}
+.p .pr small{display:block;font-size:12px;font-weight:500;color:var(--mu);text-align:right}
+.q small.eq{color:#7a5a00;font-weight:600;margin-right:auto}
+.q .add.sec2{background:#fff;color:var(--m);border:1px solid var(--m)}
 .toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--n);color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;z-index:30;max-width:90vw;text-align:center}
 @media (prefers-reduced-motion:no-preference){.hoja .c{animation:sube .18s ease-out}@keyframes sube{from{transform:translateY(30px);opacity:.6}}}
 </style>
@@ -75,6 +79,9 @@ function toast(t){const e=$('#t');e.textContent=t;e.hidden=false;clearTimeout(e.
 function guardar(){try{localStorage.setItem(K,JSON.stringify(car))}catch(e){}}
 function cargarCarrito(){try{const x=JSON.parse(localStorage.getItem(K)||'{}');for(const id in x)if(P.find(p=>p.id==id)&&x[id]>0)car[id]=+x[id]}catch(e){}}
 const prod=id=>P.find(p=>p.id==id);
+const nf=n=>Number(n||0).toLocaleString('es-AR',{maximumFractionDigits:2});
+const pl=(t,n)=>{t=String(t||'Caja').toLowerCase();return n==1?t:(t.endsWith('s')?t:t+'s')};
+function enB(p,q){if(!(p.b>1)||q<p.b)return '';const c=Math.floor(q/p.b),r=q-c*p.b;return c+' '+pl(p.tb,c)+(r?' + '+nf(r)+' u.':'')}
 const totalCar=()=>Object.entries(car).reduce((a,[id,q])=>a+(prod(id)?.p||0)*q,0);
 
 async function iniciar(){
@@ -100,12 +107,13 @@ function lista(){
   const ws=norm(filtro).split(/\s+/).filter(Boolean);
   const L=P.filter(p=>(!marca||p.m==marca)&&ws.every(w=>norm(p.d+' '+(p.m||'')+' '+(p.f||'')+' '+p.c).includes(w)));
   const V=L.slice(0,lim);
-  $('#l').innerHTML=V.map(p=>{const q=car[p.id]||0;return `<div class="p ${q?'sel':''}"><div class="d"><b>${esc(p.d)}</b><small>${p.m?`<span class="marca">${esc(p.m)}</span>`:''}${esc(p.c)}</small></div><div class="pr">${$m(p.p)}</div>
-    <div class="q">${q?`<button data-r="${p.id}" aria-label="Restar">−</button><input type="number" inputmode="numeric" min="0" value="${q}" data-i="${p.id}" aria-label="Cantidad"><button data-s="${p.id}" aria-label="Sumar">+</button>`:`<button class="add" data-s="${p.id}">Agregar</button>`}</div></div>`}).join('')+
+  $('#l').innerHTML=V.map(p=>{const q=car[p.id]||0;return `<div class="p ${q?'sel':''}"><div class="d"><b>${esc(p.d)}</b><small>${p.m?`<span class="marca">${esc(p.m)}</span>`:''}${p.b>1?`<span class="bulto">${esc(p.tb)} × ${p.b}</span>`:''}${esc(p.c)}</small></div><div class="pr">${$m(p.p)}${p.b>1?`<small>${esc(p.tb)}: ${$m(p.p*p.b)}</small>`:''}</div>
+    <div class="q">${q&&enB(p,q)?`<small class="eq">= ${enB(p,q)}</small>`:''}${q?`<button data-r="${p.id}" aria-label="Restar">−</button><input type="number" inputmode="numeric" min="0" value="${q}" data-i="${p.id}" aria-label="Cantidad"><button data-s="${p.id}" aria-label="Sumar">+</button>`:`<button class="add${p.b>1?' sec2':''}" data-s="${p.id}">Agregar 1</button>`}${p.b>1?`<button class="add" data-bb="${p.id}">+ ${esc(p.tb)} (${p.b})</button>`:''}</div></div>`}).join('')+
     (L.length>V.length?`<button class="sec" id="mas" style="width:100%">Ver más productos (${L.length-V.length})</button>`:'')+
     (L.length?'':'<p class="mas">No encontramos productos con esa búsqueda.</p>');
   $$('#l [data-s]').forEach(b=>b.onclick=()=>cambiar(b.dataset.s,1));
   $$('#l [data-r]').forEach(b=>b.onclick=()=>cambiar(b.dataset.r,-1));
+  $$('#l [data-bb]').forEach(b=>b.onclick=()=>cambiar(b.dataset.bb,prod(b.dataset.bb).b));
   $$('#l [data-i]').forEach(e=>e.onchange=()=>{const v=Math.max(0,Math.round(+e.value||0));v?car[e.dataset.i]=v:delete car[e.dataset.i];guardar();setTimeout(lista);barra()});
   $('#mas')&&($('#mas').onclick=()=>{lim+=60;lista()});
 }
@@ -119,7 +127,7 @@ function revisar(){
   const draw=()=>{const I=Object.entries(car).filter(([id])=>prod(id));
     if(!I.length){cerrar();return}
     h.innerHTML=`<div class="c" role="dialog" aria-label="Tu pedido"><h2>Tu pedido</h2>
-      ${I.map(([id,q])=>{const p=prod(id);return `<div class="it"><div>${esc(p.d)}<br><small>${$m(p.p)} c/u</small></div><div class="n">${$m(p.p*q)}</div>
+      ${I.map(([id,q])=>{const p=prod(id);return `<div class="it"><div>${esc(p.d)}<br><small>${$m(p.p)} c/u${enB(p,q)?' · '+nf(q)+' u. = '+enB(p,q):''}</small></div><div class="n">${$m(p.p*q)}</div>
         <div class="q"><button data-r="${id}" aria-label="Restar">−</button><input type="number" inputmode="numeric" min="0" value="${q}" data-i="${id}" aria-label="Cantidad"><button data-s="${id}" aria-label="Sumar">+</button><button class="x" data-x="${id}">Quitar</button></div></div>`}).join('')}
       <div class="total"><span>Total</span><span>${$m(totalCar())}</span></div>
       <textarea id="nota" rows="2" maxlength="500" placeholder="¿Algo que tengamos que saber? (horario de entrega, etc.)">${esc(h._nota||'')}</textarea>
