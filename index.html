@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="google" content="notranslate">
 <title>Sabores de mi País · Gestión</title>
+<meta name="theme-color" content="#17213a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Sabores">
 <style>
 :root{--m:#7b2d3e;--n:#17213a;--g:#f3f4f7;--l:#d9dce3;--ok:#1d7a46;--er:#b3261e}
 *{box-sizing:border-box}
@@ -15,6 +22,18 @@ header nav{display:flex;gap:4px;flex:1;flex-wrap:wrap}
 header nav a{padding:7px 14px;border-radius:6px;cursor:pointer;color:#cfd4e2}
 header nav a.on{background:var(--m);color:#fff}
 header span a{cursor:pointer;text-decoration:underline;margin-left:8px}
+header>b{display:flex;align-items:center;gap:10px}
+.hlogo{height:32px;max-width:120px;object-fit:contain;background:#fff;border-radius:6px;padding:2px 5px}
+.login .llogo{display:block;max-height:90px;max-width:240px;margin:0 auto 10px;object-fit:contain}
+.herr{display:flex;flex-wrap:wrap;gap:8px;margin:-4px 0 12px}
+.herr button{background:#fff;color:var(--m);border:1px solid var(--l);padding:7px 12px;font-size:14px}
+.mk{display:grid;gap:14px}.mk label{display:grid;gap:4px;font-weight:600}.mk small{font-weight:400;color:#6a7184}
+.mk .lg{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.mk .lg .pv{width:150px;height:70px;border:1px dashed var(--l);border-radius:8px;display:grid;place-items:center;background:#fff;color:#6a7184;font-size:13px;overflow:hidden}
+.mk .lg .pv img{max-width:140px;max-height:62px;object-fit:contain}
+.mk .cols{display:flex;gap:16px;flex-wrap:wrap}.mk input[type=color]{width:64px;height:40px;padding:2px;border:1px solid var(--l);border-radius:8px;background:#fff}
+.mk .pal{display:flex;gap:8px;flex-wrap:wrap}.mk .pal button{width:auto;padding:6px 10px;font-size:13px;color:#fff;border:0}
+.mk .demo{border-radius:8px;overflow:hidden;border:1px solid var(--l)}.mk .demo .dh{background:var(--n);color:#fff;padding:8px 12px;font-weight:600}.mk .demo .db{padding:10px 12px;background:#fff}.mk .demo .db span{display:inline-block;background:var(--m);color:#fff;border-radius:6px;padding:6px 12px;font-size:14px}
+.inst ol{padding-left:20px;margin:8px 0}.inst li{margin:6px 0}
 main{max-width:980px;margin:0 auto;padding:16px}
 h2{margin:8px 0 12px}h3{margin:20px 0 8px}
 .box{background:#fff;border:1px solid var(--l);border-radius:8px;padding:14px;margin-bottom:14px}
@@ -140,7 +159,7 @@ function toast(t,er){const e=$('#t');e.textContent=t;e.style.background=er?'var(
 async function out(){await sb.auth.signOut();loginView()}
 
 function loginView(){
-  app.innerHTML=`<div class="box login"><h1>Sabores de mi País</h1><input id="em" type="email" placeholder="Correo"><input id="pw" type="password" placeholder="Contraseña"><button id="go">Ingresar</button><p id="le" class="err"></p></div>`;
+  app.innerHTML=`<div class="box login">${MARCA.logo?`<img class="llogo" src="${MARCA.logo}" alt="">`:''}<h1>Sabores de mi País</h1><input id="em" type="email" placeholder="Correo"><input id="pw" type="password" placeholder="Contraseña"><button id="go">Ingresar</button><p id="le" class="err"></p></div>`;
   const go=async()=>{const{error}=await sb.auth.signInWithPassword({email:$('#em').value.trim(),password:$('#pw').value});
     if(error)$('#le').textContent=error.message==='Invalid login credentials'?'Correo o contraseña incorrectos.':'Error de conexión: '+error.message+(error.status?' ('+error.status+')':'');else init()};
   $('#go').onclick=go;$('#pw').onkeydown=e=>{if(e.key==='Enter')go()};
@@ -155,10 +174,10 @@ async function init(){
     todo(()=>sb.from('clientes').select('*').eq('activo',true).order('razon_social').order('id')),
     todo(()=>sb.from('precios_productos').select(PROD_COLS).order('descripcion').order('producto_id'))]);
   if(c.error||pr.error){app.innerHTML='<div class="box login"><p class="err">No se pudieron cargar los datos: '+esc((c.error||pr.error).message)+'</p><button onclick="out()">Salir</button></div>';return}
-  S.clientes=c.data;S.productos=pr.data;await Promise.all([cargarStock(),cargarPromos()]);shell();
+  S.clientes=c.data;S.productos=pr.data;await Promise.all([cargarStock(),cargarPromos(),cargarMarca()]);shell();
 }
 function shell(){
-  app.innerHTML=`<header><b>Sabores de mi País</b><nav>${['inicio','pedidos','reparto','clientes','cobranza','caja','compras','stock','precios','reportes'].filter(t=>!['precios','caja'].includes(t)||S.perfil.rol=='dueno').map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${t[0].toUpperCase()+t.slice(1)}</a>`).join('')}</nav><span>${esc(S.perfil.nombre)} (${S.perfil.rol})<a onclick="out()">Salir</a></span></header><main id="v"></main>`;
+  app.innerHTML=`<header><b>${MARCA.logo?`<img class="hlogo" src="${MARCA.logo}" alt="">`:''}Sabores de mi País</b><nav>${['inicio','pedidos','reparto','clientes','cobranza','caja','compras','stock','precios','reportes'].filter(t=>!['precios','caja'].includes(t)||S.perfil.rol=='dueno').map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${t[0].toUpperCase()+t.slice(1)}</a>`).join('')}</nav><span>${esc(S.perfil.nombre)} (${S.perfil.rol})<a onclick="out()">Salir</a></span></header><main id="v"></main>`;
   $$('nav a').forEach(a=>a.onclick=()=>{S.tab=a.dataset.t;shell()});
   ({inicio:vInicio,pedidos:vPedidos,reparto:vReparto,caja:vCaja,clientes:vClientes,cobranza:vCobranza,compras:vCompras,stock:vStock,precios:vPrecios,reportes:vReportes})[S.tab]();
 }
@@ -271,6 +290,7 @@ async function vInicio(){
   const en7=new Date();en7.setDate(en7.getDate()+7);const lim7=diaLocal(en7);
   $('#v').innerHTML=`<h2>Hoy, ${hoyD.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}</h2>
   <div id="bk"></div>
+  <div class="herr" id="herr"></div>
   <div class="kp">
     <div class="box" id="k1"><span class="lab">Facturado hoy</span><span class="num">…</span><span class="det"></span></div>
     <div class="box" id="k2"><span class="lab">Pedidos por aprobar</span><span class="num">…</span><span class="det"></span></div>
@@ -287,6 +307,7 @@ async function vInicio(){
   const kp=(id,num,det,cls)=>{const b=$('#'+id);b.querySelector('.num').textContent=num;b.querySelector('.det').textContent=det||'';if(cls)b.classList.add(cls)};
   const fallo=(id,e)=>kp(id,'—','No se pudo leer: '+e.message);
   if(S.perfil.rol=='dueno')cajaBackup();
+  herramientas();
   const cli=id=>esc(S.clientes.find(c=>c.id==id)?.razon_social||'Cliente');
   const [fv,pe,fe,sp,fp]=await Promise.all([
     sb.from('facturas_venta').select('*').order('id',{ascending:false}).limit(500),
@@ -410,8 +431,7 @@ const BK_TABLAS=[['Clientes','clientes'],['Productos y precios','precios_product
 async function cajaBackup(){const b=$('#bk');if(!b)return;
   const{data}=await sb.from('config_app').select('valor').eq('clave','ultima_copia').maybeSingle();
   const u=data?.valor,dias=u?Math.floor((Date.now()-new Date(u))/864e5):null;
-  if(u&&dias<7){b.innerHTML=`<p class="bkp"><small>Última copia de seguridad: ${fd(u)}.</small> <a class="lnk" id="bk_d">Descargar otra</a></p>`}
-  else b.innerHTML=`<div class="aviso bkav"><span>${u?'Hace '+dias+' días que no hacés una copia de seguridad.':'Todavía no hiciste ninguna copia de seguridad de tus datos.'}</span><button id="bk_d">Descargar copia de seguridad</button></div>`;
+  b.innerHTML=`<p class="bkp"><small>✔ Copia de seguridad automática todas las noches.${u?' Último Excel descargado: '+fd(u)+'.':''}</small> <a class="lnk" id="bk_d">Descargar en Excel</a></p>`;
   $('#bk_d').onclick=descargarBackup}
 async function descargarBackup(){
   const m=document.createElement('div');m.className='modal';m.innerHTML=`<div class="mc"><h3>Copia de seguridad</h3><p id="bk_e">Preparando…</p><div class="barra"><i id="bk_b"></i></div></div>`;document.body.appendChild(m);
@@ -431,6 +451,71 @@ async function descargarBackup(){
     bar(100);m.querySelector('.mc').innerHTML=`<h3>Copia descargada</h3><p>Se guardó <b>Copia CRM Sabores ${hoy}.xlsx</b> en tu carpeta de descargas. Guardala también en Google Drive o un pendrive.</p><p><small>${res.join(' · ')}</small></p><button id="bk_ok">Listo</button>`;
     $('#bk_ok').onclick=()=>{m.remove();cajaBackup()}
   }catch(e){m.querySelector('.mc').innerHTML=`<h3>No se pudo descargar</h3><p class="err">${esc(e.message||String(e))}</p><button id="bk_ok">Cerrar</button>`;$('#bk_ok').onclick=()=>m.remove()}}
+
+/* ---------- Marca (logo y colores) e instalar como app ---------- */
+const MARCA_DEF={c:'#7b2d3e',n:'#17213a',logo:''};
+const PALETAS=[['Bordó (original)','#7b2d3e','#17213a'],['Verde','#2e7d4f','#1b2e25'],['Azul','#1f5fa8','#132238'],['Naranja','#c4571a','#2b1d16'],['Rojo','#b3261e','#1f1a1c'],['Violeta','#6b3fa0','#1e1830'],['Negro','#333a45','#111418']];
+let MARCA=(()=>{try{return{...MARCA_DEF,...JSON.parse(localStorage.getItem('marca')||'{}')}}catch(e){return{...MARCA_DEF}}})();
+function aplicarMarca(m=MARCA){const r=document.documentElement.style;r.setProperty('--m',m.c);r.setProperty('--n',m.n);
+  document.querySelector('meta[name=theme-color]')?.setAttribute('content',m.n)}
+function guardarMarcaLocal(){try{localStorage.setItem('marca',JSON.stringify(MARCA))}catch(e){}}
+async function cargarMarca(){const{data,error}=await sb.from('config_app').select('clave,valor').in('clave',['marca_color','marca_oscuro','marca_logo']);
+  if(error||!data)return;const g=k=>data.find(x=>x.clave==k)?.valor;
+  MARCA={c:g('marca_color')||MARCA_DEF.c,n:g('marca_oscuro')||MARCA_DEF.n,logo:g('marca_logo')||''};aplicarMarca();guardarMarcaLocal()}
+const logoImg=(h=56)=>MARCA.logo?`<img src="${MARCA.logo}" alt="" style="height:${h}px;max-width:${h*4}px;object-fit:contain;display:block;margin-bottom:6px">`:'';
+aplicarMarca();
+
+let instalarEv=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();instalarEv=e;if($('#herr'))herramientas()});
+window.addEventListener('appinstalled',()=>{instalarEv=null;toast('¡Listo! Ya tenés la app en el celular.');if($('#herr'))herramientas()});
+const enApp=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+if('serviceWorker' in navigator&&location.protocol=='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+function herramientas(){const h=$('#herr');if(!h)return;
+  h.innerHTML=(enApp()?'':'<button id="h_ins">📲 Instalar como app</button>')+(S.perfil?.rol=='dueno'?'<button id="h_mk">🎨 Logo y colores</button>':'');
+  if($('#h_ins'))$('#h_ins').onclick=instalarApp;if($('#h_mk'))$('#h_mk').onclick=editarMarca}
+
+async function instalarApp(){
+  if(instalarEv){instalarEv.prompt();const r=await instalarEv.userChoice;instalarEv=null;if(r.outcome=='accepted')return;herramientas();return}
+  const ios=/iphone|ipad|ipod/i.test(navigator.userAgent),sam=/SamsungBrowser/i.test(navigator.userAgent);
+  const m=document.createElement('div');m.className='modal';m.innerHTML=`<div class="mc inst"><h3>Instalar como app</h3>
+  ${ios?`<ol><li>Abrí esta página en <b>Safari</b>.</li><li>Tocá el botón <b>Compartir</b> (el cuadrado con la flecha).</li><li>Elegí <b>Agregar a inicio</b>.</li></ol>`
+  :sam?`<ol><li>Tocá el menú <b>☰</b> abajo a la derecha.</li><li>Elegí <b>Agregar página a → Pantalla de inicio</b>.</li></ol>`
+  :`<p>En el celular (Chrome):</p><ol><li>Tocá los <b>3 puntitos ⋮</b> arriba a la derecha.</li><li>Elegí <b>Instalar app</b> o <b>Agregar a pantalla principal</b>.</li><li>Confirmá con <b>Instalar</b>.</li></ol>
+  <p>En la computadora (Chrome o Edge): tocá el ícono <b>⊕</b> o <b>🖥</b> que aparece a la derecha de la barra de direcciones, o el menú ⋮ → <b>Transmitir, guardar y compartir → Instalar página como app</b>.</p>`}
+  <p><small>Te queda un ícono de <b>Sabores</b> que abre el CRM directo, en pantalla completa, sin barra del navegador.</small></p><button id="in_ok">Entendido</button></div>`;
+  document.body.appendChild(m);$('#in_ok').onclick=()=>m.remove()}
+
+function achicarLogo(file){return new Promise((ok,mal)=>{const r=new FileReader();r.onerror=()=>mal(new Error('No se pudo leer el archivo'));
+  r.onload=()=>{const im=new Image();im.onerror=()=>mal(new Error('Ese archivo no es una imagen que se pueda usar. Probá con PNG o JPG.'));
+    im.onload=()=>{const k=Math.min(1,480/im.width,200/im.height),w=Math.max(1,Math.round(im.width*k)),h=Math.max(1,Math.round(im.height*k));
+      const cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.getContext('2d').drawImage(im,0,0,w,h);
+      let u=cv.toDataURL('image/png');if(u.length>350000)u=cv.toDataURL('image/webp',.9);ok(u)};im.src=r.result};r.readAsDataURL(file)})}
+
+function editarMarca(){
+  const ant={...MARCA};let nv={...MARCA};
+  const m=document.createElement('div');m.className='modal';m.innerHTML=`<div class="mc"><h3>Logo y colores</h3><div class="mk">
+  <label>Logo<small>Sale arriba en el CRM, en los PDF (pedidos, recibos, listas de precios) y en el catálogo online. Mejor si es PNG con fondo transparente.</small></label>
+  <div class="lg"><div class="pv" id="mk_pv"></div><div><button id="mk_sub">Subir logo</button> <a class="lnk" id="mk_q">Quitar</a><input id="mk_f" type="file" accept="image/*" hidden></div></div>
+  <label>Colores<small>Elegí una combinación o tus colores exactos.</small></label>
+  <div class="pal">${PALETAS.map((p,i)=>`<button data-i="${i}" style="background:linear-gradient(90deg,${p[2]} 0 50%,${p[1]} 50%)">${p[0]}</button>`).join('')}</div>
+  <div class="cols"><label><small>Color principal (botones)</small><input type="color" id="mk_c"></label><label><small>Color de la barra de arriba</small><input type="color" id="mk_n"></label></div>
+  <div class="demo"><div class="dh" id="mk_dh">Sabores de mi País</div><div class="db"><span>Botón de ejemplo</span></div></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap"><button id="mk_g">Guardar</button><button id="mk_x" style="background:#fff;color:#1c2333;border:1px solid var(--l)">Cancelar</button></div>
+  </div></div>`;document.body.appendChild(m);
+  const dibu=()=>{$('#mk_pv').innerHTML=nv.logo?`<img src="${nv.logo}" alt="Logo">`:'Sin logo';$('#mk_q').hidden=!nv.logo;$('#mk_c').value=nv.c;$('#mk_n').value=nv.n;
+    $('#mk_dh').innerHTML=(nv.logo?`<img class="hlogo" src="${nv.logo}" alt="" style="height:24px;vertical-align:middle;margin-right:8px">`:'')+'Sabores de mi País';aplicarMarca(nv)};
+  dibu();
+  $('#mk_sub').onclick=()=>$('#mk_f').click();
+  $('#mk_f').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{nv.logo=await achicarLogo(f);dibu()}catch(er){toast(er.message,1)}};
+  $('#mk_q').onclick=()=>{nv.logo='';dibu()};
+  m.querySelectorAll('.pal button').forEach(b=>b.onclick=()=>{const p=PALETAS[b.dataset.i];nv.c=p[1];nv.n=p[2];dibu()});
+  $('#mk_c').oninput=e=>{nv.c=e.target.value;dibu()};$('#mk_n').oninput=e=>{nv.n=e.target.value;dibu()};
+  $('#mk_x').onclick=()=>{aplicarMarca(ant);m.remove()};
+  $('#mk_g').onclick=async()=>{$('#mk_g').disabled=true;
+    const{error}=await sb.from('config_app').upsert([{clave:'marca_color',valor:nv.c},{clave:'marca_oscuro',valor:nv.n},{clave:'marca_logo',valor:nv.logo}]);
+    if(error){$('#mk_g').disabled=false;return toast('No se pudo guardar: '+error.message,1)}
+    MARCA=nv;guardarMarcaLocal();m.remove();shell();toast('Logo y colores guardados.')}}
 
 /* ---------- Clientes ---------- */
 function vClientes(){
@@ -582,9 +667,9 @@ function abrirListaPrecios(c){
   ['#lp_l','#lp_m','#lp_f'].forEach(k=>$(k).onchange=upd);$('#lp_q').oninput=upd;upd();
   $('#lp_pdf').onclick=()=>{const{l,L}=sel();if(!L.length)return toast('No hay productos con ese filtro.',1);const cod=$('#lp_c').checked;
     const w=window.open('','_blank');if(!w)return toast('Permití las ventanas emergentes para generar el PDF.',1);
-    w.document.write(`<html><head><meta charset="utf-8"><title>Lista de precios ${LIS[l]}${c?' - '+esc(c.razon_social):''} ${hoy()}</title><style>body{font:12px system-ui,Segoe UI,sans-serif;margin:24px;color:#1c2333}h1{color:#7b2d3e;margin:0;font-size:22px}.top{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #7b2d3e;padding-bottom:8px;margin-bottom:6px}h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#7b2d3e;margin:14px 0 4px;page-break-after:avoid}table{width:100%;border-collapse:collapse}td{padding:4px 6px;border-bottom:1px solid #e3e3e3}td.c{color:#6a7184;width:96px;white-space:nowrap}td.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:600;width:110px}tr{page-break-inside:avoid}.pie{margin-top:14px;color:#6a7184}.ayuda{background:#f6e9ec;padding:8px;border-radius:6px}@media print{.ayuda{display:none}}</style></head><body>
+    w.document.write(`<html><head><meta charset="utf-8"><title>Lista de precios ${LIS[l]}${c?' - '+esc(c.razon_social):''} ${hoy()}</title><style>body{font:12px system-ui,Segoe UI,sans-serif;margin:24px;color:#1c2333}h1{color:${MARCA.c};margin:0;font-size:22px}.top{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid ${MARCA.c};padding-bottom:8px;margin-bottom:6px}h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:${MARCA.c};margin:14px 0 4px;page-break-after:avoid}table{width:100%;border-collapse:collapse}td{padding:4px 6px;border-bottom:1px solid #e3e3e3}td.c{color:#6a7184;width:96px;white-space:nowrap}td.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:600;width:110px}tr{page-break-inside:avoid}.pie{margin-top:14px;color:#6a7184}.ayuda{background:#f6e9ec;padding:8px;border-radius:6px}@media print{.ayuda{display:none}}</style></head><body>
       <p class="ayuda">Para guardarlo en PDF: en la ventana de impresión elegí <b>Guardar como PDF</b> como destino.</p>
-      <div class="top"><div><h1>Sabores de mi País</h1><div>Lista de precios ${LIS[l]}${c?' · '+esc(c.razon_social):''}</div></div><div style="text-align:right">Vigente al <b>${hoy()}</b><br>Precios con IVA incluido</div></div>
+      <div class="top"><div>${logoImg()}<h1>Sabores de mi País</h1><div>Lista de precios ${LIS[l]}${c?' · '+esc(c.razon_social):''}</div></div><div style="text-align:right">Vigente al <b>${hoy()}</b><br>Precios con IVA incluido</div></div>
       ${grupos(L).map(([g,X])=>`<h2>${esc(g)}</h2><table>${X.map(x=>`<tr>${cod?`<td class="c">${esc(x.c)}</td>`:''}<td>${esc(x.d)}</td><td class="n">${$m(x.p)}</td></tr>`).join('')}</table>`).join('')}
       <p class="pie">Precios sujetos a modificación sin previo aviso.${c?.token_pedidos?' Hacé tu pedido online: '+esc(linkPedidos(c)):''}</p>
       <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close()};
@@ -1040,9 +1125,9 @@ async function pedidoPDF(o){
   const it=await itemsPedido(o);if(!it){w.close();return}
   const c=S.clientes.find(x=>x.id==o.cliente_id)||{};
   const tot=it.reduce((a,i)=>a+i.st,0),f=new Date(o.fecha||o.creado_en||o.created_at||Date.now()).toLocaleDateString('es-AR');
-  w.document.open();w.document.write(`<html><head><meta charset="utf-8"><title>Pedido ${o.numero} - ${esc(c.razon_social)}</title><style>body{font:14px system-ui,Segoe UI,sans-serif;margin:32px;color:#1c2333}h1{color:#7b2d3e;margin:0}.top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #7b2d3e;padding-bottom:12px}table{width:100%;border-collapse:collapse;margin:16px 0}th,td{border-bottom:1px solid #ccc;padding:6px;text-align:left}.n{text-align:right;white-space:nowrap}.tot td{font-weight:700;font-size:16px;border-bottom:0}.ayuda{background:#f6e9ec;padding:10px;border-radius:6px}@media print{.ayuda{display:none}}</style></head><body>
+  w.document.open();w.document.write(`<html><head><meta charset="utf-8"><title>Pedido ${o.numero} - ${esc(c.razon_social)}</title><style>body{font:14px system-ui,Segoe UI,sans-serif;margin:32px;color:#1c2333}h1{color:${MARCA.c};margin:0}.top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid ${MARCA.c};padding-bottom:12px}table{width:100%;border-collapse:collapse;margin:16px 0}th,td{border-bottom:1px solid #ccc;padding:6px;text-align:left}.n{text-align:right;white-space:nowrap}.tot td{font-weight:700;font-size:16px;border-bottom:0}.ayuda{background:#f6e9ec;padding:10px;border-radius:6px}@media print{.ayuda{display:none}}</style></head><body>
   <p class="ayuda">Para guardarlo en PDF: en la ventana de impresión elegí <b>Guardar como PDF</b> como destino.</p>
-  <div class="top"><div><h1>Sabores de mi País</h1><div>Nota de pedido</div></div><div class="n"><b>Pedido N° ${o.numero}</b><br>${f}</div></div>
+  <div class="top"><div>${logoImg()}<h1>Sabores de mi País</h1><div>Nota de pedido</div></div><div class="n"><b>Pedido N° ${o.numero}</b><br>${f}</div></div>
   <p><b>Cliente:</b> ${esc(c.razon_social)}${c.cuit?'<br><b>CUIT:</b> '+esc(c.cuit):''}${c.domicilio?'<br><b>Domicilio:</b> '+esc(c.domicilio):''}</p>
   <table><tr><th>Producto</th><th class="n">Cant.</th><th class="n">Precio</th><th class="n">Subtotal</th></tr>${it.map(i=>`<tr><td>${esc(i.d)}${i.pr?'<br><small style="color:#1d7a46">Promo: '+esc(i.pr)+'</small>':''}</td><td class="n">${i.qt}</td><td class="n">${$m(i.pu)}</td><td class="n">${$m(i.st)}</td></tr>`).join('')}
   <tr class="tot"><td colspan="3" class="n">Total</td><td class="n">${$m(o.total||tot)}</td></tr></table>
@@ -1130,9 +1215,9 @@ function avisoWA(g,tono,pago){const c=g.c,hoy=new Date().toLocaleDateString('es-
   if(!tel)toast('Este cliente no tiene teléfono cargado: elegí el contacto en WhatsApp.')}
 function resumenPDF(g){const c=g.c,w=window.open('','_blank');if(!w)return toast('Permití las ventanas emergentes para generar el PDF.',1);
   const pago=($('#mo_d')?.value||S.datosPago||'').trim();
-  w.document.write(`<html><head><meta charset="utf-8"><title>Resumen de cuenta - ${esc(c.razon_social)}</title><style>body{font:14px system-ui,Segoe UI,sans-serif;margin:32px;color:#1c2333;max-width:760px}h1{color:#7b2d3e;margin:0}.top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #7b2d3e;padding-bottom:12px}table{width:100%;border-collapse:collapse;margin:16px 0}th,td{border-bottom:1px solid #ccc;padding:6px;text-align:left}.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}.v{color:#b3261e;font-weight:600}.tot td{font-weight:700;font-size:16px;border-bottom:0}.pago{background:#f3f4f7;padding:10px 12px;border-radius:6px;white-space:pre-line}.ayuda{background:#f6e9ec;padding:10px;border-radius:6px}@media print{.ayuda{display:none}}</style></head><body>
+  w.document.write(`<html><head><meta charset="utf-8"><title>Resumen de cuenta - ${esc(c.razon_social)}</title><style>body{font:14px system-ui,Segoe UI,sans-serif;margin:32px;color:#1c2333;max-width:760px}h1{color:${MARCA.c};margin:0}.top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid ${MARCA.c};padding-bottom:12px}table{width:100%;border-collapse:collapse;margin:16px 0}th,td{border-bottom:1px solid #ccc;padding:6px;text-align:left}.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}.v{color:#b3261e;font-weight:600}.tot td{font-weight:700;font-size:16px;border-bottom:0}.pago{background:#f3f4f7;padding:10px 12px;border-radius:6px;white-space:pre-line}.ayuda{background:#f6e9ec;padding:10px;border-radius:6px}@media print{.ayuda{display:none}}</style></head><body>
   <p class="ayuda">Para guardarlo en PDF: en la ventana de impresión elegí <b>Guardar como PDF</b> como destino.</p>
-  <div class="top"><div><h1>Sabores de mi País</h1><div>Resumen de cuenta</div></div><div class="n">Al ${new Date().toLocaleDateString('es-AR')}</div></div>
+  <div class="top"><div>${logoImg()}<h1>Sabores de mi País</h1><div>Resumen de cuenta</div></div><div class="n">Al ${new Date().toLocaleDateString('es-AR')}</div></div>
   <p><b>Cliente:</b> ${esc(c.razon_social)}${c.cuit?'<br><b>CUIT:</b> '+esc(c.cuit):''}${c.domicilio?'<br><b>Domicilio:</b> '+esc(c.domicilio):''}</p>
   <table><tr><th>Factura</th><th>Vencimiento</th><th>Estado</th><th class="n">Pendiente</th></tr>
   ${g.F.map(f=>`<tr><td>${f.tipo} N° ${f.numero}</td><td>${fd(f.vencimiento)}</td><td class="${f.dias_mora>0?'v':''}">${f.dias_mora>0?'Vencida hace '+f.dias_mora+' días':'A vencer'}</td><td class="n">${$m(f.pendiente)}</td></tr>`).join('')}
@@ -1161,9 +1246,9 @@ async function reciboWA(x,c){if(!x||!c)return;const w=window.open('','_blank');
 async function reciboPDF(x,c){if(!x||!c)return;const w=window.open('','_blank');if(!w)return toast('Permití las ventanas emergentes para generar el PDF.',1);
   w.document.write('<p style="font:16px system-ui;margin:32px">Armando el recibo…</p>');
   const d=await datosRecibo(x,c);
-  w.document.open();w.document.write(`<html><head><meta charset="utf-8"><title>Recibo ${x.numero} - ${esc(c.razon_social)}</title><style>body{font:14px system-ui,Segoe UI,sans-serif;margin:32px;color:#1c2333;max-width:720px}h1{color:#7b2d3e;margin:0}.top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #7b2d3e;padding-bottom:12px}table{width:100%;border-collapse:collapse;margin:16px 0}th,td{border-bottom:1px solid #ccc;padding:6px;text-align:left}.n{text-align:right;white-space:nowrap}.imp{font-size:22px;font-weight:700;margin:16px 0}.saldo{background:#f3f4f7;padding:10px 12px;border-radius:6px}.firma{margin-top:56px;border-top:1px solid #1c2333;width:240px;padding-top:4px;text-align:center}.ayuda{background:#f6e9ec;padding:10px;border-radius:6px}@media print{.ayuda{display:none}}</style></head><body>
+  w.document.open();w.document.write(`<html><head><meta charset="utf-8"><title>Recibo ${x.numero} - ${esc(c.razon_social)}</title><style>body{font:14px system-ui,Segoe UI,sans-serif;margin:32px;color:#1c2333;max-width:720px}h1{color:${MARCA.c};margin:0}.top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid ${MARCA.c};padding-bottom:12px}table{width:100%;border-collapse:collapse;margin:16px 0}th,td{border-bottom:1px solid #ccc;padding:6px;text-align:left}.n{text-align:right;white-space:nowrap}.imp{font-size:22px;font-weight:700;margin:16px 0}.saldo{background:#f3f4f7;padding:10px 12px;border-radius:6px}.firma{margin-top:56px;border-top:1px solid #1c2333;width:240px;padding-top:4px;text-align:center}.ayuda{background:#f6e9ec;padding:10px;border-radius:6px}@media print{.ayuda{display:none}}</style></head><body>
   <p class="ayuda">Para guardarlo en PDF: en la ventana de impresión elegí <b>Guardar como PDF</b> como destino.</p>
-  <div class="top"><div><h1>Sabores de mi País</h1><div>Recibo de cobro</div></div><div class="n"><b>Recibo N° ${x.numero}</b><br>${fd(x.fecha)}</div></div>
+  <div class="top"><div>${logoImg()}<h1>Sabores de mi País</h1><div>Recibo de cobro</div></div><div class="n"><b>Recibo N° ${x.numero}</b><br>${fd(x.fecha)}</div></div>
   <p><b>Recibimos de:</b> ${esc(c.razon_social)}${c.cuit?'<br><b>CUIT:</b> '+esc(c.cuit):''}${c.domicilio?'<br><b>Domicilio:</b> '+esc(c.domicilio):''}</p>
   <p class="imp">${$m(x.importe)} <small style="font-size:14px;font-weight:400">· ${esc(x.medio)}</small></p>
   ${d.fac.length?`<table><tr><th>Aplicado a</th><th class="n">Importe</th></tr>${d.fac.map(f=>`<tr><td>${esc(f.t)}</td><td class="n">${$m(f.imp)}</td></tr>`).join('')}${d.cuenta?`<tr><td>A cuenta</td><td class="n">${$m(d.cuenta)}</td></tr>`:''}</table>`:''}
@@ -1209,9 +1294,9 @@ async function vReparto(){
   $('#rv_imp').onclick=async()=>{const w=window.open('','_blank');if(!w)return toast('Permití las ventanas emergentes para imprimir.',1);
     const E=elegidos().map(linea),hoy=new Date().toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
     const nom=id=>S.productos.find(p=>p.producto_id==id)?.descripcion||'Producto';
-    w.document.write(`<html><head><meta charset="utf-8"><title>Reparto ${hoy}</title><style>body{font:13px system-ui,Segoe UI,sans-serif;margin:24px;color:#1c2333}h1{color:#7b2d3e;margin:0;font-size:20px}.top{display:flex;justify-content:space-between;border-bottom:2px solid #7b2d3e;padding-bottom:8px;margin-bottom:8px}.p{border:1px solid #bbb;border-radius:6px;padding:8px 10px;margin:8px 0;page-break-inside:avoid}.p h2{font-size:15px;margin:0 0 4px}.n{font-variant-numeric:tabular-nums}.it{columns:2;font-size:12px;margin:6px 0;padding-left:18px}.pie{display:flex;justify-content:space-between;gap:12px;margin-top:6px}.f{border-top:1px solid #1c2333;width:200px;text-align:center;padding-top:2px;margin-top:28px;font-size:11px}.ayuda{background:#f6e9ec;padding:8px;border-radius:6px}@media print{.ayuda{display:none}}</style></head><body>
+    w.document.write(`<html><head><meta charset="utf-8"><title>Reparto ${hoy}</title><style>body{font:13px system-ui,Segoe UI,sans-serif;margin:24px;color:#1c2333}h1{color:${MARCA.c};margin:0;font-size:20px}.top{display:flex;justify-content:space-between;border-bottom:2px solid ${MARCA.c};padding-bottom:8px;margin-bottom:8px}.p{border:1px solid #bbb;border-radius:6px;padding:8px 10px;margin:8px 0;page-break-inside:avoid}.p h2{font-size:15px;margin:0 0 4px}.n{font-variant-numeric:tabular-nums}.it{columns:2;font-size:12px;margin:6px 0;padding-left:18px}.pie{display:flex;justify-content:space-between;gap:12px;margin-top:6px}.f{border-top:1px solid #1c2333;width:200px;text-align:center;padding-top:2px;margin-top:28px;font-size:11px}.ayuda{background:#f6e9ec;padding:8px;border-radius:6px}@media print{.ayuda{display:none}}</style></head><body>
     <p class="ayuda">Para guardarlo en PDF: en la ventana de impresión elegí <b>Guardar como PDF</b> como destino.</p>
-    <div class="top"><div><h1>Sabores de mi País · Hoja de reparto</h1><div>${hoy}</div></div><div class="n"><b>${E.length} paradas</b><br>${$m(E.reduce((a,x)=>a+Number(x.o.total||0),0))}</div></div>
+    <div class="top"><div>${logoImg()}<h1>Sabores de mi País · Hoja de reparto</h1><div>${hoy}</div></div><div class="n"><b>${E.length} paradas</b><br>${$m(E.reduce((a,x)=>a+Number(x.o.total||0),0))}</div></div>
     ${E.map(x=>`<div class="p"><h2>${x.n}. ${esc(x.c.razon_social)} <span style="font-weight:400">· Pedido N° ${x.o.numero}${x.f?' · Factura '+x.f.tipo+' N° '+x.f.numero:''}</span></h2>
       <div>${esc(x.c.domicilio||'Sin domicilio cargado')}${x.c.telefono?' · Tel. '+esc(x.c.telefono):''}</div>
       <ul class="it">${(x.o.pedido_items||[]).map(i=>`<li>${cantTxt(i.producto_id,i.cantidad)} × ${esc(nom(i.producto_id))}</li>`).join('')}</ul>
@@ -1362,8 +1447,8 @@ async function recibir(o){
 async function imprimirOC(o){
   const w=window.open('','_blank');if(!w)return toast('Permití las ventanas emergentes para imprimir.',1);
   const{data:it}=await sb.from('ordenes_compra_items').select('*').eq('orden_id',o.id).order('id');
-  w.document.write(`<html><head><title>OC ${o.id}</title><style>body{font:14px system-ui;margin:32px;color:#1c2333}h1{color:#7b2d3e;margin:0}table{width:100%;border-collapse:collapse;margin:16px 0}th,td{border-bottom:1px solid #ccc;padding:6px;text-align:left}td.n,th.n{text-align:right}</style></head><body>
-  <h1>Sabores de mi País</h1><h2>Orden de compra N° ${o.id}</h2>
+  w.document.write(`<html><head><title>OC ${o.id}</title><style>body{font:14px system-ui;margin:32px;color:#1c2333}h1{color:${MARCA.c};margin:0}table{width:100%;border-collapse:collapse;margin:16px 0}th,td{border-bottom:1px solid #ccc;padding:6px;text-align:left}td.n,th.n{text-align:right}</style></head><body>
+  ${logoImg()}<h1>Sabores de mi País</h1><h2>Orden de compra N° ${o.id}</h2>
   <p><b>Proveedor:</b> ${esc(o.proveedores?.razon_social)}<br><b>Fecha:</b> ${fd(o.fecha)}${o.fecha_entrega?'<br><b>Entrega esperada:</b> '+fd(o.fecha_entrega):''}</p>
   <table><tr><th>Producto</th><th class="n">Cantidad</th><th class="n">Costo unit.</th><th class="n">Subtotal</th></tr>${(it||[]).map(i=>`<tr><td>${esc(prodNom(i.producto_id))}</td><td class="n">${+i.cantidad}</td><td class="n">${$m(i.costo_unitario)}</td><td class="n">${$m(i.subtotal)}</td></tr>`).join('')}
   <tr><th colspan="3" class="n">Total</th><th class="n">${$m(o.total)}</th></tr></table>${o.observaciones?'<p><b>Observaciones:</b> '+esc(o.observaciones)+'</p>':''}
