@@ -62,6 +62,9 @@ input.venc-in{border-color:var(--er);color:var(--er)}
 button.hecho{background:#d8efe1!important;color:#14532d!important;border-color:#14532d!important}
 td.bajo,td .bajo{color:#7a5a00}
 .alm hr{border:0;border-top:1px solid rgba(0,0,0,.1);margin:10px 0}
+.fa-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;max-height:55vh;overflow:auto}
+.fa-it{display:grid;gap:4px;border:2px solid var(--l);border-radius:10px;padding:8px;cursor:pointer;background:#fff;position:relative;font-size:13px}.fa-it.on{border-color:var(--ok)}
+.fa-it input{position:absolute;top:8px;left:8px;width:20px;height:20px;margin:0}.fa-it img{width:100%;aspect-ratio:1;object-fit:contain;background:#fff;border-radius:6px}.fa-it small{color:#6a7184}
 .inst ol{padding-left:20px;margin:8px 0}.inst li{margin:6px 0}
 main{max-width:980px;margin:0 auto;padding:16px}
 h2{margin:8px 0 12px}h3{margin:20px 0 8px}
@@ -623,7 +626,7 @@ async function vPrecios(){
     <p><small>El precio de venta se calcula solo: <b>costo ÷ (1 − margen)</b>. Con 30 %, un producto que te cuesta $ 700 se vende a $ 1.000 y te deja $ 300.</small></p>
     <div class="g" id="pr_l">Cargando…</div><button id="pr_lg">Guardar márgenes</button>
     <div class="g" style="margin-top:12px"><label class="f">Avisarme cuando un producto deje menos de (%) de ganancia<input type="number" id="pr_mm" min="0" max="89" step="1" value="${S.margenMin??15}"></label></div></div>
-  <div class="box"><div class="bh"><h3>Productos</h3><button class="alt" id="pr_et">🏷️ Imprimir etiquetas del filtro</button></div>
+  <div class="box"><div class="bh"><h3>Productos</h3><div class="fc-acc"><button class="alt" id="pr_fa">🔎 Fotos automáticas</button><button class="alt" id="pr_et">🏷️ Imprimir etiquetas del filtro</button></div></div>
     <div class="g"><div class="conscan"><input id="pr_q" placeholder="Buscar por nombre o código" autocomplete="off">${btnScan('pr_sc')}</div>
       <select id="pr_pv"><option value="">Todos los proveedores</option></select>
       <select id="pr_ma"><option value="">Todas las marcas</option></select>
@@ -717,6 +720,7 @@ SDMP-01279	8.900</pre>
       await recargarProductos();vPrecios();toast((data??ok.length)+' costos actualizados desde la lista del proveedor.')})};
   importadorLista();
   $('#pr_et').onclick=()=>etiquetas(sel.slice(0,300).map(p=>p.producto_id));
+  $('#pr_fa').onclick=()=>fotosAutomaticas(sel);
   $('#pr_mm').onchange=async e=>{const v=+e.target.value;if(!(v>=0&&v<90))return toast('Poné un porcentaje entre 0 y 89.',1);S.margenMin=v;const{error}=await sb.from('config_app').upsert({clave:'margen_minimo',valor:String(v)});toast(error?error.message:'Listo: te aviso cuando la ganancia baje del '+v+' %.',!!error)};
 }
 
@@ -2286,6 +2290,52 @@ async function historialBox(){const box=$('#rp_h');if(!box||S.perfil.rol!='dueno
     <select id="h_d" style="width:auto;margin:0">${[[1,'Hoy'],[7,'7 días'],[30,'30 días']].map(([n,t])=>`<option value="${n}" ${S.hD==n?'selected':''}>${t}</option>`).join('')}</select></div></div>
     ${V.length?`<div class="tw"><table><tr><th>Cuándo</th><th>Quién</th><th>Qué</th><th>Cambio</th></tr>${V.slice(0,150).map(h=>`<tr><td><small>${new Date(h.fecha).toLocaleString('es-AR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</small></td><td><small>${esc(quien(h.usuario_id))}</small></td><td>${TAB_H[h.tabla]||h.tabla} <small>${quien2(h)}</small></td><td><small>${det(h)}</small></td></tr>`).join('')}</table></div>`:'<p><small>No hay cambios en este período.</small></p>'}`;
   $('#h_t').onchange=e=>{S.hT=e.target.value;historialBox()};$('#h_d').onchange=e=>{S.hD=+e.target.value;historialBox()};
+}
+
+/* ======================= FOTOS AUTOMÁTICAS (Open Food Facts) ======================= */
+const eanValido=e=>/^\d{8,14}$/.test(String(e||'').trim());
+async function fotosAutomaticas(lista){
+  const P=(lista||S.productos).filter(p=>!S.min[p.producto_id]?.foto&&eanValido(p.ean));
+  const sinEan=(lista||S.productos).filter(p=>!S.min[p.producto_id]?.foto&&!eanValido(p.ean)).length;
+  const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  let corriendo=false,parar=false;const R=[];
+  m.innerHTML=`<div class="mc fa"><div class="bh"><h3>Fotos automáticas</h3><button class="alt" id="fa_x">Cerrar</button></div>
+    <p>Busco por código de barras en <b>Open Food Facts</b>, una base pública de alimentos con fotos de uso libre. Vos revisás y guardás solo las que están bien.</p>
+    <p><small>${P.length} productos sin foto con código de barras${sinEan?` · ${sinEan} sin código de barras (esos no se pueden buscar)`:''}. Tarda más o menos un segundo por producto: podés dejarlo buscando y revisar a medida que aparecen.</small></p>
+    <div class="fc-acc"><button id="fa_go" ${P.length?'':'disabled'}>Buscar fotos</button><button class="alt" id="fa_st" hidden>Parar</button></div>
+    <div class="barra" style="margin:10px 0"><i id="fa_b"></i></div><p id="fa_e"></p>
+    <div id="fa_r" class="fa-grid"></div>
+    <div class="fc-acc" id="fa_acc" hidden><button id="fa_ok">Guardar las fotos marcadas</button><a class="lnk" id="fa_all">Marcar todas</a> · <a class="lnk" id="fa_none">Desmarcar todas</a></div>
+    <p><small>Fotos de Open Food Facts (openfoodfacts.org), licencia CC BY-SA. En tu catálogo queda la mención.</small></p></div>`;
+  const est=t=>$('#fa_e').innerHTML=t;
+  $('#fa_x').onclick=()=>{parar=true;m.remove()};$('#fa_st').onclick=()=>{parar=true};
+  const tarjeta=(r,i)=>`<label class="fa-it ${r.ok?'on':''}"><input type="checkbox" data-fa="${i}" ${r.ok?'checked':''}><img src="${esc(r.img)}" alt="" loading="lazy"><b>${esc(r.p.descripcion)}</b><small>En la base: ${esc(r.nom||'sin nombre')}${r.marca?' · '+esc(r.marca):''}</small>${r.ok?'':'<small class="mora">Revisá: el nombre no se parece mucho</small>'}</label>`;
+  const pintar=()=>{$('#fa_r').innerHTML=R.map(tarjeta).join('');$('#fa_acc').hidden=!R.length;
+    $$('#fa_r [data-fa]').forEach(c=>c.onchange=()=>{R[c.dataset.fa].ok=c.checked;c.parentElement.classList.toggle('on',c.checked)})};
+  $('#fa_all').onclick=()=>{R.forEach(r=>r.ok=true);pintar()};$('#fa_none').onclick=()=>{R.forEach(r=>r.ok=false);pintar()};
+  $('#fa_go').onclick=async()=>{if(corriendo)return;corriendo=true;parar=false;$('#fa_go').hidden=true;$('#fa_st').hidden=false;let n=0,enc=0,err=0;
+    for(const p of P){if(parar)break;n++;$('#fa_b').style.width=(n/P.length*100)+'%';est(`Buscando ${n} de ${P.length}… <b>${enc}</b> fotos encontradas`);
+      try{const url='https://world.openfoodfacts.org/api/v2/product/'+String(p.ean).trim()+'.json?fields=product_name,product_name_es,brands,image_front_url,image_url';
+        let r=await fetch(url);if(r.status==429){est('La base pide esperar un momento… sigo en unos segundos.');await new Promise(z=>setTimeout(z,15000));r=await fetch(url)}
+        const j=await r.json();const pr=j.product||{},img=pr.image_front_url||pr.image_url;
+        if(j.status==1&&img){enc++;const nom=pr.product_name_es||pr.product_name||'';R.push({p,img:img.replace(/\.(\d+)\.jpg$/,'.400.jpg'),nom,marca:pr.brands||'',ok:!nom||parecido(p.descripcion,nom+' '+(pr.brands||''))>=.35||parecido(nom,p.descripcion)>=.35});pintar()}}
+      catch(e){err++;if(err>5&&!enc){est('No me puedo conectar con Open Food Facts. Probá más tarde.');break}}
+      await new Promise(z=>setTimeout(z,650))}
+    corriendo=false;$('#fa_st').hidden=true;P.splice(0,n);$('#fa_go').hidden=!P.length;$('#fa_go').textContent='Seguir buscando';
+    est(`Listo: revisé ${n} de ${P.length} productos y encontré <b>${enc}</b> fotos.${enc?' Revisalas abajo y guardá las que estén bien.':' No hay fotos para estos productos en la base: para esos conviene pedírselas al proveedor o sacarlas.'}`)};
+  $('#fa_ok').onclick=async()=>{const A=R.filter(r=>r.ok&&!r.hecho);if(!A.length)return toast('No marcaste ninguna foto.',1);
+    $('#fa_ok').disabled=true;let k=0,mal=0;
+    for(const r of A){k++;est(`Guardando ${k} de ${A.length}…`);
+      try{let res=null;try{res=await fetch(r.img)}catch(e){res=null}
+        if(!res){const{error}=await sb.rpc('fijar_foto',{p_producto:r.p.producto_id,p_url:r.img});if(error)throw error;S.min[r.p.producto_id]=Object.assign(S.min[r.p.producto_id]||{},{foto:r.img});r.hecho=true;continue}
+        if(!res.ok)throw new Error('foto no disponible');const bl=await res.blob();
+        const blob=await achicarFoto(new File([bl],'f.jpg',{type:bl.type||'image/jpeg'}),800);
+        const path=r.p.producto_id+'/'+Date.now()+'.webp';const up=await sb.storage.from('productos').upload(path,blob,{contentType:'image/webp',upsert:true});if(up.error)throw up.error;
+        const url=sb.storage.from('productos').getPublicUrl(path).data.publicUrl;const{error}=await sb.rpc('fijar_foto',{p_producto:r.p.producto_id,p_url:url});if(error)throw error;
+        S.min[r.p.producto_id]=Object.assign(S.min[r.p.producto_id]||{},{foto:url});r.hecho=true}
+      catch(e){mal++;if(/fijar_foto|bucket/i.test(e.message||'')){est('Falta correr mejoras-clientes.sql en Supabase.');break}}}
+    $('#fa_ok').disabled=false;R.splice(0,R.length,...R.filter(r=>!r.hecho));pintar();
+    est(`Guardé <b>${k-mal}</b> fotos.${mal?' '+mal+' no se pudieron bajar.':''}`);toast((k-mal)+' fotos guardadas.')};
 }
 
 /* ======================= CONTABLE (solo dueño) ======================= */
