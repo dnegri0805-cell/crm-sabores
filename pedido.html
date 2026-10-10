@@ -198,6 +198,11 @@ input,textarea{border:2px solid #ece3d6;border-radius:14px}
 .fij{background:var(--crema,#fbf6ee);border-radius:14px;padding:10px 12px;margin:8px 0;font-size:14px}.fij label{display:flex;gap:8px;align-items:center}.fij input[type=checkbox]{width:22px;height:22px;margin:0}
 .dch{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.dch button{border:2px solid var(--m);background:#fff;color:var(--m);border-radius:999px;padding:6px 12px;font-weight:700}.dch button.on{background:var(--m);color:#fff}
 .alta input{margin-bottom:8px}
+/* ===== Ventas 5 ===== */
+.card .ph{position:relative}.card .fv{position:absolute;right:6px;bottom:6px;z-index:2;width:34px;height:34px;border-radius:50%;border:0;background:rgba(255,255,255,.92);font-size:18px;line-height:34px;padding:0;box-shadow:0 2px 6px rgba(0,0,0,.15);color:#c9c4c8}.card .fv.on{color:#f5b301}
+.p .fv{border:0;background:none;font-size:20px;color:#c9c4c8;padding:0 4px}.p .fv.on{color:#f5b301}
+.pvp{font-size:12px;color:var(--ok);font-weight:600;line-height:1.25}.pvp b{font-size:13px}
+.sor{background:linear-gradient(120deg,#6b3fa0,#1f5fa8);color:#fff;border-radius:20px;padding:16px;margin:12px 0}.sor .big{font-family:var(--fd);font-size:30px;font-weight:800}
 </style>
 </head>
 <body>
@@ -207,7 +212,7 @@ input,textarea{border:2px solid #ece3d6;border-radius:14px}
 <div id="t" class="toast" hidden></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
-const VERSION='2026-10-10.4';
+const VERSION='2026-10-10.5';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -239,6 +244,8 @@ function progresoHTML(t,full){const e=escala(t),nx=proxEsc(t),out=[];
   if(full&&!PUB&&C?.desafio&&+C.desafio.meta>0&&+C.llevas<+C.desafio.meta){const tf=t*(1-e/100),f=+C.desafio.meta-(+C.llevas||0)-tf;
     out.push(f<=0?`<div class="pg"><div class="pgt"><b class="ok">🎯 ¡Con este pedido llegás al desafío del mes y ganás ${nf(C.desafio.puntos)} puntos!</b></div></div>`
       :`<div class="pg"><div class="pgt">🎯 Desafío del mes: te faltan <b>${$m(f)}</b> para ganar <b>${nf(C.desafio.puntos)} puntos</b></div><div class="pgb"><i style="width:${Math.min(100,((+C.llevas||0)+tf)/C.desafio.meta*100)}%"></i></div></div>`)}
+  if(full&&!PUB&&C?.sorteo&&+C.sorteo.cada>0){const tf=t*(1-e/100),ya=Math.floor((+C.llevas||0)/C.sorteo.cada),con=Math.floor(((+C.llevas||0)+tf)/C.sorteo.cada),f=(con+1)*C.sorteo.cada-((+C.llevas||0)+tf);
+    out.push(`<div class="pg"><div class="pgt">🎟️ ${con>ya?`<b class="ok">¡Con este pedido sumás ${con-ya} ${con-ya==1?'número':'números'} para el sorteo${C.sorteo.premio?' de '+esc(C.sorteo.premio):''}!</b>`:`Te faltan <b>${$m(f)}</b> para otro número del sorteo${C.sorteo.premio?' ('+esc(C.sorteo.premio)+')':''}`}</div></div>`)}
   if(full&&C?.minimo&&t*(1-e/100)<C.minimo)out.push(`<div class="pg mal"><div class="pgt">⚠️ El pedido mínimo es de <b>${$m(C.minimo)}</b>. Te faltan ${$m(C.minimo-t*(1-e/100))}.</div></div>`);
   return out.join('')}
 const nf=n=>Number(n||0).toLocaleString('es-AR',{maximumFractionDigits:2});
@@ -278,7 +285,7 @@ async function iniciar(){
   if(error){$('#hc').textContent='';$('#m').innerHTML=`<div class="msg"><h2>No pudimos abrir tu catálogo</h2><p class="err">${esc(error.message)}</p></div>`;return}
   C=data;P=(data.productos||[]).filter(p=>p.p>0);hayFotos=P.some(p=>p.img);armarCombos();cargarCarrito();
   $('#hc').textContent=C.cliente+' · precios lista '+C.lista;
-  $('#tabs').hidden=false;$$('[data-tab]').forEach(b=>b.onclick=()=>irTab(b.dataset.tab));
+  $('#tabs').hidden=false;$$('[data-tab]').forEach(b=>b.onclick=()=>irTab(b.dataset.tab));regVista();
   if(SUG&&(C.sugerido||[]).length){let hecho=false;try{hecho=sessionStorage.getItem('sug_'+token)=='1';sessionStorage.setItem('sug_'+token,'1')}catch(e){}if(!hecho)cargarSugerido(true)}
   irTab(location.hash=='#cuenta'?'cuenta':'pedido');
   if(SUG&&Object.keys(car).length&&location.hash!='#cuenta')setTimeout(()=>{revisar();toast('Te armamos tu pedido sugerido. Cambiá lo que quieras y envialo.')},400);
@@ -292,6 +299,13 @@ let bT;function anotarBusqueda(t){clearTimeout(bT);bT=setTimeout(()=>{try{sb.rpc
 async function avisame(id,b){if(!token){toast('Escribinos por WhatsApp y te avisamos cuando llegue.');return}b.disabled=true;
   const{error}=await sb.rpc('pedir_aviso',{p_token:token,p_producto:id});if(error){b.disabled=false;toast('No pudimos anotarte. Probá de nuevo.');return}
   (C.avisos=C.avisos||[]).push(id);toast('¡Listo! Te avisamos por WhatsApp cuando llegue.');lista()}
+const FVB=p=>token&&!PUB&&!p.combo?`<button class="fv ${esFav(p.id)?'on':''}" data-fv="${p.id}" aria-label="Favorito">★</button>`:'';
+const esFav=id=>(C?.favs||[]).includes(String(id));
+async function toggleFav(id){if(!token||PUB)return;const on=!esFav(id);C.favs=on?[...(C.favs||[]),String(id)]:(C.favs||[]).filter(x=>x!=id);lista();
+  try{const{data,error}=await sb.rpc('fav_cliente',{p_token:token,p_producto:String(id),p_on:on});if(!error&&Array.isArray(data))C.favs=data;toast(on?'⭐ Agregado a tus favoritos':'Quitado de favoritos')}catch(e){}}
+const pvpDe=p=>{const c=C?.pvp;if(!c||!c.activo||p.combo||C.lista=='minorista')return 0;if(+p.pvp>0)return +p.pvp;const r=+c.redondeo||0,v=+p.p*(1+(+c.margen||40)/100);return r>0?Math.ceil(v/r)*r:Math.round(v)};
+const pvpHTML=(p,q)=>{const v=pvpDe(p);if(!v)return '';const g=v-puP(p,Math.max(q,1));return g>0?`<div class="pvp">💰 Vendelo a <b>${$m(v)}</b> · ganás ${$m(g)} (${nf(Math.round(g/v*100))} %)</div>`:''};
+let vistaFam=new Set();function regVista(f){if(!token||PUB)return;if(f){if(vistaFam.has(f))return;vistaFam.add(f)}try{sb.rpc('registrar_vista',f?{p_token:token,p_fam:f}:{p_token:token}).then(()=>{},()=>{})}catch(e){}}
 const btnAv=p=>(C.avisos||[]).includes(p.id)?'<button class="av ok" disabled>✓ Te avisamos cuando llegue</button>':`<button class="av" data-av="${p.id}">🔔 Avisame cuando llegue</button>`;
 let hayFotos=false,fam='',vista=(()=>{try{return localStorage.getItem('vista_cat')||'grilla'}catch(e){return 'grilla'}})();
 const cap=t=>{t=String(t||'').toLowerCase();return t.charAt(0).toUpperCase()+t.slice(1)};
@@ -319,6 +333,7 @@ async function miCuenta(){$('#m').innerHTML='<p class="mas">Cargando tu cuenta�
     <div class="cta"><h3 style="margin:0 0 4px">Tus últimos pagos</h3>${Pg.length?Pg.map(r=>`<div class="fila"><div>Recibo N° ${r.n}<br><small>${fdc(r.f)} · ${esc(String(r.m||'').replace('_',' '))}</small></div><div class="n">${$m(r.i)}</div></div>`).join(''):'<p class="mas" style="padding:4px 0;text-align:left">Todavía no hay pagos registrados.</p>'}</div>
     ${x.puntos_activo&&'puntos' in x?`<div class="cta"><div class="lab">🏆 Tus puntos</div><div class="big">${nf(x.puntos)} puntos</div><small style="color:var(--mu)">Valen ${$m(x.puntos*(+x.valor_punto||10))} de descuento. Sumás 1 punto cada ${$m(x.puntos_cada||1000)} de compra entregada. Usalos tildando "Usar mis puntos" al enviar tu pedido.</small>
       ${(x.puntos_mov||[]).length?x.puntos_mov.map(m=>`<div class="fila"><div><small>${fdc(m.f)}</small><br>${esc(m.m||'')}</div><div class="n ${m.p<0?'venc':'okt'}">${m.p>0?'+':''}${nf(m.p)}</div></div>`).join(''):''}</div>`:''}
+    ${x.sorteo?`<div class="sor"><div style="opacity:.85;font-size:13px;text-transform:uppercase;letter-spacing:.05em">🎟️ Sorteo del mes</div><div class="big">${x.sorteo.numeros>0?'Tenés '+x.sorteo.numeros+' '+(x.sorteo.numeros==1?'número':'números'):'Todavía sin números'}</div><div>Premio: <b>${esc(x.sorteo.premio||'¡sorpresa!')}</b><br><small>1 número cada ${$m(x.sorteo.cada)} de compra este mes. Te faltan ${$m(x.sorteo.cada-(+x.sorteo.llevas%x.sorteo.cada))} para el próximo.</small></div></div>`:''}
     ${x.fijo&&(x.fijo.items||[]).length?`<div class="cta"><div class="lab">🔁 Tu pedido automático</div><p style="margin:4px 0">${x.fijo.activo?'Se arma solo los <b>'+(x.fijo.dias||[]).map(d=>['lunes','martes','miércoles','jueves','viernes','sábados','domingos'][d-1]).join(' y ')+'</b>':'<b>Pausado</b>'} · ${x.fijo.items.length} productos</p><button class="sec" id="fjb">${x.fijo.activo?'Pausar':'Reactivar'}</button></div>`:''}
     ${x.desafio&&+x.desafio.meta>0?`<div class="dsf"><b>🎯 Desafío del mes</b><br>${x.desafio.logrado?`<b class="okt">¡Lo lograste! Ganaste ${nf(x.desafio.puntos)} puntos 🎉</b>`:+x.desafio.llevas>=+x.desafio.meta?`<b class="okt">¡Llegaste! Te sumamos ${nf(x.desafio.puntos)} puntos cuando te entreguemos.</b>`:`Comprá ${$m(x.desafio.meta)} este mes y ganás <b>${nf(x.desafio.puntos)} puntos</b>. Llevás ${$m(x.desafio.llevas)}: te faltan <b>${$m(x.desafio.meta-x.desafio.llevas)}</b>.`}<div class="pgb"><i style="width:${Math.min(100,x.desafio.llevas/x.desafio.meta*100)}%"></i></div></div>`:''}
     ${x.ref&&+x.referido_puntos>0?`<div class="ref"><h3>🤝 Recomendá y ganá</h3><p>Pasale tu link a un negocio amigo. Cuando reciba su primer pedido, <b>los dos ganan ${nf(x.referido_puntos)} puntos</b> (${$m(x.referido_puntos*(+x.valor_punto||10))}).</p><p>Tu código: <span class="cod">${esc(x.ref)}</span>${+x.referidos?` · ya recomendaste a ${x.referidos}`:''}</p><button id="refb">Compartir mi link</button></div>`:''}
@@ -385,7 +400,7 @@ function pintar(){
     <div class="lista" id="l"></div>`;
   $('#q').oninput=e=>{filtro=e.target.value;lim=60;lista()};
   $('#mk')&&($('#mk').onchange=e=>{marca=e.target.value;lim=60;lista()});
-  $$('[data-fm]').forEach(b=>b.onclick=()=>{fam=b.dataset.fm;lim=60;$$('[data-fm]').forEach(x=>x.classList.toggle('on',x.dataset.fm==fam));lista();window.scrollTo({top:0,behavior:'smooth'})});
+  $$('[data-fm]').forEach(b=>b.onclick=()=>{fam=b.dataset.fm;if(fam)regVista(fam);lim=60;$$('[data-fm]').forEach(x=>x.classList.toggle('on',x.dataset.fm==fam));lista();window.scrollTo({top:0,behavior:'smooth'})});
   $('#vt').onclick=()=>{vista=vista=='grilla'?'lista':'grilla';try{localStorage.setItem('vista_cat',vista)}catch(e){}pintar()};
   $('#rep')&&($('#rep').onclick=()=>{let n=0;for(const u of C.ultimo){if(prod(u.id)){car[u.id]=(car[u.id]||0)+Math.max(1,Math.round(u.q));n++}}guardar();lista();barra();toast(n?n+' productos agregados de tu último pedido.':'Esos productos ya no están disponibles.')});
   $('#alta')&&($('#alta').onclick=altaCliente);
@@ -398,7 +413,7 @@ function lista(){
   if(ws.length&&!L.length&&filtro.trim().length>=3)anotarBusqueda(filtro);
   if(vista=='grilla')return grilla(L,ws);
   const V=L.slice(0,lim);
-  $('#l').innerHTML=V.map(p=>{const q=car[p.id]||0;return `<div class="p ${q?'sel':''}"><div class="d">${p.img?`<img class="ft" src="${esc(p.img)}" alt="" loading="lazy" data-z="${p.id}">`:(hayFotos?`<span class="ft0" aria-hidden="true">${esc((p.d||'?')[0])}</span>`:'')}<div class="tx"><b>${esc(p.d)}</b><small>${p.m?`<span class="marca">${esc(p.m)}</span>`:''}${p.b>1?`<span class="bulto">${esc(p.tb)} × ${p.b}</span>`:''}${esc(p.c)}</small></div></div><div class="pr">${(()=>{const r=promoP(p,q),rc=r?null:promoP(p,q,true);return (r?`<s>${$m(p.p)}</s> ${$m(puP(p,q))}`:$m(p.p))+(p.b>1?`<small>${esc(p.tb)}: ${$m((rc&&rc.mt=='bulto'?Math.round(p.p*(1-rc.pct/100)*100)/100:puP(p,q))*p.b)}</small>`:'')+(r?`<span class="promo">−${nf(r.pct)} %</span>`:rc?`<span class="promo cerca">−${nf(rc.pct)} % ${esc(condP(rc,p))}</span>`:'')})()}</div>
+  $('#l').innerHTML=V.map(p=>{const q=car[p.id]||0;return `<div class="p ${q?'sel':''}"><div class="d">${p.img?`<img class="ft" src="${esc(p.img)}" alt="" loading="lazy" data-z="${p.id}">`:(hayFotos?`<span class="ft0" aria-hidden="true">${esc((p.d||'?')[0])}</span>`:'')}<div class="tx"><b>${token&&!PUB?`<button class="fv ${esFav(p.id)?'on':''}" data-fv="${p.id}" aria-label="Favorito">★</button>`:''}${esc(p.d)}</b><small>${p.m?`<span class="marca">${esc(p.m)}</span>`:''}${p.b>1?`<span class="bulto">${esc(p.tb)} × ${p.b}</span>`:''}${esc(p.c)}</small></div></div><div class="pr">${(()=>{const r=promoP(p,q),rc=r?null:promoP(p,q,true);return (r?`<s>${$m(p.p)}</s> ${$m(puP(p,q))}`:$m(p.p))+(p.b>1?`<small>${esc(p.tb)}: ${$m((rc&&rc.mt=='bulto'?Math.round(p.p*(1-rc.pct/100)*100)/100:puP(p,q))*p.b)}</small>`:'')+(r?`<span class="promo">−${nf(r.pct)} %</span>`:rc?`<span class="promo cerca">−${nf(rc.pct)} % ${esc(condP(rc,p))}</span>`:'')})()}</div>
     <div class="q">${p.ss&&!q?'<small class="eq">Sin stock por ahora</small>'+btnAv(p):''}${p.ss&&!q?'':`${q&&enB(p,q)?`<small class="eq">= ${enB(p,q)}</small>`:''}${q?`<button data-r="${p.id}" aria-label="Restar">−</button><input type="number" inputmode="numeric" min="0" value="${q}" data-i="${p.id}" aria-label="Cantidad"><button data-s="${p.id}" aria-label="Sumar">+</button>`:`<button class="add${p.b>1?' sec2':''}" data-s="${p.id}">Agregar 1</button>`}${p.b>1?`<button class="add" data-bb="${p.id}">+ ${esc(p.tb)} (${p.b})</button>`:''}`}</div></div>`}).join('')+
     (L.length>V.length?`<button class="sec" id="mas" style="width:100%">Ver más productos (${L.length-V.length})</button>`:'')+
     (L.length?'':'<p class="mas">No encontramos productos con esa búsqueda.</p>')+(hayFotos&&L.length<=V.length?'<p class="mas" style="font-size:11px">Algunas fotos: Open Food Facts (CC BY-SA)</p>':'');
@@ -407,16 +422,17 @@ function lista(){
   $$('#l [data-r]').forEach(b=>b.onclick=()=>cambiar(b.dataset.r,-1));
   $$('#l [data-bb]').forEach(b=>b.onclick=()=>cambiar(b.dataset.bb,prod(b.dataset.bb).b));
   $$('#l [data-av]').forEach(b=>b.onclick=()=>avisame(b.dataset.av,b));
+  $$('#l [data-fv]').forEach(b=>b.onclick=e=>{e.stopPropagation();toggleFav(b.dataset.fv)});
   $$('#l [data-i]').forEach(e=>e.onchange=()=>{const v=Math.max(0,Math.round(+e.value||0));v?car[e.dataset.i]=v:delete car[e.dataset.i];guardar();setTimeout(lista);barra()});
   $('#mas')&&($('#mas').onclick=()=>{lim+=60;lista()});
 }
 function tarjeta(p){const q=car[p.id]||0,r=promoP(p,q),rc=r?null:promoP(p,q,true),pu=puP(p,q);
-  return `<div class="card ${q?'sel':''}" style="--fc:${colorDe(famDe(p))}">${p.img?`<div class="ph" data-z="${p.id}"><img src="${esc(p.img)}" alt="" loading="lazy"></div>`:`<div class="ph ini" style="background:${colorDe(p.m||famDe(p))}1a;color:${colorDe(p.m||famDe(p))}">${esc((p.d||'?')[0])}</div>`}
+  return `<div class="card ${q?'sel':''}" style="--fc:${colorDe(famDe(p))}">${p.img?`<div class="ph" data-z="${p.id}"><img src="${esc(p.img)}" alt="" loading="lazy">${FVB(p)}</div>`:`<div class="ph ini" style="background:${colorDe(p.m||famDe(p))}1a;color:${colorDe(p.m||famDe(p))}">${esc((p.d||'?')[0])}${FVB(p)}</div>`}
     ${p.ss?'<span class="rib ss">Sin stock</span>':p.pac?'<span class="rib pac">Tu precio</span>':r?`<span class="rib ${/^⚡/.test(r.n||'')?'rl':''}">${r.bon?esc(String(r.n).replace('Bonificación ','')):(/^⚡/.test(r.n||'')?'⚡ ':'')+'−'+nf(r.pct)+' %'}</span>`:rc?`<span class="rib cerca">${rc.bon?esc(String(rc.n).replace('Bonificación ','')):'−'+nf(rc.pct)+' %'}</span>`:''}
     ${p.combo?`<span class="rib">−${nf(p.pct)} %</span>`:''}${/^Últimas/.test((r||rc||{}).n||'')?'<span class="nuevo ult">ÚLTIMAS UNIDADES</span>':p.nv?'<span class="nuevo">NUEVO</span>':''}
     <div class="cn">${p.combo?'🎁 ':''}${esc(p.d)}</div><div class="cm">${p.combo?'':esc(p.m||'')}${p.b>1?' · '+esc(p.tb)+' × '+p.b:''}</div>${p.combo?`<div class="cdet">${esc(p.det)}</div>`:''}
     <div class="cp">${r?`<s>${$m(p.p)}</s>`:p.combo?`<s>${$m(p.ant)}</s>`:''}${$m(pu)}</div>
-    ${p.b>1?`<div class="cb">${esc(p.tb)}: ${$m((rc&&rc.mt=='bulto'?Math.round(p.p*(1-rc.pct/100)*100)/100:pu)*p.b)}</div>`:''}${rc?`<div class="cc">${rc.bon?'🎁 '+esc(condP(rc,p)):'−'+nf(rc.pct)+' % '+esc(condP(rc,p))}</div>`:''}
+    ${p.b>1?`<div class="cb">${esc(p.tb)}: ${$m((rc&&rc.mt=='bulto'?Math.round(p.p*(1-rc.pct/100)*100)/100:pu)*p.b)}</div>`:''}${pvpHTML(p,q)}${rc?`<div class="cc">${rc.bon?'🎁 '+esc(condP(rc,p)):'−'+nf(rc.pct)+' % '+esc(condP(rc,p))}</div>`:''}
     <div class="cq">${p.ss&&!q?btnAv(p):q?`<button class="mn" data-r="${p.id}" aria-label="Restar">−</button><input type="number" inputmode="numeric" min="0" value="${q}" data-i="${p.id}" aria-label="Cantidad"><button class="ms" data-s="${p.id}" aria-label="Sumar">+</button>`
       :`<button class="ag" data-s="${p.id}">Agregar</button>${p.b>1?`<button class="bx" data-bb="${p.id}" aria-label="Agregar ${esc(p.tb)} de ${p.b}">+${p.b}</button>`:''}`}</div></div>`}
 
@@ -429,6 +445,9 @@ function bannerAcc(){const x=$('#banb');if(x)x.onclick=()=>{filtro=bannerDatos()
 function grilla(L,ws){const busca=ws.length||marca;let html='',n=0;
   if(!busca&&!fam){const RL=(C.relampago||[]).map(x=>({...x,p:P.find(p=>p.id==x.id)})).filter(x=>x.p);
     if(RL.length){const h=RL.map(x=>x.hasta).sort()[0];html+=`<div class="rel"><div class="sec-t"><h2>⚡ Oferta relámpago</h2><small data-cd="${esc(h)}">…</small></div><div class="ofertas">${RL.map(x=>tarjeta(x.p)).join('')}</div></div>`}
+    const FV=(C.favs||[]).map(id=>P.find(p=>p.id==id)).filter(Boolean);
+    if(FV.length)html+=`<div class="sec-t"><h2>⭐ Mis favoritos</h2><small>${FV.length} ${FV.length==1?'producto':'productos'}</small></div><div class="ofertas">${FV.map(tarjeta).join('')}</div>`;
+    else if(token&&!PUB)html+='<p class="mas" style="text-align:left;margin:8px 2px">⭐ Tocá la estrella de los productos que siempre pedís y te quedan acá arriba.</p>';
     html+=bannerHTML();
     const SU=(C.surt||[]).map(id=>P.find(p=>p.id==id)).filter(Boolean).slice(0,12);
     if(SU.length&&C.rubro)html+=`<div class="sur"><div class="sec-t"><h2>⭐ Lo más pedido en ${esc(C.rubro.toLowerCase())}</h2><small>negocios como el tuyo</small></div><div class="ofertas">${SU.map(tarjeta).join('')}</div></div>`;const O=P.filter(p=>promoP(p,0,true)).slice(0,14);if(O.length)html+=`<div class="ofb"><div class="sec-t"><h2>🔥 Ofertas</h2><small>${O.length} productos</small></div><div class="ofertas">${O.map(tarjeta).join('')}</div></div>`;
@@ -448,6 +467,7 @@ function grilla(L,ws){const busca=ws.length||marca;let html='',n=0;
   $$('#l [data-bb]').forEach(b=>b.onclick=()=>cambiar(b.dataset.bb,prod(b.dataset.bb).b));
   $$('#l [data-i]').forEach(e=>e.onchange=()=>{const v=Math.max(0,Math.round(+e.value||0));v?car[e.dataset.i]=v:delete car[e.dataset.i];guardar();setTimeout(lista);barra()});
   $$('#l [data-av]').forEach(b=>b.onclick=()=>avisame(b.dataset.av,b));
+  $$('#l [data-fv]').forEach(b=>b.onclick=e=>{e.stopPropagation();toggleFav(b.dataset.fv)});
   $$('#l [data-mas2]').forEach(b=>b.onclick=()=>{lim+=60;lista()})}
 function cambiar(id,d){const q=(car[id]||0)+d;q>0?car[id]=q:delete car[id];guardar();lista();barra()}
 function barra(){const n=Object.keys(car).length;$('#bar').hidden=!n;if(!n)return;
