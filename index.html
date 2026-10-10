@@ -37,6 +37,8 @@ small{color:#6a7184}td a{cursor:pointer;color:var(--er)}
 .tag.recibida{background:#d8efe1;color:var(--ok)}.tag.anulada{background:#f6dcda;color:var(--er)}.tag.recibida_parcial{background:#fff1cc;color:#7a5a00}
 #t{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);color:#fff;padding:10px 18px;border-radius:8px;z-index:9;display:none}
 .err{color:var(--er)}
+.okb{background:#d8efe1;color:#14532d;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+b.parada{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--m);color:#fff;font-size:13px}
 .marca{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:#234a87;background:#dde7f6;border-radius:4px;padding:1px 6px;vertical-align:1px}
 .aum{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:4px 0 10px}.aum input{width:90px;margin:0}.aum b{margin-right:8px}
 tr.cambio td{background:#fff8e1}td input.cs{width:110px;text-align:right}
@@ -126,9 +128,9 @@ async function init(){
   S.clientes=c.data;S.productos=pr.data;await cargarStock();shell();
 }
 function shell(){
-  app.innerHTML=`<header><b>Sabores de mi País</b><nav>${['inicio','pedidos','clientes','cobranza','compras','stock','precios','reportes'].filter(t=>t!='precios'||S.perfil.rol=='dueno').map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${t[0].toUpperCase()+t.slice(1)}</a>`).join('')}</nav><span>${esc(S.perfil.nombre)} (${S.perfil.rol})<a onclick="out()">Salir</a></span></header><main id="v"></main>`;
+  app.innerHTML=`<header><b>Sabores de mi País</b><nav>${['inicio','pedidos','reparto','clientes','cobranza','compras','stock','precios','reportes'].filter(t=>t!='precios'||S.perfil.rol=='dueno').map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${t[0].toUpperCase()+t.slice(1)}</a>`).join('')}</nav><span>${esc(S.perfil.nombre)} (${S.perfil.rol})<a onclick="out()">Salir</a></span></header><main id="v"></main>`;
   $$('nav a').forEach(a=>a.onclick=()=>{S.tab=a.dataset.t;shell()});
-  ({inicio:vInicio,pedidos:vPedidos,clientes:vClientes,cobranza:vCobranza,compras:vCompras,stock:vStock,precios:vPrecios,reportes:vReportes})[S.tab]();
+  ({inicio:vInicio,pedidos:vPedidos,reparto:vReparto,clientes:vClientes,cobranza:vCobranza,compras:vCompras,stock:vStock,precios:vPrecios,reportes:vReportes})[S.tab]();
 }
 
 /* Supabase devuelve como máximo 1000 filas por pedido: esto trae todas, de a tandas */
@@ -720,14 +722,107 @@ function vCobranza(){setTimeout(()=>{if(S.preCob&&$('#k_c')){$('#k_c').value=S.p
     $('#k_s').innerHTML=`<p>Saldo: <b>${$m(s.data?.saldo)}</b> <small>(facturado ${$m(s.data?.facturado)} · cobrado ${$m(s.data?.cobrado)})</small></p>
     <table><tr><th>Factura</th><th>Vence</th><th>Mora</th><th>Pendiente</th></tr>${F.map(x=>`<tr><td>${x.tipo} ${x.numero}</td><td>${x.vencimiento}</td><td>${x.dias_mora?x.dias_mora+' días':'—'}</td><td>${$m(x.pendiente)}</td></tr>`).join('')||'<tr><td colspan="4">No tiene facturas pendientes.</td></tr>'}</table>
     <div class="g"><input id="k_i" type="number" step="0.01" min="0" placeholder="Importe a cobrar"><select id="k_m"><option>transferencia</option><option>efectivo</option><option>cheque</option><option>tarjeta</option><option>otro</option></select></div>
-    <button id="k_g">Registrar cobro</button><h3>Últimos recibos</h3>
-    <table>${(r.data||[]).map(x=>`<tr><td>Recibo ${x.numero}</td><td>${new Date(x.fecha).toLocaleDateString('es-AR')}</td><td>${x.medio}</td><td>${$m(x.importe)}</td></tr>`).join('')||'<tr><td>Todavía no hay recibos.</td></tr>'}</table>`;
+    <button id="k_g">Registrar cobro</button><div id="k_ok"></div><h3>Últimos recibos</h3>
+    <table>${(r.data||[]).map(x=>`<tr><td>Recibo ${x.numero}</td><td>${fd(x.fecha)}</td><td>${esc(x.medio)}</td><td class="n">${$m(x.importe)}</td><td style="white-space:nowrap"><button class="alt wa" data-rw="${x.numero}">WhatsApp</button> <button class="alt" data-rp="${x.numero}">PDF</button></td></tr>`).join('')||'<tr><td>Todavía no hay recibos.</td></tr>'}</table>`;
+    const cli=S.clientes.find(c=>c.id==id),rec=n=>(r.data||[]).find(x=>x.numero==n);
+    $$('#k_s [data-rw]').forEach(b=>b.onclick=()=>reciboWA(rec(b.dataset.rw),cli));
+    $$('#k_s [data-rp]').forEach(b=>b.onclick=()=>reciboPDF(rec(b.dataset.rp),cli));
+    if(S.recNuevo){const n=S.recNuevo;S.recNuevo=null;const x=rec(n);if(x){$('#k_ok').innerHTML=`<div class="aviso okb"><b>Recibo N° ${n} registrado.</b> Mandale el comprobante al cliente: <button class="alt wa" id="k_w">WhatsApp</button> <button class="alt" id="k_p">PDF</button></div>`;
+      $('#k_w').onclick=()=>reciboWA(x,cli);$('#k_p').onclick=()=>reciboPDF(x,cli)}}
     $('#k_g').onclick=async()=>{const total=+$('#k_i').value;if(!(total>0))return toast('Poné el importe a cobrar.',1);
       let rest=total;const imp=[];
       for(const x of F){if(rest<=0)break;const a=Math.min(rest,x.pendiente);imp.push({factura_id:x.factura_id,importe:+a.toFixed(2)});rest=+(rest-a).toFixed(2)}
       const{data,error}=await sb.rpc('registrar_cobranza',{p_cliente:id,p_importe:total,p_medio:$('#k_m').value,p_imputaciones:imp});
       if(error)return toast(error.message,1);
-      toast('Recibo N° '+data+' registrado'+(rest>0?'. Quedan '+$m(rest)+' a cuenta.':'.'));$('#k_c').onchange()}};
+      toast('Recibo N° '+data+' registrado'+(rest>0?'. Quedan '+$m(rest)+' a cuenta.':'.'));S.recNuevo=data;$('#k_c').onchange()}};
+}
+
+/* ---------- Recibo de cobro: WhatsApp y PDF ---------- */
+async function datosRecibo(x,c){
+  const[sa,im]=await Promise.all([sb.from('saldos_clientes').select('saldo').eq('cliente_id',c.id).maybeSingle(),
+    x.id!=null?sb.from('recibo_imputaciones').select('*').eq('recibo_id',x.id):Promise.resolve({data:[]})]);
+  let fac=[];const I=im.error?[]:(im.data||[]);
+  if(I.length){const ids=I.map(i=>i.factura_id).filter(Boolean);const{data:F}=ids.length?await sb.from('facturas_venta').select('id,tipo,numero').in('id',ids):{data:[]};
+    fac=I.map(i=>{const f=(F||[]).find(y=>y.id==i.factura_id);return{t:f?'Factura '+f.tipo+' N° '+f.numero:'Factura',imp:Number(i.importe??i.monto??0)}})}
+  const aplicado=fac.reduce((a,f)=>a+f.imp,0),cuenta=Math.max(0,Number(x.importe)-aplicado);
+  return{saldo:sa.data?Number(sa.data.saldo):null,fac,cuenta:fac.length&&cuenta>0.005?cuenta:0}}
+async function reciboWA(x,c){if(!x||!c)return;const w=window.open('','_blank');
+  const d=await datosRecibo(x,c);
+  const txt=`*Sabores de mi País*\nRecibo de cobro N° ${x.numero} · ${fd(x.fecha)}\n${c.razon_social}\n\nRecibimos *${$m(x.importe)}* (${x.medio}).`+
+    (d.fac.length?'\n\nAplicado a:\n'+d.fac.map(f=>`• ${f.t}: ${$m(f.imp)}`).join('\n')+(d.cuenta?`\n• A cuenta: ${$m(d.cuenta)}`:''):'')+
+    (d.saldo!=null?`\n\n${d.saldo>0.005?'Saldo pendiente: *'+$m(d.saldo)+'*':d.saldo<-0.005?'Saldo a favor: *'+$m(-d.saldo)+'*':'*Su cuenta queda al día.*'}`:'')+'\n\n¡Gracias!';
+  const tel=telWA(c.telefono),url='https://wa.me/'+tel+'?text='+encodeURIComponent(txt);
+  if(w)w.location.href=url;else location.href=url;
+  if(!tel)toast('Este cliente no tiene teléfono cargado: elegí el contacto en WhatsApp.')}
+async function reciboPDF(x,c){if(!x||!c)return;const w=window.open('','_blank');if(!w)return toast('Permití las ventanas emergentes para generar el PDF.',1);
+  w.document.write('<p style="font:16px system-ui;margin:32px">Armando el recibo…</p>');
+  const d=await datosRecibo(x,c);
+  w.document.open();w.document.write(`<html><head><meta charset="utf-8"><title>Recibo ${x.numero} - ${esc(c.razon_social)}</title><style>body{font:14px system-ui,Segoe UI,sans-serif;margin:32px;color:#1c2333;max-width:720px}h1{color:#7b2d3e;margin:0}.top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #7b2d3e;padding-bottom:12px}table{width:100%;border-collapse:collapse;margin:16px 0}th,td{border-bottom:1px solid #ccc;padding:6px;text-align:left}.n{text-align:right;white-space:nowrap}.imp{font-size:22px;font-weight:700;margin:16px 0}.saldo{background:#f3f4f7;padding:10px 12px;border-radius:6px}.firma{margin-top:56px;border-top:1px solid #1c2333;width:240px;padding-top:4px;text-align:center}.ayuda{background:#f6e9ec;padding:10px;border-radius:6px}@media print{.ayuda{display:none}}</style></head><body>
+  <p class="ayuda">Para guardarlo en PDF: en la ventana de impresión elegí <b>Guardar como PDF</b> como destino.</p>
+  <div class="top"><div><h1>Sabores de mi País</h1><div>Recibo de cobro</div></div><div class="n"><b>Recibo N° ${x.numero}</b><br>${fd(x.fecha)}</div></div>
+  <p><b>Recibimos de:</b> ${esc(c.razon_social)}${c.cuit?'<br><b>CUIT:</b> '+esc(c.cuit):''}${c.domicilio?'<br><b>Domicilio:</b> '+esc(c.domicilio):''}</p>
+  <p class="imp">${$m(x.importe)} <small style="font-size:14px;font-weight:400">· ${esc(x.medio)}</small></p>
+  ${d.fac.length?`<table><tr><th>Aplicado a</th><th class="n">Importe</th></tr>${d.fac.map(f=>`<tr><td>${esc(f.t)}</td><td class="n">${$m(f.imp)}</td></tr>`).join('')}${d.cuenta?`<tr><td>A cuenta</td><td class="n">${$m(d.cuenta)}</td></tr>`:''}</table>`:''}
+  ${d.saldo!=null?`<p class="saldo">${d.saldo>0.005?'Saldo pendiente de la cuenta: <b>'+$m(d.saldo)+'</b>':d.saldo<-0.005?'Saldo a favor del cliente: <b>'+$m(-d.saldo)+'</b>':'<b>La cuenta queda al día.</b>'}</p>`:''}
+  <div class="firma">Firma y aclaración</div>
+  <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close()}
+
+/* ---------- Hoja de reparto ---------- */
+async function vReparto(){
+  $('#v').innerHTML=`<h2>Hoja de reparto</h2>
+  <p><small>Marcá los pedidos que salen hoy y ordenalos con las flechas según el recorrido. Después imprimí la hoja, mandásela al chofer o abrí el recorrido en Google Maps.</small></p>
+  <div class="box"><div class="sub" id="rv_f"></div><div id="rv_l">Cargando…</div></div>
+  <div class="box" id="rv_acc" hidden><div class="bh"><h3 id="rv_t"></h3></div>
+    <div class="fc-acc"><button id="rv_imp">Imprimir hoja</button><button class="alt wa" id="rv_wa">Mandar al chofer</button><button class="alt" id="rv_map">Recorrido en Google Maps</button><button class="alt" id="rv_sal">Marcar «Salió a reparto»</button></div></div>`;
+  const{data,error}=await sb.from('pedidos').select('*,clientes(razon_social),pedido_items(producto_id,cantidad)').in('estado',['aprobado','en_preparacion','listo','en_reparto']).order('numero');
+  if(error){$('#rv_l').innerHTML='<p class="err">'+esc(error.message)+'</p>';return}
+  const ids=data.map(o=>o.id),fac={};
+  if(ids.length){const{data:F}=await sb.from('facturas_venta').select('pedido_id,tipo,numero').in('pedido_id',ids);for(const f of F||[])fac[f.pedido_id]=f}
+  S.rvSel=S.rvSel||[];S.rvSel=S.rvSel.filter(id=>data.some(o=>o.id==id));
+  if(!S.rvSel.length)S.rvSel=data.filter(o=>o.estado=='listo'||o.estado=='en_reparto').map(o=>o.id);
+  const cl=o=>S.clientes.find(c=>c.id==o.cliente_id)||{razon_social:o.clientes?.razon_social||'Cliente'};
+  const bultos=o=>(o.pedido_items||[]).reduce((a,i)=>a+Number(i.cantidad||0),0);
+  const elegidos=()=>S.rvSel.map(id=>data.find(o=>o.id==id)).filter(Boolean);
+  const draw=()=>{
+    const E=elegidos(),resto=data.filter(o=>!S.rvSel.includes(o.id));
+    const fila=(o,i)=>{const c=cl(o);return `<div class="ped est-${o.estado}"><div class="ped-top">${i!=null?`<b class="parada">${i+1}</b>`:''}<b>N° ${o.numero}</b> <span class="cli">${esc(c.razon_social)}</span><span class="tot">${$m(o.total)}</span></div>
+      <div class="ped-acc"><span class="badge b-${o.estado}">${EST_TXT[o.estado]}</span><small>${esc(c.domicilio||'Sin domicilio cargado')} · ${nf(bultos(o))} u.</small>
+      ${i!=null?`<button class="alt qb" data-up="${o.id}" ${i==0?'disabled':''} aria-label="Subir">↑</button><button class="alt qb" data-dn="${o.id}" ${i==E.length-1?'disabled':''} aria-label="Bajar">↓</button><button class="alt" data-q="${o.id}">Sacar</button>`:`<button data-a="${o.id}">Agregar al reparto</button>`}
+      ${o.estado=='en_reparto'?`<button class="alt" data-ent="${o.id}">Entregado</button>`:''}</div></div>`};
+    $('#rv_l').innerHTML=(E.length?`<h3>En el reparto (${E.length})</h3>`+E.map(fila).join(''):'<p><small>Todavía no elegiste pedidos para el reparto.</small></p>')+
+      (resto.length?`<h3>Otros pedidos en curso</h3>`+resto.map(o=>fila(o,null)).join(''):'')+(data.length?'':'<p><small>No hay pedidos aprobados ni listos para repartir.</small></p>');
+    $('#rv_acc').hidden=!E.length;
+    if(E.length){const tot=E.reduce((a,o)=>a+Number(o.total||0),0);$('#rv_t').textContent=E.length+(E.length==1?' parada':' paradas')+' · '+nf(E.reduce((a,o)=>a+bultos(o),0))+' u. · '+$m(tot)}
+    $$('#rv_l [data-a]').forEach(b=>b.onclick=()=>{S.rvSel.push(b.dataset.a);draw()});
+    $$('#rv_l [data-q]').forEach(b=>b.onclick=()=>{S.rvSel=S.rvSel.filter(x=>x!=b.dataset.q);draw()});
+    const mover=(id,d)=>{const i=S.rvSel.indexOf(id),j=i+d;if(j<0||j>=S.rvSel.length)return;[S.rvSel[i],S.rvSel[j]]=[S.rvSel[j],S.rvSel[i]];draw()};
+    $$('#rv_l [data-up]').forEach(b=>b.onclick=()=>mover(b.dataset.up,-1));
+    $$('#rv_l [data-dn]').forEach(b=>b.onclick=()=>mover(b.dataset.dn,1));
+    $$('#rv_l [data-ent]').forEach(b=>b.onclick=async()=>{b.disabled=true;const o=data.find(x=>x.id==b.dataset.ent);
+      if(await cambiarEstado(o,'entregado')){toast('Pedido N° '+o.numero+' entregado.');S.rvSel=S.rvSel.filter(x=>x!=o.id);vReparto()}})};
+  draw();
+  const linea=(o,i)=>{const c=cl(o),f=fac[o.id];return{n:i+1,o,c,f}};
+  $('#rv_imp').onclick=async()=>{const w=window.open('','_blank');if(!w)return toast('Permití las ventanas emergentes para imprimir.',1);
+    const E=elegidos().map(linea),hoy=new Date().toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
+    const nom=id=>S.productos.find(p=>p.producto_id==id)?.descripcion||'Producto';
+    w.document.write(`<html><head><meta charset="utf-8"><title>Reparto ${hoy}</title><style>body{font:13px system-ui,Segoe UI,sans-serif;margin:24px;color:#1c2333}h1{color:#7b2d3e;margin:0;font-size:20px}.top{display:flex;justify-content:space-between;border-bottom:2px solid #7b2d3e;padding-bottom:8px;margin-bottom:8px}.p{border:1px solid #bbb;border-radius:6px;padding:8px 10px;margin:8px 0;page-break-inside:avoid}.p h2{font-size:15px;margin:0 0 4px}.n{font-variant-numeric:tabular-nums}.it{columns:2;font-size:12px;margin:6px 0;padding-left:18px}.pie{display:flex;justify-content:space-between;gap:12px;margin-top:6px}.f{border-top:1px solid #1c2333;width:200px;text-align:center;padding-top:2px;margin-top:28px;font-size:11px}.ayuda{background:#f6e9ec;padding:8px;border-radius:6px}@media print{.ayuda{display:none}}</style></head><body>
+    <p class="ayuda">Para guardarlo en PDF: en la ventana de impresión elegí <b>Guardar como PDF</b> como destino.</p>
+    <div class="top"><div><h1>Sabores de mi País · Hoja de reparto</h1><div>${hoy}</div></div><div class="n"><b>${E.length} paradas</b><br>${$m(E.reduce((a,x)=>a+Number(x.o.total||0),0))}</div></div>
+    ${E.map(x=>`<div class="p"><h2>${x.n}. ${esc(x.c.razon_social)} <span style="font-weight:400">· Pedido N° ${x.o.numero}${x.f?' · Factura '+x.f.tipo+' N° '+x.f.numero:''}</span></h2>
+      <div>${esc(x.c.domicilio||'Sin domicilio cargado')}${x.c.telefono?' · Tel. '+esc(x.c.telefono):''}</div>
+      <ul class="it">${(x.o.pedido_items||[]).map(i=>`<li>${nf(i.cantidad)} × ${esc(nom(i.producto_id))}</li>`).join('')}</ul>
+      <div class="pie"><div class="n"><b>Total: ${$m(x.o.total)}</b>${x.c.condicion_pago_dias?' · Cta. cte. '+x.c.condicion_pago_dias+' días':' · <b>COBRAR CONTADO</b>'}</div><div class="f">Recibí conforme · firma</div></div></div>`).join('')}
+    <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close()};
+  $('#rv_wa').onclick=()=>{const E=elegidos().map(linea);
+    const txt=`*Reparto ${new Date().toLocaleDateString('es-AR')}* · ${E.length} paradas\n\n`+E.map(x=>`*${x.n}. ${x.c.razon_social}*\n${x.c.domicilio||'(sin domicilio)'}${x.c.telefono?'\nTel. '+x.c.telefono:''}\nPedido N° ${x.o.numero} · ${nf(bultos(x.o))} u. · ${$m(x.o.total)}${x.c.condicion_pago_dias?'':' · COBRAR CONTADO'}${x.c.domicilio?'\nhttps://maps.google.com/?q='+encodeURIComponent(x.c.domicilio):''}`).join('\n\n');
+    window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank')};
+  $('#rv_map').onclick=()=>{const D=elegidos().map(o=>cl(o).domicilio).filter(Boolean);if(!D.length)return toast('Ninguno de estos clientes tiene domicilio cargado.',1);
+    if(D.length<elegidos().length)toast('Hay clientes sin domicilio: no entran en el mapa.',1);
+    const v=D.slice(0,10);window.open('https://www.google.com/maps/dir/?api=1&travelmode=driving&destination='+encodeURIComponent(v[v.length-1])+(v.length>1?'&waypoints='+encodeURIComponent(v.slice(0,-1).join('|')):''),'_blank');
+    if(D.length>10)toast('Google Maps acepta hasta 10 paradas: abrí las primeras 10.',1)};
+  $('#rv_sal').onclick=async()=>{const E=elegidos().filter(o=>o.estado!='en_reparto');if(!E.length)return toast('Todos ya están en reparto.');
+    $('#rv_sal').disabled=true;let n=0;for(const o of E){if(await cambiarEstado(o,'en_reparto'))n++}
+    toast(n+(n==1?' pedido salió':' pedidos salieron')+' a reparto.');vReparto()};
 }
 
 /* ---------- Compras ---------- */
