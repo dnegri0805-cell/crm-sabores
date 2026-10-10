@@ -7,7 +7,7 @@ Guía ordenada por sección para consultar o pasarle al equipo. Cada punto dice 
 - **CRM (uso interno):** https://dnegri0805-cell.github.io/crm-sabores/ — se entra con usuario y contraseña.
 - **Catálogo de cada cliente:** link personal `pedido.html?c=…` que se manda desde la ficha del cliente (botón de WhatsApp). Cada cliente ve sus precios, su cuenta y sus promos.
 - **Catálogo público (sin precios de cliente):** `pedido.html?ver=catalogo` — para redes, folletos y nuevos clientes.
-- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-10.15`). Si algo "no aparece", cerrá y abrí la pestaña.
+- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-10.16`). Si algo "no aparece", cerrá y abrí la pestaña.
 - **En el celular:** abrí el CRM en Chrome → menú ⋮ → *Agregar a pantalla de inicio*. Queda como una app.
 - **Menú principal:** Inicio · Pedidos · Ventas · Reparto · Clientes · Cobranza · Caja · Compras · Stock · Precios · Reportes · Contable · Manual. Los números en rojo indican cosas pendientes.
 
@@ -49,6 +49,8 @@ Debajo aparecen tarjetas de aviso; cada una lleva a la pantalla donde se actúa:
 
 - **⚡ Cola del día:** todos los mensajes que conviene mandar hoy, ya escritos y ordenados por importancia. Tocás **▶ Empezar ráfaga**: se abre WhatsApp con el mensaje, lo mandás, volvés y sigue el próximo. Cada cliente aparece una vez por día y nada se repite. Qué entra:
   - *Para cerrar ventas:* carritos sin enviar, miraron el catálogo, les toca comprar (con su **pedido sugerido**), aviso de **cierre de pedidos** (el día antes de su entrega), presupuestos y sugeridos **sin respuesta**, **volvió el stock**, **bajó el precio**, ofertas automáticas, **venta cruzada** y campañas programadas.
+  - *Pedidos por el cliente:* los que pidieron **📌 que les recuerdes** su pedido y los **🔔 avisos de oferta** que marcaron.
+  - *Más oportunidades:* **💵 después del pago**, **📆 lo que llevaron el año pasado en esta época** y **🧩 productos que dejaron de llevar**.
   - *Para cuidar al cliente:* secuencia para que vuelvan, **cupón a dormidos**, clientes nuevos (primeros 90 días), bienvenida, aniversarios, **cumpleaños** con cupón, "¿llegó todo bien?" después de la entrega, los que **calificaron mal** (arriba de todo, para llamarlos) y recordatorio de deudas.
   - *Para conseguir clientes:* los que piden ser clientes (**alta exprés**), la secuencia de prospectos, **lanzamientos de zona**, prospectos fríos, pedido de **recomendación** y de **reseña en Google**.
   - Si hay clientes que suelen pedir a otra hora, se divide en **⏰ Mandar ahora** y **🕐 Más tarde**. En la ráfaga, **💬 Respuestas** tiene las respuestas rápidas.
@@ -96,6 +98,10 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 - **✨ Novedades:** productos nuevos destacados en el catálogo.
 - **🔥 Oferta por cupo:** precio especial solo para los primeros N pedidos. En el catálogo se ve "🔥 QUEDAN 7" real y se apaga sola al completarse.
 - **📜 Acuerdos comerciales:** el cliente se compromete a un monto por mes y tiene descuento o precio congelado en lo que siempre lleva (como precios pactados). Ve su avance en el catálogo; si viene atrasado, entra en la Cola. Al terminar, sus precios vuelven a como estaban.
+- **🧺 Combo de siempre:** cada cliente ve arriba de su catálogo "Tu combo de siempre" (lo que lleva en la mayoría de sus pedidos) con botón **Agregar todo**; si su pedido llega a ese total, se le aplica solo un descuento chico. Se generan una vez por mes con un botón.
+- **🛒 Oferta de último momento:** un producto (mejor si es de buen margen) a precio especial que aparece al revisar el pedido: "¿Lo sumás?".
+- **🚀 Productos para empujar:** los que dejan más margen que el promedio y se venden menos; para cada uno, oferta de 14 días, mensaje a los clientes de esa familia e imagen.
+- **📲 Premio por pedir online:** puntos extra automáticos en cada pedido hecho desde el catálogo, el % de clientes que ya pide online y una ráfaga para invitar a los que nunca lo hicieron.
 - **📦 Pedido quincenal:** clientes que piden todas las semanas; se les ofrece un cupón para pedidos grandes cada 15 días (mínimo: el doble de su promedio) y ves cuánto ahorrás en reparto.
 - **💲 Descuentos y mínimo:** escalas por monto, pedido mínimo, costo de envío, descuento por pronto pago, días de entrega y **hora de corte**, y **freno a morosos** (avisar o bloquear pedidos con deuda vencida).
 
@@ -127,6 +133,8 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 ## 7. Ventas · Analizar
 
 - **🧲 Captación:** prospectos nuevos, cuántos pasaron a cliente, clientes nuevos y su venta, semana a semana, **de dónde vienen** (QR, Buscar negocios, catálogo público, recomendación, visita) y por vendedor. Abajo, las **🎯 metas de captación semanales** (prospectos contactados, visitas y clientes nuevos), que se ven en Inicio con su avance.
+- **🔮 Pronóstico del mes:** cuánto vas a vender a fin de mes a este ritmo, cuánto por día te falta para la meta y los clientes habituales que todavía no pidieron (con botón para escribirles hoy).
+- **📺 Tablero en vivo:** para una TV o pantalla: venta de hoy, pedidos que van entrando (suena cuando entra uno), meta del mes, por aprobar y mejores clientes. Se actualiza solo.
 - **💼 Rentabilidad por cliente:** cuánto te deja cada cliente después de reparto, devoluciones y mora, con qué hacer con los que no rinden.
 - **🧪 Simulador de aumento:** elegís marca o familia y %: ganancia extra, cuánto volumen podés perder sin salir perdiendo, dónde quedarías más caro que la competencia y a qué clientes cuidar.
 - **📊 Resumen semanal:** cómo fue la semana contra la anterior.
@@ -175,7 +183,10 @@ Se abre con su link personal. Pasos para el cliente: **buscar → agregar → Ve
 - **Para pedir rápido:** ⚡ **Pedido rápido** (sus productos de siempre en una lista), **pedido sugerido**, **repetir último pedido**, **favoritos** ❤️ y **escanear** 📷 el código de barras.
 - **Ofertas visibles:** relámpago con reloj, **últimas unidades**, preventa con botón *Reservar*, combos, bonificación 12+1, precio por cantidad.
 - **En cada producto:** precio, **precio por kilo/litro**, PVP "**vendelo a**" con su ganancia, y si es solo por caja cerrada.
-- **En el carrito:** 💡 **Te conviene** (cuánto le falta para un descuento, con botón para sumarlo), cupón, canje de puntos, avance del desafío y chances del sorteo, pedido mínimo y envío.
+- **En cada producto también:** "🔥 Lo pidieron N negocios esta semana" o "⭐ De lo más pedido por los kioscos" (datos reales) y el botón **🔔 Avisame si baja**.
+- **Arriba también:** 🧺 su combo de siempre y el aviso de puntos extra por pedir online.
+- **Al terminar el pedido:** puede elegir **📌 que le recuerdes** el próximo en 7, 15 o 30 días.
+- **En el carrito:** ⚡ la oferta de último momento, y 💡 **Te conviene** (cuánto le falta para un descuento, con botón para sumarlo), cupón, canje de puntos, avance del desafío y chances del sorteo, pedido mínimo y envío.
 - **Sugerir producto:** si no encuentra algo, lo pide desde el buscador (te llega a *Qué buscan y piden*).
 - **Pedido automático:** puede dejar programado que se repita su pedido.
 
