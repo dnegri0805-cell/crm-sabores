@@ -7,7 +7,7 @@ Guía ordenada por sección para consultar o pasarle al equipo. Cada punto dice 
 - **CRM (uso interno):** https://dnegri0805-cell.github.io/crm-sabores/ — se entra con usuario y contraseña.
 - **Catálogo de cada cliente:** link personal `pedido.html?c=…` que se manda desde la ficha del cliente (botón de WhatsApp). Cada cliente ve sus precios, su cuenta y sus promos.
 - **Catálogo público (sin precios de cliente):** `pedido.html?ver=catalogo` — para redes, folletos y nuevos clientes.
-- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-10.11`). Si algo "no aparece", cerrá y abrí la pestaña.
+- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-10.12`). Si algo "no aparece", cerrá y abrí la pestaña.
 - **En el celular:** abrí el CRM en Chrome → menú ⋮ → *Agregar a pantalla de inicio*. Queda como una app.
 - **Menú principal:** Inicio · Pedidos · Ventas · Reparto · Clientes · Cobranza · Caja · Compras · Stock · Precios · Reportes · Contable · Manual. Los números en rojo indican cosas pendientes.
 
@@ -41,13 +41,13 @@ Debajo aparecen tarjetas de aviso; cada una lleva a la pantalla donde se actúa:
 
 **Estados:** A preparación → Marcar listo → Salió a reparto → Entregado. El cliente ve el seguimiento en su cuenta.
 
-**En cada pedido** aparecen avisos útiles: ganancia, si el cliente tiene deuda y si **se olvidó** algo que suele comprar.
+**En cada pedido** aparecen avisos útiles: ganancia, si el cliente tiene deuda, si **se olvidó** algo que suele comprar y cuánto le falta para el descuento por monto o el envío gratis. Con **💬 ¿Te agrego…?** le mandás el mensaje para completar el pedido antes de prepararlo.
 
 ## 4. Ventas · Recuperar y cerrar
 
 **Dónde:** menú *Ventas* (abre en *Cola del día*). Los botones de arriba cambian de pantalla; casi todas tienen botón de **WhatsApp con el mensaje ya armado**.
 
-- **⚡ Cola del día:** todos los mensajes que conviene mandar hoy, ya escritos y ordenados: carritos sin enviar, miraron el catálogo, llegó lo que esperaban, les toca comprar (con su **pedido sugerido**), secuencias para que vuelvan, **cupón automático a dormidos**, clientes nuevos, deudas, ofertas automáticas y prospectos. Tocás **▶ Empezar ráfaga**: se abre WhatsApp con el mensaje, lo mandás, volvés y sigue el próximo. Cada cliente aparece una vez por día y nada se repite. También entran: campañas programadas, presupuestos y pedidos sugeridos **sin respuesta**, el "¿llegó todo bien?" del día después de la entrega, los que **calificaron mal** (arriba de todo, para llamarlos), el pedido de **recomendación**, la **venta cruzada** y los **prospectos fríos**. Si hay clientes que suelen pedir a otra hora, la cola se divide en **⏰ Mandar ahora** y **🕐 Más tarde**. En la ráfaga, el botón **💬 Respuestas** tiene las respuestas rápidas. Abajo, **Resultados**: cuántos compraron en los 7 días siguientes y cuántos cupones se usaron.
+- **⚡ Cola del día:** todos los mensajes que conviene mandar hoy, ya escritos y ordenados: carritos sin enviar, miraron el catálogo, llegó lo que esperaban, les toca comprar (con su **pedido sugerido**), secuencias para que vuelvan, **cupón automático a dormidos**, clientes nuevos, deudas, ofertas automáticas y prospectos. Tocás **▶ Empezar ráfaga**: se abre WhatsApp con el mensaje, lo mandás, volvés y sigue el próximo. Cada cliente aparece una vez por día y nada se repite. También entran: campañas programadas, presupuestos y pedidos sugeridos **sin respuesta**, el "¿llegó todo bien?" del día después de la entrega, los que **calificaron mal** (arriba de todo, para llamarlos), el pedido de **recomendación**, la **venta cruzada** y los **prospectos fríos**, los **cumpleaños** (con cupón de regalo), el **aviso de cierre de pedidos** (el día antes de su entrega, a los que no pidieron), **volvió el stock** y **bajó el precio** (a los que compran ese producto), el pedido de **reseña en Google** y los **lanzamientos de zona**. Los últimos 5 días del mes, si no llegás al objetivo, arriba aparece el **🏁 Empujón de fin de mes** con los clientes a los que conviene escribirles. Si hay clientes que suelen pedir a otra hora, la cola se divide en **⏰ Mandar ahora** y **🕐 Más tarde**. En la ráfaga, el botón **💬 Respuestas** tiene las respuestas rápidas. Abajo, **Resultados**: cuántos compraron en los 7 días siguientes y cuántos cupones se usaron.
 - **⚙️ Automatizaciones:** las reglas de la cola. Secuencia para que vuelvan a comprar (por días sin comprar: mensaje, mensaje, llamada), cupón a dormidos (días, %, vencimiento), pedido sugerido el día justo, **ofertas automáticas** por sobrestock o vencimiento (opcional: que se creen solas), primeros 90 días, secuencia de prospección (día 0 presentación, día 3 kit de primer pedido, día 7 visita), seguimiento de lo que quedó sin respuesta, después de la entrega, aviso de malas notas, venta cruzada (con cupón para probar), pedir recomendación, revivir prospectos fríos, carritos, miraron y deudas. Todos los textos se pueden editar. **🧪 Prueba A/B:** en varios mensajes podés escribir una *versión B*; la mitad de los clientes recibe cada una y a las 2 semanas queda sola la que más vendió. Al final, las **💬 Respuestas rápidas** (pedido mínimo, entregas, pago, zona, cómo pedir, lista de precios).
 - **📋 Plan del día:** lista priorizada de a quién contactar hoy y por qué. Empezá el día por acá.
 - **📞 Les toca comprar:** clientes que ya deberían pedir. Trae **pedido sugerido** y un **📋 Guion** de llamada.
@@ -55,7 +55,7 @@ Debajo aparecen tarjetas de aviso; cada una lleva a la pantalla donde se actúa:
 - **📉 Comprando menos:** clientes que bajaron su compra o dejaron de llevar productos.
 - **🛒 Carritos sin enviar:** armaron un pedido online y no lo mandaron.
 - **🔔 Esperan productos:** pidieron aviso de un producto sin stock; cuando entra, avisales desde acá.
-- **⭐ Encuestas:** calificaciones de los clientes después de la entrega.
+- **⭐ Encuestas:** calificaciones de los clientes después de la entrega. Las de 4 y 5 ⭐ con comentario se pueden **🌐 mostrar en el catálogo público** ("Lo que dicen nuestros clientes").
 - **📝 Presupuestos:** presupuestos enviados, aceptados o vencidos. Los pedidos del catálogo público entran acá como 🌐 Catálogo.
 - **🧪 Muestras:** registrá muestras entregadas y hacé el seguimiento.
 - **👋 Bienvenida y aniversarios:** mensajes para clientes nuevos y para quienes cumplen tiempo con nosotros.
@@ -63,7 +63,8 @@ Debajo aparecen tarjetas de aviso; cada una lleva a la pantalla donde se actúa:
 - **🆘 Reclamos:** reclamos hechos desde "Mi cuenta" del cliente; respondé y cerralos.
 - **🧲 Embudo de prospectos:** Nuevo → Contactado → Visitado → Interesado → Ya es cliente. Botón **📋 Pegar una lista de prospectos** (nombre y teléfono por fila) y 💬 respuestas rápidas.
 - **🚶 Ruta de prospección:** con tu ubicación (o una dirección) arma el recorrido con los prospectos más cercanos, con una frase para cada rubro. En cada negocio tocás 👍 Le interesa · 🔁 Volver · 👎 No · 🧾 Hizo pedido (lo da de alta en el momento). Botón para abrir la ruta en Google Maps.
-- **🧭 Zonas sin cubrir:** mapa con las zonas donde ya tenés clientes (verde) y las vecinas donde todavía no (naranja), con botones para buscar negocios o armar la ruta en esa zona.
+- **🧭 Zonas sin cubrir:** mapa con las zonas donde ya tenés clientes (verde) y las vecinas donde todavía no (naranja), con botones para buscar negocios, armar la ruta o **🚀 Lanzar** la zona ("¡Llegamos a tu barrio!" con cupón para el primer pedido a todos los prospectos de ahí). Abajo, los resultados de cada lanzamiento.
+- **📞 Modo llamadas:** prospectos con teléfono uno tras otro, ordenados por puntaje, con guion y el resultado en un toque (interesado, volver a llamar, no atendió, no le interesa).
 - **🗺️ Buscar negocios:** busca kioscos, almacenes, dietéticas, etc. en una zona y los carga como prospectos.
 - **🧊 Exhibidores:** heladeras y exhibidores prestados en comodato: a quién, desde cuándo y si rinde.
 
@@ -88,6 +89,7 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 
 ## 6. Ventas · Difundir
 
+- **📇 Contactos para WhatsApp:** descarga tus clientes y prospectos (todos o por rubro) para importarlos al celular (.vcf) o a Google Contactos (.csv) y armar listas de difusión que lleguen a todos.
 - **🔳 QR por campaña:** un QR propio para cada volante, cartel, vendedor o zona. Ves escaneos, pedidos de alta, pedidos web, clientes y cuánto compraron. Se descarga el QR o se imprimen 4 volantes por hoja.
 - **📣 Campañas:** además de mandarla ahora, la podés **📅 programar** para otro día: ese día aparece sola en la Cola del día.
 - **📣 Campañas (cómo armarla):** mensaje masivo por WhatsApp a un grupo de clientes (por zona, rubro, nivel, etc.), uno por uno con su link.
@@ -121,11 +123,11 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 **Dónde:** menú *Clientes*. Pestañas: Clientes · Agenda de visitas · Mapa · Dormidos · Prospectos · Pedidos fijos.
 
 - **Clientes:** buscador y filtros (con deuda, por zona, por lista). Tocando un cliente se abre su **ficha**.
-- **Ficha del cliente:** datos, lista de precios, **rubro**, **cliente desde**, **quién lo recomendó**, **puntos**, **precios pactados**, historial, deuda y el **📋 guion** de venta. Desde acá se manda su **link de catálogo** por WhatsApp.
+- **Ficha del cliente:** datos, lista de precios, **rubro**, **cliente desde**, **🎂 cumpleaños**, **quién lo recomendó**, **puntos**, **precios pactados**, historial, deuda y el **📋 guion** de venta. Desde acá se manda su **link de catálogo** por WhatsApp.
 - **Agenda de visitas:** recorrido del día; el botón **📍 Visita** registra la visita y el resultado. También sugiere **prospectos de paso** cerca del recorrido.
 - **Mapa:** clientes coloreados por **última compra** o deuda, y los prospectos.
 - **Dormidos:** clientes que hace mucho no compran.
-- **Prospectos:** negocios a conquistar, con su estado. **⚡ Alta exprés:** lo da de alta y le manda por WhatsApp su catálogo personal con la bienvenida y el kit de primer pedido.
+- **Prospectos:** negocios a conquistar, con su estado y su **⭐ puntaje** (0 a 100: rubro que mejor convierte, cercanía a tus clientes, teléfono, origen y estado). La cola, las llamadas y el embudo empiezan por los de mayor puntaje. **⚡ Alta exprés:** lo da de alta y le manda por WhatsApp su catálogo personal con la bienvenida y el kit de primer pedido.
 - **Pedidos fijos:** pedidos que se repiten solos (semanal, quincenal…).
 
 ## 9. Reparto, cobranza y caja

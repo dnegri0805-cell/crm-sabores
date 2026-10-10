@@ -224,6 +224,7 @@ input,textarea{border:2px solid #ece3d6;border-radius:14px}
 .conv{background:#fff8e6;border-radius:14px;padding:8px 12px;margin:10px 0}.conv h3{margin:0 0 4px;font-size:15px}.conv .fila{padding:6px 0;font-size:14px}.conv button{border:0;background:var(--m);color:#fff;border-radius:999px;padding:6px 12px;font-weight:700;white-space:nowrap}
 .mor{background:#fdecea;color:#7f1d1d;border-radius:16px;padding:12px 14px;margin:10px 0;font-size:14px}.mor .mp{margin-top:8px}
 .inst{display:flex;gap:10px;align-items:center;background:#17213a;color:#fff;border-radius:16px;padding:10px 12px;margin:8px 0;font-size:14px}.inst img{width:40px;height:40px;border-radius:10px;background:#fff}.inst div{flex:1}.inst button{border:0;border-radius:999px;padding:8px 12px;font-weight:700;background:var(--sol,#ffc93c);color:#4a3000}.inst a{color:#fff;opacity:.7;cursor:pointer;padding:0 4px}
+.opi{margin:16px 0}.opi h3{margin:0 0 8px}.opl{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x mandatory}.op{flex:0 0 240px;scroll-snap-align:start;background:#fff;border-radius:16px;padding:12px;box-shadow:var(--sombra)}.op p{margin:6px 0;font-size:14px}.op small{color:var(--mu)}.op .es{color:#e0a100;letter-spacing:2px}
 </style>
 </head>
 <body>
@@ -233,7 +234,7 @@ input,textarea{border:2px solid #ece3d6;border-radius:14px}
 <div id="t" class="toast" hidden></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
-const VERSION='2026-10-10.11';
+const VERSION='2026-10-10.12';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -243,7 +244,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const $m=n=>'$ '+Number(n||0).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const norm=t=>String(t??'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
 const QS=new URLSearchParams(location.search),SUG=QS.has('sug'),RUB=(QS.get('rubro')||'').trim().slice(0,40),token=QS.get('c')||'',ENC=QS.get('enc'),PRE=QS.get('pre'),REF=(QS.get('ref')||'').trim().toUpperCase().slice(0,12),QRC=(()=>{let q=(QS.get('qr')||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,16);try{if(q)sessionStorage.setItem('qrc',q);else q=sessionStorage.getItem('qrc')||''}catch(e){}return q})();
-const marcarQR=tel=>{if(QRC&&tel)sb.rpc('marcar_campania',{p_codigo:QRC,p_telefono:tel}).then(()=>{},()=>{})};
+let OPI=[];const marcarQR=tel=>{if(QRC&&tel)sb.rpc('marcar_campania',{p_codigo:QRC,p_telefono:tel}).then(()=>{},()=>{})};
 const PUB=!token&&QS.has('ver');
 const K='carrito_'+(PUB?'publico':token);
 let C=null,P=[],car={},filtro='',marca='',lim=60;
@@ -300,6 +301,7 @@ sb.rpc('marca_publica').then(({data})=>{if(data){aplicarMarca(data);try{localSto
 async function iniciar(){
   if(ENC)return encuesta();if(PRE)return presupuesto();
   if(PUB&&QRC){try{if(!sessionStorage.getItem('qrv'+QRC)){sessionStorage.setItem('qrv'+QRC,'1');sb.rpc('registrar_qr',{p_codigo:QRC}).then(()=>{},()=>{})}}catch(e){}}
+  if(PUB)sb.rpc('opiniones_publicas').then(({data})=>{if(Array.isArray(data)&&data.length){OPI=data;if(typeof lista=='function'&&P.length)lista()}},()=>{});
   if(PUB){const a={};if(REF)a.p_ref=REF;if(RUB)a.p_rubro=RUB;const{data,error}=Object.keys(a).length?await sb.rpc('catalogo_publico',a):await sb.rpc('catalogo_publico');
     if(error){$('#hc').textContent='';$('#m').innerHTML=`<div class="msg"><h2>Catálogo no disponible</h2><p class="err">${esc(/catalogo_publico/.test(error.message)?'El catálogo todavía no está activado.':error.message)}</p></div>`;return}
     C=data;P=(data.productos||[]).filter(p=>p.p>0);hayFotos=P.some(p=>p.img);armarCombos();cargarCarrito();
@@ -529,7 +531,7 @@ function pintar(){
     ${marcas.length>1?`<select class="msel" id="mk" aria-label="Marca"><option value="">Todas las marcas</option>${marcas.map(m=>`<option ${marca==m?'selected':''}>${esc(m)}</option>`).join('')}</select>`:''}</div>
     ${instHTML()}${morosoHTML()}${nivelHTML()}${entregaHTML()}${creditoHTML()}
     ${C.aumento&&C.aumento.fecha?`<div class="aum">⚠️ <b>${esc(C.aumento.texto||'Aumentan los precios')}</b> a partir del ${new Date(C.aumento.fecha+'T12:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'numeric'})}. ¡Comprá antes con los precios de hoy!<br><small data-ca="${esc(C.aumento.fecha)}">…</small></div>`:''}
-    ${PUB?'<button class="sec rep" id="alta">🏪 ¿Tenés un negocio? Quiero ser cliente</button>':''}
+    ${PUB?'<button class="sec rep" id="alta">🏪 ¿Tenés un negocio? Quiero ser cliente</button>':''}${PUB&&OPI.length?`<div class="opi"><h3>⭐ Lo que dicen nuestros clientes</h3><div class="opl">${OPI.map(o=>`<div class="op"><div class="es">${'★'.repeat(+o.p||5)}</div><p>“${esc(o.t)}”</p><small>${esc(o.n)}${o.r?' · '+esc(o.r):''}</small></div>`).join('')}</div></div>`:''}
     ${PUB&&C.ref_nombre?`<div class="inv">🤝 Te invitó <b>${esc(C.ref_nombre)}</b>. Hacé tu primer pedido y los dos reciben un regalo en puntos.</div>`:''}
     ${(C.sugerido||[]).length?`<button class="sgb" id="sgb">⭐ Cargar mi pedido sugerido (${C.sugerido.length} productos que siempre llevás)</button>`:''}
     ${!PUB&&((C.habituales||[]).length||(C.favs||[]).length)?`<button class="sgb" id="rap" style="background:#eef4ff;border-color:#1f5fa8;color:#1e3a8a">⚡ Pedido rápido: tus ${(C.habituales||[]).length||(C.favs||[]).length} productos de siempre en una lista</button>`:''}

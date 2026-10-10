@@ -181,6 +181,7 @@ header nav a{flex:none;padding:8px 12px}
 #p_i td.qbox{white-space:normal;min-width:150px}#p_i button.bb{margin-top:4px}}
 /* ===== Ventas 9 ===== */
 button.big{font-size:16px;padding:12px 20px}.rf textarea{width:100%;font-size:15px;line-height:1.4}.rfbar{height:6px;background:#eceef3;border-radius:9px;overflow:hidden;margin-top:6px}.rfbar span{display:block;height:100%;background:var(--ok,#1d7a46)}
+.guion{background:#f6f7fb;border-radius:10px;padding:8px 12px;margin:8px 0}.guion ol{margin:4px 0;padding-left:18px}.guion li{margin:3px 0}
 .paso{border-left:3px solid var(--l);padding:4px 0 4px 10px;margin:8px 0}.paso textarea{width:100%}.kp.mini .box{padding:8px 10px}.kp.mini .num{font-size:20px}
 .cbar{display:flex;gap:6px;align-items:flex-end;overflow-x:auto;padding-bottom:4px}.cb{flex:1;min-width:46px;text-align:center;display:flex;flex-direction:column;gap:2px}.cb .bars{height:110px;display:flex;gap:3px;align-items:flex-end;justify-content:center}.cb .bars span{width:12px;border-radius:4px 4px 0 0;min-height:2px}
 .bp{background:#93a3c4}.bc{background:#1d7a46}.leg{display:inline-block;width:10px;height:10px;border-radius:3px;vertical-align:middle;margin:0 2px 0 8px}
@@ -190,7 +191,7 @@ button.big{font-size:16px;padding:12px 20px}.rf textarea{width:100%;font-size:15
 <div id="app"></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
-const VERSION='2026-10-10.11';
+const VERSION='2026-10-10.12';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -367,7 +368,7 @@ async function vInicio(){
   <div id="bk"></div>
   <div class="herr" id="herr"></div>
   <div id="alm"></div>
-  <div id="metai"></div><div id="colai"></div><div id="plani"></div><div id="toca"></div><div id="fidel"></div><div id="masi"></div><div id="creci"></div><div id="servi"></div><div id="fieli"></div><div id="fechas"></div>
+  <div id="empi"></div><div id="metai"></div><div id="colai"></div><div id="plani"></div><div id="toca"></div><div id="fidel"></div><div id="masi"></div><div id="creci"></div><div id="servi"></div><div id="fieli"></div><div id="fechas"></div>
   <div id="obj"></div>
   <div class="kp">
     <div class="box" id="k1"><span class="lab">Facturado hoy</span><span class="num">…</span><span class="det"></span></div>
@@ -385,7 +386,7 @@ async function vInicio(){
   const kp=(id,num,det,cls)=>{const b=$('#'+id);b.querySelector('.num').textContent=num;b.querySelector('.det').textContent=det||'';if(cls)b.classList.add(cls)};
   const fallo=(id,e)=>kp(id,'—','No se pudo leer: '+e.message);
   if(S.perfil.rol=='dueno')cajaBackup();
-  herramientas();generarFijos();alertasMargen();objetivoMes();tocaInicio();fidelInicio().catch(()=>{});masInicio().catch(()=>{});crecerInicio().catch(()=>{});fielesInicio().catch(()=>{});servInicio().catch(()=>{});planInicio().catch(()=>{});colaInicio().catch(()=>{});metasInicio().catch(()=>{});avisosEnVivo();fechasInicio();
+  herramientas();generarFijos();alertasMargen();objetivoMes();tocaInicio();fidelInicio().catch(()=>{});masInicio().catch(()=>{});crecerInicio().catch(()=>{});fielesInicio().catch(()=>{});servInicio().catch(()=>{});planInicio().catch(()=>{});colaInicio().catch(()=>{});metasInicio().catch(()=>{});empujonBox($('#empi')).catch(()=>{});avisosEnVivo();fechasInicio();
   const cli=id=>esc(S.clientes.find(c=>c.id==id)?.razon_social||'Cliente');
   const [fv,pe,fe,sp,fp]=await Promise.all([
     sb.from('facturas_venta').select('*').order('id',{ascending:false}).limit(500),
@@ -1143,6 +1144,7 @@ async function fichaCliente(c){
     <label class="f">Días de pago<input id="e_p" type="number" min="0" value="${c.condicion_pago_dias||0}"></label>
     <label class="f">Límite de crédito $ (0 = sin límite)<input id="e_lc" type="number" min="0" step="1000" value="${Number(c.limite_credito||0)}"></label></div>
     ${'cliente_desde' in c?`<label class="f">Cliente desde (para el aniversario)<input id="e_cd" type="date" value="${c.cliente_desde||''}"></label>`:''}
+    ${'cumpleanos' in c?`<label class="f">🎂 Cumpleaños del dueño o encargado (el año no importa)<input id="e_cu" type="date" value="${c.cumpleanos||''}"></label>`:''}
     ${'rubro' in c?`<label class="f">Rubro (tipo de negocio)<input id="e_ru" list="dl_rub" value="${esc(c.rubro||'')}" placeholder="Ej.: Kiosco">${rubroDL()}</label>`:''}
     ${'referido_por' in c?`<label class="f">Lo recomendó (Recomendá y ganá)<select id="e_rf"><option value="">— nadie —</option>${S.clientes.filter(x=>x.id!=c.id).map(x=>`<option value="${x.id}" ${x.id==c.referido_por?'selected':''}>${esc(x.razon_social)}</option>`).join('')}</select></label>`:''}
     ${'dias_visita' in c?`<label class="f">Días de visita</label>${chipsDias('ecd',c.dias_visita||[])}`:''}
@@ -1180,7 +1182,7 @@ async function fichaCliente(c){
   $('#e_g').onclick=async()=>{const n=$('#e_n').value.trim();if(!n)return toast('Falta la razón social.',1);
     const cambios={razon_social:n,cuit:$('#e_c').value.trim()||null,telefono:$('#e_t').value.trim()||null,domicilio:$('#e_d').value.trim()||null,
       condicion_iva:$('#e_i').value,lista:$('#e_l').value,condicion_pago_dias:+$('#e_p').value||0};
-    if('dias_visita' in c)cambios.dias_visita=leerDias('ecd');if($('#e_rf'))cambios.referido_por=$('#e_rf').value||null;if($('#e_ru'))cambios.rubro=$('#e_ru').value.trim()||null;if($('#e_cd'))cambios.cliente_desde=$('#e_cd').value||null;cambios.limite_credito=+$('#e_lc').value||0;
+    if('dias_visita' in c)cambios.dias_visita=leerDias('ecd');if($('#e_rf'))cambios.referido_por=$('#e_rf').value||null;if($('#e_ru'))cambios.rubro=$('#e_ru').value.trim()||null;if($('#e_cd'))cambios.cliente_desde=$('#e_cd').value||null;if($('#e_cu'))cambios.cumpleanos=$('#e_cu').value||null;cambios.limite_credito=+$('#e_lc').value||0;
     const{error}=await sb.from('clientes').update(cambios).eq('id',c.id);if(error)return toast(error.message,1);
     Object.assign(c,cambios);toast('Datos guardados.');fichaCliente(c)};
   const kp=(id,num,det,cls)=>{const b=$('#'+id);b.querySelector('.num').textContent=num;b.querySelector('.det').textContent=det||'';if(cls)b.classList.add(cls)};
@@ -1960,6 +1962,7 @@ async function vProspectos(){
   const{data,error}=await sb.from('prospectos').select('*').order('creado_en',{ascending:false});
   if(error){$('#cs').innerHTML='<div class="aviso">Falta correr <b>mejoras-clientes.sql</b> en Supabase. ('+esc(error.message)+')</div>';return}
   const hoy=diaLocal(new Date());
+  const SCp=await cargarPuntajes().catch(()=>null),scP=x=>SCp?SCp(x):0;
   const L=data.filter(x=>S.prF=='todos'||(S.prF=='activos'?!['cliente','no_interesado'].includes(x.estado):x.estado==S.prF));
   const cnt=k=>data.filter(x=>x.estado==k).length;
   $('#cs').innerHTML=`<div class="kp"><div class="box"><span class="lab">Prospectos activos</span><span class="num">${data.filter(x=>!['cliente','no_interesado'].includes(x.estado)).length}</span><span class="det">${cnt('interesado')} interesados</span></div>
@@ -1972,7 +1975,7 @@ async function vProspectos(){
     <button id="ps_g">Guardar prospecto</button></details>
   <div class="sub">${[['activos','Activos'],['nuevo','Nuevos'],['interesado','Interesados'],['cliente','Ya clientes'],['no_interesado','No interesados'],['todos','Todos']].map(([k,t])=>`<button class="${S.prF==k?'':'alt'}" data-pf2="${k}">${t}</button>`).join('')}</div>
   <div class="box">${L.length?`<div class="tw"><table><tr><th>Negocio</th><th>Estado</th><th>Seguimiento</th><th></th></tr>${L.map(x=>`<tr>
-    <td><b>${esc(x.nombre)}</b>${x.rubro?' <small>· '+esc(x.rubro)+'</small>':''}<br><small>${esc([x.domicilio,x.zona].filter(Boolean).join(' · '))}${x.telefono?' · '+esc(x.telefono):''}${x.contacto?' · '+esc(x.contacto):''}</small>${x.observaciones?'<br><small><i>'+esc(x.observaciones)+'</i></small>':''}</td>
+    <td><b>${esc(x.nombre)}</b> ${!['cliente','no_interesado'].includes(x.estado)?badgeP(scP(x)):''}${x.rubro?' <small>· '+esc(x.rubro)+'</small>':''}<br><small>${esc([x.domicilio,x.zona].filter(Boolean).join(' · '))}${x.telefono?' · '+esc(x.telefono):''}${x.contacto?' · '+esc(x.contacto):''}</small>${x.observaciones?'<br><small><i>'+esc(x.observaciones)+'</i></small>':''}</td>
     <td><select data-pe="${x.id}" style="width:auto;margin:0">${Object.entries(EST_PR).map(([k,t])=>`<option value="${k}" ${(x.estado||'nuevo')==k?'selected':''}>${t}</option>`).join('')}</select></td>
     <td><input type="date" data-psf="${x.id}" value="${x.proximo_seguimiento||''}" style="width:auto;margin:0" class="${x.proximo_seguimiento&&x.proximo_seguimiento<=hoy&&!['cliente','no_interesado'].includes(x.estado)?'venc-in':''}"></td>
     <td class="acc">${x.telefono?`<button class="alt wa" data-pw="${x.id}">WhatsApp</button> <button class="alt" data-prr="${x.id}" title="Respuestas rápidas">💬</button> `:''}${x.domicilio?`<button class="alt" data-pm="${x.id}">Mapa</button> `:''}<button class="alt" data-pn="${x.id}">Nota</button> ${x.estado!='cliente'?`${x.telefono?`<button data-px2="${x.id}" title="Alta y le mandamos su catálogo por WhatsApp">⚡ Alta exprés</button> `:''}<button class="alt" data-pc="${x.id}">Pasar a cliente</button>`:x.cliente_id?`<button class="alt" data-pfc="${x.cliente_id}">Ver ficha</button>`:''}</td></tr>`).join('')}</table></div>`:'<p><small>No hay prospectos en esta lista.</small></p>'}</div>`;
@@ -2708,13 +2711,13 @@ const nomCorto=c=>{const n=String(c.contacto||'').trim().split(/\s+/)[0];return 
 
 function vVentas(){
   S.vs=S.vs||'cola';const due=S.perfil.rol=='dueno';
-  const GR=[['Recuperar y cerrar',[['cola','⚡ Cola del día'],['auto','⚙️ Automatizaciones'],['plan','📋 Plan del día'],['toca','📞 Les toca comprar'],['miraron','👀 Miraron el catálogo'],['menos','📉 Comprando menos'],['carritos','🛒 Carritos sin enviar'],['esperan','🔔 Esperan productos'],['encuestas','⭐ Encuestas'],['presupuestos','📝 Presupuestos'],['muestras','🧪 Muestras'],['bienvenida','👋 Bienvenida y aniversarios'],['nuevos90','🌱 Primeros 90 días'],['reclamos','🆘 Reclamos'],['embudo','🧲 Embudo de prospectos'],['ruta','🚶 Ruta de prospección'],['buscarneg','🗺️ Buscar negocios'],['cobertura','🧭 Zonas sin cubrir'],['comodatos','🧊 Exhibidores']]],
+  const GR=[['Recuperar y cerrar',[['cola','⚡ Cola del día'],['auto','⚙️ Automatizaciones'],['plan','📋 Plan del día'],['toca','📞 Les toca comprar'],['miraron','👀 Miraron el catálogo'],['menos','📉 Comprando menos'],['carritos','🛒 Carritos sin enviar'],['esperan','🔔 Esperan productos'],['encuestas','⭐ Encuestas'],['presupuestos','📝 Presupuestos'],['muestras','🧪 Muestras'],['bienvenida','👋 Bienvenida y aniversarios'],['nuevos90','🌱 Primeros 90 días'],['reclamos','🆘 Reclamos'],['embudo','🧲 Embudo de prospectos'],['ruta','🚶 Ruta de prospección'],['llamadas','📞 Modo llamadas'],['buscarneg','🗺️ Buscar negocios'],['cobertura','🧭 Zonas sin cubrir'],['comodatos','🧊 Exhibidores']]],
     ['Ofertas',[['relampago','⚡ Relámpago'],['personal','🎯 Ofertas personales'],['niveles','🥇 Niveles'],['pvp','💰 Precio sugerido'],['combos','🎁 Combos'],['cantidad','🏷️ Precio por cantidad'],['cupones','🎟️ Cupones'],['liquidar','📦 Liquidar stock'],['preventa','🔜 Preventa'],['bultos','📦 Venta por bulto'],['redondeo','🏷️ Precios redondeados'],['aumento','📈 Aviso de aumento'],['novedades','✨ Novedades'],['reglas','💲 Descuentos y mínimo']]],
-    ['Difundir',[['campanias','📣 Campañas'],['novsem','📋 Novedades semanal'],['fechas','📅 Fechas'],['rubros','🏪 Por rubro'],['difusion','🖼️ Folletos y catálogo'],['qr','🔳 QR por campaña'],['puntos','🏆 Puntos y desafío'],['sorteo','🎟️ Sorteo del mes'],['cambios','📢 Cambios de precio'],['estados','📱 Estados de WhatsApp'],['tarjeta','🖼️ Tarjeta de producto']]],
+    ['Difundir',[['campanias','📣 Campañas'],['novsem','📋 Novedades semanal'],['fechas','📅 Fechas'],['rubros','🏪 Por rubro'],['difusion','🖼️ Folletos y catálogo'],['qr','🔳 QR por campaña'],['contactos','📇 Contactos para WhatsApp'],['puntos','🏆 Puntos y desafío'],['sorteo','🎟️ Sorteo del mes'],['cambios','📢 Cambios de precio'],['estados','📱 Estados de WhatsApp'],['tarjeta','🖼️ Tarjeta de producto']]],
     ['Analizar',[['semana','📊 Resumen semanal'],['captacion','🧲 Captación'],['proveedores','🏭 Metas y reintegros'],['horarios','🕐 Cuándo piden'],['abc','🅰️ ABC'],['marcas','🏭 Por marca'],['competencia','🏁 Competencia'],['nocompra','🚶 Por qué no compran'],['perdidas','💸 Ventas perdidas'],['potencial','📊 Potencial'],['zonas','🗺️ Por zona'],['buscan','🔎 Qué buscan y piden']]]];
   $('#v').innerHTML=`<h2>Ventas</h2>${GR.map(([g,L])=>`<div class="vgr"><small>${g}</small><div class="sub ctsub">${L.map(([k,t])=>`<button class="${S.vs==k?'':'alt'}" data-vs="${k}">${t}</button>`).join('')}</div></div>`).join('')}<div id="vs">Cargando…</div>`;
   $$('[data-vs]').forEach(b=>b.onclick=()=>{S.vs=b.dataset.vs;vVentas()});
-  ({cobertura:vCobertura,cola:vCola,auto:vAuto,nuevos90:vNuevos90,ruta:vRuta,qr:vQR,captacion:vCaptacion,buscarneg:vBuscarNegocios,comodatos:vComodatos,proveedores:vProveedores,horarios:vHorarios,plan:vPlan,semana:vSemana,embudo:vEmbudo,preventa:vPreventa,bultos:vBultos,redondeo:vRedondeo,reclamos:vReclamos,niveles:vNiveles,estados:vEstados,tarjeta:vTarjeta,perdidas:vPerdidas,potencial:vPotencial,zonas:vZonas,miraron:vMiraron,bienvenida:vBienvenida,personal:vPersonal,pvp:vPVP,sorteo:vSorteo,cambios:vCambiosPrecio,muestras:vMuestras,aumento:vAumento,novsem:vNovSemana,marcas:vMarcas,competencia:vCompetencia,nocompra:vNoCompra,carritos:vCarritos,esperan:vEsperan,liquidar:vLiquidar,relampago:vRelampago,buscan:vBuscan,abc:vABC,rubros:vRubros,fechas:vFechas,toca:vToca,menos:vMenos,encuestas:vEncuestas,presupuestos:vPresupuestos,cantidad:vCantidad,cupones:vCupones,puntos:vPuntos,campanias:vCampanias,combos:vCombos,novedades:vNovedades,reglas:vReglas,difusion:()=>{$('#vs').innerHTML='<div class="box" id="pr_vd"></div>';cajaVender()}})[S.vs]();
+  ({llamadas:vLlamadas,contactos:vContactos,cobertura:vCobertura,cola:vCola,auto:vAuto,nuevos90:vNuevos90,ruta:vRuta,qr:vQR,captacion:vCaptacion,buscarneg:vBuscarNegocios,comodatos:vComodatos,proveedores:vProveedores,horarios:vHorarios,plan:vPlan,semana:vSemana,embudo:vEmbudo,preventa:vPreventa,bultos:vBultos,redondeo:vRedondeo,reclamos:vReclamos,niveles:vNiveles,estados:vEstados,tarjeta:vTarjeta,perdidas:vPerdidas,potencial:vPotencial,zonas:vZonas,miraron:vMiraron,bienvenida:vBienvenida,personal:vPersonal,pvp:vPVP,sorteo:vSorteo,cambios:vCambiosPrecio,muestras:vMuestras,aumento:vAumento,novsem:vNovSemana,marcas:vMarcas,competencia:vCompetencia,nocompra:vNoCompra,carritos:vCarritos,esperan:vEsperan,liquidar:vLiquidar,relampago:vRelampago,buscan:vBuscan,abc:vABC,rubros:vRubros,fechas:vFechas,toca:vToca,menos:vMenos,encuestas:vEncuestas,presupuestos:vPresupuestos,cantidad:vCantidad,cupones:vCupones,puntos:vPuntos,campanias:vCampanias,combos:vCombos,novedades:vNovedades,reglas:vReglas,difusion:()=>{$('#vs').innerHTML='<div class="box" id="pr_vd"></div>';cajaVender()}})[S.vs]();
 }
 
 /* ---------- Les toca comprar ---------- */
@@ -2939,15 +2942,17 @@ async function vEncuestas(){
   const nc=id=>S.clientes.find(c=>c.id==id)?.razon_social||'Cliente';
   const fila=e=>`<div class="vi ${e.atendida?'hecho-vi':''}"><span class="badge ${e.puntaje>=4?'b-entregado':e.puntaje?'b-mora30':'b-pendiente'}">${e.puntaje?e.puntaje+' ★':'sin resp.'}</span>
     <div><a class="lnk" data-fc="${e.cliente_id}"><b>${esc(nc(e.cliente_id))}</b></a> <small>· Pedido N° ${num[e.pedido_id]||'—'} · ${fd(diaLocal(e.respondida_en||e.creado_en))}</small><br><span class="estr">${estrellas(e.puntaje)}</span>${e.comentario?`<br><i>“${esc(e.comentario)}”</i>`:''}</div>
-    <div class="acc">${e.puntaje&&e.puntaje<=3&&!e.atendida?`<button class="alt wa" data-ew="${e.id}">Escribirle</button><button data-ea="${e.id}">✓ Atendida</button>`:''}</div></div>`;
+    <div class="acc">${e.puntaje&&e.puntaje<=3&&!e.atendida?`<button class="alt wa" data-ew="${e.id}">Escribirle</button><button data-ea="${e.id}">✓ Atendida</button>`:''}${e.puntaje>=4&&e.comentario&&'publicar' in e?`<button class="${e.publicar?'':'alt'}" data-epu="${e.id}" title="Se muestra en el catálogo público como opinión real">${e.publicar?'✓ En el catálogo':'🌐 Mostrar en el catálogo'}</button>`:''}</div></div>`;
   $('#vs').innerHTML=`<div class="kp"><div class="box ${prom>=4?'ok':prom?'alerta':''}"><span class="lab">Promedio</span><span class="num">${prom?nf(Math.round(prom*10)/10)+' ★':'—'}</span><span class="det">${R.length} respuestas</span></div>
     <div class="box"><span class="lab">Respondieron</span><span class="num">${data.length?Math.round(R.length/data.length*100):0} %</span><span class="det">de ${data.length} encuestas enviadas</span></div>
     <div class="box ${mal.length?'alerta':'ok'}"><span class="lab">Para atender</span><span class="num">${mal.length}</span><span class="det">calificaron con 3 estrellas o menos</span></div></div>
     <div class="box"><p><small>Cuando avisás una entrega por WhatsApp (botón <b>Avisar</b> en Reparto o Pedidos), el mensaje lleva un link para que el cliente califique de 1 a 5 estrellas. Si pone 3 o menos, te aparece acá y en Inicio para que lo llames antes de perderlo.</small></p>
     ${mal.length?'<h3>⚠️ Para atender</h3><div class="ag">'+mal.map(fila).join('')+'</div>':''}
+    ${data.length&&!('publicar' in data[0])?'<p><small>💡 Para mostrar opiniones reales en el catálogo público, corré ventas-auto3.sql.</small></p>':'<p><small>🌐 Las opiniones de 4 y 5 ⭐ con comentario se pueden mostrar en el catálogo público ("Lo que dicen nuestros clientes"): tocá <b>Mostrar en el catálogo</b>.</small></p>'}
     <h3>Últimas respuestas</h3>${R.length?'<div class="ag">'+R.filter(e=>!mal.includes(e)).slice(0,40).map(fila).join('')+'</div>':'<p><small>Todavía no hay respuestas.</small></p>'}</div>`;
   $$('#vs [data-fc]').forEach(a=>a.onclick=()=>abrirFicha(a.dataset.fc));
   $$('#vs [data-ea]').forEach(b=>b.onclick=async()=>{const{error}=await sb.from('encuestas').update({atendida:true}).eq('id',b.dataset.ea);if(error)return toast(error.message,1);vEncuestas()});
+  $$('#vs [data-epu]').forEach(b=>b.onclick=async()=>{const e=data.find(x=>x.id==b.dataset.epu);if(!e.publicar&&!confirm('¿Mostrar esta opinión en el catálogo público, con el nombre del negocio? Asegurate de que el cliente esté de acuerdo.'))return;const{error}=await sb.from('encuestas').update({publicar:!e.publicar}).eq('id',e.id);if(error)return toast(error.message,1);toast(e.publicar?'Quitada del catálogo.':'Publicada en el catálogo público.');vEncuestas()});
   $$('#vs [data-ew]').forEach(b=>b.onclick=()=>{const e=data.find(x=>x.id==b.dataset.ew),c=S.clientes.find(x=>x.id==e.cliente_id)||{};
     window.open('https://wa.me/'+telWA(c.telefono)+'?text='+encodeURIComponent(`¡Hola ${nomCorto(c)}! Te escribo de *Sabores de mi País*. Vi tu calificación del pedido N° ${num[e.pedido_id]||''} y quería saber qué pasó, así lo solucionamos. ¡Gracias por avisarnos! 🙏`),'_blank')});
 }
@@ -4048,13 +4053,14 @@ async function vPreventa(){const due=S.perfil.rol=='dueno';
 /* ---------- 10. Embudo de prospectos ---------- */
 const ETAPAS=[['nuevo','Nuevo'],['contactado','Contactado'],['visitado','Visitado'],['interesado','Interesado'],['cliente','Ya es cliente']];
 async function vEmbudo(){const{data,error}=await sb.from('prospectos').select('*').order('creado_en',{ascending:false}).limit(1000);if(error){$('#vs').innerHTML='<p class="err">'+esc(error.message)+'</p>';return}
+  const SCp=await cargarPuntajes().catch(()=>null);if(SCp)data.sort((a,b)=>SCp(b)-SCp(a));
   const G={};for(const x of data)(G[x.estado||'nuevo']=G[x.estado||'nuevo']||[]).push(x);const tot=data.filter(x=>x.estado!='no_interesado').length,cl=(G.cliente||[]).length,hoy=diaLocal(new Date());
   const seg=data.filter(x=>x.proximo_seguimiento&&x.proximo_seguimiento<=hoy&&!['cliente','no_interesado'].includes(x.estado));
   const dias=x=>{const n=Math.floor((Date.now()-new Date(x.actualizado_en||x.creado_en||Date.now()))/864e5);return isNaN(n)?0:n};
   $('#vs').innerHTML=`<div class="kp"><div class="box"><span class="lab">Prospectos</span><span class="num">${tot}</span></div><div class="box ok"><span class="lab">Se hicieron clientes</span><span class="num">${tot?Math.round(cl/tot*100):0} %</span><span class="det">${cl} de ${tot}</span></div><div class="box ${seg.length?'alerta':''}"><span class="lab">Seguimiento para hoy</span><span class="num">${seg.length}</span></div></div>
   <div class="fc-acc" style="margin-bottom:8px"><button class="alt" id="em_imp">📋 Pegar una lista de prospectos</button></div>
   <div class="box"><h3>🧲 Embudo de prospectos</h3><p><small>Cada negocio que querés sumar pasa por etapas. Movelo con "→" cuando avanza. Los que llevan muchos días quietos en una etapa necesitan un empujón (o una muestra).</small></p>
-    <div class="emb">${ETAPAS.map(([k,t],i)=>`<div class="col"><div class="hd"><b>${t}</b> <span class="badge">${(G[k]||[]).length}</span></div>${(G[k]||[]).slice(0,40).map(x=>`<div class="cd ${dias(x)>14&&k!='cliente'?'viejo':''}"><b>${esc(x.nombre)}</b><small>${esc(x.rubro||'')}${x.rubro?' · ':''}${dias(x)} d en esta etapa</small>
+    <div class="emb">${ETAPAS.map(([k,t],i)=>`<div class="col"><div class="hd"><b>${t}</b> <span class="badge">${(G[k]||[]).length}</span></div>${(G[k]||[]).slice(0,40).map(x=>`<div class="cd ${dias(x)>14&&k!='cliente'?'viejo':''}"><b>${esc(x.nombre)}</b>${SCp&&k!='cliente'?' '+badgeP(SCp(x)):''}<small>${esc(x.rubro||'')}${x.rubro?' · ':''}${dias(x)} d en esta etapa</small>
       <div>${x.telefono?`<a class="lnk" data-ew="${x.id}">WhatsApp</a> <a class="lnk" data-err="${x.id}">💬</a>`:''}${i<3?` <a class="lnk" data-em="${x.id}" data-e="${ETAPAS[i+1][0]}">→ ${ETAPAS[i+1][1]}</a>`:''}${i==3?` <a class="lnk" data-ec="${x.id}">→ Dar de alta</a>`:''}${k!='cliente'?` <a class="lnk" data-en="${x.id}">✕</a>`:''}</div></div>`).join('')}</div>`).join('')}</div></div>`;
   const P=id=>data.find(x=>x.id==id),upd=async(id,o)=>{const{error}=await sb.from('prospectos').update({...o,actualizado_en:new Date().toISOString()}).eq('id',id);if(error)return toast(error.message,1);vEmbudo()};
   $$('#vs [data-em]').forEach(a=>a.onclick=()=>upd(a.dataset.em,{estado:a.dataset.e,ultimo_contacto:diaLocal(new Date())}));
@@ -4103,9 +4109,15 @@ const AUTO_DEF={
   cruzada:{activa:true,pct:5,max_dia:15,txt:'¡Hola {nombre}! Los negocios que llevan *{base}* también venden muy bien *{producto}* 👌\n🎁 Para que lo pruebes: *{pct} % de descuento* con el cupón *{cupon}* (hasta el {hasta}).\n{link}'},
   recomendar:{activa:true,txt:'¡Hola {nombre}! Gracias por confiar en *Sabores de mi País* 🙌 ¿Conocés otro negocio al que le sirvan nuestros productos? Pasale este link: cuando haga su primer pedido, *los dos ganan puntos* 🎁\n{link}'},
   frios:{activa:true,dias:60,txt:'¡Hola{contacto}! Soy de *Sabores de mi País* 👋 Hace un tiempo hablamos. Este mes tenemos una *muestra sin cargo* para que pruebes nuestros productos en tu negocio. ¿Te la acerco? Mirá el catálogo:\n{link}'},
-  malanota:{activa:true}};
-const COLA_T={alta:['🌐','Quieren ser clientes'],malanota:['😟','Calificaron mal'],carrito:['🛒','Carritos sin enviar'],seguimiento:['⏳','Sin respuesta'],llego:['🔔','Llegó lo que esperaba'],miro:['👀','Miraron el catálogo'],nuevo:['🌱','Primeros 90 días'],toca:['📞','Les toca comprar'],
-  reactivar:['🔁','Reactivar'],bienvenida:['👋','Bienvenida'],dormido:['🎟️','Cupón a dormidos'],aniv:['🎂','Aniversarios'],deuda:['💸','Deuda vencida'],posentrega:['📦','Después de la entrega'],campania:['📣','Campañas programadas'],recomendar:['🤝','Pedir recomendación'],cruzada:['🔀','Venta cruzada'],oferta:['🔥','Ofertas automáticas'],prospecto:['🧲','Prospectos'],frio:['❄️','Prospectos fríos']};
+  malanota:{activa:true},
+  cierre:{activa:true,txt:'¡Hola {nombre}! 👋 Te recuerdo que *hoy hasta las {corte} h* recibimos pedidos para la entrega del *{dia}*. ¿Te preparo algo? Lo armás acá:\n{link}'},
+  volvio:{activa:true,max_dia:20,txt:'¡Hola {nombre}! 📦 *Volvió {producto}*, que vos llevás seguido. Pedilo antes de que se agote otra vez:\n{link}'},
+  bajo:{activa:true,max_dia:20,txt:'¡Hola {nombre}! 📉 Buena noticia: *{producto}* bajó de precio, ahora está a *{precio}*. Aprovechá:\n{link}'},
+  cumple:{activa:true,pct:10,vence:7,txt:'¡Feliz cumpleaños, {nombre}! 🎂🎉 De parte de todo *Sabores de mi País* te regalamos *{pct} % de descuento* con el cupón *{cupon}* (válido hasta el {hasta}).\n{link}'},
+  resena:{activa:true,link:'',txt:'¡Hola {nombre}! Gracias por tu calificación de 5 ⭐ 🙌 ¿Nos ayudás con una reseña en Google? Nos sirve muchísimo para que otros negocios nos encuentren. Es un minuto:\n{link}'},
+  lanzamiento:{pct:10,vence:30,txt:'¡Hola{contacto}! 🚚 *Sabores de mi País* ya llega a tu barrio. Somos distribuidora de alimentos con entrega en tu local. Para tu *primer pedido* tenés *{pct} % de descuento* con el cupón *{cupon}* (hasta el {hasta}), además del kit de bienvenida. Mirá el catálogo:\n{link}'}};
+const COLA_T={alta:['🌐','Quieren ser clientes'],malanota:['😟','Calificaron mal'],cumple:['🎂','Cumpleaños'],carrito:['🛒','Carritos sin enviar'],seguimiento:['⏳','Sin respuesta'],cierre:['⏰','Cierre de pedidos'],volvio:['📦','Volvió el stock'],llego:['🔔','Llegó lo que esperaba'],miro:['👀','Miraron el catálogo'],nuevo:['🌱','Primeros 90 días'],toca:['📞','Les toca comprar'],
+  reactivar:['🔁','Reactivar'],bienvenida:['👋','Bienvenida'],dormido:['🎟️','Cupón a dormidos'],aniv:['🎂','Aniversarios'],deuda:['💸','Deuda vencida'],posentrega:['📦','Después de la entrega'],campania:['📣','Campañas programadas'],recomendar:['🤝','Pedir recomendación'],resena:['⭐','Reseña en Google'],bajo:['📉','Bajó el precio'],cruzada:['🔀','Venta cruzada'],oferta:['🔥','Ofertas automáticas'],lanzamiento:['🚀','Lanzamiento de zona'],prospecto:['🧲','Prospectos'],frio:['❄️','Prospectos fríos']};
 const plantilla=(t,o)=>String(t||'').replace(/\{(\w+)\}/g,(m,k)=>o[k]!=null?o[k]:m);
 const dDesde=f=>Math.floor((Date.now()-new Date(f))/864e5);
 async function cfgAuto(){const{data}=await sb.from('config_app').select('valor').eq('clave','automatizaciones').maybeSingle();let c={};try{c=JSON.parse(data?.valor||'{}')||{}}catch(e){}
@@ -4200,10 +4212,32 @@ async function datosCola(crear){const A=await cfgAuto();if(crear)await autoOfert
   if(A.frios.activa){let n=0;for(const x of FR?.data||[]){if(n>=10||!x.telefono||x.estado=='cliente'||x.cliente_id||E.has('fr:'+x.id))continue;if(x.estado!='no_interesado'&&!(A.prospectos.pasos||[]).every((_,i)=>E.has('pr:'+x.id+':'+i)))continue;n++;
     const t=abTxt(A,'frios','txt',x.id);L.push({k:'fr:'+x.id,tipo:'frio',p:x,pri:22,val:0,var:t.v,mot:(x.estado=='no_interesado'?'Dijo que no':'Quieto')+' hace '+dDesde(x.actualizado_en)+' días',txt:plantilla(t.t,{contacto:x.contacto?' '+String(x.contacto).split(/\s+/)[0]:'',nombre:x.contacto||x.nombre,link:linkProsp(x)}),
       after:()=>sb.from('prospectos').update({estado:'contactado',ultimo_contacto:hoy,actualizado_en:new Date().toISOString()}).eq('id',x.id)})}}
+  /* Ventas 11: cumpleaños, cierre de pedidos, volvió el stock, bajó el precio, reseña y lanzamiento de zona */
+  const CF=await cfgVarios(['entregas','stock_agotados','stock_volvio','lanzamientos']).catch(()=>({}));
+  if(A.cumple.activa){const md=hoy.slice(5),y=hoy.slice(0,4);for(const c of S.clientes)if(c.cumpleanos&&String(c.cumpleanos).slice(5,10)==md&&c.telefono&&!hoyC.has(c.id)){const k='cu:'+c.id+':'+y;if(E.has(k))continue;
+    L.push({k,tipo:'cumple',c,pri:88,val:tk(c.id),mot:'¡Hoy es su cumpleaños! 🎂',cupon:A.cumple.pct>0&&c.token_pedidos?{pct:A.cumple.pct,dias:A.cumple.vence,pre:'FELIZ',nota:'Cumpleaños '+y}:null,txt:plantilla(A.cumple.pct>0&&c.token_pedidos?A.cumple.txt:A.cumple.txt.replace(/De parte[^\n]*/,'¡Que tengas un gran día! 🙌'),{nombre:nomCorto(c),pct:nf(A.cumple.pct),hasta:fd(diaLocal(new Date(Date.now()+A.cumple.vence*864e5))),link:lk(c)})})}}
+  if(A.cierre.activa&&CF.entregas){const cH=+String(CF.entregas.corte||'18:00').split(':')[0],tm=new Date();tm.setDate(tm.getDate()+1);const nd=tm.getDay()||7;
+    if(horaAR()<cH)for(const c of S.clientes){const r=H.C[c.id];if(!r||!ok(c)||!c.token_pedidos||dDesde(r.ult)>60||dDesde(r.ult)<2)continue;const ds=(c.dias_visita||[]).length?c.dias_visita:(CF.entregas.dias||[1,2,3,4,5,6]);if(!ds.includes(nd))continue;
+      const t=abTxt(A,'cierre','txt',c.id);add({k:'ci:'+c.id+':'+hoy,tipo:'cierre',c,pri:68,val:r.tk,var:t.v,mot:'Mañana le toca entrega y no pidió · cierre '+(CF.entregas.corte||'18:00')+' h',txt:plantilla(t.t,{nombre:nomCorto(c),corte:String(CF.entregas.corte||'18:00').replace(':00',''),dia:DIAS_L2[nd]+' '+tm.getDate(),link:lk(c)})})}}
+  if(A.volvio.activa&&S.inv){await cargarStock();const snap={...(CF.stock_agotados||{})},vol={...(CF.stock_volvio||{})},ag=new Set(S.productos.filter(p=>(S.stock[p.producto_id]?.d||0)<=0).map(p=>String(p.producto_id)));let cam=false;
+    for(const pid of Object.keys(snap))if(!ag.has(pid)){vol[pid]=hoy;delete snap[pid];cam=true}for(const pid of ag)if(!snap[pid]){snap[pid]=hoy;cam=true}for(const[pid,f]of Object.entries(vol))if(dDesde(f)>5){delete vol[pid];cam=true}
+    if(cam)sb.from('config_app').upsert([{clave:'stock_agotados',valor:JSON.stringify(snap)},{clave:'stock_volvio',valor:JSON.stringify(vol)}]).then(()=>{});let n=0;
+    for(const[pid,f]of Object.entries(vol))for(const c of S.clientes){if(n>=A.volvio.max_dia)break;const r=H.C[c.id];if(!r||!r.pr.has(pid)||!ok(c)||!c.token_pedidos)continue;const k='vs:'+pid+':'+f+':'+c.id;if(E.has(k))continue;n++;
+      const t=abTxt(A,'volvio','txt',c.id);add({k,tipo:'volvio',c,pri:60,val:r.tk*.3,var:t.v,mot:'Volvió '+nomProd(pid)+' (lo compra seguido)',txt:plantilla(t.t,{nombre:nomCorto(c),producto:nomProd(pid),link:lk(c)})})}}
+  if(A.bajo.activa){const{data:HCo}=await sf(sb.from('historial_costos').select('producto_id,costo_anterior,costo_nuevo,fecha').gte('fecha',new Date(Date.now()-7*864e5).toISOString()))||{};let n=0;
+    for(const h of(HCo||[]).filter(h=>+h.costo_nuevo>0&&+h.costo_nuevo<+h.costo_anterior*.98)){const pid=String(h.producto_id);if(!S.productos.some(p=>String(p.producto_id)==pid))continue;
+      for(const c of S.clientes){if(n>=A.bajo.max_dia)break;const r=H.C[c.id];if(!r||!r.pr.has(pid)||!ok(c)||!c.token_pedidos)continue;const k='bp:'+pid+':'+String(h.fecha).slice(0,10)+':'+c.id;if(E.has(k))continue;n++;
+        const t=abTxt(A,'bajo','txt',c.id);add({k,tipo:'bajo',c,pri:42,val:r.tk*.3,var:t.v,mot:nomProd(pid)+' bajó '+nf(Math.round((1-h.costo_nuevo/h.costo_anterior)*100))+' % (lo compra)',txt:plantilla(t.t,{nombre:nomCorto(c),producto:nomProd(pid),precio:$m(precioLista(pid,c.lista)),link:lk(c)})})}}}
+  if(A.resena.activa&&String(A.resena.link||'').trim()){for(const e of EN?.data||[]){if(+e.puntaje!=5||!e.respondida_en||dDesde(e.respondida_en)>7)continue;const c=cli(e.cliente_id);if(!ok(c))continue;
+    const t=abTxt(A,'resena','txt',c.id);add({k:'rg:'+c.id,tipo:'resena',c,pri:47,val:0,var:t.v,mot:'Nos calificó con 5 ⭐',txt:plantilla(t.t,{nombre:nomCorto(c),link:A.resena.link.trim()})})}}
+  for(const l of CF.lanzamientos||[]){if(dDesde(l.fecha)>7)continue;for(const pid of l.ids||[]){const x=(pr?.data||[]).find(p=>p.id==pid);if(!x||!x.telefono)continue;
+    add({k:'lz:'+l.id+':'+pid,tipo:'lanzamiento',p:x,pri:32,val:0,mot:'Lanzamiento: '+l.zona,txt:plantilla(A.lanzamiento.txt,{contacto:x.contacto?' '+String(x.contacto).split(/\s+/)[0]:'',pct:nf(A.lanzamiento.pct),cupon:l.cupon,hasta:fd(l.hasta),link:linkProsp(x)}),
+      after:()=>Promise.all([sb.from('envios_auto').insert({clave:'pr:'+x.id+':0',tipo:'prospecto',prospecto_id:x.id,detalle:'Paso 1 (lanzamiento de zona)'}),x.estado=='nuevo'?sb.from('prospectos').update({estado:'contactado',ultimo_contacto:hoy,actualizado_en:new Date().toISOString()}).eq('id',x.id):null])})}}
   /* Prospectos: alta exprés y secuencia */
   for(const x of pr?.data||[])if(x.origen=='catalogo'&&x.estado=='nuevo'&&!x.cliente_id)L.push({k:'al:'+x.id,tipo:'alta',p:x,pri:100,val:0,acc:'alta',mot:'Pidió ser cliente desde el catálogo'+(x.campania?' (QR '+x.campania+')':''),txt:'Dar de alta y mandarle su catálogo personal con la bienvenida.'});
   if(A.prospectos.activa){const PP=A.prospectos.pasos||[];let nv=0;
-    for(const x of pr?.data||[]){if(x.origen=='catalogo'&&x.estado=='nuevo')continue;const hech=PP.map((p,i)=>E.get('pr:'+x.id+':'+i)).map(e=>e||null);const last=hech.reduce((a,e,i)=>e?i:a,-1),j=last+1;if(j>=PP.length)continue;const p=PP[j];
+    const SCp=await cargarPuntajes().catch(()=>null),PRs=(pr?.data||[]).slice().sort((a,b)=>SCp?SCp(b)-SCp(a):0);
+    for(const x of PRs){if(x.origen=='catalogo'&&x.estado=='nuevo')continue;const hech=PP.map((p,i)=>E.get('pr:'+x.id+':'+i)).map(e=>e||null);const last=hech.reduce((a,e,i)=>e?i:a,-1),j=last+1;if(j>=PP.length)continue;const p=PP[j];
       if(j==0){if(x.estado!='nuevo'||nv>=A.prospectos.max_dia)continue}else{const base=hech.find(Boolean)?.enviado_en;if(!base||dDesde(base)<p.dias)continue}
       if(p.tipo!='visitar'&&!x.telefono)continue;if(p.tipo!='visitar'&&j==0)nv++;
       L.push({k:'pr:'+x.id+':'+j,tipo:'prospecto',p:x,pri:p.tipo=='visitar'?20:30,val:0,acc:p.tipo=='visitar'?'map':'wa',mot:'Paso '+(j+1)+' de '+PP.length+(p.tipo=='visitar'?' · 📍 visitarlo':''),
@@ -4236,7 +4270,7 @@ async function enviarItem(it,txt){const acc=it.acc||'wa';let w=null,cup=null;
 async function vCola(){$('#vs').innerHTML='<p>Armando la cola del día…</p>';const R=await datosCola(true);if(R.err){$('#vs').innerHTML=SQL_AUT;return}
   const SK=skips(),T0=R.L.filter(x=>!SK.has(x.k)),nT=T0.filter(esTarde).length,cu=S.colaH=='tarde'&&nT?'tarde':'ahora',T=T0.filter(x=>cu=='tarde'?esTarde(x):!esTarde(x)),f=S.colaF&&T.some(x=>x.tipo==S.colaF)?S.colaF:'todos',V=f=='todos'?T:T.filter(x=>x.tipo==f),cnt={};for(const x of T)cnt[x.tipo]=(cnt[x.tipo]||0)+1;
   const plata=T.filter(x=>x.c&&!['deuda','aniv','bienvenida'].includes(x.tipo)).reduce((a,x)=>a+(+x.val||0),0);
-  $('#vs').innerHTML=`<div class="kp"><div class="box ${T.length?'alerta':'ok'}"><span class="lab">Mensajes listos</span><span class="num">${T0.length}</span><span class="det">${SK.size?SK.size+' salteados hoy':'para mandar hoy'}</span></div>
+  $('#vs').innerHTML=`<div id="co_emp"></div><div class="kp"><div class="box ${T.length?'alerta':'ok'}"><span class="lab">Mensajes listos</span><span class="num">${T0.length}</span><span class="det">${SK.size?SK.size+' salteados hoy':'para mandar hoy'}</span></div>
     <div class="box"><span class="lab">Venta posible</span><span class="num">${$m(plata)}</span><span class="det">sumando su pedido promedio</span></div><div class="box ok"><span class="lab">Enviados hoy</span><span class="num">${R.hoyN}</span><span class="det">desde la cola</span></div></div>
   <div class="box cola-hd"><h3>⚡ Cola del día</h3><p><small>Todo lo que conviene mandar hoy, ya escrito y en orden de importancia. Tocá <b>Empezar ráfaga</b>: se abre WhatsApp con el mensaje listo, lo mandás, volvés y sigue el próximo. Cada cliente aparece una sola vez por día y nada se repite.</small></p>
     ${nT?`<div class="sub" style="margin:4px 0 10px"><button class="${cu=='ahora'?'':'alt'}" data-ch="ahora">⏰ Mandar ahora (${T0.length-nT})</button><button class="${cu=='tarde'?'':'alt'}" data-ch="tarde">🕐 Más tarde (${nT})</button></div><p><small>"Más tarde": clientes que suelen pedir o mirar el catálogo a otra hora. Te conviene mandarles cerca de esa hora.</small></p>`:''}
@@ -4250,7 +4284,7 @@ async function vCola(){$('#vs').innerHTML='<p>Armando la cola del día…</p>';c
   $('#co_go')&&($('#co_go').onclick=()=>rafaga(V));
   $$('#vs [data-ci]').forEach(b=>b.onclick=()=>rafaga([V[+b.dataset.ci]]));
   $$('#vs [data-cs]').forEach(b=>b.onclick=()=>{saltear(V[+b.dataset.cs].k);vCola()});
-  resultadosAuto($('#co_res')).catch(()=>{})}
+  resultadosAuto($('#co_res')).catch(()=>{});empujonBox($('#co_emp'))}
 
 function rafaga(L){const m=document.createElement('div');m.className='modal';document.body.appendChild(m);let i=0,env=0;
   const fin=()=>{m.remove();if(S.vs=='cola'&&$('#vs'))vCola()};
@@ -4304,6 +4338,12 @@ async function vAuto(){const A=await cfgAuto(),due=S.perfil.rol=='dueno',dis=due
     <div class="g">${num('ofertas','venc_dias','Por vencer en (días)')}${num('ofertas','pct_venc','Descuento por vencer %')}${num('ofertas','sobre_meses','Sobrestock desde (meses de stock)')}${num('ofertas','pct_sobre','Descuento sobrestock %')}${num('ofertas','max_dia','Máximo de mensajes por día')}</div>${txa('ofertas','txt')}</div>
   <div class="box">${tg('nuevos','🌱 Primeros 90 días','Para que el cliente nuevo llegue al 2° y al 3° pedido, que es cuando queda fijo.')}<div class="g">${num('nuevos','dias2','Sin 2° pedido a los (días)')}${num('nuevos','dias3','Sin 3° pedido a los (días)')}${num('nuevos','pct3','Cupón para el 3° %')}</div>${txa('nuevos','txt2','Mensaje para el 2° pedido')}${txa('nuevos','txt3','Mensaje con cupón para el 3°')}</div>
   <div class="box">${tg('prospectos','🧲 Secuencia de prospección','Cada prospecto nuevo con teléfono recibe la secuencia. Los días se cuentan desde el primer mensaje. Los que piden ser clientes desde el catálogo aparecen arriba de la cola para el alta exprés.')}${num('prospectos','max_dia','Prospectos nuevos por día',80)}${pasos('prospectos')}</div>
+  <div class="box">${tg('cierre','⏰ Aviso de cierre de pedidos','El día antes de su entrega, a los que todavía no pidieron (usa la hora de corte y los días de reparto de "Descuentos y mínimo").')}${txa('cierre','txt')}</div>
+  <div class="box">${tg('volvio','📦 Volvió el stock','Cuando algo que estaba agotado vuelve a tener stock, se lo avisa a los que lo compran seguido (necesita el stock cargado).')}${num('volvio','max_dia','Máximo por día')}${txa('volvio','txt')}</div>
+  <div class="box">${tg('bajo','📉 Bajó el precio','Si baja el costo de un producto (y con él su precio), se lo ofrece a los que lo compran.')}${num('bajo','max_dia','Máximo por día')}${txa('bajo','txt')}</div>
+  <div class="box">${tg('cumple','🎂 Cumpleaños','Cargá el cumpleaños en la ficha del cliente (Editar). Ese día entra arriba de la cola con un cupón de regalo.')}<div class="g">${num('cumple','pct','Cupón de regalo % (0 = sin cupón)')}${num('cumple','vence','Vence a los (días)')}</div>${txa('cumple','txt')}</div>
+  <div class="box">${tg('resena','⭐ Pedir reseña en Google','A los que te califican con 5 ⭐. Una sola vez por cliente.')}<label class="f">Link de tu negocio en Google (el de "Pedir reseñas" en tu Perfil de Empresa)<input data-at="resena.link" value="${esc(A.resena.link||'')}" placeholder="https://g.page/r/..." ${dis}></label>${txa('resena','txt')}</div>
+  <div class="box"><h3>🚀 Lanzamiento de zona</h3><p><small>Se usa desde <b>Zonas sin cubrir → Lanzar</b>.</small></p><div class="g">${num('lanzamiento','pct','Cupón primer pedido %')}${num('lanzamiento','vence','Vence a los (días)')}</div>${txa('lanzamiento','txt')}</div>
   <div class="box">${tg('seguimiento','⏳ Seguimiento de lo que quedó sin respuesta','Presupuestos sin aceptar a los 2 días y pedidos sugeridos sin confirmar al día siguiente.')}${txa('seguimiento','txtPre','Mensaje para presupuestos')}${txa('seguimiento','txtSug','Mensaje para pedidos sugeridos')}</div>
   <div class="box">${tg('posentrega','📦 Después de la entrega','Al día siguiente de entregar: "¿llegó todo bien?" con la encuesta de un toque.')}${txa('posentrega','txt')}
     ${tg('malanota','😟 Avisarme si califican mal','Si la nota es de 3 ⭐ o menos, entra arriba de la cola para llamarlo ese mismo día.')}</div>
@@ -4396,7 +4436,7 @@ async function vRuta(){S.ruN=S.ruN||8;S.ruE=S.ruE||['nuevo','contactado','intere
   const rub=[...new Set(data.map(x=>x.rubro).filter(Boolean))].sort(),hoy=diaLocal(new Date());
   const C=data.filter(x=>S.ruE.includes(x.estado)&&(!S.ruR||x.rubro==S.ruR)&&!(x.ultimo_contacto&&dDesde(x.ultimo_contacto)<3&&x.ultimo_contacto!=hoy)),con=C.filter(x=>x.lat!=null&&x.lng!=null),sin=C.length-con.length;
   let R=[];if(S.ruO&&con.length){let p=S.ruO;const pool=[...con];while(R.length<S.ruN&&pool.length){pool.sort((a,b)=>distKm(p,[+a.lat,+a.lng])-distKm(p,[+b.lat,+b.lng]));const x=pool.shift();x._d=distKm(p,[+x.lat,+x.lng]);R.push(x);p=[+x.lat,+x.lng]}}
-  S.ruL=R;const km=R.reduce((a,x)=>a+x._d,0);
+  S.ruL=R;const km=R.reduce((a,x)=>a+x._d,0),SCp=await cargarPuntajes().catch(()=>null);
   $('#vs').innerHTML=`<div class="box"><h3>🚶 Ruta de prospección</h3><p><small>Arma el recorrido del día con los prospectos más cercanos entre sí, empezando desde donde estás. En cada negocio marcás cómo te fue con un toque y queda registrado.</small></p>
     <div class="g"><label class="f">Salgo desde<input id="ru_o" placeholder="Dirección (o usá tu ubicación)" value="${esc(S.ruOt||'')}"></label><label class="f">Cuántos negocios<select id="ru_n">${[5,8,10,15].map(v=>`<option ${S.ruN==v?'selected':''}>${v}</option>`).join('')}</select></label>
       <label class="f">Rubro<select id="ru_r"><option value="">Todos</option>${rub.map(r=>`<option ${S.ruR==r?'selected':''}>${esc(r)}</option>`).join('')}</select></label></div>
@@ -4404,7 +4444,7 @@ async function vRuta(){S.ruN=S.ruN||8;S.ruE=S.ruE||['nuevo','contactado','intere
     <button id="ru_gps">📍 Usar mi ubicación</button> <button class="alt" id="ru_go">Armar ruta desde la dirección</button>
     <p><small>${con.length} prospectos con ubicación${sin?` · ${sin} sin ubicación (cargalos desde "Buscar negocios" o agregales la dirección)`:''}.</small></p></div>
   ${R.length?`<div class="box"><div class="bh"><h3 style="margin:0">Tu ruta: ${R.length} negocios · ~${nf(Math.round(km*10)/10)} km</h3><button class="wa" id="ru_maps">Abrir en Google Maps</button></div>
-    <div class="ag">${R.map((x,i)=>`<div class="vi" id="ru_${x.id}"><span class="badge b-pendiente" style="font-size:16px">${i+1}</span><div><b>${esc(x.nombre)}</b> <small>· ${esc(x.rubro||'')} · ${x._d<1?Math.round(x._d*1000)+' m':nf(Math.round(x._d*10)/10)+' km'}</small><br><small>${esc(x.domicilio||'')}${x.telefono?' · '+esc(x.telefono):''} · <span class="badge">${esc(EST_PR[x.estado]||x.estado)}</span></small><br><small>💬 ${esc(guionR(x.rubro))}</small></div>
+    <div class="ag">${R.map((x,i)=>`<div class="vi" id="ru_${x.id}"><span class="badge b-pendiente" style="font-size:16px">${i+1}</span><div><b>${esc(x.nombre)}</b> ${SCp?badgeP(SCp(x)):''} <small>· ${esc(x.rubro||'')} · ${x._d<1?Math.round(x._d*1000)+' m':nf(Math.round(x._d*10)/10)+' km'}</small><br><small>${esc(x.domicilio||'')}${x.telefono?' · '+esc(x.telefono):''} · <span class="badge">${esc(EST_PR[x.estado]||x.estado)}</span></small><br><small>💬 ${esc(guionR(x.rubro))}</small></div>
       <div class="acc"><button class="alt" data-rv="${x.id}" data-r="si">👍 Le interesa</button><button class="alt" data-rv="${x.id}" data-r="volver">🔁 Volver</button><button class="alt" data-rv="${x.id}" data-r="no">👎 No</button><button data-ra="${x.id}">🧾 Hizo pedido</button>${x.telefono?`<button class="alt" data-rq2="${x.id}">💬</button>`:''}</div></div>`).join('')}</div></div>`
     :S.ruO?'<div class="box"><p><small>No hay prospectos con ubicación para esos filtros.</small></p></div>':''}`;
   $('#ru_n').onchange=e=>{S.ruN=+e.target.value;vRuta()};$('#ru_r').onchange=e=>{S.ruR=e.target.value;vRuta()};
@@ -4452,7 +4492,7 @@ const SQL_AU2='<div class="aviso">Falta correr <b>ventas-auto2.sql</b> en Supaba
 /* Prueba A/B: cada cliente cae siempre en la misma versión */
 const hashId=id=>{let h=0;for(const ch of String(id))h=(h*31+ch.charCodeAt(0))|0;return Math.abs(h)};
 function abTxt(A,k,f,id){const b=A[k]?.[f+'B'];if(b&&String(b).trim()&&hashId(id)%2)return{t:b,v:'B'};return{t:A[k]?.[f],v:A[k]?.[f+'B']&&String(A[k][f+'B']).trim()?'A':null}}
-const AB_REG={carrito:['carritos','txt'],miro:['miraron','txt'],dormido:['dormidos','txt'],oferta:['ofertas','txt'],cruzada:['cruzada','txt'],recomendar:['recomendar','txt'],frio:['frios','txt'],posentrega:['posentrega','txt'],deuda:['deuda','txt']};
+const AB_REG={carrito:['carritos','txt'],miro:['miraron','txt'],dormido:['dormidos','txt'],oferta:['ofertas','txt'],cruzada:['cruzada','txt'],recomendar:['recomendar','txt'],frio:['frios','txt'],posentrega:['posentrega','txt'],deuda:['deuda','txt'],volvio:['volvio','txt'],bajo:['bajo','txt'],resena:['resena','txt'],cierre:['cierre','txt']};
 
 /* Mejor hora de cada cliente: cuándo pide online y cuándo mira el catálogo */
 async function horasClientes(H){if(S.horaC&&Date.now()-S.horaC.t<300e3)return S.horaC.m;
@@ -4545,7 +4585,8 @@ async function vCobertura(){const C=S.clientes.filter(c=>c.lat!=null&&c.lng!=nul
   const S2=Object.values(cand).map(z=>{const[i,j]=z.k.split(':').map(Number);return{...z,la:(i+.5)*dLa,lo:(j+.5)*dLo,p:PG[z.k]||0,sc:z.v+(PG[z.k]||0)*.5}}).sort((a,b)=>b.sc-a.sc).slice(0,8);
   const lab=z=>{const n=z.near.sort((a,b)=>distKm([z.la,z.lo],[+a.lat,+a.lng])-distKm([z.la,z.lo],[+b.lat,+b.lng]))[0];return 'Cerca de '+n.razon_social+(n.ciudad?' ('+n.ciudad+')':n.domicilio?' ('+n.domicilio+')':'')};
   $('#vs').innerHTML=`<div class="box"><h3>🧭 Zonas sin cubrir</h3><p><small>En verde, las zonas (cuadras de ~1 km) donde ya tenés clientes. En naranja, las zonas vecinas donde todavía no tenés ninguno: son las más fáciles de conquistar porque ya pasás cerca con el reparto.</small></p><div id="cv_m" style="height:380px;border-radius:12px"></div></div>
-    <div class="box"><h3>📍 Dónde salir a buscar</h3>${S2.map((z,i)=>`<div class="bh cpf"><span><b>${i+1}. ${esc(lab(z))}</b><br><small>${z.v} ${z.v==1?'cliente':'clientes'} alrededor${z.p?' · '+z.p+' prospectos ya cargados':''}</small></span><span><button class="alt" data-cvb="${i}">🔎 Buscar negocios</button> <button class="alt" data-cvr="${i}">🚶 Ruta</button></span></div>`).join('')||'<p><small>No encontré zonas vecinas libres.</small></p>'}</div>`;
+    <div class="box"><h3>📍 Dónde salir a buscar</h3>${S2.map((z,i)=>`<div class="bh cpf"><span><b>${i+1}. ${esc(lab(z))}</b><br><small>${z.v} ${z.v==1?'cliente':'clientes'} alrededor${z.p?' · '+z.p+' prospectos ya cargados':''}</small></span><span><button class="alt" data-cvb="${i}">🔎 Buscar negocios</button> <button class="alt" data-cvr="${i}">🚶 Ruta</button> <button class="alt" data-cvl="${i}">🚀 Lanzar</button></span></div>`).join('')||'<p><small>No encontré zonas vecinas libres.</small></p>'}<p><small>🚀 <b>Lanzar</b>: a todos los prospectos con teléfono de esa zona les llega "¡Llegamos a tu barrio!" con un cupón para el primer pedido.</small></p></div><div id="cv_lz"></div>`;
+  $$('#vs [data-cvl]').forEach(b=>b.onclick=()=>{const z=S2[+b.dataset.cvl];lanzarZona(z,lab(z))});lanzBox($('#cv_lz')).catch(()=>{});
   $$('#vs [data-cvb]').forEach(b=>b.onclick=()=>{const z=S2[+b.dataset.cvb];S.bnZ=z.la.toFixed(5)+', '+z.lo.toFixed(5);S.bnR=1;S.vs='buscarneg';vVentas()});
   $$('#vs [data-cvr]').forEach(b=>b.onclick=()=>{const z=S2[+b.dataset.cvr];S.ruO=[z.la,z.lo];S.ruOt='';S.vs='ruta';vVentas()});
   try{if(!window.L){const l=document.createElement('link');l.rel='stylesheet';l.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';document.head.appendChild(l);await cargarScript('https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js')}}
@@ -4555,6 +4596,91 @@ async function vCobertura(){const C=S.clientes.filter(c=>c.lat!=null&&c.lng!=nul
   S2.forEach((z,i)=>{const[a,b]=z.k.split(':').map(Number);L.rectangle([[a*dLa,b*dLo],[(a+1)*dLa,(b+1)*dLo]],{color:'#d97706',weight:2,fillOpacity:.25,dashArray:'4'}).addTo(map).bindTooltip((i+1)+'. '+lab(z))});
   for(const x of P)L.circleMarker([+x.lat,+x.lng],{radius:4,color:'#6b3fa0'}).addTo(map).bindTooltip(x.nombre);
   map.fitBounds(B,{padding:[20,20]})}
+
+/* ======================= VENTAS 11: cierre, stock, precios, cumpleaños y captación ======================= */
+const SQL_AU3='<div class="aviso">Falta correr <b>ventas-auto3.sql</b> en Supabase (SQL Editor). Después recargá la página.</div>';
+const DIAS_L2=['','lunes','martes','miércoles','jueves','viernes','sábado','domingo'];
+async function cfgVarios(claves){const{data}=await sb.from('config_app').select('clave,valor').in('clave',claves);const o={};for(const k of claves){const v=(data||[]).find(x=>x.clave==k)?.valor;try{o[k]=v?JSON.parse(v):null}catch(e){o[k]=v||null}}return o}
+
+/* Puntaje de prospectos (0 a 100): rubro que mejor convierte, cerca de clientes, teléfono, origen y estado */
+async function cargarPuntajes(){if(S.pScore&&Date.now()-S.pScore.t<300e3)return S.pScore.f;
+  const{data}=await sb.from('prospectos').select('rubro,estado').limit(5000);const R={};for(const x of data||[]){const k=norm(x.rubro||'');const r=R[k]=R[k]||{n:0,c:0};r.n++;if(x.estado=='cliente')r.c++}
+  const tot=(data||[]).length,glob=tot?(data.filter(x=>x.estado=='cliente').length/tot):.15,CL=S.clientes.filter(c=>c.lat!=null&&c.lng!=null).map(c=>[+c.lat,+c.lng]);
+  const f=x=>{const r=R[norm(x.rubro||'')],rate=r&&r.n>=3?r.c/r.n:glob;let s=Math.min(30,Math.round(rate*100));
+    if(x.lat!=null&&x.lng!=null&&CL.length){const d=Math.min(...CL.map(p=>distKm(p,[+x.lat,+x.lng])));s+=d<1?25:d<3?15:0}else s+=5;
+    if(x.telefono)s+=15;s+=x.campania||x.origen=='catalogo'||/recomend/i.test(x.observaciones||'')?20:x.origen=='lista'?8:x.origen=='mapa'?5:10;s+=x.estado=='interesado'?10:x.estado=='contactado'?5:0;return Math.min(100,s)};
+  S.pScore={t:Date.now(),f};return f}
+const badgeP=s=>`<span class="badge ${s>=70?'b-entregado':s>=45?'b-pendiente':''}" title="Puntaje del prospecto">⭐ ${s}</span>`;
+
+/* Empujón de fin de mes */
+async function datosEmpujon(){const hoy=new Date(),mes=diaLocal(hoy).slice(0,7),ult=new Date(hoy.getFullYear(),hoy.getMonth()+1,0).getDate(),quedan=ult-hoy.getDate();if(quedan>4)return null;
+  const{data:o}=await sb.from('config_app').select('valor').eq('clave','objetivo_'+mes).maybeSingle();const meta=+o?.valor||0;if(!meta)return null;
+  const H=await histAuto(),ant=diaLocal(new Date(hoy.getFullYear(),hoy.getMonth()-1,1)).slice(0,7);
+  const V=H.P.filter(x=>String(x.creado_en).slice(0,7)==mes&&!['pendiente','cancelado'].includes(x.estado)).reduce((a,x)=>a+ +x.total,0);if(V>=meta)return null;
+  const este=new Set(H.P.filter(x=>String(x.creado_en).slice(0,7)==mes).map(x=>x.cliente_id)),pasado={};for(const x of H.P)if(String(x.creado_en).slice(0,7)==ant)pasado[x.cliente_id]=(pasado[x.cliente_id]||0)+ +x.total;
+  const L=Object.entries(pasado).filter(([id])=>!este.has(id)).map(([id,v])=>({c:S.clientes.find(c=>c.id==id),v})).filter(x=>x.c&&x.c.telefono).sort((a,b)=>b.v-a.v).slice(0,40);
+  return{meta,V,falta:meta-V,quedan,L,pot:L.reduce((a,x)=>a+x.v,0)}}
+async function empujonBox(box){if(!box)return;const D=await datosEmpujon().catch(()=>null);if(!D){box.innerHTML='';return}
+  box.innerHTML=`<div class="box alerta"><h3>🏁 Empujón de fin de mes</h3><p>Te faltan <b>${$m(D.falta)}</b> para el objetivo de ${$m(D.meta)} y ${D.quedan==0?'hoy es el último día':'quedan '+D.quedan+' días'}.</p>
+    ${D.L.length?`<p><small><b>${D.L.length} clientes</b> compraron el mes pasado (${$m(D.pot)}) y este mes todavía no: ${D.L.slice(0,8).map(x=>esc(x.c.razon_social)).join(' · ')}${D.L.length>8?' · y '+(D.L.length-8)+' más':''}.</small></p>
+    <div class="fc-acc"><button class="wa" id="em_c">📣 Escribirles hoy (entra en la cola)</button><button class="alt" id="em_r">⚡ Armar una oferta relámpago</button></div>`:'<p><small>Armá una oferta relámpago para mover la venta estos días.</small><button class="alt" id="em_r">⚡ Armar una oferta relámpago</button></p>'}</div>`;
+  box.querySelector('#em_r').onclick=()=>{S.tab='ventas';S.vs='relampago';shell()};
+  const b=box.querySelector('#em_c');if(b)b.onclick=async()=>{const P=await campProg(),hoy=diaLocal(new Date());
+    P.push({id:'fm'+Date.now(),nombre:'Empujón de fin de mes',fecha:hoy,msg:'¡Hola {nombre}! 👋 Te escribo de *Sabores de mi País*. Estamos cerrando el mes y no queremos que te falte nada para estos días. ¿Te preparo el pedido? Lo armás acá en un minuto:\n{link}',ids:D.L.map(x=>x.c.id)});
+    if(await guardaCampProg(P.filter(x=>dDesde(x.fecha)<=7))){toast('Listo: '+D.L.length+' mensajes en la Cola del día.');S.tab='ventas';S.vs='cola';S.colaF='campania';shell()}}}
+
+/* Exportar contactos para WhatsApp Business */
+async function vContactos(){S.ctx=S.ctx||{cli:true,pro:false,g:'todos'};const{data:pr}=await sb.from('prospectos').select('nombre,telefono,rubro,zona,estado').in('estado',['nuevo','contactado','visitado','interesado']).not('telefono','is',null).limit(5000);
+  const rub=[...new Set([...S.clientes.map(c=>c.rubro),...(pr||[]).map(x=>x.rubro)].filter(Boolean).map(r=>cap1(r.trim())))].sort();
+  const L=()=>{const o=[];if(S.ctx.cli)for(const c of S.clientes)if(c.telefono&&telWA(c.telefono))o.push({n:c.razon_social,t:telWA(c.telefono),r:cap1((c.rubro||'').trim()),z:c.ciudad||c.zona||'',g:'Cliente'});
+    if(S.ctx.pro)for(const x of pr||[])if(telWA(x.telefono))o.push({n:x.nombre,t:telWA(x.telefono),r:cap1((x.rubro||'').trim()),z:x.zona||'',g:'Prospecto'});
+    return o.filter(x=>S.ctx.g=='todos'||x.r==S.ctx.g)};
+  const draw=()=>{const X=L();$('#vs').innerHTML=`<div class="box"><h3>📇 Contactos para WhatsApp Business</h3><p><small>Las <b>listas de difusión</b> de WhatsApp solo le llegan a quien tiene tu número agendado, y vos tenés que tener el suyo. Descargá este archivo, importalo en los contactos del celular y después armá las listas por rubro o zona eligiendo los contactos (cada lista admite hasta 256).</small></p>
+    <div class="chk-row"><label class="chk"><input type="checkbox" id="ct_c" ${S.ctx.cli?'checked':''}> Clientes</label><label class="chk"><input type="checkbox" id="ct_p" ${S.ctx.pro?'checked':''}> Prospectos activos</label></div>
+    <label class="f">Grupo<select id="ct_g"><option value="todos">Todos</option>${rub.map(r=>`<option ${S.ctx.g==r?'selected':''}>${esc(r)}</option>`).join('')}</select></label>
+    <p><b>${X.length}</b> contactos${X.length>256?' · <small>⚠️ más de 256: WhatsApp los va a pedir en varias listas</small>':''}</p>
+    <div class="fc-acc"><button id="ct_v">⬇️ Descargar para el celular (.vcf)</button><button class="alt" id="ct_cs">⬇️ Descargar para Google Contactos (.csv)</button></div>
+    <ol><li><small>En el Samsung: abrí el archivo .vcf descargado → <b>Importar</b> a Contactos (o subí el .csv en contacts.google.com → Importar).</small></li><li><small>En WhatsApp Business: <b>⋮ → Nueva difusión</b> y elegí los contactos (todos quedan con "Sabores · Rubro" en la empresa, para encontrarlos fácil).</small></li><li><small>Pediles que te agenden: en el primer mensaje de la Cola ya va tu nombre.</small></li></ol></div>`;
+    $('#ct_c').onchange=e=>{S.ctx.cli=e.target.checked;draw()};$('#ct_p').onchange=e=>{S.ctx.pro=e.target.checked;draw()};$('#ct_g').onchange=e=>{S.ctx.g=e.target.value;draw()};
+    const bajar=(txt,nom,tipo)=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:tipo}));a.download=nom;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000)};
+    const nomA='contactos-sabores'+(S.ctx.g!='todos'?'-'+norm(S.ctx.g).replace(/[^a-z0-9]+/g,'-'):'');
+    const vc=s=>String(s||'').replace(/([,;\\])/g,'\\$1').replace(/\n/g,' ');
+    $('#ct_v').onclick=()=>{if(!X.length)return toast('No hay contactos.',1);bajar(X.map(x=>['BEGIN:VCARD','VERSION:3.0','FN:'+vc(x.n),'N:'+vc(x.n)+';;;;','ORG:'+vc('Sabores · '+(x.r||x.g)),'TEL;TYPE=CELL:+'+x.t,'CATEGORIES:'+['Sabores',x.g,x.r,x.z].filter(Boolean).map(vc).join(','),'END:VCARD'].join('\r\n')).join('\r\n'),nomA+'.vcf','text/vcard')};
+    $('#ct_cs').onclick=()=>{if(!X.length)return toast('No hay contactos.',1);const q=v=>'"'+String(v||'').replace(/"/g,'""')+'"';
+      bajar('﻿Name,Organization 1 - Name,Phone 1 - Type,Phone 1 - Value,Group Membership\n'+X.map(x=>[x.n,'Sabores · '+(x.r||x.g),'Mobile','+'+x.t,['Sabores',x.g,x.r].filter(Boolean).join(' ::: ')].map(q).join(',')).join('\n'),nomA+'.csv','text/csv')}};
+  draw()}
+
+/* Modo llamadas */
+async function vLlamadas(){const[{data,error},sc]=await Promise.all([sb.from('prospectos').select('*').in('estado',['nuevo','contactado','visitado','interesado']).not('telefono','is',null).limit(3000),cargarPuntajes()]);
+  if(error){$('#vs').innerHTML='<p class="err">'+esc(error.message)+'</p>';return}const hoy=diaLocal(new Date());
+  const L=data.filter(x=>!(x.ultimo_contacto&&dDesde(x.ultimo_contacto)<3)&&!(x.proximo_seguimiento&&x.proximo_seguimiento>hoy)).map(x=>({x,s:sc(x)})).sort((a,b)=>b.s-a.s).slice(0,60);let i=0,hechas=0;
+  const draw=()=>{if(i>=L.length){$('#vs').innerHTML=`<div class="box" style="text-align:center"><h3>📞 ¡Listo!</h3><p>Registraste <b>${hechas}</b> ${hechas==1?'llamada':'llamadas'}.${L.length?'':' No hay prospectos para llamar ahora (con teléfono y sin contacto en los últimos 3 días).'}</p><button class="alt" id="ll_r">Volver a empezar</button></div>`;$('#ll_r').onclick=vLlamadas;return}
+    const{x,s}=L[i],t=String(x.telefono).replace(/[^\d+]/g,'');
+    $('#vs').innerHTML=`<div class="box"><div class="bh"><small>${i+1} de ${L.length} · ordenados por puntaje</small>${badgeP(s)}</div><div class="rfbar"><span style="width:${Math.round(i/L.length*100)}%"></span></div>
+      <h2 style="margin:10px 0 2px">${esc(x.nombre)}</h2><p style="margin:0"><small>${esc([x.rubro,x.domicilio,x.zona].filter(Boolean).join(' · '))} · <span class="badge">${esc(EST_PR[x.estado]||x.estado)}</span></small></p>${x.observaciones?`<p><small><i>${esc(String(x.observaciones).slice(0,200))}</i></small></p>`:''}
+      <a class="btnl wa big" style="display:inline-block;margin:10px 0" href="tel:${esc(t)}">📞 Llamar ${esc(x.telefono)}</a>
+      <div class="guion"><b>Guion</b><ol><li>Hola, ¿hablo con el encargado de <b>${esc(x.nombre)}</b>? Te llamo de <b>Sabores de mi País</b>, distribuidora de alimentos de la zona.</li><li>${esc(guionR(x.rubro))}</li><li>¿Te paso el catálogo por WhatsApp con los precios? Para el primer pedido tenemos un kit de bienvenida con descuento.</li><li>¿Qué día te queda bien que pase a dejarte una muestra?</li></ol></div>
+      <label class="f">Nota (opcional)<input id="ll_n" placeholder="Ej.: le compra a Distri Norte, volver a llamar el lunes"></label>
+      <div class="fc-acc"><button data-lr="si">👍 Interesado</button><button class="alt" data-lr="volver">🔁 Volver a llamar</button><button class="alt" data-lr="noat">📵 No atendió</button><button class="alt" data-lr="no">👎 No le interesa</button><button class="alt" id="ll_w">💬 WhatsApp</button><button class="alt" id="ll_s">Saltear</button></div></div>`;
+    $('#ll_s').onclick=()=>{i++;draw()};$('#ll_w').onclick=()=>respuestasRapidas(x);
+    $$('#vs [data-lr]').forEach(b=>b.onclick=async()=>{const r=b.dataset.lr,M={si:['interesado',2,'Interesado'],volver:[x.estado=='nuevo'?'contactado':x.estado,3,'Volver a llamar'],noat:[x.estado,1,'No atendió'],no:['no_interesado',null,'No le interesa']}[r],n=$('#ll_n').value.trim();
+      let dias=M[1];if(r=='volver'){const v=prompt('¿En cuántos días lo volvés a llamar?','3');if(v===null)return;dias=Math.max(1,+v||3)}
+      const{error}=await sb.from('prospectos').update({estado:M[0],ultimo_contacto:r=='noat'?x.ultimo_contacto:hoy,proximo_seguimiento:dias?diaLocal(new Date(Date.now()+dias*864e5)):null,observaciones:('Llamada '+fd(hoy)+': '+M[2]+(n?' — '+n:'')+(x.observaciones?'\n'+x.observaciones:'')).slice(0,1000),actualizado_en:new Date().toISOString()}).eq('id',x.id);
+      if(error)return toast(error.message,1);if(r!='noat')sb.from('envios_auto').insert({clave:'ll:'+x.id+':'+hoy,tipo:'llamada',prospecto_id:x.id,detalle:'Llamada: '+M[2]}).then(()=>{});hechas++;i++;draw()})};
+  draw()}
+
+/* Lanzamiento de zona */
+async function lanzarZona(z,etq){const A=await cfgAuto(),{data:pr}=await sb.from('prospectos').select('id,nombre,telefono,lat,lng,estado').in('estado',['nuevo','contactado','visitado','interesado']).not('lat','is',null);
+  const P=(pr||[]).filter(x=>x.telefono&&distKm([z.la,z.lo],[+x.lat,+x.lng])<=1.2);
+  if(!P.length){if(confirm('No hay prospectos con teléfono en esa zona todavía. ¿Buscamos negocios ahí primero?')){S.bnZ=z.la.toFixed(5)+', '+z.lo.toFixed(5);S.bnR=1;S.vs='buscarneg';vVentas()}return}
+  if(!confirm(`🚀 Lanzar "${etq}":\n${P.length} prospectos reciben "¡Llegamos a tu barrio!" con un cupón de ${nf(A.lanzamiento.pct)} % para el primer pedido (válido ${A.lanzamiento.vence} días). ¿Seguimos?`))return;
+  const cod='BARRIO'+Math.random().toString(36).slice(2,6).toUpperCase(),hasta=diaLocal(new Date(Date.now()+A.lanzamiento.vence*864e5));
+  let{error}=await sb.from('cupones').insert({codigo:cod,descuento_pct:A.lanzamiento.pct,hasta,solo_nuevos:true,usos_max:null,nota:'Lanzamiento: '+etq});if(error&&/nota/.test(error.message))({error}=await sb.from('cupones').insert({codigo:cod,descuento_pct:A.lanzamiento.pct,hasta,solo_nuevos:true,usos_max:null}));
+  if(error)return toast(error.message,1);const{lanzamientos:LZ}=await cfgVarios(['lanzamientos']);const N=[...(LZ||[]).filter(x=>dDesde(x.fecha)<=60),{id:String(Date.now()),zona:etq,fecha:diaLocal(new Date()),cupon:cod,hasta,ids:P.map(x=>x.id)}];
+  const{error:e2}=await sb.from('config_app').upsert({clave:'lanzamientos',valor:JSON.stringify(N)});if(e2)return toast(e2.message,1);toast('🚀 Zona lanzada: '+P.length+' mensajes en la Cola del día (cupón '+cod+').');S.vs='cola';S.colaF='lanzamiento';vVentas()}
+async function lanzBox(box){if(!box)return;const{lanzamientos:LZ}=await cfgVarios(['lanzamientos']);if(!LZ?.length){box.innerHTML='';return}
+  const ids=[...new Set(LZ.flatMap(x=>x.ids))].slice(0,1000),[{data:pr},{data:cu}]=await Promise.all([sb.from('prospectos').select('id,estado').in('id',ids),sb.from('cupones_usos').select('codigo').in('codigo',LZ.map(x=>x.cupon))]);
+  box.innerHTML=`<div class="box"><h3>🚀 Zonas lanzadas</h3>${LZ.slice().reverse().map(x=>`<div class="bh cpf"><span><b>${esc(x.zona)}</b> <small>· ${fd(x.fecha)} · cupón ${esc(x.cupon)}</small></span><small>${x.ids.length} prospectos · <b>${(pr||[]).filter(p=>x.ids.includes(p.id)&&p.estado=='cliente').length}</b> ya clientes · ${(cu||[]).filter(u=>u.codigo==x.cupon).length} usaron el cupón</small></div>`).join('')}</div>`}
 
 /* ======================= VENTAS 8: conseguir clientes, proveedores y margen ======================= */
 const SQL_PRV='<div class="aviso">Falta correr <b>ventas-proveedores.sql</b> en Supabase (SQL Editor). Después recargá la página.</div>';
@@ -4594,7 +4720,7 @@ async function insightsPedidos(L){const P=L.filter(o=>['pendiente','aprobado'].i
   const[it,hi,fe]=await Promise.all([sb.from('pedido_items').select('pedido_id,producto_id,cantidad,precio_unitario,costo_unitario').in('pedido_id',ids),
     sb.from('pedidos').select('id,cliente_id,numero,pedido_items(producto_id,cantidad)').in('cliente_id',cl).neq('estado','cancelado').order('numero',{ascending:false}).limit(300),
     sb.from('facturas_estado').select('cliente_id,pendiente,dias_mora').in('cliente_id',cl).gt('dias_mora',0).gt('pendiente',0.005)]);
-  const mm=S.margenMin??15;
+  const mm=S.margenMin??15,COMP={};
   for(const o of P){const box=$(`[data-ins="${o.id}"]`);if(!box)continue;const I=(it.data||[]).filter(i=>i.pedido_id==o.id),h=[];
     let v=0,c=0,sc=false;for(const i of I){const q=+i.cantidad,cu=i.costo_unitario!=null?+i.costo_unitario:(+S.productos.find(p=>p.producto_id==i.producto_id)?.costo||0);v+=q*+i.precio_unitario;c+=q*cu;if(!(cu>0))sc=true}
     if(v>0&&!sc){const g=v-c,pc=g/v*100;h.push(`<span class="${pc<mm?'baja':'sube'}">💰 Ganás ${$m(g)} (${nf(Math.round(pc*10)/10)} %)${pc<mm?' ⚠️ debajo de tu mínimo de '+nf(mm)+' %':''}</span>`)}
@@ -4603,8 +4729,15 @@ async function insightsPedidos(L){const P=L.filter(o=>['pendiente','aprobado'].i
       if(prev.length>=2){const cnt={},qq={};for(const x of prev)for(const i of new Set((x.pedido_items||[]).map(i=>i.producto_id))){cnt[i]=(cnt[i]||0)+1}
         for(const x of prev)for(const i of x.pedido_items||[])qq[i.producto_id]=(qq[i.producto_id]||0)+(+i.cantidad||0);
         const en=new Set(I.map(i=>i.producto_id)),F=Object.entries(cnt).filter(([id,n])=>n/prev.length>=.5&&!en.has(id)&&S.productos.some(p=>p.producto_id==id)).sort((a,b)=>b[1]-a[1]).slice(0,4);
-        if(F.length)h.push(`💡 Suele llevar y esta vez no pidió: ${F.map(([id,n])=>`<a class="lnk" data-olv="${o.id}" data-p="${id}" data-q="${Math.max(1,Math.round(qq[id]/n))}">+ ${esc(nomProd(id))}</a>`).join(' · ')}`)}}
+        if(F.length)h.push(`💡 Suele llevar y esta vez no pidió: ${F.map(([id,n])=>`<a class="lnk" data-olv="${o.id}" data-p="${id}" data-q="${Math.max(1,Math.round(qq[id]/n))}">+ ${esc(nomProd(id))}</a>`).join(' · ')}`);COMP[o.id]={F:F.map(([id])=>nomProd(id))}}
+      const nx=(S.vcfg?.escalas||[]).find(e=>+e.desde>v),en=S.vcfg?.envio&&v<S.vcfg.envio?S.vcfg.envio-v:0,fa=nx?nx.desde-v:0,cm=COMP[o.id]=COMP[o.id]||{F:[]};
+      if(nx&&fa<=v*.5)cm.esc=`te faltan *${$m(fa)}* para el *${nf(nx.pct)} % de descuento*`;if(en&&en<=v*.5)cm.env=`con *${$m(en)}* más tenés el *envío gratis*`;
+      if(cm.esc||cm.env)h.push(`🛒 Le faltan ${cm.esc?$m(fa)+' para el '+nf(nx.pct)+' % de descuento':''}${cm.esc&&cm.env?' · ':''}${cm.env?$m(en)+' para el envío gratis':''}`);
+      const cc=S.clientes.find(x=>x.id==o.cliente_id);if((cm.esc||cm.env||cm.F.length)&&cc?.telefono)h.push(`<button class="alt wa" data-cmp="${o.id}">💬 ¿Te agrego…? (completá el pedido)</button>`)}
     box.innerHTML=h.length?h.map(x=>`<div>${x}</div>`).join(''):''}
+  $$('#pl [data-cmp]').forEach(b=>b.onclick=()=>{const o=P.find(x=>x.id==b.dataset.cmp),c=S.clientes.find(x=>x.id==o.cliente_id)||{},cm=COMP[o.id]||{F:[]};
+    const t=`¡Hola ${nomCorto(c)}! 👋 Recibimos tu pedido N° ${o.numero}, ¡gracias!`+(cm.esc||cm.env?`\n💡 Para que sepas: ${[cm.esc,cm.env].filter(Boolean).join(' y ')}.`:'')+(cm.F.length?`\n¿Te agrego ${cm.F.slice(0,3).map(x=>'*'+x+'*').join(', ')}, que siempre llevás?`:'\n¿Querés que te agregue algo más?')+'\nRespondeme y lo sumo antes de prepararlo 👍';
+    window.open('https://wa.me/'+telWA(c.telefono)+'?text='+encodeURIComponent(t),'_blank');sb.from('contactos_clientes').insert({cliente_id:c.id,tipo:'whatsapp',detalle:'Completá el pedido N° '+o.numero}).then(()=>{})});
   $$('#pl [data-olv]').forEach(a=>a.onclick=async()=>{const o=P.find(x=>x.id==a.dataset.olv),c=S.clientes.find(x=>x.id==o.cliente_id)||{},q=+a.dataset.q,id=a.dataset.p;
     const r=promoPara(id,c.lista||'mayorista',q),b=precioLista(id,c.lista),pu=r?Math.round(b*(1-r.descuento_pct/100)*100)/100:b;
     const{error}=await sb.from('pedido_items').insert({pedido_id:o.id,producto_id:id,cantidad:q,precio_unitario:pu,...(r?{promo:r.nombre}:{})});if(error)return toast(error.message,1);
