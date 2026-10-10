@@ -37,6 +37,14 @@ small{color:#6a7184}td a{cursor:pointer;color:var(--er)}
 .tag.recibida{background:#d8efe1;color:var(--ok)}.tag.anulada{background:#f6dcda;color:var(--er)}.tag.recibida_parcial{background:#fff1cc;color:#7a5a00}
 #t{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);color:#fff;padding:10px 18px;border-radius:8px;z-index:9;display:none}
 .err{color:var(--er)}
+.conscan{display:flex;gap:6px;align-items:flex-start}.conscan input{flex:1;min-width:0}
+button.scan{display:inline-flex;align-items:center;justify-content:center;padding:0 12px;height:42px;flex:none}
+.scanm .mc{max-width:520px}.cam{position:relative;background:#000;border-radius:10px;overflow:hidden;aspect-ratio:4/3;max-width:100%}
+.cam video{width:100%;height:100%;object-fit:cover;display:block}
+.cam .mira{position:absolute;left:10%;right:10%;top:38%;height:24%;border:2px solid rgba(255,255,255,.85);border-radius:8px;box-shadow:0 0 0 999px rgba(0,0,0,.25)}
+.cam .mira::after{content:"";position:absolute;left:4%;right:4%;top:50%;height:2px;background:#ff5a6e}
+.sc-est{font-weight:600;padding:8px 10px;border-radius:8px;background:#f3f4f7;margin:0}.sc-est.bien{background:#d8efe1;color:#14532d}.sc-est.mal{background:#f6dcda;color:#b3261e}
+.sc-man{display:flex;gap:6px}.sc-man input{flex:1;margin:0;min-width:0}
 .badge.b-mora30{background:#f6dcda;color:#b3261e}
 .modal{position:fixed;inset:0;background:rgba(23,33,58,.45);z-index:20;display:flex;align-items:flex-start;justify-content:center;padding:6vh 16px;overflow:auto}
 .modal .mc{background:#fff;border-radius:12px;padding:16px;width:100%;max-width:640px;display:grid;gap:10px}
@@ -141,7 +149,7 @@ function shell(){
 
 /* Supabase devuelve como máximo 1000 filas por pedido: esto trae todas, de a tandas */
 async function todo(armar){let out=[],i=0;for(;;){const{data,error}=await armar().range(i,i+999);if(error)return{data:out,error};out=out.concat(data);if(data.length<1000)return{data:out,error:null};i+=1000}}
-const PROD_COLS='producto_id,codigo,descripcion,familia,marca,costo,precio_mayorista,precio_minorista,precio_especial';
+const PROD_COLS='producto_id,codigo,ean,descripcion,familia,marca,costo,precio_mayorista,precio_minorista,precio_especial';
 
 /* Stock: físico, reservado, disponible y mínimo por producto */
 S.stock={};S.stockOk=false;S.min={};
@@ -162,6 +170,49 @@ function chipStock(id,pide){if(!S.stockOk||!S.inv)return '';const d=stk(id).d,m=
 const norm=t=>String(t??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 const coincide=(texto,q)=>{const t=norm(texto);return norm(q).split(/\s+/).filter(Boolean).every(w=>t.includes(w))};
 const txtProd=p=>p.descripcion+' '+p.codigo+' '+(p.marca||'')+' '+(p.familia||'');
+
+/* ---------- Escáner de códigos de barras con la cámara ---------- */
+const solo=x=>String(x??'').replace(/\D/g,'').replace(/^0+/,'');
+function prodPorCodigo(code){const c=String(code).trim(),n=solo(c);
+  return S.productos.find(p=>(n&&solo(p.ean)===n)||String(p.codigo).trim().toUpperCase()===c.toUpperCase())}
+const btnScan=id=>`<button type="button" class="alt scan" id="${id}" title="Escanear código de barras" aria-label="Escanear código de barras"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M3 7V4h3M21 7V4h-3M3 17v3h3M21 17v3h-3M7 8v8M10 8v8M13 8v8M16 8v8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>`;
+function cargarScript(src){return new Promise((ok,mal)=>{if(document.querySelector(`script[src="${src}"]`))return ok();const e=document.createElement('script');e.src=src;e.onload=ok;e.onerror=mal;document.head.appendChild(e)})}
+let audioCtx=null;function bip(bien){try{audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.frequency.value=bien?1200:300;g.gain.value=.08;o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+(bien?.08:.25))}catch(e){}if(navigator.vibrate)navigator.vibrate(bien?60:[80,60,80])}
+async function escanear(titulo,alLeer){
+  const m=document.createElement('div');m.className='modal scanm';
+  m.innerHTML=`<div class="mc"><div class="bh"><h3>${esc(titulo)}</h3><button id="sc_x">Listo</button></div>
+    <div class="cam"><video id="sc_v" playsinline muted autoplay></video><div class="mira"></div></div>
+    <p id="sc_e" class="sc-est">Apuntá la cámara al código de barras…</p>
+    <form id="sc_f" class="sc-man"><input id="sc_i" inputmode="numeric" placeholder="O escribí el código" autocomplete="off"><button class="alt">Buscar</button></form></div>`;
+  document.body.appendChild(m);
+  let stream=null,reader=null,timer=null,fin=false,ultimo='',tUlt=0;
+  const est=(t,cls)=>{const e=$('#sc_e');e.textContent=t;e.className='sc-est '+(cls||'')};
+  const cerrar=()=>{fin=true;clearInterval(timer);try{reader&&reader.reset()}catch(e){}stream&&stream.getTracks().forEach(t=>t.stop());m.remove()};
+  $('#sc_x').onclick=cerrar;
+  const leer=code=>{const now=Date.now();if(code===ultimo&&now-tUlt<1500)return;ultimo=code;tUlt=now;
+    const p=prodPorCodigo(code);if(!p){bip(false);est('No encontré el código '+code+'. Revisá que el producto tenga el EAN cargado.','mal');return}
+    bip(true);est(alLeer(p,code)||('✔ '+p.descripcion),'bien')};
+  $('#sc_f').onsubmit=e=>{e.preventDefault();const v=$('#sc_i').value.trim();if(v){ultimo='';leer(v);$('#sc_i').value=''}};
+  const v=$('#sc_v');
+  try{
+    if(!navigator.mediaDevices?.getUserMedia)throw new Error('sin cámara');
+    if('BarcodeDetector' in window){
+      const fm=await BarcodeDetector.getSupportedFormats();const det=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128','code_39','itf'].filter(f=>fm.includes(f))});
+      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false});
+      if(fin){stream.getTracks().forEach(t=>t.stop());return}
+      v.srcObject=stream;await v.play();
+      let ocupado=false;timer=setInterval(async()=>{if(ocupado||fin||v.readyState<2)return;ocupado=true;try{const r=await det.detect(v);if(r[0])leer(r[0].rawValue)}catch(e){}ocupado=false},180);
+    }else{
+      est('Preparando la cámara…');
+      await cargarScript('https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js');
+      if(fin)return;
+      reader=new ZXing.BrowserMultiFormatReader();
+      await reader.decodeFromConstraints({video:{facingMode:{ideal:'environment'}}},v,(r)=>{if(r&&!fin)leer(r.getText())});
+      stream=v.srcObject;est('Apuntá la cámara al código de barras…');
+    }
+  }catch(e){est('No se pudo abrir la cámara. Dale permiso al navegador para usarla, o escribí el código abajo.','mal');$('#sc_i').focus()}
+}
 
 /* Buscador de productos reutilizable */
 function buscador(inp,res,onPick,extra){
@@ -242,7 +293,7 @@ function bajos(){return S.productos.map(p=>({p,d:stk(p.producto_id).d,m:S.min[p.
 /* ---------- Stock ---------- */
 async function vStock(){
   $('#v').innerHTML=`<h2>Stock</h2>
-  <div class="box"><div class="g"><input id="s_q" placeholder="Buscar producto por nombre o código" autocomplete="off">
+  <div class="box"><div class="g"><div class="conscan"><input id="s_q" placeholder="Buscar producto por nombre o código" autocomplete="off">${btnScan('s_sc')}</div>
     <label class="chk"><input type="checkbox" id="s_b" ${S.soloBajo?'checked':''}> Solo bajo el mínimo</label></div>
     <p><small>Escribí en <b>Contado</b> lo que hay en el depósito y, si querés, el <b>Mínimo</b> para que te avise cuándo reponer. Después tocá <b>Guardar cambios</b>. La diferencia de stock queda registrada como ajuste.</small></p>
     <div class="tw"><table id="s_t"></table></div>
@@ -274,6 +325,8 @@ SDMP-01281	36</pre>
     $$('.cnt').forEach(e=>e.oninput=()=>{e.value===''?delete cont[e.dataset.id]:cont[e.dataset.id]=e.value;upd()});
     $$('.mn').forEach(e=>e.oninput=()=>{e.value===''?delete mins[e.dataset.id]:mins[e.dataset.id]=e.value;upd()})};
   $('#s_q').oninput=draw;$('#s_b').onchange=()=>{S.soloBajo=$('#s_b').checked;draw()};draw();
+  $('#s_sc').onclick=()=>escanear('Contar con el escáner: cada lectura suma 1',p=>{const id=p.producto_id;cont[id]=(+cont[id]||0)+1;
+    $('#s_q').value=p.codigo;$('#s_b').checked=false;draw();upd();return '✔ '+p.descripcion+' · contados: '+cont[id]});
   const guardar=async(C,M,mot)=>{let ok=0,err=null;
     for(const id of Object.keys(M)){const{error}=await sb.rpc('fijar_minimo',{p_producto:id,p_minimo:+M[id]});if(error){err=error;break}ok++}
     if(!err)for(const id of Object.keys(C)){const{error}=await sb.rpc('ajustar_stock',{p_producto:id,p_contado:+C[id],p_motivo:mot});if(error){err=error;break}ok++}
@@ -336,7 +389,7 @@ async function vPrecios(){
     <p><small>El precio de venta se calcula solo: <b>costo ÷ (1 − margen)</b>. Con 30 %, un producto que te cuesta $ 700 se vende a $ 1.000 y te deja $ 300.</small></p>
     <div class="g" id="pr_l">Cargando…</div><button id="pr_lg">Guardar márgenes</button></div>
   <div class="box"><h3>Productos</h3>
-    <div class="g"><input id="pr_q" placeholder="Buscar por nombre o código" autocomplete="off">
+    <div class="g"><div class="conscan"><input id="pr_q" placeholder="Buscar por nombre o código" autocomplete="off">${btnScan('pr_sc')}</div>
       <select id="pr_pv"><option value="">Todos los proveedores</option></select>
       <select id="pr_ma"><option value="">Todas las marcas</option></select>
       <select id="pr_fa"><option value="">Todas las familias</option></select></div>
@@ -387,6 +440,7 @@ SDMP-01279	8.900</pre>
     $$('.cs').forEach(e=>e.onchange=()=>{const n=numAR(e.value);if(e.value===''||n===null)delete nuevo[e.dataset.id];else if(n>0)nuevo[e.dataset.id]=n;setTimeout(draw);upd()})};
   ['#pr_q','#pr_pv','#pr_ma','#pr_fa'].forEach(k=>$(k)[k=='#pr_q'?'oninput':'onchange']=()=>{$('#pr_conf').innerHTML='';draw()});
   draw();
+  $('#pr_sc').onclick=()=>escanear('Buscar producto por código',p=>{$('#pr_q').value=p.codigo;$('#pr_conf').innerHTML='';draw();return '✔ '+p.descripcion+' · costo '+(p.costo?$m(p.costo):'sin cargar')});
   $('#pr_g').onclick=async()=>{const it=Object.entries(nuevo).map(([id,costo])=>({id,costo}));if(!it.length)return toast('No cambiaste ningún costo.',1);
     $('#pr_g').disabled=true;const{data,error}=await sb.rpc('fijar_costos',{p_items:it});$('#pr_g').disabled=false;
     if(error)return toast(error.message,1);for(const k in nuevo)delete nuevo[k];await recargarProductos();vPrecios();toast((data||it.length)+' costos actualizados. Los precios ya cambiaron.')};
@@ -634,7 +688,7 @@ async function vPedidos(){
   <input id="p_cq" placeholder="Cliente: escribí nombre o CUIT" autocomplete="off"><div id="p_cr"></div>
   <div id="p_sel" hidden><div class="clirow"><b id="p_cn"></b> <small id="p_cl"></small> <a id="p_cx">Cambiar</a></div>
     <div id="p_rep"></div><div id="p_fav" class="chips"></div></div>
-  <input id="p_q" placeholder="Buscar producto (Enter agrega el primero)" autocomplete="off"><div id="p_r"></div><table id="p_i"></table><p><b id="p_t"></b></p><div id="p_av"></div><button id="p_g">Guardar pedido</button></div>
+  <div class="conscan"><input id="p_q" placeholder="Buscar producto (Enter agrega el primero)" autocomplete="off">${btnScan('p_sc')}</div><div id="p_r"></div><table id="p_i"></table><p><b id="p_t"></b></p><div id="p_av"></div><button id="p_g">Guardar pedido</button></div>
   <h3>Últimos pedidos</h3><table id="pl"></table>`;
   const cli=()=>S.pcli;
   const pr=p=>Number(p['precio_'+(cli()?.lista||'mayorista')]);
@@ -675,6 +729,7 @@ async function vPedidos(){
   $('#p_cx').onclick=()=>{S.pcli=null;$('#p_sel').hidden=true;$('#p_cq').hidden=false;$('#p_cq').value='';$('#p_cq').focus();drawI()};
   /* Productos: Enter agrega el primero y deja el buscador listo */
   buscador('#p_q','#p_r',p=>{add(p);drawI();$('#p_q').focus()},p=>`<b>${$m(pr(p))}</b> ${chipStock(p.producto_id)}`);
+  $('#p_sc').onclick=()=>escanear('Escanear productos del pedido',p=>{add(p);drawI();const it=S.items.find(i=>i.p.producto_id==p.producto_id);return '✔ '+p.descripcion+' · llevás '+it.q});
   $('#p_q').onkeydown=e=>{if(e.key=='Enter'){const f=$('#p_r .r');if(f)f.click()}};
   if(S.preCli){const c=S.preCli;S.preCli=null;elegir(c)}else $('#p_cq').focus();
   $('#p_g').onclick=async()=>{const c=cli();if(!c||!S.items.length)return toast('Elegí un cliente y agregá productos.',1);
@@ -976,7 +1031,7 @@ async function vCompras(){
 async function cOrdenes(){
   S.oc=[];
   $('#cv').innerHTML=`<div class="box"><b>Nueva orden de compra</b><div class="g" style="margin-top:8px">${provSel('o_p')}<input id="o_f" type="date" title="Fecha de entrega esperada"></div>
-  <input id="o_q" placeholder="Buscar producto por nombre o código"><div id="o_r"></div><table id="o_i"></table><p><b id="o_t"></b></p>
+  <div class="conscan"><input id="o_q" placeholder="Buscar producto por nombre o código">${btnScan('o_sc')}</div><div id="o_r"></div><table id="o_i"></table><p><b id="o_t"></b></p>
   <input id="o_o" placeholder="Observaciones (opcional)"><button id="o_g">Guardar orden</button></div>
   <div id="rx"></div><h3>Órdenes</h3><table id="ol"></table>`;
   const drawI=()=>{let t=0;
@@ -987,13 +1042,15 @@ async function cOrdenes(){
     $$('.oc').forEach(e=>e.onchange=()=>{S.oc[e.dataset.k].c=Math.max(0,+e.value||0);setTimeout(drawI)});
     $$('#o_i [data-x]').forEach(a=>a.onclick=()=>{S.oc.splice(a.dataset.x,1);drawI()})};
   drawI();
-  buscador('#o_q','#o_r',async p=>{const it=S.oc.find(i=>i.p.producto_id==p.producto_id);if(it){it.q++;return drawI()}
+  $('#o_sc').onclick=()=>escanear('Escanear productos de la orden',p=>{agregarOC(p);return '✔ '+p.descripcion});
+  const agregarOC=async p=>{const it=S.oc.find(i=>i.p.producto_id==p.producto_id);if(it){it.q++;return drawI()}
     const[u,pc]=await Promise.all([
       sb.from('ordenes_compra_items').select('costo_unitario').eq('producto_id',p.producto_id).order('id',{ascending:false}).limit(1),
       sb.from('productos').select('costo').eq('id',p.producto_id).maybeSingle()]);
     const c=Number(u.data?.[0]?.costo_unitario||pc.data?.costo||0);
     S.oc.push({p,q:1,c});drawI();
-    if(!c)toast('Este producto no tiene costo cargado: escribilo a mano.',1)});
+    if(!c)toast('Este producto no tiene costo cargado: escribilo a mano.',1)};
+  buscador('#o_q','#o_r',agregarOC);
   $('#o_g').onclick=async()=>{const pv=$('#o_p').value;
     if(!pv||!S.oc.length)return toast('Elegí un proveedor y agregá productos.',1);
     if(S.oc.some(i=>!(i.c>0)))return toast('Completá el costo unitario de todos los productos.',1);
