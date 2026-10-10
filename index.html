@@ -37,6 +37,9 @@ small{color:#6a7184}td a{cursor:pointer;color:var(--er)}
 .tag.recibida{background:#d8efe1;color:var(--ok)}.tag.anulada{background:#f6dcda;color:var(--er)}.tag.recibida_parcial{background:#fff1cc;color:#7a5a00}
 #t{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);color:#fff;padding:10px 18px;border-radius:8px;z-index:9;display:none}
 .err{color:var(--er)}
+.modal{position:fixed;inset:0;background:rgba(23,33,58,.45);z-index:20;display:flex;align-items:flex-start;justify-content:center;padding:6vh 16px;overflow:auto}
+.modal .mc{background:#fff;border-radius:12px;padding:16px;width:100%;max-width:640px;display:grid;gap:10px}
+.modal .mc p{margin:0}
 .b-online{background:#e4f3ea;color:#1d7a46}
 .link-ped input{font-size:13px;color:#6a7184}
 .okb{background:#d8efe1;color:#14532d;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
@@ -326,6 +329,8 @@ const pctf=n=>Number(n).toLocaleString('es-AR',{maximumFractionDigits:2})+' %';
 const numAR=x=>{x=String(x??'').trim().replace(/\$|\s/g,'');if(!x)return null;if(x.includes(','))x=x.replace(/\./g,'').replace(',','.');else if(/^\d{1,3}(\.\d{3})+$/.test(x))x=x.replace(/\./g,'');const n=Number(x);return isFinite(n)?n:NaN};
 async function vPrecios(){
   $('#v').innerHTML=`<h2>Precios y márgenes</h2>
+  <div class="box"><div class="bh"><h3>Lista de precios para clientes</h3><button id="pr_lp">Armar lista de precios</button></div>
+    <p><small>Generá la lista mayorista, minorista o especial en PDF, por WhatsApp o para Excel. Para mandársela a un cliente puntual con sus precios, usá el botón <b>Lista de precios</b> de su ficha.</small></p></div>
   <div class="box"><div class="bh"><h3>Margen de cada lista</h3></div>
     <p><small>El precio de venta se calcula solo: <b>costo ÷ (1 − margen)</b>. Con 30 %, un producto que te cuesta $ 700 se vende a $ 1.000 y te deja $ 300.</small></p>
     <div class="g" id="pr_l">Cargando…</div><button id="pr_lg">Guardar márgenes</button></div>
@@ -344,6 +349,7 @@ async function vPrecios(){
 SDMP-01279	8.900</pre>
     <textarea id="pr_pg" rows="8" placeholder="Pegá acá las filas copiadas"></textarea>
     <button class="alt" id="pr_rev">Revisar</button><div id="pr_res"></div></details>`;
+  $('#pr_lp').onclick=()=>abrirListaPrecios(null);
   const[cl,pv,hi]=await Promise.all([sb.from('config_listas').select('*'),sb.from('proveedores').select('id,razon_social').order('razon_social'),
     sb.from('historial_costos').select('producto_id,costo_anterior,costo_nuevo,fecha').order('fecha',{ascending:false}).limit(3000)]);
   await cargarStock();
@@ -411,6 +417,51 @@ SDMP-01279	8.900</pre>
       const{data,error}=await sb.rpc('fijar_costos',{p_items:ok.map(x=>({id:x.p.producto_id,costo:x.n}))});
       if(error){$('#pr_ap2').disabled=false;return toast(error.message,1)}
       await recargarProductos();vPrecios();toast((data??ok.length)+' costos actualizados desde la lista del proveedor.')})};
+}
+
+/* ---------- Lista de precios para clientes ---------- */
+function abrirListaPrecios(c){
+  const LIS={mayorista:'Mayorista',minorista:'Minorista',especial:'Especial'};
+  const uniq=k=>[...new Set(S.productos.map(p=>p[k]).filter(Boolean))].sort();
+  const m=document.createElement('div');m.className='modal';
+  m.innerHTML=`<div class="mc" role="dialog" aria-label="Lista de precios"><div class="bh"><h3>Lista de precios${c?' · '+esc(c.razon_social):''}</h3><button class="alt" id="lp_x">Cerrar</button></div>
+    <div class="g">
+      <label class="f">Lista<select id="lp_l" ${c?'disabled':''}>${Object.entries(LIS).map(([k,t])=>`<option value="${k}" ${(c?.lista||'mayorista')==k?'selected':''}>${t}</option>`).join('')}</select></label>
+      <label class="f">Marca<select id="lp_m"><option value="">Todas</option>${uniq('marca').map(x=>`<option>${esc(x)}</option>`).join('')}</select></label>
+      <label class="f">Familia<select id="lp_f"><option value="">Todas</option>${uniq('familia').map(x=>`<option>${esc(x)}</option>`).join('')}</select></label>
+      <label class="f">Buscar<input id="lp_q" placeholder="ej.: maní, crocante"></label></div>
+    <label class="chk"><input type="checkbox" id="lp_c" checked> Mostrar el código de cada producto</label>
+    <p id="lp_n"></p>
+    <div class="fc-acc"><button id="lp_pdf">PDF</button><button class="alt wa" id="lp_wa">WhatsApp</button><button class="alt" id="lp_cp">Copiar para Excel</button></div>
+    <p id="lp_ay"><small></small></p></div>`;
+  document.body.appendChild(m);
+  const cerrar=()=>m.remove();$('#lp_x').onclick=cerrar;m.onclick=e=>{if(e.target===m)cerrar()};
+  const sel=()=>{const l=$('#lp_l').value,mk=$('#lp_m').value,fa=$('#lp_f').value,q=$('#lp_q').value;
+    return{l,L:S.productos.filter(p=>Number(p['precio_'+l])>0&&(!mk||p.marca==mk)&&(!fa||p.familia==fa)&&(!q||coincide(txtProd(p),q)))
+      .map(p=>({c:p.codigo,d:p.descripcion,m:p.marca||'Otros',p:Number(p['precio_'+l])})).sort((a,b)=>a.m.localeCompare(b.m)||a.d.localeCompare(b.d))}};
+  const grupos=L=>{const g={};for(const x of L)(g[x.m]=g[x.m]||[]).push(x);return Object.entries(g)};
+  const hoy=()=>new Date().toLocaleDateString('es-AR');
+  const upd=()=>{const{L}=sel();$('#lp_n').innerHTML=`<b>${L.length}</b> ${L.length==1?'producto':'productos'} en la lista.`;
+    $('#lp_ay small').textContent=L.length>60?'Son muchos productos para un mensaje de WhatsApp: te conviene mandar el PDF'+(c?.token_pedidos?' o el link de pedidos online, que siempre tiene los precios al día.':', o filtrar por marca.'):''};
+  ['#lp_l','#lp_m','#lp_f'].forEach(k=>$(k).onchange=upd);$('#lp_q').oninput=upd;upd();
+  $('#lp_pdf').onclick=()=>{const{l,L}=sel();if(!L.length)return toast('No hay productos con ese filtro.',1);const cod=$('#lp_c').checked;
+    const w=window.open('','_blank');if(!w)return toast('Permití las ventanas emergentes para generar el PDF.',1);
+    w.document.write(`<html><head><meta charset="utf-8"><title>Lista de precios ${LIS[l]}${c?' - '+esc(c.razon_social):''} ${hoy()}</title><style>body{font:12px system-ui,Segoe UI,sans-serif;margin:24px;color:#1c2333}h1{color:#7b2d3e;margin:0;font-size:22px}.top{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #7b2d3e;padding-bottom:8px;margin-bottom:6px}h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#7b2d3e;margin:14px 0 4px;page-break-after:avoid}table{width:100%;border-collapse:collapse}td{padding:4px 6px;border-bottom:1px solid #e3e3e3}td.c{color:#6a7184;width:96px;white-space:nowrap}td.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:600;width:110px}tr{page-break-inside:avoid}.pie{margin-top:14px;color:#6a7184}.ayuda{background:#f6e9ec;padding:8px;border-radius:6px}@media print{.ayuda{display:none}}</style></head><body>
+      <p class="ayuda">Para guardarlo en PDF: en la ventana de impresión elegí <b>Guardar como PDF</b> como destino.</p>
+      <div class="top"><div><h1>Sabores de mi País</h1><div>Lista de precios ${LIS[l]}${c?' · '+esc(c.razon_social):''}</div></div><div style="text-align:right">Vigente al <b>${hoy()}</b><br>Precios con IVA incluido</div></div>
+      ${grupos(L).map(([g,X])=>`<h2>${esc(g)}</h2><table>${X.map(x=>`<tr>${cod?`<td class="c">${esc(x.c)}</td>`:''}<td>${esc(x.d)}</td><td class="n">${$m(x.p)}</td></tr>`).join('')}</table>`).join('')}
+      <p class="pie">Precios sujetos a modificación sin previo aviso.${c?.token_pedidos?' Hacé tu pedido online: '+esc(linkPedidos(c)):''}</p>
+      <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close()};
+  $('#lp_wa').onclick=()=>{const{l,L}=sel();if(!L.length)return toast('No hay productos con ese filtro.',1);const cod=$('#lp_c').checked;
+    const MAX=60,X=L.slice(0,MAX);
+    let t=`*Sabores de mi País*\nLista de precios ${LIS[l]} · ${hoy()}\n_Precios con IVA incluido_\n`;
+    for(const[g,Y] of grupos(X))t+=`\n*${g}*\n`+Y.map(x=>`• ${x.d}${cod?' ('+x.c+')':''}: ${$m(x.p)}`).join('\n')+'\n';
+    if(L.length>MAX)t+=`\n…y ${L.length-MAX} productos más.`;
+    if(c?.token_pedidos)t+=`\n\nMirá la lista completa y hacé tu pedido acá:\n${linkPedidos(c)}`;
+    const tel=c?telWA(c.telefono):'';window.open('https://wa.me/'+tel+'?text='+encodeURIComponent(t),'_blank');
+    if(L.length>MAX)toast('El mensaje lleva los primeros '+MAX+' productos. Para la lista completa usá el PDF.',1);else if(c&&!tel)toast('Este cliente no tiene teléfono cargado: elegí el contacto en WhatsApp.')};
+  $('#lp_cp').onclick=()=>{const{l,L}=sel();if(!L.length)return toast('No hay productos con ese filtro.',1);
+    copiarTabla(['Código','Producto','Marca','Precio '+LIS[l]],L.map(x=>[x.c,x.d,x.m=='Otros'?'':x.m,x.p.toFixed(2).replace('.',',')]))};
 }
 
 /* ---------- Reportes de ventas ---------- */
@@ -504,7 +555,7 @@ async function fichaCliente(c){
   $('#v').innerHTML=`<p><a class="lnk" id="fc_vol">← Volver a Clientes</a></p>
   <div class="fc-head"><div><h2>${esc(c.razon_social)}</h2><small>${c.cuit?'CUIT '+esc(c.cuit)+' · ':''}${IVA[c.condicion_iva]||esc(c.condicion_iva||'')} · Lista ${esc(c.lista)} · ${c.condicion_pago_dias?c.condicion_pago_dias+' días':'Contado'}</small>
     <div><small>${c.telefono?'Tel. '+esc(c.telefono):'Sin teléfono'}${c.domicilio?' · '+esc(c.domicilio):''}</small></div></div>
-    <div class="fc-acc"><button id="fc_np">Nuevo pedido</button><button class="alt" id="fc_co">Registrar cobro</button><button class="alt" id="fc_ed">Editar datos</button></div></div>
+    <div class="fc-acc"><button id="fc_np">Nuevo pedido</button><button class="alt" id="fc_co">Registrar cobro</button><button class="alt" id="fc_lp">Lista de precios</button><button class="alt" id="fc_ed">Editar datos</button></div></div>
   <div class="box link-ped"><div class="bh"><h3>Pedidos online</h3></div>
     ${c.token_pedidos?`<p><small>Con este link ${esc(c.razon_social)} ve su catálogo con los precios de su lista y te manda pedidos, que llegan como <b>Por aprobar</b>.</small></p>
     <input readonly id="lk_u" value="${linkPedidos(c)}"><div class="fc-acc"><button class="alt wa" id="lk_w">Mandar por WhatsApp</button><button class="alt" id="lk_c">Copiar link</button><button class="alt" id="lk_n">Generar link nuevo</button></div>`
@@ -529,6 +580,7 @@ async function fichaCliente(c){
     <div class="box"><h3>Lo que más compra</h3><div id="fc_pr">Cargando…</div></div>
   </div>`;
   $('#fc_vol').onclick=()=>vClientes();
+  $('#fc_lp').onclick=()=>abrirListaPrecios(c);
   if(c.token_pedidos){
     $('#lk_c').onclick=async()=>{try{await navigator.clipboard.writeText(linkPedidos(c));toast('Link copiado.')}catch(e){$('#lk_u').select();document.execCommand('copy');toast('Link copiado.')}};
     $('#lk_w').onclick=()=>{const t=`¡Hola! Te paso tu link para hacer pedidos a *Sabores de mi País*. Ahí ves todos los productos con tus precios y nos mandás el pedido directo:\n${linkPedidos(c)}\n\nGuardalo, es personal.`;
