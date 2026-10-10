@@ -185,7 +185,7 @@ header nav a{flex:none;padding:8px 12px}
 <div id="app"></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
-const VERSION='2026-10-10.8';
+const VERSION='2026-10-10.9';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -218,10 +218,36 @@ async function init(){
   S.clientes=c.data;S.productos=pr.data;await Promise.all([cargarStock(),cargarPromos(),cargarMarca(),cargarVentasCfg()]);shell();
 }
 function shell(){
-  app.innerHTML=`<header><b>${MARCA.logo?`<img class="hlogo" src="${MARCA.logo}" alt="Sabores de mi País"><span class="hn">Sabores de mi País</span>`:'Sabores de mi País'}</b><nav>${['inicio','pedidos','ventas','reparto','clientes','cobranza','caja','compras','stock','precios','reportes','contable'].filter(t=>!['precios','caja','contable'].includes(t)||S.perfil.rol=='dueno').map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${t[0].toUpperCase()+t.slice(1)}</a>`).join('')}</nav><span>${esc(S.perfil.nombre)} (${S.perfil.rol}) <small style="opacity:.6">v${VERSION}</small><a onclick="out()">Salir</a></span></header><main id="v"></main>`;
+  app.innerHTML=`<header><b>${MARCA.logo?`<img class="hlogo" src="${MARCA.logo}" alt="Sabores de mi País"><span class="hn">Sabores de mi País</span>`:'Sabores de mi País'}</b><nav>${['inicio','pedidos','ventas','reparto','clientes','cobranza','caja','compras','stock','precios','reportes','contable','manual'].filter(t=>!['precios','caja','contable'].includes(t)||S.perfil.rol=='dueno').map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${t=='manual'?'📖 Manual':t[0].toUpperCase()+t.slice(1)}</a>`).join('')}</nav><span>${esc(S.perfil.nombre)} (${S.perfil.rol}) <small style="opacity:.6">v${VERSION}</small><a onclick="out()">Salir</a></span></header><main id="v"></main>`;
   $$('nav a').forEach(a=>a.onclick=()=>{S.tab=a.dataset.t;shell()});
-  ({inicio:vInicio,pedidos:vPedidos,ventas:vVentas,reparto:vReparto,caja:vCaja,contable:vContable,clientes:vClientes,cobranza:vCobranza,compras:vCompras,stock:vStock,precios:vPrecios,reportes:vReportes})[S.tab]();
+  ({inicio:vInicio,pedidos:vPedidos,ventas:vVentas,reparto:vReparto,caja:vCaja,contable:vContable,clientes:vClientes,cobranza:vCobranza,compras:vCompras,stock:vStock,precios:vPrecios,reportes:vReportes,manual:vManual})[S.tab]();
 }
+
+/* ===== Manual de uso (manual.md) ===== */
+function mdHTML(md){const inl=t=>esc(t).replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/\*([^*]+)\*/g,'<i>$1</i>').replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');
+  let h='',lst=null;const cierra=()=>{if(lst){h+=`</${lst}>`;lst=null}};
+  for(const l of md.split('\n')){let m;
+    if(m=l.match(/^- (.*)/)){if(lst!='ul'){cierra();h+='<ul>';lst='ul'}h+=`<li>${inl(m[1])}</li>`}
+    else if(m=l.match(/^\d+\. (.*)/)){if(lst!='ol'){cierra();h+='<ol>';lst='ol'}h+=`<li>${inl(m[1])}</li>`}
+    else{cierra();if(l.trim())h+=`<p>${inl(l)}</p>`}}
+  cierra();return h}
+async function vManual(){const v=$('#v');v.innerHTML='<p>Cargando manual…</p>';
+  if(!S.manual){try{const r=await fetch('manual.md?v='+VERSION,{cache:'no-store'});if(!r.ok)throw 0;S.manual=await r.text()}catch(e){v.innerHTML='<p>No se pudo cargar el manual. Probá de nuevo en un rato.</p>';return}}
+  const partes=S.manual.split(/^## /m),cab=partes.shift().replace(/^# .*\n/,'');
+  const secs=partes.map(x=>{const i=x.indexOf('\n');return{t:x.slice(0,i).trim(),b:x.slice(i+1)}});
+  v.innerHTML=`<style>.man{max-width:860px;margin:0 auto}.man details{background:#fff;border-radius:14px;box-shadow:0 1px 4px #0001;margin:8px 0;padding:4px 14px}.man summary{font-weight:700;font-size:16px;padding:10px 0;cursor:pointer}.man li{margin:4px 0;line-height:1.45}.man p{line-height:1.5}.man code{background:#f3eee6;padding:1px 5px;border-radius:6px}.man .mt{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}.man .mt input{flex:1;min-width:200px}.man mark{background:#ffe58a}@media print{header,.man .mt{display:none}.man details{box-shadow:none;break-inside:avoid}}</style>
+    <div class="man"><h2>📖 Manual de uso</h2>${mdHTML(cab)}
+    <div class="mt"><input id="mb" type="search" placeholder="Buscar en el manual (ej. cupón, morosos, preventa)…"><button class="sec" id="mx">Abrir todo</button><button class="sec" id="mp">🖨️ Imprimir</button></div>
+    <div id="ms">${secs.map((x,i)=>`<details data-i="${i}"${i==0?' open':''}><summary>${esc(x.t)}</summary><div class="mc">${mdHTML(x.b)}</div></details>`).join('')}</div><p id="mn" hidden>No encontré nada con esa palabra.</p></div>`;
+  const D=[...v.querySelectorAll('#ms details')],base=D.map(d=>d.querySelector('.mc').innerHTML);
+  $('#mx').onclick=()=>{const ab=D.some(d=>!d.open);D.forEach(d=>d.open=ab);$('#mx').textContent=ab?'Cerrar todo':'Abrir todo'};
+  $('#mp').onclick=()=>{D.forEach(d=>d.open=true);setTimeout(()=>print(),100)};
+  $('#mb').oninput=e=>{const q=norm(e.target.value.trim());let n=0;
+    D.forEach((d,i)=>{const c=d.querySelector('.mc');c.innerHTML=base[i];if(!q){d.hidden=false;return}
+      const items=[...c.querySelectorAll('li,p')];let hit=norm(secs[i].t).includes(q);
+      items.forEach(el=>{const ok=norm(el.textContent).includes(q);el.style.display=ok||norm(secs[i].t).includes(q)?'':'none';if(ok){hit=true;el.innerHTML='<mark>'+el.innerHTML+'</mark>'}});
+      d.hidden=!hit;d.open=hit;if(hit)n++});
+    $('#mn').hidden=!q||n>0}}
 
 /* Supabase devuelve como máximo 1000 filas por pedido: esto trae todas, de a tandas */
 async function todo(armar){let out=[],i=0;for(;;){const{data,error}=await armar().range(i,i+999);if(error)return{data:out,error};out=out.concat(data);if(data.length<1000)return{data:out,error:null};i+=1000}}
