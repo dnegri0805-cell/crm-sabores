@@ -210,7 +210,7 @@ body{zoom:var(--z,1)}html.oscuro{filter:invert(.92) hue-rotate(180deg);backgroun
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-11.35';
+const VERSION='2026-10-11.36';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -253,7 +253,8 @@ function shell(){
   app.innerHTML=`<header><b>${MARCA.logo?`<img class="hlogo" src="${MARCA.logo}" alt="Sabores de mi País"><span class="hn">Sabores de mi País</span>`:'Sabores de mi País'}</b><nav>${['inicio','pedidos','ventas','reparto','clientes','cobranza','caja','compras','stock','precios','reportes','contable','manual'].filter(t=>!['precios','caja','contable'].includes(t)||S.perfil.rol=='dueno').filter(t=>t=='inicio'||t==S.tab||!(S.menuT?.oc||[]).includes(t)).map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${t=='manual'?'📖 Manual':t[0].toUpperCase()+t.slice(1)}</a>`).join('')}</nav><span><a class="hbt" onclick="buscarTodo()" title="Buscar (Ctrl+K)">🔎</a><a class="hbt" onclick="ayuda()" title="Ayuda de esta pantalla (?)">❓</a><a class="hbt" onclick="vistaCfg()" title="Letra, colores y avisos">Aa</a>${esc(S.perfil.nombre)} (${S.perfil.rol}) <small style="opacity:.6">v${VERSION}</small><a onclick="out()">Salir</a></span></header><main id="v"></main>`;
   $$('nav a').forEach(a=>a.onclick=()=>{S.tab=a.dataset.t;shell()});
   if(S.menuT===undefined){S.menuT=null;cfgJ('menu_tabs',{oc:[]}).then(v=>{S.menuT=v;if((v.oc||[]).length)$$('nav a').forEach(a=>{if(a.dataset.t!='inicio'&&a.dataset.t!=S.tab&&v.oc.includes(a.dataset.t))a.remove()})})}
-  ({inicio:vInicio,pedidos:vPedidos,ventas:vVentas,reparto:vReparto,caja:vCaja,contable:vContable,clientes:vClientes,cobranza:vCobranza,compras:vCompras,stock:vStock,precios:vPrecios,reportes:vReportes,manual:vManual})[S.tab]();
+  if(S.dep===undefined){S.dep=null;cfgJ('impresora_deposito',{}).then(v=>S.dep=v)}
+  ({impresora:vImpresora,inicio:vInicio,pedidos:vPedidos,ventas:vVentas,reparto:vReparto,caja:vCaja,contable:vContable,clientes:vClientes,cobranza:vCobranza,compras:vCompras,stock:vStock,precios:vPrecios,reportes:vReportes,manual:vManual})[S.tab]();
 }
 
 /* ===== Manual de uso (manual.md) ===== */
@@ -395,6 +396,7 @@ function buscador(inp,res,onPick,extra){
 const fechaDe=o=>o.fecha||o.creado_en||o.created_at||o.fecha_emision||null;
 const diaLocal=d=>{const x=new Date(String(d).length==10?d+'T12:00':d);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')};
 async function vInicio(){
+  if(esEstacion()&&!S.estVista){S.estVista=1;return irA('impresora')}S.estVista=1;
   const hoyD=new Date(),hoy=diaLocal(hoyD),mes=hoy.slice(0,7);
   const en7=new Date();en7.setDate(en7.getDate()+7);const lim7=diaLocal(en7);
   let modo='dia';try{modo=localStorage.getItem('inicio_vista')||'dia'}catch(e){}const dia=modo=='dia';
@@ -1506,7 +1508,7 @@ async function remitos(lista){lista=(lista||[]).filter(Boolean);if(!lista.length
 
 /* ---------- Impresora térmica (tickets de rollo 58/80 mm) — se elige en "Aa" y queda guardado en este equipo ---------- */
 const tkW=()=>{try{return +(JSON.parse(localStorage.getItem('pref_ticket')||'{}').w)||0}catch(e){return 0}};
-function ticketDoc(titulo,cuerpo){const W=tkW()||80,A=W-6,fs=W<70?11:12.5;
+function ticketDoc(titulo,cuerpo,Wp,auto=true){const W=Wp||tkW()||80,A=W-6,fs=W<70?11:12.5;
   return `<html><head><meta charset="utf-8"><title>${esc(titulo)}</title><style>@page{size:${W}mm auto;margin:0}*{box-sizing:border-box}
   body{margin:0;padding:2mm 3mm;width:${W}mm;font:${fs}px/1.3 'Courier New',ui-monospace,monospace;color:#000}
   .c{text-align:center}.b{font-weight:700}.g{font-size:${fs*1.5}px;font-weight:700}.h{font-size:${fs*1.25}px;font-weight:700}
@@ -1514,19 +1516,82 @@ function ticketDoc(titulo,cuerpo){const W=tkW()||80,A=W-6,fs=W<70?11:12.5;
   .it{margin:1mm 0}.sm{font-size:${fs*0.85}px}.firma{margin-top:12mm;border-top:1px solid #000;text-align:center;padding-top:1mm}
   .et{padding:3mm 0;border-bottom:1px dashed #000;page-break-inside:avoid;text-align:center}.et .pr{font-size:${W<70?26:34}px;font-weight:800;margin:1mm 0}.et svg{max-width:${A}mm;height:auto}
   .ay{font:13px system-ui;background:#fff3cd;padding:6px;margin-bottom:3mm}@media print{.ay{display:none}}</style></head><body>
-  <div class="ay">Ticket de ${W} mm. Elegí tu impresora térmica y, en "Más opciones", márgenes <b>Ninguno</b>.</div>${cuerpo}
-  <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`}
+  ${auto?`<div class="ay">Ticket de ${W} mm. Elegí tu impresora térmica y, en "Más opciones", márgenes <b>Ninguno</b>.</div>`:''}${cuerpo}
+  ${auto?'<script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script>':''}</body></html>`}
 const tkCab=(tit,num,fecha)=>`<div class="c h">SABORES DE MI PAÍS</div>${S.telEmp?`<div class="c sm">WhatsApp ${esc(S.telEmp)}</div>`:''}<div class="sep"></div><div class="r b"><span>${tit}</span><span>N° ${num}</span></div><div class="sm">${esc(fecha)}</div>`;
 
-async function pedidoPDF(o){
+function tkPedidoCuerpo(o,it,c,f,tot){return tkCab('Nota de pedido',o.numero,f)+`<div class="sep"></div><div class="b">${esc(c.razon_social||'')}</div>${c.domicilio?`<div class="sm">${esc(c.domicilio)}</div>`:''}<div class="sep"></div>`+
+    it.map(i=>`<div class="it"><div>${esc(i.d)}</div><div class="r sm"><span>${i.qt} × ${i.puT||$m(i.pu)}</span><span>${$m(i.st)}</span></div>${i.pr?`<div class="sm">Promo: ${esc(i.pr)}</div>`:''}</div>`).join('')+
+    `<div class="sep"></div><div class="r g"><span>TOTAL</span><span>${$m(o.total||tot)}</span></div>${it.some(i=>i.kg)?'<div class="sm">Fiambres y quesos: se cobra el peso real.</div>':''}<div class="firma sm">Recibí conforme</div><div class="c sm" style="margin-top:3mm">¡Gracias por tu compra!</div>`}
+function tkReciboCuerpo(x,c,d){return tkCab('Recibo',x.numero,fd(x.fecha))+`<div class="sep"></div><div>Recibimos de:</div><div class="b">${esc(c.razon_social||'')}</div><div class="sep"></div><div class="r g"><span>${$m(x.importe)}</span></div><div class="sm">${esc(x.medio||'')}</div>`+
+    (d.fac.length?`<div class="sep"></div>${d.fac.map(f=>`<div class="r sm"><span>${esc(f.t)}</span><span>${$m(f.imp)}</span></div>`).join('')}${d.cuenta?`<div class="r sm"><span>A cuenta</span><span>${$m(d.cuenta)}</span></div>`:''}`:'')+
+    (d.saldo!=null?`<div class="sep"></div><div class="sm">${d.saldo>0.005?'Saldo pendiente: <b>'+$m(d.saldo)+'</b>':d.saldo<-0.005?'Saldo a favor: <b>'+$m(-d.saldo)+'</b>':'<b>Cuenta al día.</b>'}</div>`:'')+`<div class="firma sm">Firma</div>`}
+function tkEtiquetasCuerpo(E,l,bu,bc){return E.map(p=>{const b=bul(p.producto_id);return `<div class="et"><div class="b">${esc(p.descripcion)}</div><div class="pr">${$m(p['precio_'+l])}</div>${esPeso(p.producto_id)?'<div class="sm">por kg</div>':''}${bu&&b?`<div class="sm">${esc(b.t)} × ${b.n}: ${$m(p['precio_'+l]*b.n)}</div>`:''}${bc?bc(p):''}</div>`}).join('')}
+/* ---------- Imprimir en el depósito (cola de impresión) ---------- */
+const esEstacion=()=>{try{return localStorage.getItem('estacion_imp')=='1'}catch(e){return false}};
+const depUsar=()=>!!(S.dep&&S.dep.activa)&&!esEstacion();
+const depW=()=>+(S.dep?.w)||80;
+const depOnline=()=>S.dep?.visto&&Date.now()-new Date(S.dep.visto).getTime()<3*60e3;
+async function depEnviar(tipo,titulo,cuerpo){const{error}=await sb.from('cola_impresion').insert({tipo,titulo,cuerpo});
+  if(error)return toast(/cola_impresion/.test(error.message)?'Falta correr impresion.sql en Supabase (lo ves en Inicio).':error.message,1);
+  toast(depOnline()?'🖨️ Enviado: sale en el depósito en unos segundos.':'🖨️ Quedó en la cola: sale cuando prendas la PC del depósito.')}
+function elegirImpresion(local,remoto){const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  m.innerHTML=`<div class="mc" style="max-width:420px"><div class="bh"><h3>¿Dónde lo imprimís?</h3><button class="alt" id="ei_x">Cerrar</button></div>
+    <p><small>${depOnline()?'🟢 La impresora del depósito está conectada.':'⚪ La PC del depósito no está conectada ahora: queda en cola y sale cuando la prendas.'}</small></p>
+    <div class="fc-acc" style="flex-direction:column;align-items:stretch"><button id="ei_d">🖨️ En el depósito (ticket)</button><button class="alt" id="ei_l">📄 Ver o guardar acá</button></div></div>`;
+  m.querySelector('#ei_x').onclick=()=>m.remove();m.querySelector('#ei_l').onclick=()=>{m.remove();local()};
+  m.querySelector('#ei_d').onclick=async()=>{m.querySelector('#ei_d').disabled=true;try{await remoto()}finally{m.remove()}}}
+function pedidoPDF(o){if(!depUsar())return pedidoPDF0(o);
+  elegirImpresion(()=>pedidoPDF0(o),async()=>{const it=await itemsPedido(o);if(!it)return;const c=S.clientes.find(x=>x.id==o.cliente_id)||{};
+    const tot=it.reduce((a,i)=>a+i.st,0),f=new Date(o.fecha||o.creado_en||o.created_at||Date.now()).toLocaleDateString('es-AR');
+    await depEnviar('pedido','Pedido '+o.numero+' · '+(c.razon_social||''),tkPedidoCuerpo(o,it,c,f,tot))})}
+function reciboPDF(x,c){if(!x||!c)return;if(!depUsar())return reciboPDF0(x,c);
+  elegirImpresion(()=>reciboPDF0(x,c),async()=>{const d=await datosRecibo(x,c);await depEnviar('recibo','Recibo '+x.numero+' · '+(c.razon_social||''),tkReciboCuerpo(x,c,d))})}
+/* Pantalla de la PC del depósito: imprime sola lo que llega a la cola */
+async function vImpresora(){
+  try{localStorage.setItem('estacion_imp','1')}catch(e){}
+  let cfg=await cfgJ('impresora_deposito',{w:80,activa:false});S.dep=cfg;
+  const v=$('#v');v.innerHTML=`<div class="bh"><h2 style="margin:0">🖨️ Impresora del depósito</h2><button class="alt" id="im_salir">Dejar de usar este equipo como impresora</button></div>
+    <div class="box"><p id="im_est" style="font-size:20px;margin:0">Conectando…</p><p><small>Dejá esta pantalla abierta (podés minimizarla). Lo que mandes a imprimir desde el celular sale acá solo.</small></p>
+      <div class="g"><label class="f">Ancho del rollo<select id="im_w"><option value="58">58 mm</option><option value="80">80 mm</option></select></label></div>
+      <div class="fc-acc"><button class="alt" id="im_test">Imprimir una prueba</button></div></div>
+    <div class="box"><h3>Para que imprima sin preguntar (una sola vez)</h3><ol style="line-height:1.6;margin:0;padding-left:20px">
+      <li>En Windows, poné la impresora térmica como <b>predeterminada</b> (Configuración → Impresoras).</li>
+      <li>Hacé clic derecho en el escritorio → <b>Nuevo → Acceso directo</b>, y pegá esto:<br><code id="im_cmd" style="user-select:all;word-break:break-all">"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe" --kiosk-printing "${location.origin+location.pathname}"</code> <button class="alt" id="im_cp">Copiar</button></li>
+      <li>Llamalo <b>Impresora Sabores</b>, cerrá Chrome del todo y abrilo desde ese acceso directo. Entrá con tu usuario y volvé a esta pantalla (<b>Aa → Usar este equipo como impresora</b>).</li>
+      <li>Para que arranque solo al prender la PC: tocá Windows + R, escribí <b>shell:startup</b> y copiá ahí el acceso directo.</li></ol>
+      <p><small>Sin este acceso directo también funciona, pero en cada ticket vas a tener que tocar "Imprimir".</small></p></div>
+    <div class="box"><h3>Últimos trabajos</h3><div id="im_l">Cargando…</div></div>`;
+  $('#im_w').value=String(cfg.w||80);
+  const guardar=async o=>{cfg={...cfg,...o};S.dep=cfg;await guardaCfgJ('impresora_deposito',cfg)};
+  await guardar({activa:true,visto:new Date().toISOString()});
+  $('#im_w').onchange=()=>guardar({w:+$('#im_w').value});
+  $('#im_cp').onclick=()=>{navigator.clipboard.writeText($('#im_cmd').textContent).then(()=>toast('Copiado.'),()=>toast('Seleccioná el texto y copialo con Ctrl + C.',1))};
+  $('#im_salir').onclick=async()=>{try{localStorage.removeItem('estacion_imp')}catch(e){}clearInterval(S.impT);clearInterval(S.impH);await guardar({activa:false});toast('Este equipo ya no es la impresora del depósito.');irA('inicio')};
+  const est=t=>{const e=$('#im_est');if(e)e.innerHTML=t};
+  const imprimir=(tit,cuerpo)=>new Promise(res=>{const f=document.createElement('iframe');f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0';document.body.appendChild(f);
+    f.onload=()=>{setTimeout(()=>{try{f.contentWindow.focus();f.contentWindow.print()}catch(e){}setTimeout(()=>{f.remove();res()},1500)},400)};f.srcdoc=ticketDoc(tit,cuerpo,cfg.w||80,false)});
+  $('#im_test').onclick=()=>imprimir('Prueba',`<div class="c h">SABORES DE MI PAÍS</div><div class="sep"></div><div class="c">Prueba de impresión</div><div class="c sm">${new Date().toLocaleString('es-AR')}</div><div class="sep"></div><div class="r g"><span>TOTAL</span><span>${$m(12345.6)}</span></div>`);
+  let ocupado=false;
+  const lista=async()=>{const{data}=await sb.from('cola_impresion').select('id,titulo,estado,creado_en,impreso_en').order('id',{ascending:false}).limit(15);const b=$('#im_l');if(!b)return;
+    b.innerHTML=(data||[]).length?'<table>'+data.map(x=>`<tr><td>${esc(x.titulo||x.id)}</td><td><small>${new Date(x.creado_en).toLocaleString('es-AR',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'})}</small></td><td>${x.estado=='impreso'?'✅ Impreso':x.estado=='error'?'⚠️ Error':'⏳ En cola'}</td></tr>`).join('')+'</table>':'<p><small>Todavía no mandaste nada.</small></p>'};
+  const revisar=async()=>{if(ocupado||S.tab!='impresora')return;ocupado=true;
+    try{const{data,error}=await sb.from('cola_impresion').select('*').eq('estado','pendiente').order('id').limit(5);
+      if(error){est(/cola_impresion/.test(error.message)?'⚠️ Falta correr <b>impresion.sql</b> en Supabase.':'⚠️ '+esc(error.message));return}
+      est(`🟢 Lista para imprimir · ${(data||[]).length?'imprimiendo '+data.length+'…':'esperando trabajos'} <small style="font-size:13px">(${cfg.w||80} mm)</small>`);
+      for(const j of data||[]){await imprimir(j.titulo,j.cuerpo);await sb.from('cola_impresion').update({estado:'impreso',impreso_en:new Date().toISOString()}).eq('id',j.id)}
+      if((data||[]).length)lista()}catch(e){est('⚠️ Sin conexión, reintentando…')}finally{ocupado=false}};
+  clearInterval(S.impT);clearInterval(S.impH);
+  S.impT=setInterval(revisar,5000);S.impH=setInterval(()=>{if(S.tab=='impresora')guardar({visto:new Date().toISOString()})},60000);
+  revisar();lista();
+}
+async function pedidoPDF0(o){
   const w=window.open('','_blank');if(!w)return toast('Permití las ventanas emergentes para generar el PDF.',1);
   w.document.write('<p style="font:16px system-ui;margin:32px">Armando el pedido…</p>');
   const it=await itemsPedido(o);if(!it){w.close();return}
   const c=S.clientes.find(x=>x.id==o.cliente_id)||{};const qb=(await bloquePago().catch(()=>''))+(await bloqueQR(c,it.map(i=>i.id).filter(Boolean)).catch(()=>''));
   const tot=it.reduce((a,i)=>a+i.st,0),f=new Date(o.fecha||o.creado_en||o.created_at||Date.now()).toLocaleDateString('es-AR');
-  if(tkW()){w.document.open();w.document.write(ticketDoc('Pedido '+o.numero,tkCab('Nota de pedido',o.numero,f)+`<div class="sep"></div><div class="b">${esc(c.razon_social||'')}</div>${c.domicilio?`<div class="sm">${esc(c.domicilio)}</div>`:''}<div class="sep"></div>`+
-    it.map(i=>`<div class="it"><div>${esc(i.d)}</div><div class="r sm"><span>${i.qt} × ${i.puT||$m(i.pu)}</span><span>${$m(i.st)}</span></div>${i.pr?`<div class="sm">Promo: ${esc(i.pr)}</div>`:''}</div>`).join('')+
-    `<div class="sep"></div><div class="r g"><span>TOTAL</span><span>${$m(o.total||tot)}</span></div>${it.some(i=>i.kg)?'<div class="sm">Fiambres y quesos: se cobra el peso real.</div>':''}<div class="firma sm">Recibí conforme</div><div class="c sm" style="margin-top:3mm">¡Gracias por tu compra!</div>`));w.document.close();return}
+  if(tkW()){w.document.open();w.document.write(ticketDoc('Pedido '+o.numero,tkPedidoCuerpo(o,it,c,f,tot)));w.document.close();return}
   w.document.open();w.document.write(`<html><head><meta charset="utf-8"><title>Pedido ${o.numero} - ${esc(c.razon_social)}</title><style>body{font:14px system-ui,Segoe UI,sans-serif;margin:32px;color:#1c2333}h1{color:${MARCA.c};margin:0}.top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid ${MARCA.c};padding-bottom:12px}table{width:100%;border-collapse:collapse;margin:16px 0}th,td{border-bottom:1px solid #ccc;padding:6px;text-align:left}.n{text-align:right;white-space:nowrap}.tot td{font-weight:700;font-size:16px;border-bottom:0}.ayuda{background:#f6e9ec;padding:10px;border-radius:6px}@media print{.ayuda{display:none}}</style></head><body>
   <p class="ayuda">Para guardarlo en PDF: en la ventana de impresión elegí <b>Guardar como PDF</b> como destino.</p>
   <div class="top"><div>${logoImg()}<h1>Sabores de mi País</h1><div>Nota de pedido</div></div><div class="n"><b>Pedido N° ${o.numero}</b><br>${f}</div></div>
@@ -1685,12 +1750,10 @@ async function reciboWA(x,c){if(!x||!c)return;const w=window.open('','_blank');
   const tel=telWA(c.telefono),url='https://wa.me/'+tel+'?text='+encodeURIComponent(txt);
   if(w)w.location.href=url;else location.href=url;
   if(!tel)toast('Este cliente no tiene teléfono cargado: elegí el contacto en WhatsApp.')}
-async function reciboPDF(x,c){if(!x||!c)return;const w=window.open('','_blank');if(!w)return toast('Permití las ventanas emergentes para generar el PDF.',1);
+async function reciboPDF0(x,c){if(!x||!c)return;const w=window.open('','_blank');if(!w)return toast('Permití las ventanas emergentes para generar el PDF.',1);
   w.document.write('<p style="font:16px system-ui;margin:32px">Armando el recibo…</p>');
   const d=await datosRecibo(x,c);
-  if(tkW()){w.document.open();w.document.write(ticketDoc('Recibo '+x.numero,tkCab('Recibo',x.numero,fd(x.fecha))+`<div class="sep"></div><div>Recibimos de:</div><div class="b">${esc(c.razon_social||'')}</div><div class="sep"></div><div class="r g"><span>${$m(x.importe)}</span></div><div class="sm">${esc(x.medio||'')}</div>`+
-    (d.fac.length?`<div class="sep"></div>${d.fac.map(f=>`<div class="r sm"><span>${esc(f.t)}</span><span>${$m(f.imp)}</span></div>`).join('')}${d.cuenta?`<div class="r sm"><span>A cuenta</span><span>${$m(d.cuenta)}</span></div>`:''}`:'')+
-    (d.saldo!=null?`<div class="sep"></div><div class="sm">${d.saldo>0.005?'Saldo pendiente: <b>'+$m(d.saldo)+'</b>':d.saldo<-0.005?'Saldo a favor: <b>'+$m(-d.saldo)+'</b>':'<b>Cuenta al día.</b>'}</div>`:'')+`<div class="firma sm">Firma</div>`));w.document.close();return}
+  if(tkW()){w.document.open();w.document.write(ticketDoc('Recibo '+x.numero,tkReciboCuerpo(x,c,d)));w.document.close();return}
   w.document.open();w.document.write(`<html><head><meta charset="utf-8"><title>Recibo ${x.numero} - ${esc(c.razon_social)}</title><style>body{font:14px system-ui,Segoe UI,sans-serif;margin:32px;color:#1c2333;max-width:720px}h1{color:${MARCA.c};margin:0}.top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid ${MARCA.c};padding-bottom:12px}table{width:100%;border-collapse:collapse;margin:16px 0}th,td{border-bottom:1px solid #ccc;padding:6px;text-align:left}.n{text-align:right;white-space:nowrap}.imp{font-size:22px;font-weight:700;margin:16px 0}.saldo{background:#f3f4f7;padding:10px 12px;border-radius:6px}.firma{margin-top:56px;border-top:1px solid #1c2333;width:240px;padding-top:4px;text-align:center}.ayuda{background:#f6e9ec;padding:10px;border-radius:6px}@media print{.ayuda{display:none}}</style></head><body>
   <p class="ayuda">Para guardarlo en PDF: en la ventana de impresión elegí <b>Guardar como PDF</b> como destino.</p>
   <div class="top"><div>${logoImg()}<h1>Sabores de mi País</h1><div>Recibo de cobro</div></div><div class="n"><b>Recibo N° ${x.numero}</b><br>${fd(x.fecha)}</div></div>
@@ -2272,7 +2335,7 @@ async function etiquetas(ids){
       <label class="f">Agregar los que cambiaron de precio<select id="et_h"><option value="">Elegí…</option><option value="7">En los últimos 7 días</option><option value="15">En los últimos 15 días</option><option value="30">En los últimos 30 días</option></select></label></div>
     <div class="conscan"><input id="et_q" placeholder="Agregar un producto (nombre o código)" autocomplete="off">${btnScan('et_sc')}</div><div id="et_r"></div>
     <div class="g"><label class="f">Precio de la lista<select id="et_l"><option value="minorista">Minorista</option><option value="mayorista">Mayorista</option><option value="especial">Especial</option></select></label>
-      <label class="f">Tamaño<select id="et_t">${tkW()?`<option value="t" selected>Rollo térmico (${tkW()} mm)</option>`:''}<option value="3">Chica (24 por hoja)</option><option value="2" selected>Mediana (12 por hoja)</option><option value="1">Grande (6 por hoja)</option></select></label></div>
+      <label class="f">Tamaño<select id="et_t">${depUsar()?`<option value="dep" selected>🖨️ Imprimir en el depósito (rollo)</option>`:''}${tkW()?`<option value="t" selected>Rollo térmico (${tkW()} mm)</option>`:''}<option value="3">Chica (24 por hoja)</option><option value="2" selected>Mediana (12 por hoja)</option><option value="1">Grande (6 por hoja)</option></select></label></div>
     <label class="chk"><input type="checkbox" id="et_cb" checked> Con código de barras</label><label class="chk"><input type="checkbox" id="et_bu"> Mostrar también el precio por caja/pack</label>
     <p id="et_n"></p><div class="fc-acc"><button id="et_g">Imprimir etiquetas</button><a class="lnk" id="et_v">Vaciar</a></div></div>`;
   document.body.appendChild(m);
@@ -2284,6 +2347,10 @@ async function etiquetas(ids){
   buscador('#et_q','#et_r',p=>{L.push(p.producto_id);upd()});$('#et_sc').onclick=()=>escanear('Agregar etiqueta',p=>{L.push(p.producto_id);upd();return '✔ '+p.descripcion});
   upd();
   $('#et_g').onclick=async()=>{if(!L.length)return toast('Agregá al menos un producto.',1);const l=$('#et_l').value,cols=+$('#et_t').value,cb=$('#et_cb').checked,bu=$('#et_bu').checked;
+    if($('#et_t').value=='dep'){const E=L.map(id=>S.productos.find(p=>p.producto_id==id)).filter(p=>+p['precio_'+l]>0);if(!E.length)return toast('Esos productos no tienen precio en la lista '+l+'.',1);
+      if(cb)try{await cargarScript('https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js')}catch(e){}
+      const bc=p=>{if(!cb||!window.JsBarcode)return'';const ean=eanOk(p.ean)?String(p.ean).trim():'',code=ean||String(p.codigo||'').trim();if(!code)return'';const s=document.createElementNS('http://www.w3.org/2000/svg','svg');try{JsBarcode(s,code,{format:ean?'EAN13':'CODE128',height:34,width:1.6,fontSize:12,margin:0,displayValue:true});return s.outerHTML}catch(e){return''}};
+      return depEnviar('etiquetas',E.length+(E.length==1?' etiqueta':' etiquetas'),tkEtiquetasCuerpo(E,l,bu,bc))}
     if(!L.some(id=>+S.productos.find(p=>p.producto_id==id)?.['precio_'+l]>0))return toast('Esos productos no tienen precio en la lista '+l+'.',1);
     const w=window.open('','_blank');if(!w)return toast('Permití las ventanas emergentes para imprimir.',1);w.document.write('<p style="font:16px system-ui;margin:32px">Armando etiquetas…</p>');
     if(cb)try{await cargarScript('https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js')}catch(e){}
@@ -6292,7 +6359,7 @@ window.addEventListener('online',()=>setTimeout(sincronizarOff,1500));
 /* ======================= ORDEN, VELOCIDAD Y COMODIDAD (tanda 19) ======================= */
 const RAW_SQL='https://raw.githubusercontent.com/dnegri0805-cell/crm-sabores/main/sql/',SUPA_SQL='https://supabase.com/dashboard/project/ggfqdkgqtpnkvxoykoty/sql/new';
 /* 1. Chequeo del sistema: qué SQL falta correr */
-const SQL_CHK=[['control.sql','vencimientos','id'],['ventas-auto.sql','envios_auto','id'],['ventas-auto2.sql','envios_auto','variante'],['ventas-auto3.sql','clientes','cumpleanos'],['ventas-estrategia.sql','acuerdos','id'],['ventas-instagram.sql','prospectos','instagram'],
+const SQL_CHK=[['impresion.sql','cola_impresion','id'],['control.sql','vencimientos','id'],['ventas-auto.sql','envios_auto','id'],['ventas-auto2.sql','envios_auto','variante'],['ventas-auto3.sql','clientes','cumpleanos'],['ventas-estrategia.sql','acuerdos','id'],['ventas-instagram.sql','prospectos','instagram'],
   ['ventas-mas2.sql','alertas_oferta','id'],['ventas-peso.sql','pedido_items','peso_real'],['operacion.sql','costos_proveedor','producto_id'],['negocio.sql','mermas','id'],['solo.sql','pedidos','auto_aprobado'],['entregas.sql','pedidos','entrega'],['cobrar.sql','notas_cliente','id'],['vivo.sql','reparto_vivo','id'],['practico.sql','fraccionados','id'],['cuentas.sql','promesas_pago','id'],['visitas.sql','repartos_dia','id'],['avisos.sql','comprobantes_cliente','id']];
 async function sqlFaltantes(){const R=await Promise.all(SQL_CHK.map(([f,t,c])=>sb.from(t).select(c).limit(1).then(({error})=>error&&/does not exist|Could not find|schema cache|no existe/i.test(error.message)?f:null,()=>null)));return R.filter(Boolean)}
 async function copiarSQL(f,b){try{const t=await(await fetch(RAW_SQL+f+'?nc='+Date.now())).text();await navigator.clipboard.writeText(t);if(b){b.textContent='✓ Copiado';b.classList.add('hecho')}toast('SQL copiado. Ahora pegalo en Supabase (Ctrl + V) y tocá Run.')}catch(e){window.open(RAW_SQL+f,'_blank');toast('Se abrió el SQL: copialo con Ctrl + A y Ctrl + C.')}}
@@ -6358,11 +6425,12 @@ function vistaCfg(){const p=prefV(),m=document.createElement('div');m.className=
   m.innerHTML=`<div class="mc"><div class="bh"><h3>Aa Cómo se ve</h3><button class="alt" id="vc_x">Cerrar</button></div><p><small>Se guarda en este equipo (podés tener letra grande en el celular y normal en la PC).</small></p>
     <h4>Tamaño de letra</h4><div class="sub">${[[1,'Normal'],[1.12,'Grande'],[1.25,'Muy grande']].map(([z,t])=>`<button class="${(p.z||1)==z?'':'alt'}" data-vz="${z}">${t}</button>`).join('')}</div>
     <h4>Colores</h4><div class="sub">${[['claro','☀️ Claro'],['oscuro','🌙 Oscuro'],['auto','Automático']].map(([k,t])=>`<button class="${(p.t||'claro')==k?'':'alt'}" data-vt="${k}">${t}</button>`).join('')}</div>
+    <h4>🖨️ Imprimir a distancia</h4><p><small>Usá esto <b>en la PC del depósito</b>: queda como impresora y saca sola lo que mandes desde el celular.</small></p><button class="alt" id="vc_imp">🖨️ Usar este equipo como impresora del depósito</button>
     <h4>🧾 Impresora térmica (rollo)</h4><p><small>Si este equipo imprime en una térmica de tickets, los pedidos, recibos y etiquetas salen en formato rollo.</small></p><div class="sub">${[[0,'No uso'],[58,'58 mm'],[80,'80 mm']].map(([w,t])=>`<button class="${tkW()==w?'':'alt'}" data-tk="${w}">${t}</button>`).join('')}</div>
     ${huellaHTML()}<h4>🔔 Avisos en este equipo</h4><p><small>Te avisa con una notificación cuando entra un pedido online, un reclamo o un presupuesto aceptado, aunque estés en otra app. El CRM tiene que quedar abierto (en el celular, mejor instalado como app).</small></p>
     ${ns=='no'?'<p><small>Este navegador no permite notificaciones.</small></p>':ns=='denied'?'<p><small>Bloqueaste las notificaciones para esta página: habilitalas en el candado de la barra de direcciones.</small></p>':`<button id="vc_n" class="${S.vivoBg&&ns=='granted'?'alt':''}">${S.vivoBg&&ns=='granted'?'🔕 Apagar avisos':'🔔 Activar avisos'}</button>`}</div>`;
   const q=s=>m.querySelector(s),sv=o=>{try{localStorage.setItem('pref_vista',JSON.stringify({...prefV(),...o}))}catch(e){}aplicarVista();m.remove();vistaCfg()};
-  q('#vc_x').onclick=()=>m.remove();huellaBind(m);m.querySelectorAll('[data-vz]').forEach(b=>b.onclick=()=>sv({z:+b.dataset.vz}));m.querySelectorAll('[data-vt]').forEach(b=>b.onclick=()=>sv({t:b.dataset.vt}));m.querySelectorAll('[data-tk]').forEach(b=>b.onclick=()=>{try{localStorage.setItem('pref_ticket',JSON.stringify({w:+b.dataset.tk}))}catch(e){}m.remove();vistaCfg();toast(+b.dataset.tk?'Listo: imprime en rollo de '+b.dataset.tk+' mm.':'Listo: imprime en hoja A4.')});
+  q('#vc_x').onclick=()=>m.remove();huellaBind(m);q('#vc_imp').onclick=()=>{m.remove();irA('impresora')};m.querySelectorAll('[data-vz]').forEach(b=>b.onclick=()=>sv({z:+b.dataset.vz}));m.querySelectorAll('[data-vt]').forEach(b=>b.onclick=()=>sv({t:b.dataset.vt}));m.querySelectorAll('[data-tk]').forEach(b=>b.onclick=()=>{try{localStorage.setItem('pref_ticket',JSON.stringify({w:+b.dataset.tk}))}catch(e){}m.remove();vistaCfg();toast(+b.dataset.tk?'Listo: imprime en rollo de '+b.dataset.tk+' mm.':'Listo: imprime en hoja A4.')});
   const n=q('#vc_n');if(n)n.onclick=async()=>{if(S.vivoBg&&Notification.permission=='granted'){S.vivoBg=false;try{localStorage.setItem('notif_on','0')}catch(e){}m.remove();return toast('Avisos apagados.')}
     const r=await Notification.requestPermission();if(r!='granted')return toast('No diste permiso para las notificaciones.',1);S.vivoBg=true;try{localStorage.setItem('notif_on','1')}catch(e){}avisosEnVivo();notificar('Sabores de mi País','✅ Listo: así te van a llegar los avisos de pedidos nuevos.');m.remove()}}
 
