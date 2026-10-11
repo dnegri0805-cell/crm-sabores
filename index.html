@@ -210,7 +210,7 @@ body{zoom:var(--z,1)}html.oscuro{filter:invert(.92) hue-rotate(180deg);backgroun
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-11.37';
+const VERSION='2026-10-11.38';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -584,6 +584,32 @@ async function descargarBackup(){
     bar(100);m.querySelector('.mc').innerHTML=`<h3>Copia descargada ✅</h3><p>Se guardó <b>Copia CRM Sabores ${hoy}.zip</b> en tu carpeta de descargas (${(blob.size/1048576).toFixed(1)} MB). Adentro hay un Excel para mirar los datos y el archivo para restaurar.</p><p><b>Subilo a Google Drive o copialo a un pendrive</b>: si queda solo en esta PC y la PC se rompe, se pierde.</p><p><small>${res.join(' · ')}</small></p><button id="bk_ok">Listo</button>`;
     $('#bk_ok').onclick=()=>{m.remove();cajaBackup()}
   }catch(e){m.querySelector('.mc').innerHTML=`<h3>No se pudo descargar</h3><p class="err">${esc(e.message||String(e))}</p><button id="bk_ok">Cerrar</button>`;$('#bk_ok').onclick=()=>m.remove()}}
+/* 🧹 Borrar datos de prueba: deja clientes, productos y configuración; borra todos los movimientos */
+async function borrarPrueba(){if(S.perfil.rol!='dueno')return toast('Solo el dueño puede hacer esto.',1);
+  const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  const pintar=async()=>{const{data}=await sb.from('config_app').select('valor').eq('clave','ultima_copia').maybeSingle();
+    const u=data?.valor,reciente=u&&Date.now()-new Date(u).getTime()<30*60e3;
+    m.innerHTML=`<div class="mc"><div class="bh"><h3>🧹 Borrar datos de prueba</h3><button class="alt" id="bp_x">Cerrar</button></div>
+      <p>Para empezar a usar el CRM "en serio". <b>Se borran todos los movimientos</b>:</p>
+      <p><small>pedidos, facturas, recibos y cobros, notas de crédito, caja y gastos, compras y pagos a proveedores, cheques, movimientos de stock, vencimientos, presupuestos, carritos, reclamos, puntos y cupones usados, repartos y la cola de impresión.</small></p>
+      <p><b>Se mantienen:</b> <small>clientes, productos, precios y fotos, proveedores, promociones, cupones, combos, cuentas, precios pactados, prospectos y toda la configuración.</small></p>
+      <p class="aviso">⚠️ El <b>stock vuelve a cero</b> (después hacés el conteo inicial en Stock) y los números de pedido, factura y recibo vuelven a empezar desde 1.</p>
+      <h4>1. Copia de seguridad</h4>
+      ${reciente?`<p>✅ Copia hecha a las ${new Date(u).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})}. Si te arrepentís, la recuperás con <b>Restaurar</b>.</p>`:`<p><small>Antes de borrar tenés que hacer una copia (por si te arrepentís).</small></p><button id="bp_bk">Hacer la copia ahora</button>`}
+      <h4>2. Confirmar</h4>
+      <label class="f">Escribí <b>BORRAR</b> en mayúsculas<input id="bp_c" autocomplete="off" ${reciente?'':'disabled'}></label>
+      <div class="fc-acc"><button id="bp_ok" disabled style="background:#b3261e">Borrar todos los datos de prueba</button></div><p id="bp_e"></p></div>`;
+    const q=s=>m.querySelector(s);q('#bp_x').onclick=()=>m.remove();
+    q('#bp_bk')&&(q('#bp_bk').onclick=async()=>{await descargarBackup();setTimeout(pintar,1500)});
+    q('#bp_c').oninput=()=>{q('#bp_ok').disabled=!(reciente&&q('#bp_c').value.trim()=='BORRAR')};
+    q('#bp_ok').onclick=async()=>{q('#bp_ok').disabled=true;q('#bp_e').innerHTML='Borrando…';
+      const{data:R,error}=await sb.rpc('borrar_datos_prueba',{p_confirma:'BORRAR'});
+      if(error){q('#bp_e').innerHTML=/borrar_datos_prueba/.test(error.message)&&/function|función|schema cache/i.test(error.message)?`<span class="err">Falta correr <b>datos-prueba.sql</b> en Supabase.</span> <button class="alt" id="bp_sql">📋 Copiar</button> <a class="alt btnl" href="${SUPA_SQL}" target="_blank" rel="noopener">Abrir Supabase</a>`:`<span class="err">No se borró nada: ${esc(error.message)}</span>`;
+        q('#bp_sql')&&(q('#bp_sql').onclick=ev=>copiarSQL('datos-prueba.sql',ev.target));q('#bp_ok').disabled=false;return}
+      const tot=Object.values(R||{}).reduce((a,n)=>a+(+n||0),0);try{localStorage.removeItem(CACHE_K)}catch(e){}
+      m.querySelector('.mc').innerHTML=`<h3>✅ Listo, arrancás de cero</h3><p>Se borraron <b>${tot}</b> registros de prueba${R?.pedidos!=null?` (${R.pedidos} pedidos)`:''}. Tus clientes, productos y configuración quedaron como estaban.</p><p><b>Próximo paso:</b> cargá el stock real en <b>Stock → conteo</b>.</p><button id="bp_fin">Recargar el CRM</button>`;
+      m.querySelector('#bp_fin').onclick=()=>location.reload()}};
+  pintar()}
 /* Estado del sistema: espacio usado en Supabase gratis, última copia y restaurar */
 async function estadoSistema(){const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
   m.innerHTML=`<div class="mc"><div class="bh"><h3>🩺 Estado del sistema</h3><button class="alt" id="es_x">Cerrar</button></div><div id="es_c">Revisando…</div></div>`;m.querySelector('#es_x').onclick=()=>m.remove();
@@ -598,9 +624,10 @@ async function estadoSistema(){const m=document.createElement('div');m.className
     `<h4>💾 Copias de seguridad</h4><p>${dias==null?'<b class="mora">Nunca hiciste una copia.</b>':dias>=7?`<b class="mora">Última copia hace ${dias} días.</b>`:`Última copia: ${fd(u)} ✅`}</p>
      <p><small>El plan gratis de Supabase <b>no hace copias automáticas</b>. Hacé una por semana y guardala en Google Drive o en un pendrive.</small></p>
      <div class="fc-acc"><button id="es_bk">Hacer copia ahora</button><button class="alt" id="es_rs">Restaurar desde una copia…</button></div>
+     ${S.perfil.rol=='dueno'?`<h4>🧹 Datos de prueba</h4><p><small>Si cargaste pedidos, facturas o cobros de prueba, borralos de una vez antes de empezar en serio.</small></p><button class="alt" id="es_bp">🧹 Borrar datos de prueba…</button>`:''}
      <h4>🕒 Uso</h4><p><small>Si pasás <b>7 días sin usar el CRM</b>, Supabase gratis pausa el proyecto. Si te pasa, entrá a Supabase y tocá <b>Restore</b>.</small></p>`;
   $('#es_sql')&&($('#es_sql').onclick=ev=>copiarSQL('sistema.sql',ev.target));
-  $('#es_bk').onclick=()=>{m.remove();descargarBackup()};$('#es_rs').onclick=()=>{m.remove();restaurarBackup()}}
+  $('#es_bk').onclick=()=>{m.remove();descargarBackup()};$('#es_bp')&&($('#es_bp').onclick=()=>{m.remove();borrarPrueba()});$('#es_rs').onclick=()=>{m.remove();restaurarBackup()}}
 async function restaurarBackup(){const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
   m.innerHTML=`<div class="mc"><div class="bh"><h3>Restaurar desde una copia</h3><button class="alt" id="rs_x">Cerrar</button></div>
     <p>Elegí el archivo <b>.zip</b> de una copia. Se vuelve a cargar <b>solo lo que falta</b> (por ejemplo, algo que se borró sin querer). <b>No pisa ni borra</b> nada de lo que tenés ahora.</p>
