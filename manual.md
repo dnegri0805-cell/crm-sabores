@@ -7,17 +7,23 @@ Guía ordenada por sección para consultar o pasarle al equipo. Cada punto dice 
 - **CRM (uso interno):** https://dnegri0805-cell.github.io/crm-sabores/ — se entra con usuario y contraseña.
 - **Catálogo de cada cliente:** link personal `pedido.html?c=…` que se manda desde la ficha del cliente (botón de WhatsApp). Cada cliente ve sus precios, su cuenta y sus promos.
 - **Catálogo público (sin precios de cliente):** `pedido.html?ver=catalogo` — para redes, folletos y nuevos clientes.
-- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-10.21`). Si algo "no aparece", cerrá y abrí la pestaña.
+- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-10.22`). Si algo "no aparece", cerrá y abrí la pestaña.
 - **En el celular:** abrí el CRM en Chrome → menú ⋮ → *Agregar a pantalla de inicio*. Queda como una app.
 - **Menú principal:** Inicio · Pedidos · Ventas · Reparto · Clientes · Cobranza · Caja · Compras · Stock · Precios · Reportes · Contable · Manual. Los números en rojo indican cosas pendientes.
 
 ## 2. Inicio
 
-Es el tablero del día. Arriba muestra el **objetivo del mes y la proyección** (si llegamos o no al ritmo actual).
+Es el tablero del día. En el celular, arriba aparecen **6 botones grandes**: Nuevo pedido, Cola del día, Por aprobar, Armar, Reparto y Cobrar.
+
+**✅ Mi día:** todo lo que tenés que hacer hoy en una sola lista, con cuántos hay de cada cosa: mandar la Cola, aprobar, armar, pesar, repartir, cobrar vencidos, depositar cheques, pagar a proveedores, revisar órdenes de compra en borrador, anotar la temperatura y tus tareas. Cada renglón tiene **Ir** y lo tildás cuando lo terminaste.
+
+**🤖 Aprobación automática** (desde Mi día o Pedidos): los pedidos online de clientes de confianza (sin deuda vencida, sobre el mínimo, dentro de su límite y con al menos 2 pedidos entregados) se aprueban solos. Requiere **solo.sql**.
+
+**🗓️ Orden de compra semanal:** el día que elijas (por defecto el lunes), al abrir el CRM se arma sola una orden en borrador por proveedor con lo que hay que reponer. La revisás y la mandás por WhatsApp desde Compras. Arriba muestra el **objetivo del mes y la proyección** (si llegamos o no al ritmo actual).
 
 **📊 Resumen de hoy** (solo el dueño): vendido (y cuánto contra ayer), ganancia estimada, cobrado (por medio de pago), pedidos que falta entregar y kilos de quesos y fiambres vendidos. Con **📲 Mandármelo** te lo mandás por WhatsApp. Ahí mismo están **🧾 Cierre del día** (cobrado por medio, gastos y pagos, efectivo neto, pedidos nuevos, entregados y lo que quedó sin entregar, para mandar por WhatsApp) y **📄 Informe del mes** (ventas, margen, cobranza, compras, gastos, merma, deuda, stock, mejores clientes y productos, en PDF para vos y tu contador; también en Reportes).
 
-**📝 Tareas:** anotá cosas para hacer con fecha (pagarle a un proveedor, llamar a un cliente). Las vencidas quedan en rojo; las tildás cuando las hacés.
+**📝 Tareas:** anotá cosas para hacer con fecha (pagarle a un proveedor, llamar a un cliente). Las vencidas quedan en rojo; las tildás cuando las hacés. Abajo, **🤖 Se armaron solas**: facturas de proveedores que vencen en 3 días, cheques para depositar, mercadería por vencer y cuentas clave que no compran hace 30 días.
 
 En **⚠️ Alertas** también aparecen la **🌡️ temperatura de cámara** fuera de rango (o sin anotar a las 11), los **🚦 clientes en riesgo alto** y los **precios pactados que quedaron con poco margen** después de un aumento: **Revisar y actualizar** te propone el precio nuevo, los actualizás de una y le avisás a cada cliente por WhatsApp.
 
@@ -38,6 +44,8 @@ Debajo aparecen tarjetas de aviso; cada una lleva a la pantalla donde se actúa:
 **Cargar un pedido** (botón *+ Nuevo pedido*):
 
 - Elegí el cliente; se aplican solos su lista de precios, **nivel**, **precios pactados** y promos vigentes.
+- **🎤 Dictar:** en el celular tocás Dictar y decís el pedido ("diez kilos de danbo… dos cajas de maní salado"), con una pausa entre producto y producto. Lo reconoce igual que Pegar de WhatsApp.
+- **🔁 Repetir último:** desde la ficha del cliente, carga su último pedido con los precios de hoy.
 - **Pegar de WhatsApp:** pegás el mensaje del cliente tal cual y el sistema reconoce productos y cantidades.
 - **Combos** y **cupón** se agregan desde el mismo formulario.
 - Abajo se ve el **ticket promedio** del cliente y, para el dueño, la **ganancia estimada** del pedido.
@@ -80,6 +88,7 @@ Se venden **por pieza entera** y se cobran **por el peso real**.
   - *Más oportunidades:* **💵 después del pago**, **📆 lo que llevaron el año pasado en esta época** y **🧩 productos que dejaron de llevar**.
   - *Para cuidar al cliente:* secuencia para que vuelvan, **cupón a dormidos**, clientes nuevos (primeros 90 días), bienvenida, aniversarios, **cumpleaños** con cupón, "¿llegó todo bien?" después de la entrega, los que **calificaron mal** (arriba de todo, para llamarlos) y recordatorio de deudas.
   - *Para conseguir clientes:* los que piden ser clientes (**alta exprés**), la secuencia de prospectos, **lanzamientos de zona**, prospectos fríos, pedido de **recomendación** y de **reseña en Google**.
+  - *Avisos de pedidos:* cuando aprobás un pedido o sale a reparto, el aviso al cliente queda listo en la ráfaga (si no lo mandaste antes).
   - Si hay clientes que suelen pedir a otra hora, se divide en **⏰ Mandar ahora** y **🕐 Más tarde**. En la ráfaga, **💬 Respuestas** tiene las respuestas rápidas.
   - Los últimos 5 días del mes, si no llegás al objetivo, arriba aparece el **🏁 Empujón de fin de mes**.
   - Abajo, **Resultados**: cuántos compraron en los 7 días siguientes, cuántos cupones se usaron y cómo va cada prueba A/B.
@@ -192,6 +201,7 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 ## 9. Reparto, cobranza y caja
 
 - **Reparto:** pedidos listos para salir, armado del recorrido y remitos. El chofer marca *Entregado* y el cliente lo ve en su cuenta.
+- **🧭 Ordenar recorrido** (Reparto): ordena las paradas por cercanía desde tu depósito (la primera vez te pide la ubicación del depósito, estando ahí). Los clientes sin ubicación quedan al final.
 - **🚚 Modo chofer** (en Reparto, con los pedidos elegidos): una parada por pantalla, en orden. Muestra cliente, dirección (**📍 Cómo llegar**), **📞 Llamar**, **📲 Estoy llegando**, lo que lleva, el total y **cuánto cobrar** (contado o saldo de la cuenta). **✅ Entregado y cobrado** registra el cobro (efectivo, transferencia, cheque) con su recibo, marca entregado y pide la foto del remito. También *Entregado sin cobrar* y *🚪 No estaba*. Al final, el resumen del reparto para mandarlo por WhatsApp.
 - **Cobranza:** quién debe y cuánto, con filtro *Con deuda vencida*. Registrás pagos (efectivo, transferencia, cheque) y se genera el **recibo**. El botón **pronto pago** aplica el descuento si paga dentro del plazo.
 - **Caja:** ingresos y egresos del día y cierre de caja (arqueo). Arriba, **🧾 Cierre del día**.
