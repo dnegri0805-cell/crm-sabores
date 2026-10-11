@@ -67,15 +67,10 @@ h2 small{font-family:var(--body);font-weight:400;color:var(--mut);font-size:13px
 <main id="out"></main>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="familias.js"></script>
 <script>
 const sb=supabase.createClient('https://ggfqdkgqtpnkvxoykoty.supabase.co','sb_publishable_kfvkZgS8FewPabohJrKf9Q_UDyEcQiR');
-const GR=[['Fiambres','Fiambres'],['Quesos','Quesos'],['Lácteos','Lácteos'],['Almacén','Almacén'],['Dulces','Dulces'],['Congelados','Congelados'],['Higiene','Higiene personal']];
-const FAMS=[['Fiambres',['Jamón cocido','Fiambre cocido de pata de cerdo','Paleta de cerdo cocida','Fiambre de cerdo para emparedados','Jamón crudo','Bondiola','Lomo de cerdo','Panceta y pastrón','Mortadela','Leverwurst','Salchichón, queso de cerdo y salchichas','Salames y salamines','Fiambres feteados']],
- ['Quesos',['Quesos de campo y provoletas','Cheddar y dips','Queso rallado','Quesos untables y queso crema','Quesos blandos','Quesos en hebras, fetas y fraccionados','Mozzarella','Quesos azules','Quesos duros','Quesos semiduros']],
- ['Lácteos',['Manteca','Crema de leche','Leches','Yogures','Postres, flanes y gelatinas','Dulce de leche']],
- ['Almacén',['Snacks y untables','Semillas','Tostadas, galletas y crackers','Conservas de pescado','Paté y picadillo','Conservas de frutas','Tomate y salsas de tomate','Conservas de verduras y legumbres','Aceites y grasas','Vinagres, aceto y jugo de limón','Mayonesa','Aderezos y salsas','Arroz','Harinas, polenta y rebozadores','Sal','Especias y condimentos','Yerba mate','Café, cacao y endulzantes']],
- ['Dulces',['Mermeladas','Dulces de batata y membrillo','Repostería, miel y salsas dulces']],
- ['Congelados',['Congelados']],['Higiene',['Higiene personal']]];
+const FAMS=FAMILIAS.map(([g,fs])=>[g,fs]);const GR=FAMILIAS.map(([g])=>[g,g]);
 const F2G={},FO={};let o=0;for(const[g,fs]of FAMS)for(const f of fs){F2G[f]=g;FO[f]=o++}
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));

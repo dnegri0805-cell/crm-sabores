@@ -208,8 +208,9 @@ body{zoom:var(--z,1)}html.oscuro{filter:invert(.92) hue-rotate(180deg);backgroun
 <body>
 <div id="app"></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="familias.js"></script>
 <script>
-const VERSION='2026-10-11.31';
+const VERSION='2026-10-11.32';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -330,9 +331,9 @@ function enBultos(id,q){const b=bul(id);q=Number(q)||0;if(!b||q<b.n)return '';co
 const esPeso=id=>!!S.min[id]?.pw,esKg=id=>esPeso(id)&&!ppz(id);
 const cantTxt=(id,q)=>{if(esKg(id))return nf(q)+' kg';if(esPeso(id))return nf(q)+' '+(+q==1?'pieza':'piezas')+' (≈ '+nf(Math.round(q*ppz(id)*10)/10)+' kg)';const e=enBultos(id,q);return nf(q)+(e?' ('+e+')':'')};
 /* Quesos y fiambres: se detectan por familia y descripción (los envasados por gramos quedan afuera) */
-const FAM_PESO=/queso|fiambre|chacinad|jamoner|embutid|^secos$/i,FAM_NO=/fetas|rallad|hebras|mendicrim|tholem|untable/i,
+const FAM_PESO=/queso|fiambre|chacinad|jamoner|embutid|^secos$/i,FAM_NO=/fetas|rallad|hebras|mendicrim|tholem|untable|fetead|cheddar|dips/i,
   DES_NO=/\d+\s*(gr|grs|g|gs|ml|cc)\b|fetas|rallad|\bunt\b|unt\.|hebras|crema\b|tholem|pizzeta|mascarpone|camembert|brie|mendicrim|\bman[ií]\b|salchicha|rodajitas|fuet|bandeja|\(\d+\)/i;
-const pareceKg=p=>FAM_PESO.test(p.familia||'')&&!FAM_NO.test(p.familia||'')&&!DES_NO.test(p.descripcion||'');
+const pareceKg=p=>FAM_PESO.test(famGrupo(p.familia)+' '+(p.familia||''))&&!FAM_NO.test(p.familia||'')&&!DES_NO.test(p.descripcion||'');
 const chipBulto=id=>{const b=bul(id);return b?`<span class="bulto">${esc(b.t)} × ${b.n}</span>`:''};
 
 /* ---------- Escáner de códigos de barras con la cámara ---------- */
@@ -746,7 +747,7 @@ async function vPrecios(){
     <p><small>El precio de venta se calcula solo: <b>costo ÷ (1 − margen)</b>. Con 30 %, un producto que te cuesta $ 700 se vende a $ 1.000 y te deja $ 300.</small></p>
     <div class="g" id="pr_l">Cargando…</div><button id="pr_lg">Guardar márgenes</button>
     <div class="g" style="margin-top:12px"><label class="f">Avisarme cuando un producto deje menos de (%) de ganancia<input type="number" id="pr_mm" min="0" max="89" step="1" value="${S.margenMin??15}"></label></div></div>
-  <div class="box"><div class="bh"><h3>Productos</h3><div class="fc-acc"><button class="alt" onclick="window.open('catalogo.html','_blank')">📒 Catálogo con precios</button><button class="alt" id="pr_fcat">🖼️ Fotos del catálogo</button><button class="alt" id="pr_fjl">🥜 Fotos Maní JL</button><button class="alt" id="pr_fot">🔎 Fotos automáticas</button><button class="alt" id="pr_et">🏷️ Imprimir etiquetas del filtro</button></div></div>
+  <div class="box"><div class="bh"><h3>Productos</h3><div class="fc-acc"><button class="alt" onclick="window.open('catalogo.html','_blank')">📒 Catálogo con precios</button><button class="alt" id="pr_ofam">🗂️ Ordenar por familias</button><button class="alt" id="pr_fcat">🖼️ Fotos del catálogo</button><button class="alt" id="pr_fjl">🥜 Fotos Maní JL</button><button class="alt" id="pr_fot">🔎 Fotos automáticas</button><button class="alt" id="pr_et">🏷️ Imprimir etiquetas del filtro</button></div></div>
     <div class="g"><div class="conscan"><input id="pr_q" placeholder="Buscar por nombre o código" autocomplete="off">${btnScan('pr_sc')}</div>
       <select id="pr_pv"><option value="">Todos los proveedores</option></select>
       <select id="pr_ma"><option value="">Todas las marcas</option></select>
@@ -780,7 +781,7 @@ SDMP-01279	8.900</pre>
   const uniq=k=>[...new Set(S.productos.map(p=>p[k]).filter(Boolean))].sort();
   $('#pr_pv').innerHTML+=(pv.data||[]).map(p=>`<option value="${p.id}">${esc(p.razon_social)}</option>`).join('');
   $('#pr_ma').innerHTML+=uniq('marca').map(x=>`<option>${esc(x)}</option>`).join('');
-  $('#pr_fa').innerHTML+=uniq('familia').map(x=>`<option>${esc(x)}</option>`).join('');
+  $('#pr_fa').innerHTML+=uniq('familia').sort(famCmp).map(x=>`<option>${esc(x)}</option>`).join('');
   const nuevo={};let sel=[];
   const filtrar=()=>{const q=$('#pr_q').value.toLowerCase().trim(),v=$('#pr_pv').value,m=$('#pr_ma').value,f=$('#pr_fa').value;
     const sf=$('#pr_sf').checked;return S.productos.filter(p=>(!q||coincide(txtProd(p),q))&&(!v||S.min[p.producto_id]?.pv==v)&&(!m||p.marca==m)&&(!f||p.familia==f)&&(!sf||!S.min[p.producto_id]?.foto))};
@@ -845,6 +846,7 @@ SDMP-01279	8.900</pre>
   $('#pr_fot').onclick=()=>fotosAutomaticas(sel);
   $('#pr_fjl').onclick=()=>fotosJL();
   $('#pr_fcat').onclick=()=>fotosCatalogo();
+  $('#pr_ofam').onclick=()=>ordenarFamilias();
   $('#pr_mm').onchange=async e=>{const v=+e.target.value;if(!(v>=0&&v<90))return toast('Poné un porcentaje entre 0 y 89.',1);S.margenMin=v;const{error}=await sb.from('config_app').upsert({clave:'margen_minimo',valor:String(v)});toast(error?error.message:'Listo: te aviso cuando la ganancia baje del '+v+' %.',!!error)};
 }
 
@@ -856,10 +858,10 @@ function catalogoPDF(l,L,c,nomLista){const w=window.open('','_blank');if(!w)retu
   const hoy=new Date().toLocaleDateString('es-AR',{day:'numeric',month:'long',year:'numeric'});
   const card=x=>{const b=bul(x.id),r=promoCerca(x.id,l);return`<div class="cd">${r?`<span class="rb">−${nf(r.descuento_pct)} %</span>`:''}
     ${x.f?`<div class="ph"><img src="${esc(x.f)}" alt=""></div>`:`<div class="ph in" style="background:${col(x.m)}1a;color:${col(x.m)}">${esc((x.d||'?')[0])}</div>`}
-    <div class="nm">${esc(x.d)}</div><div class="mk">${esc(x.m)}${b?' · '+esc(b.t)+' × '+b.n:''}</div>
+    ${x.c?`<div class="cc">Cód. ${esc(x.c)}</div>`:''}<div class="nm">${esc(x.d)}</div><div class="mk">${esc(x.m=='Otros'?'':x.m)}${b?(x.m=='Otros'?'':' · ')+esc(b.t)+' × '+b.n:''}</div>
     <div class="pr">${$m(x.p).replace(/,(\d\d)$/,'<small>,$1</small>')}</div>${b?`<div class="bu">${esc(b.t)}: ${$m(x.p*b.n)}</div>`:''}${r?`<div class="pc">${esc(condPromo(r)||r.nombre)}</div>`:''}</div>`};
   const G={};for(const x of L)(G[x.fa]=G[x.fa]||[]).push(x);
-  const F=Object.keys(G).sort((a,b)=>a=='Otros'?1:b=='Otros'?-1:a.localeCompare(b));
+  const F=Object.keys(G).sort(famCmp);const fNom=f=>FAM_ORDEN[String(f).toUpperCase()]!=null?f:cap(f);const nCod=v=>{const n=parseInt(String(v||'').replace(/\D/g,''),10);return isNaN(n)?Infinity:n};
   const O=L.filter(x=>promoCerca(x.id,l));
   const conFoto=L.filter(x=>x.f).length;
   w.document.write(`<html><head><meta charset="utf-8"><title>Catálogo ${esc(nomLista)}${c?' - '+esc(c.razon_social):''} ${new Date().toLocaleDateString('es-AR')}</title><style>
@@ -875,7 +877,7 @@ function catalogoPDF(l,L,c,nomLista){const w=window.open('','_blank');if(!w)retu
     .rb{position:absolute;top:3.5mm;left:3.5mm;background:#b3261e;color:#fff;font-weight:800;font-size:11px;padding:1mm 2mm;border-radius:2mm}
     .nm{font-size:10.5px;font-weight:600;line-height:1.25;max-height:3.75em;overflow:hidden}.mk{font-size:8px;color:#6a7184;text-transform:uppercase;letter-spacing:.03em}
     .pr{font-size:17px;font-weight:800;margin-top:auto}.pr small{font-size:10px}.bu{font-size:9px;color:#444}.pc{font-size:8.5px;color:#1d7a46;font-weight:700}
-    .pie{margin-top:6mm;font-size:10px;color:#6a7184;text-align:center}
+    .pie{margin-top:6mm;font-size:10px;color:#6a7184;text-align:center}.cc{font-size:8.5px;font-weight:700;color:${MARCA.c}}.gr{font-size:26px;font-weight:800;color:${MARCA.c};border-bottom:2px solid ${MARCA.c};margin:6mm 0 3mm;padding-bottom:1mm;page-break-after:avoid}
     .ayuda{font:14px system-ui;background:#f6e9ec;padding:10px;border-radius:6px;margin:10px}@media print{.ayuda{display:none}}</style></head><body>
     <p class="ayuda">Para guardarlo en PDF elegí <b>Guardar como PDF</b>. En "Más opciones" activá <b>Gráficos de fondo</b> para que salgan los colores.${conFoto<L.length?' '+(L.length-conFoto)+' productos todavía no tienen foto: salen con su inicial.':''}</p>
     <div class="tapa">${MARCA.logo?`<img src="${MARCA.logo}" alt="">`:''}<h1>Catálogo de productos</h1>
@@ -883,12 +885,13 @@ function catalogoPDF(l,L,c,nomLista){const w=window.open('','_blank');if(!w)retu
       <div class="f"><span>${L.length} productos</span><span>${F.length} ${F.length==1?'categoría':'categorías'}</span>${O.length?`<span>🔥 ${O.length} en oferta</span>`:''}${S.telEmp?`<span>WhatsApp ${esc(S.telEmp)}</span>`:''}</div>
       ${c?.token_pedidos?`<div class="s" style="margin-top:10mm;font-size:13px">Hacé tu pedido online:<br>${esc(linkPedidos(c))}</div>`:''}</div>
     ${O.length?`<div class="sec"><div class="sh of"><h2>🔥 Ofertas</h2><small>${O.length} productos</small></div><div class="g">${O.map(card).join('')}</div></div>`:''}
-    ${F.map(f=>`<div class="sec"><div class="sh"><h2>${esc(cap(f))}</h2><small>${G[f].length} productos</small></div><div class="g">${G[f].sort((a,b)=>a.m.localeCompare(b.m)||a.d.localeCompare(b.d)).map(card).join('')}</div></div>`).join('')}
+    ${F.map((f,i)=>{const g=famGrupo(f),gp=i?famGrupo(F[i-1]):null;return (g&&g!==gp?`<div class="gr">${esc(g)}</div>`:'')+`<div class="sec"><div class="sh"><h2>${esc(fNom(f))}</h2><small>${G[f].length} ${G[f].length==1?'producto':'productos'}</small></div><div class="g">${G[f].sort((a,b)=>nCod(a.c)-nCod(b.c)||a.d.localeCompare(b.d)).map(card).join('')}</div></div>`}).join('')}
     <p class="pie">Sabores de mi País · Precios sujetos a modificación sin previo aviso.${conFoto?' Algunas fotos: Open Food Facts (CC BY-SA).':''}</p>
     <script>window.onload=()=>setTimeout(()=>window.print(),500)<\/script></body></html>`);w.document.close()}
 
 /* ---------- Lista de precios para clientes ---------- */
 function abrirListaPrecios(c){
+  catalogoFotos();
   const LIS={mayorista:'Mayorista',minorista:'Minorista',especial:'Especial'};
   const uniq=k=>[...new Set(S.productos.map(p=>p[k]).filter(Boolean))].sort();
   const m=document.createElement('div');m.className='modal';
@@ -896,7 +899,7 @@ function abrirListaPrecios(c){
     <div class="g">
       <label class="f">Lista<select id="lp_l" ${c?'disabled':''}>${Object.entries(LIS).map(([k,t])=>`<option value="${k}" ${(c?.lista||'mayorista')==k?'selected':''}>${t}</option>`).join('')}</select></label>
       <label class="f">Marca<select id="lp_m"><option value="">Todas</option>${uniq('marca').map(x=>`<option>${esc(x)}</option>`).join('')}</select></label>
-      <label class="f">Familia<select id="lp_f"><option value="">Todas</option>${uniq('familia').map(x=>`<option>${esc(x)}</option>`).join('')}</select></label>
+      <label class="f">Familia<select id="lp_f"><option value="">Todas</option>${uniq('familia').sort(famCmp).map(x=>`<option>${esc(x)}</option>`).join('')}</select></label>
       <label class="f">Buscar<input id="lp_q" placeholder="ej.: maní, crocante"></label></div>
     <label class="chk"><input type="checkbox" id="lp_c" checked> Mostrar el código de cada producto</label>
     <label class="chk"><input type="checkbox" id="lp_of"> Solo productos en oferta (folleto)</label>
@@ -922,7 +925,7 @@ function abrirListaPrecios(c){
       ${grupos(L).map(([g,X])=>`<h2>${esc(g)}</h2><table>${X.map(x=>`<tr>${ft?`<td style="width:58px;padding:3px">${x.f?`<img src="${esc(x.f)}" style="width:52px;height:52px;object-fit:contain;display:block">`:''}</td>`:''}${cod?`<td class="c">${esc(x.c)}</td>`:''}<td>${esc(x.d)}</td><td class="n">${$m(x.p)}</td></tr>`).join('')}</table>`).join('')}
       <p class="pie">Precios sujetos a modificación sin previo aviso.${c?.token_pedidos?' Hacé tu pedido online: '+esc(linkPedidos(c)):''}</p>
       <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close()};
-  $('#lp_cat').onclick=()=>{const{l}=sel();let{L}=sel();if($('#lp_of').checked)L=L.filter(x=>promoCerca(x.id,l));if(!L.length)return toast($('#lp_of').checked?'No hay productos en oferta con ese filtro. Creá una promoción primero.':'No hay productos con ese filtro.',1);catalogoPDF(l,L,c,LIS[l])};
+  $('#lp_cat').onclick=async()=>{const{l}=sel();let{L}=sel();if(!FAM_CAT)await catalogoFotos();for(const x of L)if(!x.f){const k=catPorCodigo(x.c,x.d);if(k)x.f=new URL(k.img,location.href).href}if($('#lp_of').checked)L=L.filter(x=>promoCerca(x.id,l));if(!L.length)return toast($('#lp_of').checked?'No hay productos en oferta con ese filtro. Creá una promoción primero.':'No hay productos con ese filtro.',1);catalogoPDF(l,L,c,LIS[l])};
   $('#lp_wa').onclick=()=>{const{l,L}=sel();if(!L.length)return toast('No hay productos con ese filtro.',1);const cod=$('#lp_c').checked;
     const MAX=60,X=L.slice(0,MAX);
     let t=`*Sabores de mi País*\nLista de precios ${LIS[l]} · ${hoy()}\n_Precios con IVA incluido_\n`;
@@ -2607,6 +2610,60 @@ async function fotosAutomaticas(lista){
       catch(e){mal++;if(/fijar_foto|bucket/i.test(e.message||'')){est('Falta correr mejoras-clientes.sql en Supabase.');break}}}
     $('#fa_ok').disabled=false;R.splice(0,R.length,...R.filter(r=>!r.hecho));pintar();
     est(`Guardé <b>${k-mal}</b> fotos.${mal?' '+mal+' no se pudieron bajar.':''}`);toast((k-mal)+' fotos guardadas.')};
+}
+
+/* ======================= ORDENAR POR FAMILIAS (las del catálogo) ======================= */
+async function ordenarFamilias(){
+  const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  m.innerHTML=`<div class="mc fa"><div class="bh"><h3>Ordenar por familias</h3><button class="alt" id="of_x">Cerrar</button></div><p id="of_t">Analizando tus productos…</p><div id="of_r"></div><p id="of_e"></p></div>`;
+  $('#of_x').onclick=()=>m.remove();const est=t=>$('#of_e').innerHTML=t;
+  await catalogoFotos();
+  const bk=await sb.from('config_app').select('valor').eq('clave','familias_backup').maybeSingle();
+  const hayBk=!!(bk.data&&bk.data.valor);
+  const R=[],sin=[];
+  for(const p of S.productos){const cat=catPorCodigo(p.codigo,p.descripcion)||catPorCodigo(S.min[p.producto_id]?.cf,p.descripcion);
+    const nueva=cat?.fa||famPorDescripcion(p.descripcion),act=(p.familia||'').trim();
+    if(!nueva){sin.push(p);continue}
+    if(nueva.toUpperCase()==act.toUpperCase())continue;
+    R.push({p,act,nueva,por:cat?'código':'nombre',ok:true})}
+  const{data:PR}=await sb.from('promociones').select('id,nombre,alcance_valor,activa').eq('alcance','familia');
+  const promos=(PR||[]).filter(x=>x.activa);
+  const pintar=()=>{
+    const G={};for(const r of R)(G[r.nueva]=G[r.nueva]||[]).push(r);
+    const nm=R.filter(r=>r.ok).length;
+    $('#of_t').innerHTML=`Te propongo ordenar tus productos en las familias del catálogo (Jamón cocido, Quesos duros, Yerba mate…). Las busqué por <b>código</b> y, si no estaba en el catálogo, por el <b>nombre</b> del producto. Revisá y destildá lo que no quieras cambiar.<br><small>${S.productos.length} productos · <b>${R.length}</b> cambian de familia · ${S.productos.length-R.length-sin.length} ya estaban bien · ${sin.length} no los pude ubicar (quedan como están).</small>`;
+    $('#of_r').innerHTML=(promos.length?`<p class="aviso">Tenés ${promos.length} ${promos.length==1?'promoción activa':'promociones activas'} por familia (${promos.map(x=>esc(x.nombre)).join(', ')}). Si todos sus productos pasan a una misma familia nueva, la actualizo sola; si no, te aviso para que la revises.</p>`:'')+
+      (R.length?Object.keys(G).sort(famCmp).map(f=>`<h4 style="margin:14px 0 6px">${esc(f)} <small>(${G[f].length})</small></h4>`+G[f].map(r=>{const i=R.indexOf(r);return `<label class="chk" style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" data-of="${i}" ${r.ok?'checked':''}><span>${esc(r.p.codigo||'')} · ${esc(r.p.descripcion)}<br><small>${r.act?'Antes: '+esc(r.act):'Sin familia'} · por ${r.por}</small></span></label>`}).join('')).join(''):'<p>Todos tus productos ya están en su familia.</p>')+
+      (sin.length?`<details style="margin-top:12px"><summary>${sin.length} ${sin.length==1?"producto que no pude ubicar":"productos que no pude ubicar"}</summary><small>${sin.slice(0,200).map(p=>esc(p.descripcion)).join(' · ')}</small></details>`:'')+
+      `<div class="fc-acc" style="margin-top:12px">${R.length?`<button id="of_ok">Cambiar ${nm} ${nm==1?'producto':'productos'}</button><a class="lnk" id="of_all">Marcar todos</a> · <a class="lnk" id="of_none">Desmarcar todos</a>`:''}${hayBk?` <button class="alt" id="of_undo">Volver a las familias anteriores</button>`:''}</div>`;
+    m.querySelectorAll('[data-of]').forEach(c=>c.onchange=()=>{R[c.dataset.of].ok=c.checked;const n=R.filter(r=>r.ok).length;$('#of_ok').textContent=`Cambiar ${n} ${n==1?'producto':'productos'}`});
+    $('#of_all')&&($('#of_all').onclick=()=>{R.forEach(r=>r.ok=true);pintar()});$('#of_none')&&($('#of_none').onclick=()=>{R.forEach(r=>r.ok=false);pintar()});
+    $('#of_ok')&&($('#of_ok').onclick=guardar);$('#of_undo')&&($('#of_undo').onclick=deshacer)};
+  const aplicar=async(M)=>{const P={};for(const[id,f]of Object.entries(M))(P[f]=P[f]||[]).push(id);
+    for(const[f,ids]of Object.entries(P))for(let k=0;k<ids.length;k+=100){const{error}=await sb.from('productos').update({familia:f||null}).in('id',ids.slice(k,k+100));if(error)throw error}
+    for(const p of S.productos)if(p.producto_id in M)p.familia=M[p.producto_id]||null;guardarCache()};
+  async function guardar(){const A=R.filter(r=>r.ok);if(!A.length)return toast('No marcaste ningún producto.',1);
+    $('#of_ok').disabled=true;est('Guardando…');
+    try{
+      const old={};for(const r of A)old[r.p.producto_id]=r.act;
+      const{error:e1}=await sb.from('config_app').upsert({clave:'familias_backup',valor:JSON.stringify({fecha:new Date().toISOString(),f:old})});if(e1)throw e1;
+      // promociones por familia: si todos sus productos van a una misma familia nueva, la actualizo
+      const avisos=[];
+      for(const pr of promos){const v=String(pr.alcance_valor||'').toUpperCase();const deEsa=S.productos.filter(p=>String(p.familia||'').toUpperCase()==v);
+        const dest=new Set(deEsa.map(p=>{const r=A.find(x=>x.p.producto_id==p.producto_id);return r?r.nueva:p.familia}));
+        if(dest.size==1){const nv=[...dest][0];if(String(nv).toUpperCase()!=v){const{error}=await sb.from('promociones').update({alcance_valor:nv}).eq('id',pr.id);if(!error)avisos.push(`«${pr.nombre}» ahora aplica a ${nv}.`)}}
+        else if(deEsa.some(p=>A.find(x=>x.p.producto_id==p.producto_id)))avisos.push(`Revisá la promoción «${pr.nombre}»: sus productos quedaron en varias familias.`)}
+      const M={};for(const r of A)M[r.p.producto_id]=r.nueva;await aplicar(M);
+      for(const r of A){r.act=r.nueva;r.hecho=true}R.splice(0,R.length,...R.filter(r=>!r.hecho));
+      if(typeof cargarPromos=='function')cargarPromos();
+      pintar();est(`Listo: ${A.length} productos ordenados por familia.${avisos.length?'<br>'+avisos.map(esc).join('<br>'):''}`);toast(A.length+' productos ordenados por familia.');
+      if(typeof vPrecios=='function'&&$('#pr_q'))vPrecios()}
+    catch(e){est('No se pudo guardar: '+esc(e.message));$('#of_ok')&&($('#of_ok').disabled=false)}}
+  async function deshacer(){const{data}=await sb.from('config_app').select('valor').eq('clave','familias_backup').maybeSingle();
+    let B;try{B=JSON.parse(data?.valor||'')}catch(e){B=null}if(!B||!B.f)return toast('No hay un cambio anterior para deshacer.',1);
+    try{await aplicar(B.f);await sb.from('config_app').delete().eq('clave','familias_backup');toast('Volví a las familias anteriores.');m.remove();if(typeof vPrecios=='function'&&$('#pr_q'))vPrecios()}
+    catch(e){est('No se pudo deshacer: '+esc(e.message))}}
+  pintar();
 }
 
 /* ======================= FOTOS DEL CATÁLOGO (TODOS LOS PRODUCTOS) ======================= */

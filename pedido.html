@@ -250,6 +250,7 @@ input,textarea{border:2px solid #ece3d6;border-radius:14px}
 <div class="bar" id="bar" hidden><div id="bpg"></div><div class="in"><div class="tot"><span id="bn"></span><b id="bt"></b></div><button class="prim" id="bv">Ver pedido</button></div></div>
 <div id="t" class="toast" hidden></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="familias.js"></script>
 <script>
 const VERSION='2026-10-11.30';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
@@ -355,13 +356,13 @@ async function iniciar(){
   if(PUB)sb.rpc('opiniones_publicas').then(({data})=>{if(Array.isArray(data)&&data.length){OPI=data;if(BIO&&C)vistaBio();else if(typeof lista=='function'&&P.length)lista()}},()=>{});
   if(PUB){const a={};if(REF)a.p_ref=REF;if(RUB)a.p_rubro=RUB;const{data,error}=Object.keys(a).length?await sb.rpc('catalogo_publico',a):await sb.rpc('catalogo_publico');
     if(error){$('#hc').textContent='';$('#m').innerHTML=`<div class="msg"><h2>Catálogo no disponible</h2><p class="err">${esc(/catalogo_publico/.test(error.message)?'El catálogo todavía no está activado.':error.message)}</p></div>`;return}
-    C=data;P=(data.productos||[]).filter(p=>p.p>0);hayFotos=P.some(p=>p.img);armarCombos();cargarCarrito();
+    C=data;P=(data.productos||[]).filter(p=>p.p>0);await completarFotos(P);hayFotos=P.some(p=>p.img);armarCombos();cargarCarrito();
   cargarSeg();setInterval(cargarSeg,120000);cargarFaq();grpRefrescar();chkNoEstoy();votCargar();sb.rpc('garantia_info').then(({data})=>{if(data&&data.activa){GAR=data;if(P.length&&$('#l'))lista()}},()=>{});if(BIO)return vistaBio();
     document.title='Catálogo · Sabores de mi País';$('#hc').textContent=(C.rubro?'Catálogo para '+C.rubro.toLowerCase():'Catálogo de productos')+' · precios con IVA';pintar();return}
   if(!token){$('#hc').textContent='';$('#m').innerHTML='<div class="msg"><h2>Falta el link</h2><p>Abrí el link que te mandamos por WhatsApp para ver tu catálogo.</p></div>';return}
   const{data,error}=await sb.rpc('catalogo_cliente',{p_token:token});
   if(error){$('#hc').textContent='';$('#m').innerHTML=`<div class="msg"><h2>No pudimos abrir tu catálogo</h2><p class="err">${esc(error.message)}</p></div>`;return}
-  C=data;P=(data.productos||[]).filter(p=>p.p>0);hayFotos=P.some(p=>p.img);armarCombos();cargarCarrito();
+  C=data;P=(data.productos||[]).filter(p=>p.p>0);await completarFotos(P);hayFotos=P.some(p=>p.img);armarCombos();cargarCarrito();
   cargarSeg();setInterval(cargarSeg,120000);cargarFaq();grpRefrescar();chkNoEstoy();votCargar();sb.rpc('garantia_info').then(({data})=>{if(data&&data.activa){GAR=data;if(P.length&&$('#l'))lista()}},()=>{});
   $('#hc').textContent=C.cliente+' · precios lista '+C.lista;
   $('#tabs').hidden=false;$$('[data-tab]').forEach(b=>b.onclick=()=>irTab(b.dataset.tab));regVista();pwaSetup();
@@ -475,9 +476,10 @@ function instHTML(){if(PUB||!token)return '';let no=false;try{no=localStorage.ge
   return `<div class="inst" id="inst" ${instEv||ios?'':'hidden'}><img src="icon-192.png" alt=""><div><b>Tené tu catálogo como app</b><br><small>${ios?'Tocá Compartir ⬆️ y "Agregar a inicio"':'Queda el ícono en tu celular para pedir en un toque'}</small></div>${ios?'':'<button id="instb">Instalar</button>'}<a id="instx" aria-label="Cerrar">✕</a></div>`}
 const btnAv=p=>(C.avisos||[]).includes(p.id)?'<button class="av ok" disabled>✓ Te avisamos cuando llegue</button>':`<button class="av" data-av="${p.id}">🔔 Avisame cuando llegue</button>`;
 let hayFotos=false,fam='',vista=(()=>{try{return localStorage.getItem('vista_cat')||'grilla'}catch(e){return 'grilla'}})();
-const cap=t=>{t=String(t||'').toLowerCase();return t.charAt(0).toUpperCase()+t.slice(1)};
+const cap=t=>{if(typeof FAM_ORDEN!='undefined'&&FAM_ORDEN[String(t||'').toUpperCase()]!=null)return String(t);t=String(t||'').toLowerCase();return t.charAt(0).toUpperCase()+t.slice(1)};
 const famDe=p=>(p.f||'').trim()||'Otros';
-function familias(){const c={};for(const p of P){const f=famDe(p);c[f]=(c[f]||0)+1}return Object.keys(c).sort((a,b)=>a=='Otros'?1:b=='Otros'?-1:a.localeCompare(b))}
+async function completarFotos(L){try{if(typeof catalogoFotos!='function')return;await catalogoFotos();for(const p of L)if(!p.img){const k=catPorCodigo(p.c,p.d);if(k)p.img=k.img}}catch(e){}}
+function familias(){const c={};for(const p of P){const f=famDe(p);c[f]=(c[f]||0)+1}return Object.keys(c).sort(famCmp)}
 const PAL=['#7b2d3e','#1f5fa8','#2e7d4f','#c4571a','#6b3fa0','#0f766e','#b45309','#be185d','#334155','#4d7c0f'];
 const colorDe=t=>{let h=0;for(const ch of String(t||''))h=(h*31+ch.charCodeAt(0))>>>0;return PAL[h%PAL.length]};
 function irTab(t){$$('[data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab==t));try{history.replaceState(null,'',t=='cuenta'?'#cuenta':location.pathname+location.search)}catch(e){}
