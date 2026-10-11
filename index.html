@@ -209,7 +209,7 @@ body{zoom:var(--z,1)}html.oscuro{filter:invert(.92) hue-rotate(180deg);backgroun
 <div id="app"></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
-const VERSION='2026-10-11.30';
+const VERSION='2026-10-11.31';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -746,7 +746,7 @@ async function vPrecios(){
     <p><small>El precio de venta se calcula solo: <b>costo ÷ (1 − margen)</b>. Con 30 %, un producto que te cuesta $ 700 se vende a $ 1.000 y te deja $ 300.</small></p>
     <div class="g" id="pr_l">Cargando…</div><button id="pr_lg">Guardar márgenes</button>
     <div class="g" style="margin-top:12px"><label class="f">Avisarme cuando un producto deje menos de (%) de ganancia<input type="number" id="pr_mm" min="0" max="89" step="1" value="${S.margenMin??15}"></label></div></div>
-  <div class="box"><div class="bh"><h3>Productos</h3><div class="fc-acc"><button class="alt" id="pr_fcat">🖼️ Fotos del catálogo</button><button class="alt" id="pr_fjl">🥜 Fotos Maní JL</button><button class="alt" id="pr_fot">🔎 Fotos automáticas</button><button class="alt" id="pr_et">🏷️ Imprimir etiquetas del filtro</button></div></div>
+  <div class="box"><div class="bh"><h3>Productos</h3><div class="fc-acc"><button class="alt" onclick="window.open('catalogo.html','_blank')">📒 Catálogo con precios</button><button class="alt" id="pr_fcat">🖼️ Fotos del catálogo</button><button class="alt" id="pr_fjl">🥜 Fotos Maní JL</button><button class="alt" id="pr_fot">🔎 Fotos automáticas</button><button class="alt" id="pr_et">🏷️ Imprimir etiquetas del filtro</button></div></div>
     <div class="g"><div class="conscan"><input id="pr_q" placeholder="Buscar por nombre o código" autocomplete="off">${btnScan('pr_sc')}</div>
       <select id="pr_pv"><option value="">Todos los proveedores</option></select>
       <select id="pr_ma"><option value="">Todas las marcas</option></select>

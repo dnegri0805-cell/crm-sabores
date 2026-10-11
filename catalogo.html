@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Catálogo Sabores de mi País</title>
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bitter:wght@600;800&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+/* Catálogo con fotos y precios del CRM: barra fija con búsqueda, lista de precios y orden; grilla tipo góndola por secciones y familias */
+:root{--bg:#f6f3f1;--card:#fff;--fg:#26191d;--mut:#6f6266;--line:#e4dcd9;--acc:#7b2d3e;--accs:#f3e3e6;--ok:#1f6b45;
+--disp:"Bitter",Georgia,serif;--body:"Source Sans 3",system-ui,sans-serif;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#1b1416;--card:#251c1f;--fg:#f2e9eb;--mut:#b3a3a8;--line:#3a2d31;--acc:#e08a9c;--accs:#3d242b;--ok:#7fd1a6;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:env(safe-area-inset-top,0px) 48px}
+header{padding-block:22px 10px;display:flex;gap:14px;align-items:center}
+header img{height:52px;width:auto;border-radius:8px}
+h1{font-family:var(--disp);font-weight:800;font-size:clamp(24px,5vw,34px);margin:0;color:var(--acc);text-wrap:balance}
+.sub{color:var(--mut);margin:2px 0 0}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-bottom:1px solid var(--line)}
+.bar input[type=search]{flex:1 1 220px;min-width:0;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--fg)}
+select{font:inherit;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--fg);max-width:100%}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{font:inherit;font-weight:600;border:0;background:var(--card);color:var(--fg);padding:9px 12px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--acc);color:var(--bg)}
+:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+.chk{display:inline-flex;gap:6px;align-items:center;font-size:14px}
+.nav{display:flex;gap:6px;overflow-x:auto;width:100%;scrollbar-width:none}
+.nav a{flex:none;font-size:13px;font-weight:600;color:var(--acc);background:var(--accs);padding:5px 10px;border-radius:999px;text-decoration:none}
+.cnt{color:var(--mut);font-size:13px;font-variant-numeric:tabular-nums;width:100%}
+.grp{font-family:var(--disp);font-weight:800;font-size:clamp(22px,4.5vw,28px);color:var(--acc);margin:38px 0 0;padding-bottom:6px;border-bottom:2px solid var(--acc);display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.grp small{font-family:var(--body);font-weight:600;font-size:13px;color:var(--mut)}
+h2{font-family:var(--disp);font-weight:600;font-size:19px;margin:26px 0 10px;display:flex;gap:10px;align-items:baseline}
+h2 small{font-family:var(--body);font-weight:400;color:var(--mut);font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.it{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px;display:grid;grid-template-rows:auto auto 1fr auto;gap:6px;min-width:0}
+.ph{background:#fff;border-radius:6px;aspect-ratio:1;max-width:100%;overflow:hidden}
+.ph img{width:100%;height:100%;object-fit:contain;display:block}
+.cod{font-variant-numeric:tabular-nums;font-weight:700;color:var(--acc);font-size:12px;background:var(--accs);justify-self:start;padding:1px 7px;border-radius:4px}
+.cod.no{color:var(--mut);background:transparent;border:1px dashed var(--line)}
+.d{font-size:14px;line-height:1.3;overflow-wrap:anywhere}
+.pr{border-top:1px solid var(--line);padding-top:6px;display:flex;align-items:baseline;justify-content:space-between;gap:6px;flex-wrap:wrap}
+.pr b{font-family:var(--disp);font-weight:800;font-size:20px;color:var(--fg);font-variant-numeric:tabular-nums}
+.pr span{font-size:12px;color:var(--mut)}
+.pr.no b{font-family:var(--body);font-size:14px;font-weight:600;color:var(--mut)}
+.msg{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-top:16px}
+.msg a{color:var(--acc);font-weight:700}
+.empty{color:var(--mut);padding:30px 0}
+@media (max-width:640px){.bar{position:static}}
+@media (max-width:420px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.pr b{font-size:17px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><img id="logo" src="logo.png" alt=""><div><h1>Catálogo Sabores de mi País</h1><p class="sub" id="sub">Cargando precios…</p></div></header>
+<div class="bar">
+<input id="q" type="search" placeholder="Buscar por código, nombre o marca" aria-label="Buscar">
+<select id="lista" aria-label="Lista de precios"><option value="precio_mayorista">Precio mayorista</option><option value="precio_minorista">Precio minorista</option><option value="precio_especial">Precio especial</option></select>
+<div class="seg" role="group" aria-label="Orden"><button id="o_r" aria-pressed="true">Por familia</button><button id="o_c" aria-pressed="false">Por código</button><button id="o_d" aria-pressed="false">A–Z</button></div>
+<select id="fam" aria-label="Familia"><option value="">Todas las familias</option></select>
+<label class="chk"><input type="checkbox" id="solo" checked> Solo los que vendo</label>
+<nav class="nav" id="nav" aria-label="Secciones"></nav>
+<div class="cnt" id="cnt"></div>
+</div>
+<div id="aviso"></div>
+<main id="out"></main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+const sb=supabase.createClient('https://ggfqdkgqtpnkvxoykoty.supabase.co','sb_publishable_kfvkZgS8FewPabohJrKf9Q_UDyEcQiR');
+const GR=[['Fiambres','Fiambres'],['Quesos','Quesos'],['Lácteos','Lácteos'],['Almacén','Almacén'],['Dulces','Dulces'],['Congelados','Congelados'],['Higiene','Higiene personal']];
+const FAMS=[['Fiambres',['Jamón cocido','Fiambre cocido de pata de cerdo','Paleta de cerdo cocida','Fiambre de cerdo para emparedados','Jamón crudo','Bondiola','Lomo de cerdo','Panceta y pastrón','Mortadela','Leverwurst','Salchichón, queso de cerdo y salchichas','Salames y salamines','Fiambres feteados']],
+ ['Quesos',['Quesos de campo y provoletas','Cheddar y dips','Queso rallado','Quesos untables y queso crema','Quesos blandos','Quesos en hebras, fetas y fraccionados','Mozzarella','Quesos azules','Quesos duros','Quesos semiduros']],
+ ['Lácteos',['Manteca','Crema de leche','Leches','Yogures','Postres, flanes y gelatinas','Dulce de leche']],
+ ['Almacén',['Snacks y untables','Semillas','Tostadas, galletas y crackers','Conservas de pescado','Paté y picadillo','Conservas de frutas','Tomate y salsas de tomate','Conservas de verduras y legumbres','Aceites y grasas','Vinagres, aceto y jugo de limón','Mayonesa','Aderezos y salsas','Arroz','Harinas, polenta y rebozadores','Sal','Especias y condimentos','Yerba mate','Café, cacao y endulzantes']],
+ ['Dulces',['Mermeladas','Dulces de batata y membrillo','Repostería, miel y salsas dulces']],
+ ['Congelados',['Congelados']],['Higiene',['Higiene personal']]];
+const F2G={},FO={};let o=0;for(const[g,fs]of FAMS)for(const f of fs){F2G[f]=g;FO[f]=o++}
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+const sinT=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+const slug=s=>sinT(s).replace(/[^a-z0-9]+/g,'-');
+const STOP=new Set('de del la el los las con sin x en y a al u un una por tipo g gr kg ml l lt cc'.split(' '));
+const tok=t=>sinT(t).replace(/(\d),(\d)/g,'$1.$2').replace(/(\d)(grs?|kgs?|g|ml|lts?|l|cc|u)\b/g,'$1 $2').split(/[^a-z0-9.]+/).filter(w=>w&&!STOP.has(w));
+function sim(a,b){const A=new Set(tok(a)),B=new Set(tok(b));if(!A.size||!B.size)return 0;let k=0;for(const w of A)if(B.has(w))k++;return 2*k/(A.size+B.size)}
+const cod=c=>String(c??'').trim().replace(/^0+/,'');
+const money=v=>'$ '+(+v).toLocaleString('es-AR',{minimumFractionDigits:Number.isInteger(+v)?0:2,maximumFractionDigits:2});
+let CAT=[],PROD=[],orden='r';
+
+async function cargar(){
+  const r=await fetch('fotos/catalogo/catalogo.json',{cache:'no-cache'});
+  CAT=(await r.json()).map(([c,d,f,fam])=>({c:cod(c),d,img:'fotos/catalogo/'+f+'.webp',f:fam,g:F2G[fam]||'Almacén',n:c?parseInt(c,10):Infinity,k:sinT(c+' '+d+' '+fam)}));
+  const{data:{session}}=await sb.auth.getSession();
+  if(session){
+    const[pp,pr]=await Promise.all([
+      sb.from('precios_productos').select('producto_id,codigo,descripcion,precio_mayorista,precio_minorista,precio_especial,costo'),
+      sb.from('productos').select('*')]);
+    if(pp.error){$('#aviso').innerHTML=`<div class="msg">No pude leer tus precios: ${esc(pp.error.message)}</div>`}
+    const X={};for(const p of pr.data||[])X[p.id]=p;
+    PROD=(pp.data||[]).filter(p=>X[p.producto_id]?.activo!==false).map(p=>({...p,cf:X[p.producto_id]?.codigo_fabricante,pw:!!X[p.producto_id]?.por_peso}));
+    $('#lista').hidden=false;
+  }else{
+    const{data,error}=await sb.rpc('catalogo_publico');
+    if(error){$('#aviso').innerHTML=`<div class="msg">Para ver tus precios, primero <a href="./">entrá al CRM</a> con tu usuario y después volvé a abrir esta página.</div>`;$('#solo').checked=false}
+    else{PROD=(data.productos||[]).map(p=>({producto_id:p.id,codigo:p.c,descripcion:p.d,precio_publico:p.p}));$('#lista').innerHTML='<option value="precio_publico">Precio</option>'}
+  }
+  cruzar();pintar();
+}
+function cruzar(){
+  const porCod={};for(const p of PROD)for(const c of new Set([cod(p.codigo),cod(p.cf)]))if(c)(porCod[c]=porCod[c]||[]).push(p);
+  const usados=new Set();
+  // 1) por código; si hay varios con el mismo código, el de descripción más parecida
+  for(const x of CAT){if(!x.c||!porCod[x.c])continue;
+    const L=porCod[x.c].map(p=>({p,s:sim(x.d,p.descripcion)})).sort((a,b)=>b.s-a.s);x.p=L[0].p;usados.add(L[0].p.producto_id)}
+  // 2) sin código coincidente: por descripción, solo si es muy parecida
+  const libres=PROD.filter(p=>!usados.has(p.producto_id));
+  for(const x of CAT){if(x.p)continue;
+    const L=libres.map(p=>({p,s:sim(x.d,p.descripcion)})).sort((a,b)=>b.s-a.s);
+    if(L[0]&&L[0].s>=0.8&&(!L[1]||L[0].s-L[1].s>=0.1)){x.p=L[0].p}}
+}
+const precio=x=>{const v=x.p&&+x.p[$('#lista').value];return v>0?v:null};
+function card(x){const v=precio(x);
+  return `<article class="it"><div class="ph"><img loading="lazy" src="${esc(x.img)}" alt="${esc(x.d)}"></div><span class="cod ${x.c?'':'no'}">${x.c?'Cód. '+esc(x.c):'Sin código'}</span><div class="d">${esc(x.d)}</div>`+
+    (v?`<div class="pr"><b>${money(v)}</b><span>${x.p.pw?'por kg':'por unidad'}</span></div>`:`<div class="pr no"><b>Consultar</b></div>`)+`</article>`}
+function pintar(){
+  const q=sinT($('#q').value).trim().split(/\s+/).filter(Boolean),fm=$('#fam').value,solo=$('#solo').checked;
+  let L=CAT.filter(x=>(!fm||x.f==fm)&&(!solo||precio(x))&&q.every(w=>x.k.includes(w)));
+  const conP=CAT.filter(x=>precio(x)).length;
+  $('#sub').textContent=PROD.length?`${conP} productos con precio de tu lista`:'Fotos del catálogo, ordenadas por familia';
+  $('#cnt').textContent=`${L.length} ${L.length==1?'producto':'productos'}`;$('#nav').hidden=orden!='r';
+  if(!L.length){$('#out').innerHTML=`<p class="empty">${solo&&!conP?'Todavía no hay productos del catálogo que coincidan con tu lista. Destildá «Solo los que vendo» para ver todo.':'No hay productos con esa búsqueda. Probá con el código o una sola palabra.'}</p>`;return}
+  const cmp=(a,b)=>a.n-b.n||a.d.localeCompare(b.d,'es');
+  if(orden=='r'){
+    $('#out').innerHTML=GR.map(([g,gn])=>{const G=L.filter(x=>x.g==g);if(!G.length)return'';
+      const fs=[...new Set(G.map(x=>x.f))].sort((a,b)=>FO[a]-FO[b]);
+      return `<div class="grp" id="${slug(g)}">${gn}<small>${G.length} ${G.length==1?'producto':'productos'}</small></div>`+fs.map(f=>{const xs=G.filter(x=>x.f==f).sort(cmp);
+        return `<h2>${esc(f)}<small>${xs.length}</small></h2><div class="grid">${xs.map(card).join('')}</div>`}).join('')}).join('');
+  }else{L=L.slice().sort(orden=='c'?cmp:(a,b)=>a.d.localeCompare(b.d,'es'));$('#out').innerHTML=`<div class="grid" style="margin-top:14px">${L.map(card).join('')}</div>`}
+}
+$('#fam').innerHTML+=FAMS.map(([g,fs])=>`<optgroup label="${GR.find(x=>x[0]==g)[1]}">${fs.map(f=>`<option>${esc(f)}</option>`).join('')}</optgroup>`).join('');
+$('#nav').innerHTML=GR.map(([g,gn])=>`<a href="#${slug(g)}">${gn}</a>`).join('');
+for(const[id,v]of[['o_r','r'],['o_c','c'],['o_d','d']])$('#'+id).onclick=()=>{orden=v;document.querySelectorAll('.seg button').forEach(b=>b.setAttribute('aria-pressed',b.id==id));pintar()};
+$('#q').oninput=pintar;$('#fam').onchange=pintar;$('#solo').onchange=pintar;
+$('#lista').onchange=()=>{try{localStorage.setItem('cat_lista',$('#lista').value)}catch(e){}pintar()};
+try{const l=localStorage.getItem('cat_lista');if(l)$('#lista').value=l}catch(e){}
+cargar().catch(e=>{$('#aviso').innerHTML=`<div class="msg">No se pudo cargar el catálogo: ${esc(e.message)}</div>`});
+</script>
+</body>
+</html>
