@@ -210,7 +210,7 @@ body{zoom:var(--z,1)}html.oscuro{filter:invert(.92) hue-rotate(180deg);backgroun
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-11.36';
+const VERSION='2026-10-11.37';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -402,7 +402,7 @@ async function vInicio(){
   let modo='dia';try{modo=localStorage.getItem('inicio_vista')||'dia'}catch(e){}const dia=modo=='dia';
   $('#v').innerHTML=`<div class="bh" style="flex-wrap:wrap;gap:8px"><h2 style="margin:0">Hoy, ${hoyD.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}</h2>
     <div class="sub" style="margin:0"><button class="${dia?'':'alt'}" data-iv="dia">☀️ Mi día</button><button class="${dia?'alt':''}" data-iv="completa">📋 Todo</button><button class="alt" onclick="menuTabsCfg()" title="Elegir qué pestañas se ven">☰ Menú</button></div></div>
-  ${dia?`<p style="margin:4px 0 10px"><small>Solo lo de hoy. Para ver todos los avisos y herramientas tocá <b>📋 Todo</b>.</small></p><div id="chk"></div>${atajosHTML()}<div id="midia"></div><div id="tari"></div><div id="alm"></div>`:`
+  ${dia?`<p style="margin:4px 0 10px"><small>Solo lo de hoy. Para ver todos los avisos y herramientas tocá <b>📋 Todo</b>.</small></p><div id="bk"></div><div id="chk"></div>${atajosHTML()}<div id="midia"></div><div id="tari"></div><div id="alm"></div>`:`
   <div id="bk"></div><div id="chk"></div><div id="cmpi"></div><div id="cami"></div><div id="equi"></div><div id="doci"></div>${atajosHTML()}<div id="midia"></div><div id="mani"></div><div id="resd"></div><div id="tari"></div>
   <div class="herr" id="herr"></div>
   <div id="alm"></div>
@@ -556,27 +556,72 @@ const BK_TABLAS=[['Clientes','clientes'],['Productos y precios','precios_product
   ['Carritos guardados','carritos'],['Avisos de stock','avisos_stock'],['Búsquedas sin resultado','busquedas'],['Precios pactados','precios_cliente'],['Precios de la competencia','precios_competencia'],['Muestras','muestras'],['Visitas al catálogo','vistas_catalogo'],['Reclamos','reclamos'],['Productos que piden','pedidos_sugeridos'],['Preventas','preventas'],['Reservas','reservas'],['Exhibidores','comodatos'],['Fraccionados','fraccionados'],['Combustible','cargas_combustible'],['Promesas de pago','promesas_pago'],['Documentos (lista)','documentos_cliente'],['Le debemos','pendientes_cliente'],['Repartos','repartos_dia'],['Fotos de góndola (lista)','fotos_cliente'],['Comprobantes recibidos','comprobantes_cliente'],['Votos','votos_producto']];
 async function cajaBackup(){const b=$('#bk');if(!b)return;
   const{data}=await sb.from('config_app').select('valor').eq('clave','ultima_copia').maybeSingle();
-  const u=data?.valor,dias=u?Math.floor((Date.now()-new Date(u))/864e5):null;
-  b.innerHTML=`<p class="bkp"><small>✔ Copia de seguridad automática todas las noches.${u?' Último Excel descargado: '+fd(u)+'.':''}</small> <a class="lnk" id="bk_d">Descargar en Excel</a></p>`;
-  $('#bk_d').onclick=descargarBackup}
+  const u=data?.valor,dias=u?Math.floor((Date.now()-new Date(u))/864e5):null,mal=dias==null||dias>=7;
+  b.innerHTML=mal?`<div class="box alerta" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:200px"><b>💾 ${dias==null?'Todavía no hiciste ninguna copia de seguridad':'Hace '+dias+' días que no hacés copia de seguridad'}</b><br><small>Tus datos están en Supabase gratis, que <b>no guarda copias automáticas</b>. Si algo se borra, solo se recupera con tu copia. Lleva un minuto.</small></div><button id="bk_d">Hacer la copia ahora</button><a class="lnk" id="bk_s">🩺 Estado del sistema</a></div>`
+    :`<p class="bkp"><small>💾 Última copia de seguridad: ${fd(u)}${dias?' (hace '+dias+(dias==1?' día':' días')+')':' (hoy)'}.</small> <a class="lnk" id="bk_d">Hacer otra</a> · <a class="lnk" id="bk_s">🩺 Estado del sistema</a></p>`;
+  $('#bk_d').onclick=descargarBackup;$('#bk_s').onclick=estadoSistema}
 async function descargarBackup(){
   const m=document.createElement('div');m.className='modal';m.innerHTML=`<div class="mc"><h3>Copia de seguridad</h3><p id="bk_e">Preparando…</p><div class="barra"><i id="bk_b"></i></div></div>`;document.body.appendChild(m);
   const est=t=>$('#bk_e').textContent=t,bar=p=>$('#bk_b').style.width=p+'%';
   try{
     if(!window.XLSX){est('Cargando el generador de Excel…');await cargarScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js')}
-    const wb=XLSX.utils.book_new(),res=[];let i=0;
-    for(const[n,t] of BK_TABLAS){i++;est('Copiando '+n.toLowerCase()+'… ('+i+' de '+BK_TABLAS.length+')');bar(i/BK_TABLAS.length*90);
+    if(!window.JSZip){est('Cargando el compresor…');await cargarScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js')}
+    const wb=XLSX.utils.book_new(),res=[],J={app:'CRM Sabores de mi País',version:1,fecha:new Date().toISOString(),tablas:{}};let i=0;
+    for(const[n,t] of BK_TABLAS){i++;est('Copiando '+n.toLowerCase()+'… ('+i+' de '+BK_TABLAS.length+')');bar(i/BK_TABLAS.length*85);
       const{data,error}=await todo(()=>sb.from(t).select('*'));if(error){res.push(n+': no se pudo leer');continue}
+      J.tablas[t]=data;
       const filas=data.map(r=>{const o={};for(const[k,v] of Object.entries(r)){if(['token_pedidos','imagen','firma'].includes(k))continue;o[k]=v!==null&&typeof v=='object'?JSON.stringify(v).slice(0,32000):typeof v=='string'?v.slice(0,32000):v}return o});
       XLSX.utils.book_append_sheet(wb,filas.length?XLSX.utils.json_to_sheet(filas):XLSX.utils.aoa_to_sheet([['(sin datos)']]),n.slice(0,31));res.push(n+': '+filas.length)}
     const hoy=diaLocal(new Date()),info=[['Copia de seguridad · Sabores de mi País'],['Fecha',new Date().toLocaleString('es-AR')],['Hecha por',S.perfil.nombre],[],['Hoja','Filas'],...res.map(r=>r.split(': '))];
     const hi=XLSX.utils.aoa_to_sheet(info);wb.SheetNames.unshift('Resumen');wb.Sheets['Resumen']=hi;
-    est('Armando el archivo…');bar(96);
-    XLSX.writeFile(wb,'Copia CRM Sabores '+hoy+'.xlsx',{compression:true});
+    est('Armando el archivo…');bar(92);
+    const zip=new JSZip();zip.file('Copia CRM Sabores '+hoy+'.xlsx',XLSX.write(wb,{type:'array',bookType:'xlsx',compression:true}));
+    zip.file('copia-completa.json',JSON.stringify(J));
+    zip.file('LEEME.txt','Copia de seguridad del CRM Sabores de mi País ('+new Date().toLocaleString('es-AR')+').\r\n\r\n- El Excel es para mirar los datos.\r\n- copia-completa.json sirve para RESTAURAR: en el CRM, Inicio → 🩺 Estado del sistema → Restaurar desde una copia, y elegí este .zip.\r\n\r\nGuardá este archivo en Google Drive o en un pendrive.');
+    const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Copia CRM Sabores '+hoy+'.zip';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000);
     await sb.from('config_app').upsert({clave:'ultima_copia',valor:new Date().toISOString()});
-    bar(100);m.querySelector('.mc').innerHTML=`<h3>Copia descargada</h3><p>Se guardó <b>Copia CRM Sabores ${hoy}.xlsx</b> en tu carpeta de descargas. Guardala también en Google Drive o un pendrive.</p><p><small>${res.join(' · ')}</small></p><button id="bk_ok">Listo</button>`;
+    bar(100);m.querySelector('.mc').innerHTML=`<h3>Copia descargada ✅</h3><p>Se guardó <b>Copia CRM Sabores ${hoy}.zip</b> en tu carpeta de descargas (${(blob.size/1048576).toFixed(1)} MB). Adentro hay un Excel para mirar los datos y el archivo para restaurar.</p><p><b>Subilo a Google Drive o copialo a un pendrive</b>: si queda solo en esta PC y la PC se rompe, se pierde.</p><p><small>${res.join(' · ')}</small></p><button id="bk_ok">Listo</button>`;
     $('#bk_ok').onclick=()=>{m.remove();cajaBackup()}
   }catch(e){m.querySelector('.mc').innerHTML=`<h3>No se pudo descargar</h3><p class="err">${esc(e.message||String(e))}</p><button id="bk_ok">Cerrar</button>`;$('#bk_ok').onclick=()=>m.remove()}}
+/* Estado del sistema: espacio usado en Supabase gratis, última copia y restaurar */
+async function estadoSistema(){const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  m.innerHTML=`<div class="mc"><div class="bh"><h3>🩺 Estado del sistema</h3><button class="alt" id="es_x">Cerrar</button></div><div id="es_c">Revisando…</div></div>`;m.querySelector('#es_x').onclick=()=>m.remove();
+  const[e,c]=await Promise.all([sb.rpc('estado_sistema'),sb.from('config_app').select('valor').eq('clave','ultima_copia').maybeSingle()]);
+  const u=c.data?.valor,dias=u?Math.floor((Date.now()-new Date(u))/864e5):null;
+  const MB=b=>(b/1048576).toLocaleString('es-AR',{maximumFractionDigits:b<10485760?1:0})+' MB';
+  const barra=(t,v,lim)=>{const p=Math.min(100,v/lim*100),col=p>85?'#b3261e':p>60?'#c47a00':'#1f7a46';return `<div style="margin:10px 0"><div style="display:flex;justify-content:space-between"><b>${t}</b><span>${MB(v)} de ${MB(lim)} · ${p<1?'menos de 1':Math.round(p)} %</span></div><div style="height:10px;background:#e7e9ee;border-radius:6px;overflow:hidden"><div style="height:100%;width:${Math.max(p,1)}%;background:${col}"></div></div></div>`};
+  const d=e.data;
+  $("#es_c").innerHTML=((e.error||!d)?`<p class="aviso">Para ver el espacio usado falta correr <b>sistema.sql</b> en Supabase. <button class="alt" id="es_sql">📋 Copiar</button> <a class="alt btnl" href="${SUPA_SQL}" target="_blank" rel="noopener">Abrir Supabase</a></p>`:
+      `${barra('Base de datos (clientes, pedidos, etc.)',d.db_bytes,500*1048576)}${d.archivos_bytes!=null?barra('Fotos y archivos ('+d.archivos+')',d.archivos_bytes,1024*1048576):''}
+       <p><small>Límites aproximados del plan gratis de Supabase. ${d.clientes} clientes · ${d.pedidos} pedidos.${(d.db_bytes>400*1048576||(d.archivos_bytes||0)>850*1048576)?' <b>Te estás acercando al límite: conviene pasar al plan Pro.</b>':' Estás bien de espacio.'}</small></p>`)+
+    `<h4>💾 Copias de seguridad</h4><p>${dias==null?'<b class="mora">Nunca hiciste una copia.</b>':dias>=7?`<b class="mora">Última copia hace ${dias} días.</b>`:`Última copia: ${fd(u)} ✅`}</p>
+     <p><small>El plan gratis de Supabase <b>no hace copias automáticas</b>. Hacé una por semana y guardala en Google Drive o en un pendrive.</small></p>
+     <div class="fc-acc"><button id="es_bk">Hacer copia ahora</button><button class="alt" id="es_rs">Restaurar desde una copia…</button></div>
+     <h4>🕒 Uso</h4><p><small>Si pasás <b>7 días sin usar el CRM</b>, Supabase gratis pausa el proyecto. Si te pasa, entrá a Supabase y tocá <b>Restore</b>.</small></p>`;
+  $('#es_sql')&&($('#es_sql').onclick=ev=>copiarSQL('sistema.sql',ev.target));
+  $('#es_bk').onclick=()=>{m.remove();descargarBackup()};$('#es_rs').onclick=()=>{m.remove();restaurarBackup()}}
+async function restaurarBackup(){const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  m.innerHTML=`<div class="mc"><div class="bh"><h3>Restaurar desde una copia</h3><button class="alt" id="rs_x">Cerrar</button></div>
+    <p>Elegí el archivo <b>.zip</b> de una copia. Se vuelve a cargar <b>solo lo que falta</b> (por ejemplo, algo que se borró sin querer). <b>No pisa ni borra</b> nada de lo que tenés ahora.</p>
+    <input type="file" id="rs_f" accept=".zip,.json"><div id="rs_r"></div></div>`;
+  m.querySelector('#rs_x').onclick=()=>m.remove();
+  m.querySelector('#rs_f').onchange=async ev=>{const f=ev.target.files[0];if(!f)return;const r=$('#rs_r');r.innerHTML='Leyendo…';
+    try{let txt;if(/\.zip$/i.test(f.name)){if(!window.JSZip)await cargarScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');const z=await JSZip.loadAsync(f);const j=z.file('copia-completa.json');if(!j)throw new Error('Ese .zip no tiene el archivo copia-completa.json (las copias viejas, solo en Excel, no sirven para restaurar).');txt=await j.async('string')}else txt=await f.text();
+      const J=JSON.parse(txt);if(!J.tablas)throw new Error('El archivo no es una copia del CRM.');
+      const T=BK_TABLAS.filter(([n,t])=>Array.isArray(J.tablas[t])&&J.tablas[t].length);
+      r.innerHTML=`<p>Copia del <b>${new Date(J.fecha).toLocaleString('es-AR')}</b> · ${T.length} tablas · ${T.reduce((a,[n,t])=>a+J.tablas[t].length,0)} filas.</p>
+        <p class="aviso">¿Seguro? Se agregan las filas que no están hoy. Si algo ya existe, queda como está.</p><button id="rs_ok">Sí, restaurar lo que falta</button><div id="rs_p"></div>`;
+      $('#rs_ok').onclick=async()=>{$('#rs_ok').disabled=true;const P=$('#rs_p'),out={};let pend=T.slice();
+        for(let pas=1;pas<=2&&pend.length;pas++){const fall=[];
+          for(const[n,t]of pend){P.innerHTML=`<p>Restaurando ${esc(n.toLowerCase())}…</p>`;let tot=0,err=null;
+            for(let k=0;k<J.tablas[t].length;k+=500){const{data,error}=await sb.rpc('restaurar_tabla',{p_tabla:t,p_filas:J.tablas[t].slice(k,k+500)});if(error){err=error.message;break}if(data==-1){tot=-1;break}tot+=data||0}
+            if(err){if(/restaurar_tabla/.test(err)){P.innerHTML=`<p class="err">Falta correr <b>sistema.sql</b> en Supabase.</p>`;return}fall.push([n,t]);out[n]='⚠️ '+err}else out[n]=tot==-1?'—':tot}
+          pend=fall}
+        const ok=Object.entries(out).filter(([n,v])=>typeof v=='number'&&v>0);
+        P.innerHTML=`<p><b>Listo.</b> ${ok.length?'Se recuperaron filas en: '+ok.map(([n,v])=>esc(n)+' ('+v+')').join(', ')+'.':'No faltaba nada: todo lo de la copia ya estaba.'}</p>`+
+          (Object.values(out).some(v=>String(v).startsWith('⚠️'))?'<details><summary>Tablas con problemas</summary><small>'+Object.entries(out).filter(([n,v])=>String(v).startsWith('⚠️')).map(([n,v])=>esc(n)+': '+esc(v)).join('<br>')+'</small></details>':'')+'<p><small>Recargá la página para ver los datos.</small></p>'}}
+    catch(e){r.innerHTML=`<p class="err">${esc(e.message)}</p>`}}}
 
 /* ---------- Marca (logo y colores) e instalar como app ---------- */
 const LOGO_DEF=new URL('logo.png',location.href).href;
