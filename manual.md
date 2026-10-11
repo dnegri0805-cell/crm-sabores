@@ -7,7 +7,7 @@ Guía ordenada por sección para consultar o pasarle al equipo. Cada punto dice 
 - **CRM (uso interno):** https://dnegri0805-cell.github.io/crm-sabores/ — se entra con usuario y contraseña.
 - **Catálogo de cada cliente:** link personal `pedido.html?c=…` que se manda desde la ficha del cliente (botón de WhatsApp). Cada cliente ve sus precios, su cuenta y sus promos.
 - **Catálogo público (sin precios de cliente):** `pedido.html?ver=catalogo` — para redes, folletos y nuevos clientes.
-- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-11.28`). Si algo "no aparece", cerrá y abrí la pestaña.
+- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-11.29`). Si algo "no aparece", cerrá y abrí la pestaña.
 - **En el celular:** abrí el CRM en Chrome → menú ⋮ → *Agregar a pantalla de inicio*. Queda como una app.
 - **📲 Atajos en el ícono:** mantené apretado el ícono de la app y vas directo a **Nuevo pedido**, **Cola del día**, **Reparto** o **Cobrar**. Si no aparecen, esperá un día o sacá la app y volvé a agregarla a la pantalla de inicio.
 - **🔐 Entrar con huella o cara** (en **Aa**): al abrir el CRM en ese equipo, o si quedó más de 5 minutos en segundo plano, te pide la huella, la cara o el PIN del celular. Si falla, **Entrar con mi contraseña**. Se activa en cada equipo.
@@ -36,6 +36,8 @@ Es el tablero del día. Arriba de todo, si falta algo: **🩺 Falta correr un SQ
 
 **🚐 Camioneta:** si se vence la VTV, el seguro u otro papel (15 días antes) o se acerca el service, aparece arriba con botón **Ver**.
 
+**🔁 Tareas que se repiten** (en Tareas): cargás una vez "pagar el alquiler el 10" o "llamar al contador los lunes" y aparecen solas el día que toca.
+
 **📝 Tareas:** anotá cosas para hacer con fecha (pagarle a un proveedor, llamar a un cliente). Las vencidas quedan en rojo; las tildás cuando las hacés. Abajo, **🤖 Se armaron solas**: facturas de proveedores que vencen en 3 días, cheques para depositar, mercadería por vencer y cuentas clave que no compran hace 30 días.
 
 En **⚠️ Alertas** también aparecen la **🌡️ temperatura de cámara** fuera de rango (o sin anotar a las 11), los **🚦 clientes en riesgo alto** y los **precios pactados que quedaron con poco margen** después de un aumento: **Revisar y actualizar** te propone el precio nuevo, los actualizás de una y le avisás a cada cliente por WhatsApp.
@@ -47,6 +49,8 @@ Debajo aparecen tarjetas de aviso; cada una lleva a la pantalla donde se actúa:
 - **Plan del día:** a quién llamar o visitar hoy, ya priorizado.
 - **Les toca comprar:** clientes que por su frecuencia ya deberían pedir.
 - **Fidelización, comprando menos, clientes que crecen, servicio y fieles:** alertas de clientes que bajan, suben o merecen un reconocimiento.
+- **🎉 Hitos:** cuando un cliente llega a su pedido 10, 25, 50 o 100, la Cola le manda un agradecimiento con un cupón (5, 10, 15 o 20 %).
+- **📊 Resumen del mes:** los primeros 7 días de cada mes, la Cola arma para cada cliente con cuenta corriente su resumen del mes anterior (compras, pagos y saldo) para mandárselo.
 - **Fechas:** cumpleaños, aniversarios y fechas comerciales cercanas.
 - **Alerta en vivo:** cada 45 segundos revisa si entró un pedido online, un reclamo o un pedido del catálogo público, y suena un aviso. Dejá el CRM abierto en la PC para no perder ninguno.
 
@@ -59,9 +63,11 @@ Debajo aparecen tarjetas de aviso; cada una lleva a la pantalla donde se actúa:
 - Elegí el cliente; se aplican solos su lista de precios, **nivel**, **precios pactados** y promos vigentes.
 - **🎤 Dictar:** en el celular tocás Dictar y decís el pedido ("diez kilos de danbo… dos cajas de maní salado"), con una pausa entre producto y producto. Lo reconoce igual que Pegar de WhatsApp.
 - **🔁 Repetir último:** desde la ficha del cliente, carga su último pedido con los precios de hoy.
+- **📷 Foto de la lista** (dentro de Pegar de WhatsApp): sacás o elegís una foto de la lista (en papel o la que te mandó el cliente) y el CRM lee el texto y reconoce los productos. Funciona mejor con letra clara o impresa, buena luz y la hoja derecha; siempre revisá lo que reconoció.
 - **Pegar de WhatsApp:** pegás el mensaje del cliente tal cual y el sistema reconoce productos y cantidades.
 - **Combos** y **cupón** se agregan desde el mismo formulario.
 - Abajo se ve el **ticket promedio** del cliente y, para el dueño, la **ganancia estimada** del pedido.
+- **📦 Faltó algo** (en los pedidos aprobados o en preparación): ponés cuánto falta de cada producto, se saca del pedido y queda como **"le debemos"**. Cuando ese cliente hace su próximo pedido (online, al aprobarlo, o cargado por vos) te pregunta si lo agregás. Opción de avisarle por WhatsApp. Requiere **visitas.sql**.
 - **📴 Sin señal:** si cargás un pedido sin internet (en la calle), queda guardado en el celular y se manda solo cuando vuelve la señal. Arriba de la lista ves cuántos están esperando.
 - **Mandar como presupuesto:** en vez de pedido, genera un presupuesto con link para que el cliente lo acepte (queda en *Ventas → Presupuestos*).
 
@@ -209,6 +215,8 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 - **📂 Documentos** (en la ficha): constancia de CUIT, de Ingresos Brutos, habilitación, contrato de comodato o DNI (foto o PDF). Quedan en una carpeta privada que solo se ve entrando al CRM; si tienen vencimiento te avisa en Inicio un mes antes. Requiere **cuentas.sql**.
 - **🏖️ Vacaciones** (en la ficha): cierra desde / vuelve el. Mientras está cerrado no se arma su pedido fijo y la Cola no le escribe; cuando vuelve, la Cola le manda *¡Bienvenido! ¿Reponemos?*.
 - **🕐 Horario de recepción** (en la ficha): por ejemplo de 8 a 12. **🧭 Ordenar recorrido** pone primero a los que cierran temprano y el **Modo chofer** avisa si llegás fuera de horario.
+- **🎙️ Nota de voz** (en Notas de la ficha): grabás un audio después de la visita (hasta 3 minutos), con un resumen escrito o dictado opcional. Se escucha con **▶️ Escuchar**. Requiere **visitas.sql**.
+- **📸 Góndola** (en la ficha): fotos de la góndola o heladera del cliente en cada visita, con nota, para ver cómo exhibe tus productos. Carpeta privada. Requiere **visitas.sql**.
 - **🗒️ Notas** (en la ficha): anotás lo que no te querés olvidar del cliente; con fecha, también te queda como tarea. Las notas aparecen al cargarle un pedido y en el Modo chofer. Requiere **cobrar.sql**.
 - **📄 Estado de cuenta** (en la ficha): PDF con el saldo, los comprobantes pendientes (vencidos en rojo), los últimos pagos y tus datos para pagar; también le manda el resumen por WhatsApp.
 - **🧹 Revisión de datos** (arriba en Clientes): lo que conviene completar, con su arreglo: **clientes duplicados** (mismo teléfono, CUIT o nombre) con botón **Unificar** (todos sus pedidos, facturas y cobros pasan a uno; requiere **entregas.sql**), clientes **sin ubicación** (botón para ubicarlos solos en el mapa con su dirección), sin teléfono, sin localidad o sin rubro (se completan ahí mismo) y productos sin costo, sin foto o con margen raro.
@@ -227,10 +235,13 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 - **🧭 Ordenar recorrido** (Reparto): ordena las paradas por cercanía desde tu depósito (la primera vez te pide la ubicación del depósito, estando ahí). Los clientes sin ubicación quedan al final.
 - **📴 Sin señal en el reparto:** si en el Modo chofer te quedás sin internet, los entregados, cobros y "no estaba" quedan guardados en el celular y se mandan solos cuando vuelve la señal (no cierres la pantalla).
 - **🚚 Modo chofer** (en Reparto, con los pedidos elegidos): una parada por pantalla, en orden. Muestra cliente, dirección (**📍 Cómo llegar**), **📞 Llamar**, **📲 Estoy llegando**, lo que lleva, el total y **cuánto cobrar** (contado o saldo de la cuenta). **✅ Entregado y cobrado** registra el cobro (efectivo, transferencia, cheque) con su recibo, marca entregado y pide la **firma del cliente en la pantalla** (o la foto del remito, si preferís). También *Entregado sin cobrar* y *🚪 No estaba*. Al final, el resumen del reparto para mandarlo por WhatsApp.
+- **💰 Cuánto te dejó el reparto:** al terminar el **Modo chofer** ves lo entregado, la ganancia de la mercadería, los km aproximados y el combustible (con las cargas de 🚐 Camioneta), y cuánto te dejó el reparto. Queda guardado en **Reparto → 📈 Repartos** con el total del mes. Requiere **visitas.sql**.
+- **🗓️ Calendario** (Reparto): el mes a la vista con los pedidos de cada día de entrega, los feriados y los días sin reparto. Tocás un día y ves qué sale.
 - **🚐 Camioneta al día** (Reparto): patente, kilómetros, vencimientos (VTV, seguro, patente, matafuego, licencia, RUTA), service cada X km con **✅ Hice el service hoy**, y las **⛽ cargas de combustible** (km del tablero, litros, importe; si querés se anotan también como gasto de caja). Con dos tanques llenos te calcula el **consumo (km por litro)** y **cuánto te cuesta cada kilómetro** (combustible más service, seguro y arreglos que cargues en Caja). Requiere **practico.sql**.
 - **Cobranza:** quién debe y cuánto, con filtro *Con deuda vencida*. Registrás pagos (efectivo, transferencia, cheque) y se genera el **recibo**. El botón **pronto pago** aplica el descuento si paga dentro del plazo.
 - **🤝 Promesas de pago** (Cobranza → Clientes que deben → **🤝 Promesa**): anotás cuándo te dijo que paga y cuánto. Ese día aparece en Inicio; se marca **cumplida** sola cuando registrás el cobro, y si no pagó, al otro día la Cola le manda el recordatorio. En cada cliente ves cuántas promesas cumple.
 - **💸 Recargo por mora** (Cobranza → Clientes que deben): lo activás con el interés por mes y los días de gracia. A cada cliente con deuda vencida le aparece el recargo, que va en el WhatsApp de deuda, el resumen en PDF y el estado de cuenta. Con **perdonar o cobrado** vuelve a cero desde ese día.
+- **💵 Contar billetes** (Caja → Cierre, al lado de Efectivo contado): ponés cuántos billetes hay de cada uno y te arma el total y la diferencia; el detalle queda en la nota del cierre.
 - **Caja:** ingresos y egresos del día y cierre de caja (arqueo). Arriba, **🧾 Cierre del día**.
 - **Cobranza → 🏦 Conciliar transferencias:** subís el extracto del banco o de Mercado Pago (Excel, CSV o PDF) o pegás las filas; el CRM sugiere de qué cliente es cada ingreso (por CUIT, nombre o importe) y registrás los cobros con un toque. Los ya registrados no se repiten.
 - **💳 Cómo pagar con QR:** el remito, la nota de pedido y el estado de cuenta llevan tus datos de pago (alias/CBU) y un QR con tu link de Mercado Pago (se cargan en Configuración: datos de pago y link de MP).
