@@ -210,7 +210,7 @@ body{zoom:var(--z,1)}html.oscuro{filter:invert(.92) hue-rotate(180deg);backgroun
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-11.33';
+const VERSION='2026-10-11.34';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -250,8 +250,9 @@ async function init(){
   shell();huellaArranque();programarManana();llegueArranque();
 }
 function shell(){
-  app.innerHTML=`<header><b>${MARCA.logo?`<img class="hlogo" src="${MARCA.logo}" alt="Sabores de mi País"><span class="hn">Sabores de mi País</span>`:'Sabores de mi País'}</b><nav>${['inicio','pedidos','ventas','reparto','clientes','cobranza','caja','compras','stock','precios','reportes','contable','manual'].filter(t=>!['precios','caja','contable'].includes(t)||S.perfil.rol=='dueno').map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${t=='manual'?'📖 Manual':t[0].toUpperCase()+t.slice(1)}</a>`).join('')}</nav><span><a class="hbt" onclick="buscarTodo()" title="Buscar (Ctrl+K)">🔎</a><a class="hbt" onclick="ayuda()" title="Ayuda de esta pantalla (?)">❓</a><a class="hbt" onclick="vistaCfg()" title="Letra, colores y avisos">Aa</a>${esc(S.perfil.nombre)} (${S.perfil.rol}) <small style="opacity:.6">v${VERSION}</small><a onclick="out()">Salir</a></span></header><main id="v"></main>`;
+  app.innerHTML=`<header><b>${MARCA.logo?`<img class="hlogo" src="${MARCA.logo}" alt="Sabores de mi País"><span class="hn">Sabores de mi País</span>`:'Sabores de mi País'}</b><nav>${['inicio','pedidos','ventas','reparto','clientes','cobranza','caja','compras','stock','precios','reportes','contable','manual'].filter(t=>!['precios','caja','contable'].includes(t)||S.perfil.rol=='dueno').filter(t=>t=='inicio'||t==S.tab||!(S.menuT?.oc||[]).includes(t)).map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${t=='manual'?'📖 Manual':t[0].toUpperCase()+t.slice(1)}</a>`).join('')}</nav><span><a class="hbt" onclick="buscarTodo()" title="Buscar (Ctrl+K)">🔎</a><a class="hbt" onclick="ayuda()" title="Ayuda de esta pantalla (?)">❓</a><a class="hbt" onclick="vistaCfg()" title="Letra, colores y avisos">Aa</a>${esc(S.perfil.nombre)} (${S.perfil.rol}) <small style="opacity:.6">v${VERSION}</small><a onclick="out()">Salir</a></span></header><main id="v"></main>`;
   $$('nav a').forEach(a=>a.onclick=()=>{S.tab=a.dataset.t;shell()});
+  if(S.menuT===undefined){S.menuT=null;cfgJ('menu_tabs',{oc:[]}).then(v=>{S.menuT=v;if((v.oc||[]).length)$$('nav a').forEach(a=>{if(a.dataset.t!='inicio'&&a.dataset.t!=S.tab&&v.oc.includes(a.dataset.t))a.remove()})})}
   ({inicio:vInicio,pedidos:vPedidos,ventas:vVentas,reparto:vReparto,caja:vCaja,contable:vContable,clientes:vClientes,cobranza:vCobranza,compras:vCompras,stock:vStock,precios:vPrecios,reportes:vReportes,manual:vManual})[S.tab]();
 }
 
@@ -396,12 +397,15 @@ const diaLocal=d=>{const x=new Date(String(d).length==10?d+'T12:00':d);return x.
 async function vInicio(){
   const hoyD=new Date(),hoy=diaLocal(hoyD),mes=hoy.slice(0,7);
   const en7=new Date();en7.setDate(en7.getDate()+7);const lim7=diaLocal(en7);
-  $('#v').innerHTML=`<h2>Hoy, ${hoyD.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}</h2>
+  let modo='dia';try{modo=localStorage.getItem('inicio_vista')||'dia'}catch(e){}const dia=modo=='dia';
+  $('#v').innerHTML=`<div class="bh" style="flex-wrap:wrap;gap:8px"><h2 style="margin:0">Hoy, ${hoyD.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}</h2>
+    <div class="sub" style="margin:0"><button class="${dia?'':'alt'}" data-iv="dia">☀️ Mi día</button><button class="${dia?'alt':''}" data-iv="completa">📋 Todo</button><button class="alt" onclick="menuTabsCfg()" title="Elegir qué pestañas se ven">☰ Menú</button></div></div>
+  ${dia?`<p style="margin:4px 0 10px"><small>Solo lo de hoy. Para ver todos los avisos y herramientas tocá <b>📋 Todo</b>.</small></p><div id="chk"></div>${atajosHTML()}<div id="midia"></div><div id="tari"></div><div id="alm"></div>`:`
   <div id="bk"></div><div id="chk"></div><div id="cmpi"></div><div id="cami"></div><div id="equi"></div><div id="doci"></div>${atajosHTML()}<div id="midia"></div><div id="mani"></div><div id="resd"></div><div id="tari"></div>
   <div class="herr" id="herr"></div>
   <div id="alm"></div>
   <div id="empi"></div><div id="metai"></div><div id="colai"></div><div id="plani"></div><div id="toca"></div><div id="fidel"></div><div id="masi"></div><div id="creci"></div><div id="servi"></div><div id="fieli"></div><div id="fechas"></div>
-  <div id="obj"></div>
+  <div id="obj"></div>`}
   <div class="kp">
     <div class="box" id="k1"><span class="lab">Facturado hoy</span><span class="num">…</span><span class="det"></span></div>
     <div class="box" id="k2"><span class="lab">Pedidos por aprobar</span><span class="num">…</span><span class="det"></span></div>
@@ -417,6 +421,7 @@ async function vInicio(){
   </div>`;
   const kp=(id,num,det,cls)=>{const b=$('#'+id);b.querySelector('.num').textContent=num;b.querySelector('.det').textContent=det||'';if(cls)b.classList.add(cls)};
   const fallo=(id,e)=>kp(id,'—','No se pudo leer: '+e.message);
+  $$('[data-iv]').forEach(b=>b.onclick=()=>{try{localStorage.setItem('inicio_vista',b.dataset.iv)}catch(e){}vInicio()});
   if(S.perfil.rol=='dueno')cajaBackup();
   herramientas();generarFijos();alertasMargen();objetivoMes();tocaInicio();fidelInicio().catch(()=>{});masInicio().catch(()=>{});crecerInicio().catch(()=>{});fielesInicio().catch(()=>{});servInicio().catch(()=>{});planInicio().catch(()=>{});colaInicio().catch(()=>{});resumenDia().catch(()=>{});tareasInicio().catch(()=>{});chequeoInicio().catch(()=>{});camionetaInicio().catch(()=>{});cuentasInicio().catch(()=>{});equiposInicio().catch(()=>{});comprobantesInicio().catch(()=>{});mananaInicio().catch(()=>{});miDia().catch(()=>{});ocSemanal().catch(()=>{});aplicarAumentosProg().catch(()=>{});sincronizarOff().catch(()=>{});metasInicio().catch(()=>{});empujonBox($('#empi')).catch(()=>{});avisosEnVivo();fechasInicio();
   const cli=id=>esc(S.clientes.find(c=>c.id==id)?.razon_social||'Cliente');
@@ -6283,6 +6288,21 @@ async function chequeoInicio(){const box=$('#chk');if(!box||S.perfil.rol!='dueno
     ${F.map(f=>`<div class="vi" style="align-items:center"><b style="flex:1">${esc(f)}</b><button class="alt" data-csq="${esc(f)}">📋 Copiar</button><a class="alt btnl" href="${SUPA_SQL}" target="_blank" rel="noopener">Abrir Supabase</a></div>`).join('')}<p><small>Cuando termines, recargá esta página.</small></p>`:''}
     ${pend.length&&!oc?`<details ${F.length?'':'open'}><summary><b>⚙️ Configuración: ${C.length-pend.length} de ${C.length} lista</b></summary>${pend.map(([t,ok,f])=>`<div class="vi" style="align-items:center;padding:4px 0"><span style="flex:1">${t}</span><button class="alt" onclick="${f}">Ir</button></div>`).join('')}<p><a class="lnk" id="chk_oc">Ocultar hasta mañana</a></p></details>`:''}</div>`;
   $$('#chk [data-csq]').forEach(b=>b.onclick=()=>copiarSQL(b.dataset.csq,b));$('#chk_oc')&&($('#chk_oc').onclick=()=>{try{localStorage.setItem('chk_oc',diaLocal(new Date()))}catch(e){}chequeoInicio()})}
+
+/* Pestañas que se ven arriba (se guarda para todos tus equipos) */
+const TAB_NOM={pedidos:'Pedidos',ventas:'Ventas',reparto:'Reparto',clientes:'Clientes',cobranza:'Cobranza',caja:'Caja',compras:'Compras',stock:'Stock',precios:'Precios',reportes:'Reportes',contable:'Contable',manual:'📖 Manual'};
+async function menuTabsCfg(){if(S.menuT==null)S.menuT=await cfgJ('menu_tabs',{oc:[]});const oc=new Set(S.menuT.oc||[]),m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  const tabs=Object.keys(TAB_NOM).filter(t=>!['precios','caja','contable'].includes(t)||S.perfil.rol=='dueno');
+  m.innerHTML=`<div class="mc"><div class="bh"><h3>☰ Qué se ve en el menú</h3><button class="alt" id="mt_x">Cerrar</button></div>
+    <p><small>Destildá las pestañas que no usás. No se borra nada: podés volver a mostrarlas cuando quieras, y se guarda para la PC y el celular.</small></p>
+    <label class="chk"><input type="checkbox" checked disabled style="width:auto;margin:0 8px 0 0">Inicio (siempre)</label>
+    ${tabs.map(t=>`<label class="chk"><input type="checkbox" data-mt="${t}" ${oc.has(t)?'':'checked'} style="width:auto;margin:0 8px 0 0">${TAB_NOM[t]}</label>`).join('')}
+    <p style="margin-top:12px"><small>Adentro de <b>Ventas</b> hay muchas pantallas (promociones, cupones, vendedores y comisiones, sorteos…). Esas se eligen aparte:</small><br><button class="alt" id="mt_v">⚙️ Elegir las pantallas de Ventas</button></p>
+    <div class="fc-acc"><button id="mt_g">Guardar</button><a class="lnk" id="mt_r">Mostrar todo</a></div></div>`;
+  const q=s=>m.querySelector(s);q('#mt_x').onclick=()=>m.remove();
+  const sv=async v=>{const{error}=await guardaCfgJ('menu_tabs',v);if(error)return toast(error.message,1);S.menuT=v;m.remove();shell();toast('Menú guardado.')};
+  q('#mt_g').onclick=()=>sv({oc:[...m.querySelectorAll('[data-mt]')].filter(c=>!c.checked).map(c=>c.dataset.mt)});q('#mt_r').onclick=()=>sv({oc:[]});
+  q('#mt_v').onclick=()=>{m.remove();if(!S.GRfull){S.tab='ventas';shell();setTimeout(()=>S.GRfull&&menuVentasCfg(),600)}else menuVentasCfg()}}
 
 /* 3. Menú de Ventas a tu medida */
 function menuAplicar(GR){S.GRfull=GR;const MV=S.menuV||{oc:[],fav:[]};if(S.menuV===undefined){S.menuV=null;cfgJ('menu_ventas',{oc:[],fav:[]}).then(v=>{S.menuV=v;if(S.tab=='ventas'&&((v.oc||[]).length||(v.fav||[]).length))vVentas()})}
