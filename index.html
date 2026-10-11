@@ -210,7 +210,7 @@ body{zoom:var(--z,1)}html.oscuro{filter:invert(.92) hue-rotate(180deg);backgroun
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-11.34';
+const VERSION='2026-10-11.35';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -1504,12 +1504,29 @@ async function remitos(lista){lista=(lista||[]).filter(Boolean);if(!lista.length
   ${lista.map(o=>hoja(o,'ORIGINAL')+hoja(o,'DUPLICADO')).join('')}
   <script>window.onload=()=>setTimeout(()=>window.print(),400)<\/script></body></html>`);w.document.close()}
 
+/* ---------- Impresora térmica (tickets de rollo 58/80 mm) — se elige en "Aa" y queda guardado en este equipo ---------- */
+const tkW=()=>{try{return +(JSON.parse(localStorage.getItem('pref_ticket')||'{}').w)||0}catch(e){return 0}};
+function ticketDoc(titulo,cuerpo){const W=tkW()||80,A=W-6,fs=W<70?11:12.5;
+  return `<html><head><meta charset="utf-8"><title>${esc(titulo)}</title><style>@page{size:${W}mm auto;margin:0}*{box-sizing:border-box}
+  body{margin:0;padding:2mm 3mm;width:${W}mm;font:${fs}px/1.3 'Courier New',ui-monospace,monospace;color:#000}
+  .c{text-align:center}.b{font-weight:700}.g{font-size:${fs*1.5}px;font-weight:700}.h{font-size:${fs*1.25}px;font-weight:700}
+  .r{display:flex;justify-content:space-between;gap:4px}.r span:last-child{white-space:nowrap}.sep{border-top:1px dashed #000;margin:2mm 0}
+  .it{margin:1mm 0}.sm{font-size:${fs*0.85}px}.firma{margin-top:12mm;border-top:1px solid #000;text-align:center;padding-top:1mm}
+  .et{padding:3mm 0;border-bottom:1px dashed #000;page-break-inside:avoid;text-align:center}.et .pr{font-size:${W<70?26:34}px;font-weight:800;margin:1mm 0}.et svg{max-width:${A}mm;height:auto}
+  .ay{font:13px system-ui;background:#fff3cd;padding:6px;margin-bottom:3mm}@media print{.ay{display:none}}</style></head><body>
+  <div class="ay">Ticket de ${W} mm. Elegí tu impresora térmica y, en "Más opciones", márgenes <b>Ninguno</b>.</div>${cuerpo}
+  <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`}
+const tkCab=(tit,num,fecha)=>`<div class="c h">SABORES DE MI PAÍS</div>${S.telEmp?`<div class="c sm">WhatsApp ${esc(S.telEmp)}</div>`:''}<div class="sep"></div><div class="r b"><span>${tit}</span><span>N° ${num}</span></div><div class="sm">${esc(fecha)}</div>`;
+
 async function pedidoPDF(o){
   const w=window.open('','_blank');if(!w)return toast('Permití las ventanas emergentes para generar el PDF.',1);
   w.document.write('<p style="font:16px system-ui;margin:32px">Armando el pedido…</p>');
   const it=await itemsPedido(o);if(!it){w.close();return}
   const c=S.clientes.find(x=>x.id==o.cliente_id)||{};const qb=(await bloquePago().catch(()=>''))+(await bloqueQR(c,it.map(i=>i.id).filter(Boolean)).catch(()=>''));
   const tot=it.reduce((a,i)=>a+i.st,0),f=new Date(o.fecha||o.creado_en||o.created_at||Date.now()).toLocaleDateString('es-AR');
+  if(tkW()){w.document.open();w.document.write(ticketDoc('Pedido '+o.numero,tkCab('Nota de pedido',o.numero,f)+`<div class="sep"></div><div class="b">${esc(c.razon_social||'')}</div>${c.domicilio?`<div class="sm">${esc(c.domicilio)}</div>`:''}<div class="sep"></div>`+
+    it.map(i=>`<div class="it"><div>${esc(i.d)}</div><div class="r sm"><span>${i.qt} × ${i.puT||$m(i.pu)}</span><span>${$m(i.st)}</span></div>${i.pr?`<div class="sm">Promo: ${esc(i.pr)}</div>`:''}</div>`).join('')+
+    `<div class="sep"></div><div class="r g"><span>TOTAL</span><span>${$m(o.total||tot)}</span></div>${it.some(i=>i.kg)?'<div class="sm">Fiambres y quesos: se cobra el peso real.</div>':''}<div class="firma sm">Recibí conforme</div><div class="c sm" style="margin-top:3mm">¡Gracias por tu compra!</div>`));w.document.close();return}
   w.document.open();w.document.write(`<html><head><meta charset="utf-8"><title>Pedido ${o.numero} - ${esc(c.razon_social)}</title><style>body{font:14px system-ui,Segoe UI,sans-serif;margin:32px;color:#1c2333}h1{color:${MARCA.c};margin:0}.top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid ${MARCA.c};padding-bottom:12px}table{width:100%;border-collapse:collapse;margin:16px 0}th,td{border-bottom:1px solid #ccc;padding:6px;text-align:left}.n{text-align:right;white-space:nowrap}.tot td{font-weight:700;font-size:16px;border-bottom:0}.ayuda{background:#f6e9ec;padding:10px;border-radius:6px}@media print{.ayuda{display:none}}</style></head><body>
   <p class="ayuda">Para guardarlo en PDF: en la ventana de impresión elegí <b>Guardar como PDF</b> como destino.</p>
   <div class="top"><div>${logoImg()}<h1>Sabores de mi País</h1><div>Nota de pedido</div></div><div class="n"><b>Pedido N° ${o.numero}</b><br>${f}</div></div>
@@ -1671,6 +1688,9 @@ async function reciboWA(x,c){if(!x||!c)return;const w=window.open('','_blank');
 async function reciboPDF(x,c){if(!x||!c)return;const w=window.open('','_blank');if(!w)return toast('Permití las ventanas emergentes para generar el PDF.',1);
   w.document.write('<p style="font:16px system-ui;margin:32px">Armando el recibo…</p>');
   const d=await datosRecibo(x,c);
+  if(tkW()){w.document.open();w.document.write(ticketDoc('Recibo '+x.numero,tkCab('Recibo',x.numero,fd(x.fecha))+`<div class="sep"></div><div>Recibimos de:</div><div class="b">${esc(c.razon_social||'')}</div><div class="sep"></div><div class="r g"><span>${$m(x.importe)}</span></div><div class="sm">${esc(x.medio||'')}</div>`+
+    (d.fac.length?`<div class="sep"></div>${d.fac.map(f=>`<div class="r sm"><span>${esc(f.t)}</span><span>${$m(f.imp)}</span></div>`).join('')}${d.cuenta?`<div class="r sm"><span>A cuenta</span><span>${$m(d.cuenta)}</span></div>`:''}`:'')+
+    (d.saldo!=null?`<div class="sep"></div><div class="sm">${d.saldo>0.005?'Saldo pendiente: <b>'+$m(d.saldo)+'</b>':d.saldo<-0.005?'Saldo a favor: <b>'+$m(-d.saldo)+'</b>':'<b>Cuenta al día.</b>'}</div>`:'')+`<div class="firma sm">Firma</div>`));w.document.close();return}
   w.document.open();w.document.write(`<html><head><meta charset="utf-8"><title>Recibo ${x.numero} - ${esc(c.razon_social)}</title><style>body{font:14px system-ui,Segoe UI,sans-serif;margin:32px;color:#1c2333;max-width:720px}h1{color:${MARCA.c};margin:0}.top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid ${MARCA.c};padding-bottom:12px}table{width:100%;border-collapse:collapse;margin:16px 0}th,td{border-bottom:1px solid #ccc;padding:6px;text-align:left}.n{text-align:right;white-space:nowrap}.imp{font-size:22px;font-weight:700;margin:16px 0}.saldo{background:#f3f4f7;padding:10px 12px;border-radius:6px}.firma{margin-top:56px;border-top:1px solid #1c2333;width:240px;padding-top:4px;text-align:center}.ayuda{background:#f6e9ec;padding:10px;border-radius:6px}@media print{.ayuda{display:none}}</style></head><body>
   <p class="ayuda">Para guardarlo en PDF: en la ventana de impresión elegí <b>Guardar como PDF</b> como destino.</p>
   <div class="top"><div>${logoImg()}<h1>Sabores de mi País</h1><div>Recibo de cobro</div></div><div class="n"><b>Recibo N° ${x.numero}</b><br>${fd(x.fecha)}</div></div>
@@ -2252,7 +2272,7 @@ async function etiquetas(ids){
       <label class="f">Agregar los que cambiaron de precio<select id="et_h"><option value="">Elegí…</option><option value="7">En los últimos 7 días</option><option value="15">En los últimos 15 días</option><option value="30">En los últimos 30 días</option></select></label></div>
     <div class="conscan"><input id="et_q" placeholder="Agregar un producto (nombre o código)" autocomplete="off">${btnScan('et_sc')}</div><div id="et_r"></div>
     <div class="g"><label class="f">Precio de la lista<select id="et_l"><option value="minorista">Minorista</option><option value="mayorista">Mayorista</option><option value="especial">Especial</option></select></label>
-      <label class="f">Tamaño<select id="et_t"><option value="3">Chica (24 por hoja)</option><option value="2" selected>Mediana (12 por hoja)</option><option value="1">Grande (6 por hoja)</option></select></label></div>
+      <label class="f">Tamaño<select id="et_t">${tkW()?`<option value="t" selected>Rollo térmico (${tkW()} mm)</option>`:''}<option value="3">Chica (24 por hoja)</option><option value="2" selected>Mediana (12 por hoja)</option><option value="1">Grande (6 por hoja)</option></select></label></div>
     <label class="chk"><input type="checkbox" id="et_cb" checked> Con código de barras</label><label class="chk"><input type="checkbox" id="et_bu"> Mostrar también el precio por caja/pack</label>
     <p id="et_n"></p><div class="fc-acc"><button id="et_g">Imprimir etiquetas</button><a class="lnk" id="et_v">Vaciar</a></div></div>`;
   document.body.appendChild(m);
@@ -2271,6 +2291,7 @@ async function etiquetas(ids){
       const s=document.createElementNS('http://www.w3.org/2000/svg','svg');try{JsBarcode(s,code,{format:ean?'EAN13':'CODE128',height:cols==3?26:34,width:cols==3?1.3:1.6,fontSize:cols==3?10:12,margin:0,displayValue:true});return s.outerHTML}catch(e){return''}};
     const hgt={3:'33mm',2:'45mm',1:'90mm'}[cols],fs={3:'20px',2:'30px',1:'54px'}[cols];
     const E=L.map(id=>S.productos.find(p=>p.producto_id==id)).filter(p=>+p['precio_'+l]>0);
+    if($('#et_t').value=='t'){w.document.open();w.document.write(ticketDoc('Etiquetas',E.map(p=>{const b=bul(p.producto_id);return `<div class="et"><div class="b">${esc(p.descripcion)}</div><div class="pr">${$m(p['precio_'+l])}</div>${esPeso(p.producto_id)?'<div class="sm">por kg</div>':''}${bu&&b?`<div class="sm">${esc(b.t)} × ${b.n}: ${$m(p['precio_'+l]*b.n)}</div>`:''}${bc(p)}</div>`}).join('')));w.document.close();return}
     w.document.open();w.document.write(`<html><head><meta charset="utf-8"><title>Etiquetas ${new Date().toLocaleDateString('es-AR')}</title><style>
       @page{size:A4;margin:8mm}body{margin:0;font-family:system-ui,Segoe UI,sans-serif;color:#1c2333}
       .h{display:grid;grid-template-columns:repeat(${cols},1fr);gap:0}.e{height:${hgt};border:1px dashed #b9bfcc;padding:3mm 3.5mm;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;page-break-inside:avoid;box-sizing:border-box}
@@ -6337,10 +6358,11 @@ function vistaCfg(){const p=prefV(),m=document.createElement('div');m.className=
   m.innerHTML=`<div class="mc"><div class="bh"><h3>Aa Cómo se ve</h3><button class="alt" id="vc_x">Cerrar</button></div><p><small>Se guarda en este equipo (podés tener letra grande en el celular y normal en la PC).</small></p>
     <h4>Tamaño de letra</h4><div class="sub">${[[1,'Normal'],[1.12,'Grande'],[1.25,'Muy grande']].map(([z,t])=>`<button class="${(p.z||1)==z?'':'alt'}" data-vz="${z}">${t}</button>`).join('')}</div>
     <h4>Colores</h4><div class="sub">${[['claro','☀️ Claro'],['oscuro','🌙 Oscuro'],['auto','Automático']].map(([k,t])=>`<button class="${(p.t||'claro')==k?'':'alt'}" data-vt="${k}">${t}</button>`).join('')}</div>
+    <h4>🧾 Impresora térmica (rollo)</h4><p><small>Si este equipo imprime en una térmica de tickets, los pedidos, recibos y etiquetas salen en formato rollo.</small></p><div class="sub">${[[0,'No uso'],[58,'58 mm'],[80,'80 mm']].map(([w,t])=>`<button class="${tkW()==w?'':'alt'}" data-tk="${w}">${t}</button>`).join('')}</div>
     ${huellaHTML()}<h4>🔔 Avisos en este equipo</h4><p><small>Te avisa con una notificación cuando entra un pedido online, un reclamo o un presupuesto aceptado, aunque estés en otra app. El CRM tiene que quedar abierto (en el celular, mejor instalado como app).</small></p>
     ${ns=='no'?'<p><small>Este navegador no permite notificaciones.</small></p>':ns=='denied'?'<p><small>Bloqueaste las notificaciones para esta página: habilitalas en el candado de la barra de direcciones.</small></p>':`<button id="vc_n" class="${S.vivoBg&&ns=='granted'?'alt':''}">${S.vivoBg&&ns=='granted'?'🔕 Apagar avisos':'🔔 Activar avisos'}</button>`}</div>`;
   const q=s=>m.querySelector(s),sv=o=>{try{localStorage.setItem('pref_vista',JSON.stringify({...prefV(),...o}))}catch(e){}aplicarVista();m.remove();vistaCfg()};
-  q('#vc_x').onclick=()=>m.remove();huellaBind(m);m.querySelectorAll('[data-vz]').forEach(b=>b.onclick=()=>sv({z:+b.dataset.vz}));m.querySelectorAll('[data-vt]').forEach(b=>b.onclick=()=>sv({t:b.dataset.vt}));
+  q('#vc_x').onclick=()=>m.remove();huellaBind(m);m.querySelectorAll('[data-vz]').forEach(b=>b.onclick=()=>sv({z:+b.dataset.vz}));m.querySelectorAll('[data-vt]').forEach(b=>b.onclick=()=>sv({t:b.dataset.vt}));m.querySelectorAll('[data-tk]').forEach(b=>b.onclick=()=>{try{localStorage.setItem('pref_ticket',JSON.stringify({w:+b.dataset.tk}))}catch(e){}m.remove();vistaCfg();toast(+b.dataset.tk?'Listo: imprime en rollo de '+b.dataset.tk+' mm.':'Listo: imprime en hoja A4.')});
   const n=q('#vc_n');if(n)n.onclick=async()=>{if(S.vivoBg&&Notification.permission=='granted'){S.vivoBg=false;try{localStorage.setItem('notif_on','0')}catch(e){}m.remove();return toast('Avisos apagados.')}
     const r=await Notification.requestPermission();if(r!='granted')return toast('No diste permiso para las notificaciones.',1);S.vivoBg=true;try{localStorage.setItem('notif_on','1')}catch(e){}avisosEnVivo();notificar('Sabores de mi País','✅ Listo: así te van a llegar los avisos de pedidos nuevos.');m.remove()}}
 
