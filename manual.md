@@ -7,8 +7,9 @@ Guía ordenada por sección para consultar o pasarle al equipo. Cada punto dice 
 - **CRM (uso interno):** https://dnegri0805-cell.github.io/crm-sabores/ — se entra con usuario y contraseña.
 - **Catálogo de cada cliente:** link personal `pedido.html?c=…` que se manda desde la ficha del cliente (botón de WhatsApp). Cada cliente ve sus precios, su cuenta y sus promos.
 - **Catálogo público (sin precios de cliente):** `pedido.html?ver=catalogo` — para redes, folletos y nuevos clientes.
-- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-10.23`). Si algo "no aparece", cerrá y abrí la pestaña.
+- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-10.24`). Si algo "no aparece", cerrá y abrí la pestaña.
 - **En el celular:** abrí el CRM en Chrome → menú ⋮ → *Agregar a pantalla de inicio*. Queda como una app.
+- **🔎 Buscar:** arriba a la derecha (o **Ctrl + K**) buscás un cliente, un producto (con precio, costo y stock) o un pedido por su número, desde cualquier pantalla.
 - **Menú principal:** Inicio · Pedidos · Ventas · Reparto · Clientes · Cobranza · Caja · Compras · Stock · Precios · Reportes · Contable · Manual. Los números en rojo indican cosas pendientes.
 
 ## 2. Inicio
@@ -174,6 +175,7 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 - **💼 Rentabilidad por cliente:** cuánto te deja cada cliente después de reparto, devoluciones y mora, con qué hacer con los que no rinden.
 - **🧪 Simulador de aumento:** elegís marca o familia y %: ganancia extra, cuánto volumen podés perder sin salir perdiendo, dónde quedarías más caro que la competencia y a qué clientes cuidar.
 - **📊 Resumen semanal:** cómo fue la semana contra la anterior.
+- **📆 Año contra año:** venta de cada mes contra el mismo mes del año pasado, y **Comprá antes**: lo que más se vendió en los próximos dos meses del año pasado comparado con lo que venís vendiendo.
 - **🧀 Rentabilidad quesos y fiambres:** kilos vendidos, venta, ganancia y **ganancia por kilo** de cada uno (con el peso real), y cuáles conviene **🚀 empujar** o **⚠️ revisar el precio**.
 - **🏭 Metas y reintegros:** objetivos por proveedor/marca y reintegros que te deben.
 - **🕐 Cuándo piden:** días y horarios en que entran los pedidos (para saber cuándo mandar mensajes).
@@ -191,6 +193,7 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 **Dónde:** menú *Clientes*. Pestañas: Clientes · Agenda de visitas · Mapa · Dormidos · Prospectos · Pedidos fijos.
 
 - **Clientes:** buscador y filtros (con deuda, por zona, por lista). Tocando un cliente se abre su **ficha**.
+- **🗒️ Notas** (en la ficha): anotás lo que no te querés olvidar del cliente; con fecha, también te queda como tarea. Las notas aparecen al cargarle un pedido y en el Modo chofer. Requiere **cobrar.sql**.
 - **📄 Estado de cuenta** (en la ficha): PDF con el saldo, los comprobantes pendientes (vencidos en rojo), los últimos pagos y tus datos para pagar; también le manda el resumen por WhatsApp.
 - **🧹 Revisión de datos** (arriba en Clientes): lo que conviene completar, con su arreglo: **clientes duplicados** (mismo teléfono, CUIT o nombre) con botón **Unificar** (todos sus pedidos, facturas y cobros pasan a uno; requiere **entregas.sql**), clientes **sin ubicación** (botón para ubicarlos solos en el mapa con su dirección), sin teléfono, sin localidad o sin rubro (se completan ahí mismo) y productos sin costo, sin foto o con margen raro.
 - **Ficha del cliente:** datos, lista de precios, **rubro**, **cliente desde**, **🎂 cumpleaños**, **👑 cuenta clave**, **🚩 se fue a la competencia** (con quién y por qué), **🧮 Negociar** (hasta cuánto podés bajarle sin perder plata, producto por producto), **quién lo recomendó**, **puntos**, **precios pactados**, historial, deuda y el **📋 guion** de venta. Desde acá se manda su **link de catálogo** por WhatsApp.
@@ -206,9 +209,12 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 - **📅 Días de entrega por zona y pedido mínimo por zona** (Reparto → Zonas y camioneta): el cliente elige en su catálogo el día de entrega entre los días de su zona, y el catálogo le pide el mínimo de su zona. En Reparto cada pedido muestra su 📅 fecha y se eligen solos los de hoy. Requiere **entregas.sql**.
 - **📅 Días sin reparto** (Reparto): feriados o días que no salís. El catálogo no los ofrece y con **📲 Avisar** les mandás a los clientes afectados que pidan antes.
 - **🧭 Ordenar recorrido** (Reparto): ordena las paradas por cercanía desde tu depósito (la primera vez te pide la ubicación del depósito, estando ahí). Los clientes sin ubicación quedan al final.
+- **📴 Sin señal en el reparto:** si en el Modo chofer te quedás sin internet, los entregados, cobros y "no estaba" quedan guardados en el celular y se mandan solos cuando vuelve la señal (no cierres la pantalla).
 - **🚚 Modo chofer** (en Reparto, con los pedidos elegidos): una parada por pantalla, en orden. Muestra cliente, dirección (**📍 Cómo llegar**), **📞 Llamar**, **📲 Estoy llegando**, lo que lleva, el total y **cuánto cobrar** (contado o saldo de la cuenta). **✅ Entregado y cobrado** registra el cobro (efectivo, transferencia, cheque) con su recibo, marca entregado y pide la foto del remito. También *Entregado sin cobrar* y *🚪 No estaba*. Al final, el resumen del reparto para mandarlo por WhatsApp.
 - **Cobranza:** quién debe y cuánto, con filtro *Con deuda vencida*. Registrás pagos (efectivo, transferencia, cheque) y se genera el **recibo**. El botón **pronto pago** aplica el descuento si paga dentro del plazo.
 - **Caja:** ingresos y egresos del día y cierre de caja (arqueo). Arriba, **🧾 Cierre del día**.
+- **Cobranza → 🏦 Conciliar transferencias:** subís el extracto del banco o de Mercado Pago (Excel, CSV o PDF) o pegás las filas; el CRM sugiere de qué cliente es cada ingreso (por CUIT, nombre o importe) y registrás los cobros con un toque. Los ya registrados no se repiten.
+- **💳 Cómo pagar con QR:** el remito, la nota de pedido y el estado de cuenta llevan tus datos de pago (alias/CBU) y un QR con tu link de Mercado Pago (se cargan en Configuración: datos de pago y link de MP).
 - **Cobranza → 🚦 Semáforo de riesgo:** 🔴 clientes con deuda vencida que además compran mucho menos, llevan 45 días o más de mora o pagan menos de la mitad de lo que compran; 🟡 los que tienen algo vencido. Botón para escribirles y **🔒 Cortar crédito** (el límite queda en su deuda actual).
 - **Cobranza → 💳 Crédito inteligente:** límite sugerido para cada cliente según cómo compra y paga (buen pagador 1,5 veces su compra mensual, regular 1 vez, malo media vez). Tildás y aplicás.
 - **Reparto → 🗺️ Zonas y camioneta:** para cada zona (sale de la zona o localidad del cliente), los **días de entrega** y el **costo por parada**. Ves cuánto te deja cada zona después del reparto y el **pedido mínimo sugerido**. Cargás la **capacidad de la camioneta** (bultos y kilos) y la hoja de reparto te avisa si te pasás o si hay pedidos de zonas que no entregás ese día. También en Ventas → Analizar.
@@ -216,6 +222,9 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 ## 10. Compras, stock, precios y reportes
 
 - **Compras:** Órdenes de compra (con botón **WhatsApp** que le manda el pedido armado al proveedor y la marca como enviada) · **Sugerencia de compra** (qué reponer según lo que se vende) · **🏷️ Mejor proveedor** · Proveedores · Facturas y pagos a proveedores.
+- **📈 Historial de costos** (Compras): cuánto subió cada producto y cada proveedor (30, 90, 180 días o un año), con gráfico por producto y ⚠️ en los que subieron mucho más que el resto.
+- **Mínimo y descuento por proveedor** (en la Sugerencia de compra): cargás el mínimo de compra y el descuento por volumen de cada proveedor; te avisa cuánto falta y con **Completar** suma lo que más rota. La orden semanal automática también completa el mínimo.
+- **📅 Aumentos programados** (Precios): cargás un aumento anunciado (de un proveedor, marca, familia o todos) con su fecha. Unos días antes la Cola avisa a los clientes que compran esos productos, y ese día los costos y precios suben solos.
 - **🏷️ Mejor proveedor:** el último costo de cada producto en cada proveedor (lo que compraste y las listas que importás), cuál es más barato, cuánto ahorrarías por mes y un botón para pasar el producto a ese proveedor. Requiere **operacion.sql**.
 - **Importar la lista del proveedor** (en Precios): elegí el proveedor. Si la lista trae productos que hoy le comprás a otro, **no te cambia el costo**: quedan guardados para comparar en *Mejor proveedor* (y te marca 💡 si son más baratos).
 - **Stock → 📉 Merma:** cargás roturas, vencidos, diferencias de peso, faltantes. Se descuenta del stock y ves cuánta plata perdés, por motivo y por producto (también en el informe del mes).
@@ -240,6 +249,7 @@ Se abre con su link personal. Pasos para el cliente: **buscar → agregar → Ve
 - **En el carrito:** ⚡ la oferta de último momento, y 💡 **Te conviene** (cuánto le falta para un descuento, con botón para sumarlo), cupón, canje de puntos, avance del desafío y chances del sorteo, pedido mínimo y envío.
 - **Sugerir producto:** si no encuentra algo, lo pide desde el buscador (te llega a *Qué buscan y piden*).
 - **Pedido automático:** puede dejar programado que se repita su pedido.
+- **✏️ Corregir el pedido** (Mi cuenta): mientras está por aprobar, el cliente lo pasa al carrito, lo cambia y lo vuelve a enviar.
 - **📅 Día de entrega:** en el carrito elige cuándo se lo llevás (los días de su zona, sin feriados).
 - **Sin stock:** si un producto está agotado, le ofrece uno parecido de la misma familia con botón **Agregar**.
 - **🪄 Armame un pedido de $ …:** pone cuánto quiere gastar y se le arma el pedido con lo que siempre lleva.
