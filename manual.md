@@ -7,7 +7,7 @@ Guía ordenada por sección para consultar o pasarle al equipo. Cada punto dice 
 - **CRM (uso interno):** https://dnegri0805-cell.github.io/crm-sabores/ — se entra con usuario y contraseña.
 - **Catálogo de cada cliente:** link personal `pedido.html?c=…` que se manda desde la ficha del cliente (botón de WhatsApp). Cada cliente ve sus precios, su cuenta y sus promos.
 - **Catálogo público (sin precios de cliente):** `pedido.html?ver=catalogo` — para redes, folletos y nuevos clientes.
-- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-11.29`). Si algo "no aparece", cerrá y abrí la pestaña.
+- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-11.30`). Si algo "no aparece", cerrá y abrí la pestaña.
 - **En el celular:** abrí el CRM en Chrome → menú ⋮ → *Agregar a pantalla de inicio*. Queda como una app.
 - **📲 Atajos en el ícono:** mantené apretado el ícono de la app y vas directo a **Nuevo pedido**, **Cola del día**, **Reparto** o **Cobrar**. Si no aparecen, esperá un día o sacá la app y volvé a agregarla a la pantalla de inicio.
 - **🔐 Entrar con huella o cara** (en **Aa**): al abrir el CRM en ese equipo, o si quedó más de 5 minutos en segundo plano, te pide la huella, la cara o el PIN del celular. Si falla, **Entrar con mi contraseña**. Se activa en cada equipo.
@@ -32,6 +32,8 @@ Es el tablero del día. Arriba de todo, si falta algo: **🩺 Falta correr un SQ
 
 **🌙 Para mañana** (desde las 16 h, y en el atajo del ícono): qué entregás mañana y cuántos falta armar, pedidos por aprobar, **qué mercadería te falta** para esos pedidos, a quién cobrar (contado y vencidos), cheques para depositar y vencimientos (camioneta, cheques tuyos, proveedores, mercadería y tareas). Si tenés los **🔔 avisos** activados, a las **21 h** te llega como notificación. También va en el mail del resumen diario.
 
+**📤 Comprobantes de pago** que te mandaron los clientes y **🛠️ Equipos del depósito** con service o calibración cerca: aparecen arriba cuando hay.
+
 **🤝 Hoy prometieron pagar** y **📂 Documentos por vencer** (de tus clientes, un mes antes): aparecen arriba cuando hay.
 
 **🚐 Camioneta:** si se vence la VTV, el seguro u otro papel (15 días antes) o se acerca el service, aparece arriba con botón **Ver**.
@@ -49,6 +51,7 @@ Debajo aparecen tarjetas de aviso; cada una lleva a la pantalla donde se actúa:
 - **Plan del día:** a quién llamar o visitar hoy, ya priorizado.
 - **Les toca comprar:** clientes que por su frecuencia ya deberían pedir.
 - **Fidelización, comprando menos, clientes que crecen, servicio y fieles:** alertas de clientes que bajan, suben o merecen un reconocimiento.
+- **🚚 Mañana le llevás:** el día anterior a la entrega (los pedidos con día de entrega), la Cola le avisa al cliente con un link para tocar si **no va a estar**. Si lo toca, el pedido queda marcado **🚫 Avisó que no va a estar** (en Pedidos y en el Modo chofer). Requiere **avisos.sql**.
 - **🎉 Hitos:** cuando un cliente llega a su pedido 10, 25, 50 o 100, la Cola le manda un agradecimiento con un cupón (5, 10, 15 o 20 %).
 - **📊 Resumen del mes:** los primeros 7 días de cada mes, la Cola arma para cada cliente con cuenta corriente su resumen del mes anterior (compras, pagos y saldo) para mandárselo.
 - **Fechas:** cumpleaños, aniversarios y fechas comerciales cercanas.
@@ -222,6 +225,7 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 - **🧹 Revisión de datos** (arriba en Clientes): lo que conviene completar, con su arreglo: **clientes duplicados** (mismo teléfono, CUIT o nombre) con botón **Unificar** (todos sus pedidos, facturas y cobros pasan a uno; requiere **entregas.sql**), clientes **sin ubicación** (botón para ubicarlos solos en el mapa con su dirección), sin teléfono, sin localidad o sin rubro (se completan ahí mismo) y productos sin costo, sin foto o con margen raro.
 - **Ficha del cliente:** datos, lista de precios, **rubro**, **cliente desde**, **🎂 cumpleaños**, **👑 cuenta clave**, **🚩 se fue a la competencia** (con quién y por qué), **🧮 Negociar** (hasta cuánto podés bajarle sin perder plata, producto por producto), **quién lo recomendó**, **puntos**, **precios pactados**, historial, deuda y el **📋 guion** de venta. Desde acá se manda su **link de catálogo** por WhatsApp.
 - **Agenda de visitas:** recorrido del día; el botón **📍 Visita** registra la visita y el resultado. También sugiere **prospectos de paso** cerca del recorrido.
+- **📍 Avisarme al llegar** (Clientes, arriba): con el CRM abierto en el celular, cuando llegás a la puerta de un cliente (a menos de 80 m) te muestra su última compra, lo que debe, lo que le debemos, su promesa de pago y sus notas, con botones para el pedido, la ficha, la visita y la góndola.
 - **Mapa:** clientes coloreados por **última compra** o deuda, y los prospectos. **💰 Cuánto compra:** colores según lo que compró cada uno en los últimos 3 meses (verde oscuro, el 20 % que más compra). **🚚 Cerca del reparto:** las paradas del recorrido (los pedidos que salen o, si no hay, los clientes que visitás hoy) y, a menos de 1,2 km, los **clientes dormidos** (más de 45 días sin comprar) y los **prospectos**, con lista, WhatsApp y Cómo llegar para pasar a verlos.
 - **Dormidos:** clientes que hace mucho no compran.
 - **Prospectos:** negocios a conquistar, con su estado y su **⭐ puntaje** (0 a 100: rubro que mejor convierte, cercanía a tus clientes, teléfono, origen y estado). La cola, las llamadas y el embudo empiezan por los de mayor puntaje. **⚡ Alta exprés:** lo da de alta y le manda por WhatsApp su catálogo personal con la bienvenida y el kit de primer pedido.
@@ -260,8 +264,12 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 - **🏷️ Mejor proveedor:** el último costo de cada producto en cada proveedor (lo que compraste y las listas que importás), cuál es más barato, cuánto ahorrarías por mes y un botón para pasar el producto a ese proveedor. Requiere **operacion.sql**.
 - **Importar la lista del proveedor** (en Precios): elegí el proveedor. Si la lista trae productos que hoy le comprás a otro, **no te cambia el costo**: quedan guardados para comparar en *Mejor proveedor* (y te marca 💡 si son más baratos).
 - **Stock → 📉 Merma:** cargás roturas, vencidos, diferencias de peso, faltantes. Se descuenta del stock y ves cuánta plata perdés, por motivo y por producto (también en el informe del mes).
+- **🧾 Factura por foto** (Compras, arriba): elegís el proveedor y le sacás una foto a la factura; el CRM lee cada renglón (cantidad, producto y precio), lo busca en tus productos y arma la compra para recibirla. Revisá todo antes de confirmar.
+- **📈 Gráfico de un producto** (Compras → Historial de costos, buscador de arriba): cómo fue cambiando el costo, cuánto subió en 12 meses y tus precios de venta.
 - **🚨 Alerta de costo al recibir** (Compras → Recibir): si un producto llega más caro que la última vez (3 % o más) o si otro proveedor lo tiene más barato, te avisa antes de confirmar. Como el costo nuevo cambia tus precios de venta solos, podés tildar **Mantener costo anterior**.
 - **🏭 Día de pedido de cada proveedor** (Compras → Orden semanal → 🏭 Día de cada proveedor): marcás qué día pasa el preventista o cierra el pedido cada uno. Ese día se arma sola su orden de compra en borrador. Los que no tienen día siguen con la orden semanal.
+- **Stock → 📦 Conteo del día:** cada día te pide contar solo 10 productos (los que hace más que no contás y los que más plata valen). Al guardar corrige el stock y te muestra las diferencias. También aparece en **Mi día**.
+- **Stock → 🛠️ Equipos:** cámaras, heladeras, cortadora y balanza, con cada cuánto les toca el service, la calibración y la garantía. Avisa en Inicio 15 días antes.
 - **Stock → 🔪 Fraccionar:** cortás una horma o pieza entera para vender por kilo o en cuñas. Elegís qué cortaste, cuánto pesó entera y en qué la fraccionaste (kilos o cuñas). Se baja la pieza del stock, se suma lo fraccionado, la **merma del corte** queda en Merma y te muestra el **rendimiento** y el **costo real por kilo**; con un tilde actualiza el costo (y los precios) de lo fraccionado. Abajo, el rendimiento promedio de cada producto. Requiere **practico.sql**.
 - **Stock → 🔎 Lotes (trazabilidad):** al preparar un pedido se anota solo qué lote se usó (el que vence antes, de los vencimientos cargados) y sale en el remito. Ante un reclamo o retiro, buscás el producto o el lote y ves a qué clientes se les entregó, con botón para avisarles. Requiere **negocio.sql**.
 - **Stock → 🌡️ Temperatura:** anotás la temperatura de cada cámara; si está fuera de rango (lo configurás, por defecto 0 a 5 °C) queda en rojo y aparece en Inicio. **Planilla del mes** para imprimir ante una inspección.
@@ -287,6 +295,9 @@ Se abre con su link personal. Pasos para el cliente: **buscar → agregar → Ve
 - **✏️ Corregir el pedido** (Mi cuenta): mientras está por aprobar, el cliente lo pasa al carrito, lo cambia y lo vuelve a enviar.
 - **📅 Día de entrega:** en el carrito elige cuándo se lo llevás (los días de su zona, sin feriados).
 - **Sin stock:** si un producto está agotado, le ofrece uno parecido de la misma familia con botón **Agregar**.
+- **📤 Mandar comprobante** (Mi cuenta): el cliente sube la foto o captura de la transferencia; te llega a **Cobranza → 📤 Comprobantes** para registrar el cobro con un toque. Requiere **avisos.sql**.
+- **🗳️ Votación de productos:** armás la pregunta y las opciones en **Ventas → 🤝 Clientes → 🗳️ Votación de productos**; los clientes votan en su catálogo y ves los resultados. Requiere **avisos.sql**.
+- **🎄 Canastas navideñas** (de octubre a diciembre): el comercio elige el tipo (dulce, clásica o para picar) y cuántas arma; le sugiere los productos, el costo por canasta y a cuánto venderla, y lo pasa al carrito.
 - **🤝 Pedido en grupo:** si no llega al mínimo, en el carrito puede **crear un grupo** y mandarle el código a un comercio vecino (o **unirse** con un código que le pasaron). Cada uno hace y paga su pedido; el mínimo se cuenta entre los dos y se entrega en la misma vuelta. El primero puede mandar su pedido apenas crea el grupo. En Pedidos se ven con la marca **🤝 Grupo**. Requiere **cuentas.sql**.
 - **🏷️ Etiquetas para la góndola** (Mi cuenta): el comercio elige los productos que te compra y la ganancia, y se imprime etiquetas de precio para recortar (los quesos y fiambres, con precio por kilo).
 - **🧀 Armá una picada:** el cliente pone para cuántas personas y qué tipo (liviana, picada o abundante) y le arma los kilos de cada queso y fiambre (puede cambiarlos, sumar o quitar). Le muestra cuánto le cuesta y **a cuánto venderla armada**, y con **🛒 Pasar al carrito** la agrega. Usa los quesos y fiambres que se venden por peso.
@@ -328,7 +339,7 @@ Una sola vez, en este orden:
 
 ## 14. Copias de seguridad y preguntas frecuentes
 
-- **Copias de seguridad:** se hacen solas todos los días en un repositorio privado de GitHub. No hay que hacer nada.
+- **Copias de seguridad:** se hacen solas todos los días en un repositorio privado de GitHub. No hay que hacer nada. Además, con **💾 Descargar todo en Excel** (Reportes, arriba, o en Inicio) bajás una copia completa a tu compu.
 - **"No veo una mejora nueva":** cerrá la pestaña y volvé a abrir; la versión de arriba tiene que coincidir con la última.
 - **"El cliente no puede enviar el pedido":** revisá si no llega al mínimo, si pasó la hora de corte o si tiene deuda vencida con freno en *bloquear*.
 - **"El cliente perdió su link":** reenvialo desde su ficha.
