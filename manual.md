@@ -7,14 +7,18 @@ Guía ordenada por sección para consultar o pasarle al equipo. Cada punto dice 
 - **CRM (uso interno):** https://dnegri0805-cell.github.io/crm-sabores/ — se entra con usuario y contraseña.
 - **Catálogo de cada cliente:** link personal `pedido.html?c=…` que se manda desde la ficha del cliente (botón de WhatsApp). Cada cliente ve sus precios, su cuenta y sus promos.
 - **Catálogo público (sin precios de cliente):** `pedido.html?ver=catalogo` — para redes, folletos y nuevos clientes.
-- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-10.24`). Si algo "no aparece", cerrá y abrí la pestaña.
+- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-10.25`). Si algo "no aparece", cerrá y abrí la pestaña.
 - **En el celular:** abrí el CRM en Chrome → menú ⋮ → *Agregar a pantalla de inicio*. Queda como una app.
+- **❓ Ayuda:** arriba, al lado del buscador, abre la explicación de la pantalla en la que estás.
+- **Aa Cómo se ve:** letra normal, grande o muy grande, modo claro u oscuro, y **🔔 avisos en este equipo** (notificación cuando entra un pedido online, aunque estés en otra app, mientras el CRM esté abierto). Se guarda por equipo.
+- **Atajos en la PC:** N nuevo pedido · C Cola del día · I Inicio · R Reparto · B o Ctrl + K buscar · ? ayuda.
+- **Abre más rápido:** guarda en el equipo los clientes y productos y los actualiza solos por detrás.
 - **🔎 Buscar:** arriba a la derecha (o **Ctrl + K**) buscás un cliente, un producto (con precio, costo y stock) o un pedido por su número, desde cualquier pantalla.
 - **Menú principal:** Inicio · Pedidos · Ventas · Reparto · Clientes · Cobranza · Caja · Compras · Stock · Precios · Reportes · Contable · Manual. Los números en rojo indican cosas pendientes.
 
 ## 2. Inicio
 
-Es el tablero del día. En el celular, arriba aparecen **6 botones grandes**: Nuevo pedido, Cola del día, Por aprobar, Armar, Reparto y Cobrar.
+Es el tablero del día. Arriba de todo, si falta algo: **🩺 Falta correr un SQL** (el CRM detecta solo qué archivo falta; botón **📋 Copiar** y **Abrir Supabase**) y **⚙️ Configuración pendiente** (datos de pago, link de Mercado Pago, WhatsApp, gastos fijos, zonas, cámaras, depósito, etc., cada uno con **Ir**). En el celular, arriba aparecen **6 botones grandes**: Nuevo pedido, Cola del día, Por aprobar, Armar, Reparto y Cobrar.
 
 **✅ Mi día:** todo lo que tenés que hacer hoy en una sola lista, con cuántos hay de cada cosa: mandar la Cola, aprobar, armar, pesar, repartir, cobrar vencidos, depositar cheques, pagar a proveedores, revisar órdenes de compra en borrador, anotar la temperatura y tus tareas. Cada renglón tiene **Ir** y lo tildás cuando lo terminaste.
 
@@ -54,7 +58,7 @@ Debajo aparecen tarjetas de aviso; cada una lleva a la pantalla donde se actúa:
 
 **Pedidos online:** los que hace el cliente desde su catálogo entran en *Por aprobar*. Revisalos y aprobalos.
 
-**Estados:** A preparación → Marcar listo → Salió a reparto → Entregado. El cliente ve el seguimiento en su cuenta.
+**Estados:** A preparación → Marcar listo → Salió a reparto → Entregado. Si te equivocás, abajo aparece **Deshacer** unos segundos (también al cambiar costos en Precios). Los cancelados se ven en **Cancelados** y se pueden **♻️ Reactivar**. El cliente ve el seguimiento en su cuenta.
 
 **🧺 Hoja de armado** (botón al lado de *Últimos pedidos*, y también en Reparto): todo lo que hay que preparar sumado por producto, agrupado por familia, con los kilos de quesos y fiambres, en qué pedidos va cada cosa y aviso si falta stock. Tildás lo que vas juntando (o escaneás el código), la imprimís (con una hoja por pedido) y pasás todos a *En preparación* con un botón.
 
@@ -81,7 +85,7 @@ Se venden **por pieza entera** y se cobran **por el peso real**.
 
 ## 4. Ventas · Recuperar y cerrar
 
-**Dónde:** menú *Ventas* (abre en *Cola del día*). Arriba hay solapas: **⚡ Hoy** (Cola, Plan de ataque, Plan del día, Automatizaciones) · **🤝 Clientes** · **🧲 Prospectos** · **🏷️ Ofertas** · **📣 Difundir** · **📸 Instagram** · **📊 Analizar**. Al tocar una solapa aparecen sus pantallas. Con **🔎 Buscar pantalla…** escribís, por ejemplo, "cupo" y la encontrás aunque esté en otra solapa. Casi todas tienen botón de **WhatsApp con el mensaje ya armado**.
+**Dónde:** menú *Ventas* (abre en *Cola del día*). Con **⚙️** (al lado del título) ocultás las pantallas que no usás y marcás tus **⭐ favoritas**, que quedan en su propia solapa. Arriba hay solapas: **⚡ Hoy** (Cola, Plan de ataque, Plan del día, Automatizaciones) · **🤝 Clientes** · **🧲 Prospectos** · **🏷️ Ofertas** · **📣 Difundir** · **📸 Instagram** · **📊 Analizar**. Al tocar una solapa aparecen sus pantallas. Con **🔎 Buscar pantalla…** escribís, por ejemplo, "cupo" y la encontrás aunque esté en otra solapa. Casi todas tienen botón de **WhatsApp con el mensaje ya armado**.
 
 - **⚡ Cola del día:** todos los mensajes que conviene mandar hoy, ya escritos y ordenados por importancia. Tocás **▶ Empezar ráfaga**: se abre WhatsApp con el mensaje, lo mandás, volvés y sigue el próximo. Cada cliente aparece una vez por día y nada se repite. Qué entra:
   - *Para cerrar ventas:* carritos sin enviar, miraron el catálogo, les toca comprar (con su **pedido sugerido**), aviso de **cierre de pedidos** (el día antes de su entrega), presupuestos y sugeridos **sin respuesta**, **volvió el stock**, **bajó el precio**, ofertas automáticas, **venta cruzada** y campañas programadas.

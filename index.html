@@ -195,13 +195,16 @@ button.big.wa{background:var(--ok);color:#fff;border-color:var(--ok)}
 .bp{background:#93a3c4}.bc{background:#1d7a46}.leg{display:inline-block;width:10px;height:10px;border-radius:3px;vertical-align:middle;margin:0 2px 0 8px}
 .atajos{display:none;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 12px}.atajos .at{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:12px 4px;font-size:14px;font-weight:700;border-radius:14px;min-height:84px}.atajos .at span{font-size:28px;line-height:1}@media(max-width:760px){.atajos{display:grid}}
 .midia .md{padding:6px 0;border-bottom:1px solid #eef0f4}.midia .md.hecho label{opacity:.55;text-decoration:line-through}
+body{zoom:var(--z,1)}html.oscuro{filter:invert(.92) hue-rotate(180deg);background:#0e0e10}html.oscuro img,html.oscuro video,html.oscuro canvas,html.oscuro .hlogo{filter:invert(1) hue-rotate(180deg)}
+#snk{display:none;position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#1c2333;color:#fff;padding:10px 14px;border-radius:12px;gap:12px;align-items:center;z-index:9999;box-shadow:0 6px 24px rgba(0,0,0,.25);font-size:14px;max-width:92vw}#snk button{background:#ffd54a;color:#1c2333;border:0;border-radius:8px;padding:6px 12px;font-weight:700;cursor:pointer}
+.hbt{font-size:17px;margin-right:6px;cursor:pointer;text-decoration:none}
 </style>
 </head>
 <body>
 <div id="app"></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
-const VERSION='2026-10-10.24';
+const VERSION='2026-10-10.25';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -213,7 +216,7 @@ const fd=d=>d?new Date(d+(String(d).length==10?'T12:00':'')).toLocaleDateString(
 const ESTADOS=['pendiente','aprobado','en_preparacion','listo','en_reparto','entregado','cancelado'];
 let S={perfil:null,tab:'inicio',clientes:[],productos:[],items:[],sub:'ordenes',prov:[],oc:[]};
 function toast(t,er){const e=$('#t');e.textContent=t;e.style.background=er?'var(--er)':'var(--ok)';e.style.display='block';setTimeout(()=>e.style.display='none',er?6000:3000)}
-async function out(){await sb.auth.signOut();loginView()}
+async function out(){try{localStorage.removeItem('crm_cache_v1')}catch(e){}await sb.auth.signOut();loginView()}
 
 function loginView(){
   app.innerHTML=`<div class="box login">${MARCA.logo?`<img class="llogo" src="${MARCA.logo}" alt="">`:''}<h1>Sabores de mi País</h1><input id="em" type="email" placeholder="Correo"><input id="pw" type="password" placeholder="Contraseña"><button id="go">Ingresar</button><p id="le" class="err"></p></div>`;
@@ -227,17 +230,20 @@ async function init(){
   if(pe){app.innerHTML='<div class="box login"><p class="err">No se pudo leer tu perfil: '+esc(pe.message)+'</p><button onclick="out()">Salir</button></div>';return}
   if(!p||!p.activo){app.innerHTML='<div class="box login"><p>Tu usuario todavía no está activado. Pedile al dueño que lo active.</p><button onclick="out()">Salir</button></div>';return}
   S.perfil=p;
-  const[c,pr]=await Promise.all([
+  const traer=()=>Promise.all([
     todo(()=>sb.from('clientes').select('*').eq('activo',true).order('razon_social').order('id')),
     todo(()=>sb.from('precios_productos').select(PROD_COLS).order('descripcion').order('producto_id'))]);
+  const C0=leerCache(p.id);
+  if(C0){S.clientes=C0.c;S.productos=C0.p;traer().then(([c,pr])=>{if(c.error||pr.error)return;S.clientes.splice(0,S.clientes.length,...c.data);S.productos.splice(0,S.productos.length,...pr.data);guardarCache()}).catch(()=>{})}
+  else{const[c,pr]=await traer();
   if(c.error||pr.error){app.innerHTML='<div class="box login"><p class="err">No se pudieron cargar los datos: '+esc((c.error||pr.error).message)+'</p><button onclick="out()">Salir</button></div>';return}
-  S.clientes=c.data;S.productos=pr.data;await Promise.all([cargarStock(),cargarPromos(),cargarMarca(),cargarVentasCfg()]);
+  S.clientes=c.data;S.productos=pr.data;guardarCache()}await Promise.all([cargarStock(),cargarPromos(),cargarMarca(),cargarVentasCfg()]);
   if(location.hash=='#tablero')return tablero();
   if(location.hash=='#cola'){S.tab='ventas';S.vs='cola';try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
   shell();
 }
 function shell(){
-  app.innerHTML=`<header><b>${MARCA.logo?`<img class="hlogo" src="${MARCA.logo}" alt="Sabores de mi País"><span class="hn">Sabores de mi País</span>`:'Sabores de mi País'}</b><nav>${['inicio','pedidos','ventas','reparto','clientes','cobranza','caja','compras','stock','precios','reportes','contable','manual'].filter(t=>!['precios','caja','contable'].includes(t)||S.perfil.rol=='dueno').map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${t=='manual'?'📖 Manual':t[0].toUpperCase()+t.slice(1)}</a>`).join('')}</nav><span><a onclick="buscarTodo()" title="Buscar (Ctrl+K)" style="font-size:17px;margin-right:6px">🔎</a>${esc(S.perfil.nombre)} (${S.perfil.rol}) <small style="opacity:.6">v${VERSION}</small><a onclick="out()">Salir</a></span></header><main id="v"></main>`;
+  app.innerHTML=`<header><b>${MARCA.logo?`<img class="hlogo" src="${MARCA.logo}" alt="Sabores de mi País"><span class="hn">Sabores de mi País</span>`:'Sabores de mi País'}</b><nav>${['inicio','pedidos','ventas','reparto','clientes','cobranza','caja','compras','stock','precios','reportes','contable','manual'].filter(t=>!['precios','caja','contable'].includes(t)||S.perfil.rol=='dueno').map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${t=='manual'?'📖 Manual':t[0].toUpperCase()+t.slice(1)}</a>`).join('')}</nav><span><a class="hbt" onclick="buscarTodo()" title="Buscar (Ctrl+K)">🔎</a><a class="hbt" onclick="ayuda()" title="Ayuda de esta pantalla (?)">❓</a><a class="hbt" onclick="vistaCfg()" title="Letra, colores y avisos">Aa</a>${esc(S.perfil.nombre)} (${S.perfil.rol}) <small style="opacity:.6">v${VERSION}</small><a onclick="out()">Salir</a></span></header><main id="v"></main>`;
   $$('nav a').forEach(a=>a.onclick=()=>{S.tab=a.dataset.t;shell()});
   ({inicio:vInicio,pedidos:vPedidos,ventas:vVentas,reparto:vReparto,caja:vCaja,contable:vContable,clientes:vClientes,cobranza:vCobranza,compras:vCompras,stock:vStock,precios:vPrecios,reportes:vReportes,manual:vManual})[S.tab]();
 }
@@ -381,7 +387,7 @@ async function vInicio(){
   const hoyD=new Date(),hoy=diaLocal(hoyD),mes=hoy.slice(0,7);
   const en7=new Date();en7.setDate(en7.getDate()+7);const lim7=diaLocal(en7);
   $('#v').innerHTML=`<h2>Hoy, ${hoyD.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}</h2>
-  <div id="bk"></div>${atajosHTML()}<div id="midia"></div><div id="resd"></div><div id="tari"></div>
+  <div id="bk"></div><div id="chk"></div>${atajosHTML()}<div id="midia"></div><div id="resd"></div><div id="tari"></div>
   <div class="herr" id="herr"></div>
   <div id="alm"></div>
   <div id="empi"></div><div id="metai"></div><div id="colai"></div><div id="plani"></div><div id="toca"></div><div id="fidel"></div><div id="masi"></div><div id="creci"></div><div id="servi"></div><div id="fieli"></div><div id="fechas"></div>
@@ -402,7 +408,7 @@ async function vInicio(){
   const kp=(id,num,det,cls)=>{const b=$('#'+id);b.querySelector('.num').textContent=num;b.querySelector('.det').textContent=det||'';if(cls)b.classList.add(cls)};
   const fallo=(id,e)=>kp(id,'—','No se pudo leer: '+e.message);
   if(S.perfil.rol=='dueno')cajaBackup();
-  herramientas();generarFijos();alertasMargen();objetivoMes();tocaInicio();fidelInicio().catch(()=>{});masInicio().catch(()=>{});crecerInicio().catch(()=>{});fielesInicio().catch(()=>{});servInicio().catch(()=>{});planInicio().catch(()=>{});colaInicio().catch(()=>{});resumenDia().catch(()=>{});tareasInicio().catch(()=>{});miDia().catch(()=>{});ocSemanal().catch(()=>{});aplicarAumentosProg().catch(()=>{});sincronizarOff().catch(()=>{});metasInicio().catch(()=>{});empujonBox($('#empi')).catch(()=>{});avisosEnVivo();fechasInicio();
+  herramientas();generarFijos();alertasMargen();objetivoMes();tocaInicio();fidelInicio().catch(()=>{});masInicio().catch(()=>{});crecerInicio().catch(()=>{});fielesInicio().catch(()=>{});servInicio().catch(()=>{});planInicio().catch(()=>{});colaInicio().catch(()=>{});resumenDia().catch(()=>{});tareasInicio().catch(()=>{});chequeoInicio().catch(()=>{});miDia().catch(()=>{});ocSemanal().catch(()=>{});aplicarAumentosProg().catch(()=>{});sincronizarOff().catch(()=>{});metasInicio().catch(()=>{});empujonBox($('#empi')).catch(()=>{});avisosEnVivo();fechasInicio();
   const cli=id=>esc(S.clientes.find(c=>c.id==id)?.razon_social||'Cliente');
   const [fv,pe,fe,sp,fp]=await Promise.all([
     sb.from('facturas_venta').select('*').order('id',{ascending:false}).limit(500),
@@ -796,8 +802,10 @@ SDMP-01279	8.900</pre>
   draw();
   $('#pr_sc').onclick=()=>escanear('Buscar producto por código',p=>{$('#pr_q').value=p.codigo;$('#pr_conf').innerHTML='';draw();return '✔ '+p.descripcion+' · costo '+(p.costo?$m(p.costo):'sin cargar')});
   $('#pr_g').onclick=async()=>{const it=Object.entries(nuevo).map(([id,costo])=>({id,costo}));if(!it.length)return toast('No cambiaste ningún costo.',1);
+    const viejo=it.map(x=>{const p=S.productos.find(y=>y.producto_id==x.id);return p&&+p.costo>0?{id:x.id,costo:Math.round(+p.costo/(ppz(x.id)||1)*100)/100}:null}).filter(Boolean);
     $('#pr_g').disabled=true;const{data,error}=await sb.rpc('fijar_costos',{p_items:it});$('#pr_g').disabled=false;
-    if(error)return toast(error.message,1);for(const k in nuevo)delete nuevo[k];await recargarProductos();vPrecios();toast((data||it.length)+' costos actualizados. Los precios ya cambiaron.')};
+    if(error)return toast(error.message,1);for(const k in nuevo)delete nuevo[k];await recargarProductos();vPrecios();toast((data||it.length)+' costos actualizados. Los precios ya cambiaron.');
+    if(viejo.length)snack((data||it.length)+' costos actualizados',async()=>{const{error:e2}=await sb.rpc('fijar_costos',{p_items:viejo});if(e2)return toast(e2.message,1);await recargarProductos();if(S.tab=='precios')vPrecios();toast('Volvieron los costos anteriores.')})};
   /* aumento por porcentaje */
   $('#pr_prev').onclick=()=>{const p=numAR($('#pr_pct').value);if(!p||!(p>-90&&p<=500))return toast('Escribí un porcentaje, por ejemplo 12 o -5.',1);
     const con=sel.filter(x=>+x.costo>0);if(!con.length)return toast('Ningún producto del filtro tiene costo cargado.',1);
@@ -1334,7 +1342,7 @@ async function vPedidos(){
 /* ---------- Lista de pedidos: aprobar y facturar en un toque ---------- */
 const EST_TXT={pendiente:'Por aprobar',aprobado:'Aprobado',en_preparacion:'En preparación',listo:'Listo',en_reparto:'En reparto',entregado:'Entregado',cancelado:'Cancelado'};
 const SIG={aprobado:['en_preparacion','A preparación'],en_preparacion:['listo','Marcar listo'],listo:['en_reparto','Salió a reparto'],en_reparto:['entregado','Entregado']};
-const FILTROS=[['abiertos','En curso'],['pendiente','Por aprobar'],['entregado','Entregados'],['todos','Todos']];
+const FILTROS=[['abiertos','En curso'],['pendiente','Por aprobar'],['entregado','Entregados'],['cancelado','Cancelados'],['todos','Todos']];
 async function facturarPedido(o){
   const c=S.clientes.find(x=>x.id==o.cliente_id);if(!c){toast('No encuentro el cliente de este pedido.',1);return null}
   if(!(o.total>0)){toast('El pedido no tiene importe.',1);return null}
@@ -1346,8 +1354,9 @@ async function facturarPedido(o){
   const{data:f,error}=await sb.from('facturas_venta').insert({tipo,numero:(u?.[0]?.numero||0)+1,cliente_id:c.id,pedido_id:o.id,vencimiento:diaLocal(v),total:o.total}).select().single();
   if(error){toast(error.message,1);return null}
   return f}
-async function cambiarEstado(o,e){const{error}=await sb.from('pedidos').update({estado:e}).eq('id',o.id);
+async function cambiarEstado(o,e){const prev=o.estado;const{error}=await sb.from('pedidos').update({estado:e}).eq('id',o.id);
   if(error){toast(error.message,1);return false}o.estado=e;cargarStock();
+  if(!S._noUndo&&prev&&prev!==e)snack('Pedido N° '+o.numero+': '+(EST_TXT[e]||e),async()=>{S._noUndo=1;const ok=await cambiarEstado(o,prev);S._noUndo=0;if(ok){toast('Pedido N° '+o.numero+' volvió a '+(EST_TXT[prev]||prev)+'.');if(S.tab=='reparto')vReparto();else if(S.tab=='pedidos'&&typeof listaPedidos=='function')listaPedidos()}});
   if(e=='en_preparacion')sb.from('pedido_items').select('*').eq('pedido_id',o.id).then(({data})=>data&&asignarLotes([{pedido_items:data.filter(i=>!esPeso(i.producto_id))}])).catch(()=>{});return true}
 async function listaPedidos(){
   S.pf=S.pf||'abiertos';
@@ -1367,7 +1376,7 @@ async function listaPedidos(){
       return `<div class="ped est-${o.estado}">
         <div class="ped-top"><b>N° ${o.numero}</b> <a class="cli lnk" data-fc="${o.cliente_id}">${esc(o.clientes?.razon_social)}</a><span class="tot">${$m(o.total)}</span></div>
         <div class="ped-acc"><span class="badge b-${o.estado}">${EST_TXT[o.estado]||o.estado}</span>${o.origen=='online'?'<span class="badge b-online">Online</span>':''}${prin}${fb}
-          <button class="alt wa" data-w="${o.id}">WhatsApp</button><button class="alt" data-pdf="${o.id}">PDF</button>${['pendiente','cancelado'].includes(o.estado)?'':`<button class="alt" data-rm="${o.id}">Remito</button>`}${o.foto_remito?`<button class="alt" data-vr="${o.id}">🧾 Firmado</button>`:''}${['en_reparto','entregado'].includes(o.estado)?`<button class="alt wa" data-av="${o.id}">📲 Avisar</button>`:''}${o.estado=='entregado'?`<button class="alt" data-dv="${o.id}">Devolución</button>`:''}
+          <button class="alt wa" data-w="${o.id}">WhatsApp</button><button class="alt" data-pdf="${o.id}">PDF</button>${['pendiente','cancelado'].includes(o.estado)?'':`<button class="alt" data-rm="${o.id}">Remito</button>`}${o.foto_remito?`<button class="alt" data-vr="${o.id}">🧾 Firmado</button>`:''}${['en_reparto','entregado'].includes(o.estado)?`<button class="alt wa" data-av="${o.id}">📲 Avisar</button>`:''}${o.estado=='entregado'?`<button class="alt" data-dv="${o.id}">Devolución</button>`:''}${o.estado=='cancelado'?`<button class="alt" data-rea="${o.id}">♻️ Reactivar</button>`:''}
           <select class="mas" data-e="${o.id}" aria-label="Cambiar estado"><option value="">Más…</option>${ESTADOS.filter(e=>e!=o.estado).map(e=>`<option value="${e}">${e=='cancelado'?'Cancelar pedido':'Pasar a: '+EST_TXT[e]}</option>`).join('')}</select></div>${['pendiente','aprobado'].includes(o.estado)?`<div class="ped-ins" data-ins="${o.id}"></div>`:''}</div>`}).join('')
       :'<p><small>No hay pedidos en esta lista.</small></p>';
     const ped=id=>data.find(x=>x.id==id);insightsPedidos(data).catch(()=>{});
@@ -1386,6 +1395,7 @@ async function listaPedidos(){
     $$('#pl [data-fc]').forEach(a=>a.onclick=()=>{const c=S.clientes.find(x=>x.id==a.dataset.fc);if(c){S.tab='clientes';shell();fichaCliente(c)}});
     $$('#pl [data-pdf]').forEach(b=>b.onclick=()=>pedidoPDF(ped(b.dataset.pdf)));
     $$('#pl [data-rm]').forEach(b=>b.onclick=()=>remitos([ped(b.dataset.rm)]));
+    $$('#pl [data-rea]').forEach(b=>b.onclick=async()=>{const o=ped(b.dataset.rea);if(!confirm('¿Reactivar el pedido N° '+o.numero+'? Vuelve a «Por aprobar» con sus mismos productos.'))return;if(await cambiarEstado(o,'pendiente')){toast('Pedido N° '+o.numero+' reactivado: está en Por aprobar.');cargar()}});
     $$('#pl [data-vr]').forEach(b=>b.onclick=()=>verRemito(ped(b.dataset.vr)));
     $$('#pl [data-av]').forEach(b=>b.onclick=()=>{const o=ped(b.dataset.av);avisoPedidoWA(o,o.estado=='en_reparto'?'sale':'entrega')});
     $$('#pl [data-dv]').forEach(b=>b.onclick=()=>devolucion(ped(b.dataset.dv),cargar));
@@ -2755,15 +2765,16 @@ const nomCorto=c=>{const n=String(c.contacto||'').trim().split(/\s+/)[0];return 
 
 function vVentas(){
   S.vs=S.vs||'cola';const due=S.perfil.rol=='dueno';
-  const GR=[['⚡ Hoy',[['cola','⚡ Cola del día'],['plansem','🗓️ Plan de ataque'],['plan','📋 Plan del día'],['auto','⚙️ Automatizaciones']]],
+  let GR=[['⚡ Hoy',[['cola','⚡ Cola del día'],['plansem','🗓️ Plan de ataque'],['plan','📋 Plan del día'],['auto','⚙️ Automatizaciones']]],
     ['🤝 Clientes',[['toca','📞 Les toca comprar'],['miraron','👀 Miraron el catálogo'],['carritos','🛒 Carritos sin enviar'],['menos','📉 Comprando menos'],['presupuestos','📝 Presupuestos'],['esperan','🔔 Esperan productos'],['clave','👑 Cuentas clave'],['ataque','⚔️ Ataque a la competencia'],['nuevos90','🌱 Primeros 90 días'],['bienvenida','👋 Bienvenida y aniversarios'],['encuestas','⭐ Encuestas'],['reclamos','🆘 Reclamos'],['muestras','🧪 Muestras'],['comodatos','🧊 Exhibidores']]],
     ['🧲 Prospectos',[['embudo','🧲 Embudo de prospectos'],['ruta','🚶 Ruta de prospección'],['llamadas','📞 Modo llamadas'],['buscarneg','🗺️ Buscar negocios'],['cobertura','🧭 Zonas sin cubrir']]],
     ['🏷️ Ofertas',[['relampago','⚡ Relámpago'],['cupo','🔥 Oferta por cupo'],['personal','🎯 Ofertas personales'],['combos','🎁 Combos'],['cantidad','🏷️ Precio por cantidad'],['cupones','🎟️ Cupones'],['liquidar','📦 Liquidar stock'],['preventa','🔜 Preventa'],['novedades','✨ Novedades'],['acuerdos','📜 Acuerdos comerciales'],['micombo','🧺 Combo de siempre'],['checkout','🛒 Oferta de último momento'],['empujar','🚀 Productos para empujar'],['online','📲 Premio por pedir online'],['quincenal','📦 Pedido quincenal'],['niveles','🥇 Niveles'],['pvp','💰 Precio sugerido'],['bultos','📦 Venta por bulto'],['redondeo','🏷️ Precios redondeados'],['aumento','📈 Aviso de aumento'],['reglas','💲 Descuentos y mínimo']]],
     ['📣 Difundir',[['campanias','📣 Campañas'],['novsem','📋 Novedades semanal'],['estados','📱 Estados de WhatsApp'],['tarjeta','🖼️ Tarjeta de producto'],['difusion','🖼️ Folletos y catálogo'],['fiambres','🧀 Fiambres por kilo'],['fechas','📅 Fechas'],['rubros','🏪 Por rubro'],['qr','🔳 QR por campaña'],['contactos','📇 Contactos para WhatsApp'],['puntos','🏆 Puntos y desafío'],['liga','🏆 Liga de clientes'],['sorteo','🎟️ Sorteo del mes'],['cambios','📢 Cambios de precio']]],
     ['📸 Instagram',[['ig','📸 Contenido'],['igcal','🗓️ Calendario y reels'],['igbio','🔗 Página para la bio'],['igsorteo','🎁 Sorteo'],['igpros','📥 Prospectos de Instagram'],['igshop','🛍️ Catálogo para Shopping']]],
     ['📊 Analizar',[['semana','📊 Resumen semanal'],['anual','📆 Año contra año'],['rentkg','🧀 Rentabilidad quesos y fiambres'],['zonasrep','🗺️ Reparto por zona'],['captacion','🧲 Captación'],['pronostico','🔮 Pronóstico del mes'],['tablero','📺 Tablero en vivo'],['rentcli','💼 Rentabilidad por cliente'],['simulador','🧪 Simulador de aumento'],['abc','🅰️ ABC'],['potencial','📊 Potencial'],['competencia','🏁 Competencia'],['nocompra','🚶 Por qué no compran'],['perdidas','💸 Ventas perdidas'],['buscan','🔎 Qué buscan y piden'],['marcas','🏭 Por marca'],['zonas','🗺️ Por zona'],['horarios','🕐 Cuándo piden'],['proveedores','🏭 Metas y reintegros']]]];
+  GR=menuAplicar(GR);
   const gAct=(GR.find(([g,L])=>L.some(([k])=>k==S.vs))||GR[0])[0],act=GR.find(([g])=>g==gAct)[1];
-  $('#v').innerHTML=`<div class="vhd"><h2>Ventas</h2><input id="vbus" type="search" placeholder="🔎 Buscar pantalla…" autocomplete="off"></div>
+  $('#v').innerHTML=`<div class="vhd"><h2>Ventas</h2><button class="alt" onclick="menuVentasCfg()" title="Ocultar pantallas y elegir favoritas">⚙️</button><input id="vbus" type="search" placeholder="🔎 Buscar pantalla…" autocomplete="off"></div>
     <div class="vtab">${GR.map(([g])=>`<button class="${g==gAct?'on':''}" data-vg="${esc(g)}">${g}</button>`).join('')}</div>
     <div class="sub ctsub vsubs" id="vsubs">${act.map(([k,t])=>`<button class="${S.vs==k?'':'alt'}" data-vs="${k}">${t}</button>`).join('')}</div><div id="vs">Cargando…</div>`;
   $$('[data-vg]').forEach(b=>b.onclick=()=>{const L=GR.find(([g])=>g==b.dataset.vg)[1];S.vs=L[0][0];vVentas()});
@@ -3725,7 +3736,7 @@ function avisosEnVivo(){if(S.vivo)return;S.vivo=true;let desde=new Date().toISOS
     const M=N.length>3?[...N.slice(0,2),{t:'…y '+(N.length-2)+' avisos más',tab:'pedidos'}]:N;
     for(const n of M){const d=document.createElement('div');d.className='vivo';d.innerHTML=`<b>${esc(n.t)}</b><button>Ver</button><a>✕</a>`;box.appendChild(d);
       d.querySelector('button').onclick=()=>{d.remove();S.tab=n.tab;if(n.tab=='ventas')S.vs=n.vs||'presupuestos';shell()};d.querySelector('a').onclick=()=>d.remove();setTimeout(()=>d.remove(),60000)}
-    try{if(window.Notification&&Notification.permission=='granted')new Notification('Sabores de mi País',{body:N.map(n=>n.t).join('\n'),icon:'icon-192.png'})}catch(e){}
+    notificar('Sabores de mi País',N.map(n=>n.t).join('\n'));
     let k=0;const t0=document.title,iv=setInterval(()=>{document.title=k++%2?t0:'🔔 ¡Pedido nuevo!';if(k>12){clearInterval(iv);document.title=t0}},1000)};
   setInterval(()=>chk().catch(()=>{}),45000);
   try{if(window.Notification&&Notification.permission=='default')document.addEventListener('click',()=>Notification.requestPermission().catch(()=>{}),{once:true})}catch(e){}}
@@ -6097,6 +6108,80 @@ async function sincronizarOff(){const L=colaOff();if(!L.length||!navigator.onLin
   for(const a of L){try{if(a.t=='cobro'){const{error}=await sb.rpc('registrar_cobranza',a.args);if(error)throw error}else if(a.t=='estado'){const{error}=await sb.from('pedidos').update({estado:a.e}).eq('id',a.id);if(error)throw error}else if(a.t=='contacto'){await sb.from('contactos_clientes').insert(a.row)}n++}catch(e){if(esRed(e))resto.push(a);else toast('No se pudo sincronizar una acción del reparto: '+(e.message||e),1)}}
   guardaOff(resto);if(n)toast('📶 Volvió la señal: se sincronizaron '+n+' acciones del reparto.')}
 window.addEventListener('online',()=>setTimeout(sincronizarOff,1500));
+
+/* ======================= ORDEN, VELOCIDAD Y COMODIDAD (tanda 19) ======================= */
+const RAW_SQL='https://raw.githubusercontent.com/dnegri0805-cell/crm-sabores/main/sql/',SUPA_SQL='https://supabase.com/dashboard/project/ggfqdkgqtpnkvxoykoty/sql/new';
+/* 1. Chequeo del sistema: qué SQL falta correr */
+const SQL_CHK=[['control.sql','vencimientos','id'],['ventas-auto.sql','envios_auto','id'],['ventas-auto2.sql','envios_auto','variante'],['ventas-auto3.sql','clientes','cumpleanos'],['ventas-estrategia.sql','acuerdos','id'],['ventas-instagram.sql','prospectos','instagram'],
+  ['ventas-mas2.sql','alertas_oferta','id'],['ventas-peso.sql','pedido_items','peso_real'],['operacion.sql','costos_proveedor','producto_id'],['negocio.sql','mermas','id'],['solo.sql','pedidos','auto_aprobado'],['entregas.sql','pedidos','entrega'],['cobrar.sql','notas_cliente','id']];
+async function sqlFaltantes(){const R=await Promise.all(SQL_CHK.map(([f,t,c])=>sb.from(t).select(c).limit(1).then(({error})=>error&&/does not exist|Could not find|schema cache|no existe/i.test(error.message)?f:null,()=>null)));return R.filter(Boolean)}
+async function copiarSQL(f,b){try{const t=await(await fetch(RAW_SQL+f+'?nc='+Date.now())).text();await navigator.clipboard.writeText(t);if(b){b.textContent='✓ Copiado';b.classList.add('hecho')}toast('SQL copiado. Ahora pegalo en Supabase (Ctrl + V) y tocá Run.')}catch(e){window.open(RAW_SQL+f,'_blank');toast('Se abrió el SQL: copialo con Ctrl + A y Ctrl + C.')}}
+/* 2. Configuración pendiente */
+async function configPendiente(){const[g,z,t,d,a]=await Promise.all([cfgJ('gastos_fijos',{items:[]}),cfgJ('zonas_reparto',{}),cfgJ('temp_camaras',{}),cfgJ('deposito',{}),cfgJ('auto_aprobar',{})]);
+  return[['💳 Datos para cobrar (alias o CBU)',!!S.datosPago,"irA('cobranza')"],['🔗 Link de Mercado Pago',!!S.linkMP,"irA('cobranza')"],['📱 WhatsApp de la empresa',!!S.telEmp,"irA('cobranza')"],
+    ['📈 Gastos fijos del mes',(g.items||[]).some(x=>+x.m>0)||g.caja,'gananciaNeta()'],['🗺️ Días de entrega de cada zona',Object.values(z).some(x=>(x.dias||[]).length),'zonasReparto()'],
+    ['🌡️ Cámaras para la temperatura',!!(t.camaras&&t.camaras.length),'temperatura()'],['🧭 Ubicación del depósito (para ordenar el recorrido)',d.lat!=null,"irA('reparto')"],
+    ['🤖 Aprobación automática (decidí si la usás)','activa' in a,'autoAprobarCfg()'],['📍 Clientes ubicados en el mapa',S.clientes.filter(c=>c.lat!=null).length>=S.clientes.length*.8,'revisionDatos()'],
+    ['💲 Costos de todos los productos',S.productos.filter(p=>!(+p.costo>0)).length==0,'revisionDatos()']]}
+async function chequeoInicio(){const box=$('#chk');if(!box||S.perfil.rol!='dueno')return;let oc=false;try{oc=localStorage.getItem('chk_oc')==diaLocal(new Date())}catch(e){}
+  const[F,C]=await Promise.all([sqlFaltantes(),configPendiente()]),pend=C.filter(x=>!x[1]);if(!F.length&&(!pend.length||oc)){box.innerHTML='';return}
+  box.innerHTML=`<div class="box ${F.length?'alerta':''}">${F.length?`<h3 style="margin:0 0 6px">🩺 Falta correr ${F.length==1?'1 archivo':F.length+' archivos'} en Supabase</h3><p><small>Sin esto, algunas pantallas no andan. Para cada uno: tocá <b>Copiar</b>, después <b>Abrir Supabase</b>, pegá (Ctrl + V) y tocá <b>Run</b>. Corrélos en este orden.</small></p>
+    ${F.map(f=>`<div class="vi" style="align-items:center"><b style="flex:1">${esc(f)}</b><button class="alt" data-csq="${esc(f)}">📋 Copiar</button><a class="alt btnl" href="${SUPA_SQL}" target="_blank" rel="noopener">Abrir Supabase</a></div>`).join('')}<p><small>Cuando termines, recargá esta página.</small></p>`:''}
+    ${pend.length&&!oc?`<details ${F.length?'':'open'}><summary><b>⚙️ Configuración: ${C.length-pend.length} de ${C.length} lista</b></summary>${pend.map(([t,ok,f])=>`<div class="vi" style="align-items:center;padding:4px 0"><span style="flex:1">${t}</span><button class="alt" onclick="${f}">Ir</button></div>`).join('')}<p><a class="lnk" id="chk_oc">Ocultar hasta mañana</a></p></details>`:''}</div>`;
+  $$('#chk [data-csq]').forEach(b=>b.onclick=()=>copiarSQL(b.dataset.csq,b));$('#chk_oc')&&($('#chk_oc').onclick=()=>{try{localStorage.setItem('chk_oc',diaLocal(new Date()))}catch(e){}chequeoInicio()})}
+
+/* 3. Menú de Ventas a tu medida */
+function menuAplicar(GR){S.GRfull=GR;const MV=S.menuV||{oc:[],fav:[]};if(S.menuV===undefined){S.menuV=null;cfgJ('menu_ventas',{oc:[],fav:[]}).then(v=>{S.menuV=v;if(S.tab=='ventas'&&((v.oc||[]).length||(v.fav||[]).length))vVentas()})}
+  let G=GR.map(([g,L])=>[g,L.filter(([k])=>!(MV.oc||[]).includes(k)||k==S.vs)]).filter(([g,L])=>L.length);const all=GR.flatMap(([g,L])=>L);
+  if((MV.fav||[]).length)G.unshift(['⭐ Favoritas',MV.fav.map(k=>all.find(x=>x[0]==k)).filter(Boolean)]);return G}
+async function menuVentasCfg(){const MV=Object.assign({oc:[],fav:[]},S.menuV||{}),m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  m.innerHTML=`<div class="mc"><div class="bh"><h3>⚙️ Tu menú de Ventas</h3><button class="alt" id="mv_x">Cerrar</button></div><p><small>Destildá las pantallas que no usás (se ocultan, pero las seguís encontrando si escribís su nombre en el buscador de Ventas) y marcá con ⭐ tus favoritas: quedan en una solapa propia, primera.</small></p>
+    ${S.GRfull.map(([g,L])=>`<h4 style="margin:10px 0 4px">${esc(g)}</h4>${L.map(([k,t])=>`<div class="vi" style="align-items:center;padding:3px 0"><label class="chk" style="flex:1;margin:0"><input type="checkbox" data-mvv="${k}" ${MV.oc.includes(k)?'':'checked'} style="width:auto;margin:0 8px 0 0">${esc(t)}</label><a class="lnk" data-mvf="${k}" style="font-size:20px;text-decoration:none">${MV.fav.includes(k)?'⭐':'☆'}</a></div>`).join('')}`).join('')}
+    <div class="fc-acc" style="margin-top:10px"><button id="mv_g">Guardar</button><a class="lnk" id="mv_r">Mostrar todo de nuevo</a></div></div>`;
+  const q=s=>m.querySelector(s);q('#mv_x').onclick=()=>m.remove();
+  m.querySelectorAll('[data-mvf]').forEach(a=>a.onclick=()=>{const k=a.dataset.mvf;MV.fav=MV.fav.includes(k)?MV.fav.filter(x=>x!=k):[...MV.fav,k];a.textContent=MV.fav.includes(k)?'⭐':'☆'});
+  const sv=async v=>{const{error}=await guardaCfgJ('menu_ventas',v);if(error)return toast(error.message,1);S.menuV=v;m.remove();vVentas();toast('Menú guardado.')};
+  q('#mv_g').onclick=()=>sv({oc:[...m.querySelectorAll('[data-mvv]')].filter(c=>!c.checked).map(c=>c.dataset.mvv),fav:MV.fav});q('#mv_r').onclick=()=>sv({oc:[],fav:[]})}
+
+/* 4. Ayuda de cada pantalla */
+const SECC={inicio:'## 2.',pedidos:'## 3.',reparto:'## 9.',cobranza:'## 9.',caja:'## 9.',clientes:'## 8.',compras:'## 10.',stock:'## 10.',precios:'## 10.',reportes:'## 10.',contable:'## 10.',ventas:'## 4.'};
+async function ayuda(){if(!S.manualMD){try{S.manualMD=await(await fetch('manual.md?v='+VERSION)).text()}catch(e){return toast('No pude abrir el manual.',1)}}
+  const L=S.manualMD.split('\n'),m=document.createElement('div');m.className='modal';document.body.appendChild(m);let titulo='',md='';
+  if(S.tab=='ventas'&&S.GRfull){const it=S.GRfull.flatMap(([g,x])=>x).find(x=>x[0]==S.vs);if(it){titulo=it[1];const k=norm(it[1].replace(/[^\p{L}\p{N}\s]/gu,'').trim());md=L.filter(l=>/^\s*- /.test(l)&&norm(l.replace(/[^\p{L}\p{N}\s]/gu,'')).includes(k)).join('\n')}}
+  if(!md){const h=SECC[S.tab]||'## 1.',i=L.findIndex(l=>l.startsWith(h));if(i>=0){let j=L.findIndex((l,k)=>k>i&&/^## /.test(l));if(j<0)j=L.length;titulo=L[i].replace(/^## /,'');md=L.slice(i+1,j).join('\n')}
+    if(S.tab=='ventas'){const i2=L.findIndex(l=>l.startsWith('## 5.'));if(i2>=0)md+='\n'}}
+  m.innerHTML=`<div class="mc"><div class="bh"><h3>❓ ${esc(titulo||'Ayuda')}</h3><button class="alt" id="ay_x">Cerrar</button></div><div class="manual">${mdHTML(md||'No encontré la explicación de esta pantalla.')}</div>
+    <div class="fc-acc"><button class="alt" id="ay_m">📖 Abrir el manual completo</button></div><p><small>Atajos en la PC: <b>N</b> nuevo pedido · <b>C</b> Cola del día · <b>I</b> Inicio · <b>R</b> Reparto · <b>B</b> o <b>Ctrl + K</b> buscar · <b>?</b> esta ayuda.</small></p></div>`;
+  m.querySelector('#ay_x').onclick=()=>m.remove();m.querySelector('#ay_m').onclick=()=>{m.remove();irA('manual')}}
+
+/* 5. Letra grande y modo oscuro · 8. avisos en el celular */
+const prefV=()=>{try{return JSON.parse(localStorage.getItem('pref_vista')||'{}')}catch(e){return{}}};
+function aplicarVista(){const p=prefV(),h=document.documentElement,osc=p.t=='oscuro'||(p.t=='auto'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);h.classList.toggle('oscuro',!!osc);h.style.setProperty('--z',p.z||1)}
+aplicarVista();try{S.vivoBg=localStorage.getItem('notif_on')=='1'}catch(e){}
+async function notificar(t,b){try{if(!window.Notification||Notification.permission!='granted')return;const r=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration();if(r)r.showNotification(t,{body:b,icon:'icon-192.png',badge:'icon-192.png',vibrate:[200,100,200],tag:'crm-'+Date.now()});else new Notification(t,{body:b,icon:'icon-192.png'})}catch(e){}}
+function vistaCfg(){const p=prefV(),m=document.createElement('div');m.className='modal';document.body.appendChild(m);const ns=window.Notification?Notification.permission:'no';
+  m.innerHTML=`<div class="mc"><div class="bh"><h3>Aa Cómo se ve</h3><button class="alt" id="vc_x">Cerrar</button></div><p><small>Se guarda en este equipo (podés tener letra grande en el celular y normal en la PC).</small></p>
+    <h4>Tamaño de letra</h4><div class="sub">${[[1,'Normal'],[1.12,'Grande'],[1.25,'Muy grande']].map(([z,t])=>`<button class="${(p.z||1)==z?'':'alt'}" data-vz="${z}">${t}</button>`).join('')}</div>
+    <h4>Colores</h4><div class="sub">${[['claro','☀️ Claro'],['oscuro','🌙 Oscuro'],['auto','Automático']].map(([k,t])=>`<button class="${(p.t||'claro')==k?'':'alt'}" data-vt="${k}">${t}</button>`).join('')}</div>
+    <h4>🔔 Avisos en este equipo</h4><p><small>Te avisa con una notificación cuando entra un pedido online, un reclamo o un presupuesto aceptado, aunque estés en otra app. El CRM tiene que quedar abierto (en el celular, mejor instalado como app).</small></p>
+    ${ns=='no'?'<p><small>Este navegador no permite notificaciones.</small></p>':ns=='denied'?'<p><small>Bloqueaste las notificaciones para esta página: habilitalas en el candado de la barra de direcciones.</small></p>':`<button id="vc_n" class="${S.vivoBg&&ns=='granted'?'alt':''}">${S.vivoBg&&ns=='granted'?'🔕 Apagar avisos':'🔔 Activar avisos'}</button>`}</div>`;
+  const q=s=>m.querySelector(s),sv=o=>{try{localStorage.setItem('pref_vista',JSON.stringify({...prefV(),...o}))}catch(e){}aplicarVista();m.remove();vistaCfg()};
+  q('#vc_x').onclick=()=>m.remove();m.querySelectorAll('[data-vz]').forEach(b=>b.onclick=()=>sv({z:+b.dataset.vz}));m.querySelectorAll('[data-vt]').forEach(b=>b.onclick=()=>sv({t:b.dataset.vt}));
+  const n=q('#vc_n');if(n)n.onclick=async()=>{if(S.vivoBg&&Notification.permission=='granted'){S.vivoBg=false;try{localStorage.setItem('notif_on','0')}catch(e){}m.remove();return toast('Avisos apagados.')}
+    const r=await Notification.requestPermission();if(r!='granted')return toast('No diste permiso para las notificaciones.',1);S.vivoBg=true;try{localStorage.setItem('notif_on','1')}catch(e){}avisosEnVivo();notificar('Sabores de mi País','✅ Listo: así te van a llegar los avisos de pedidos nuevos.');m.remove()}}
+
+/* 6. Atajos de teclado (PC) */
+document.addEventListener('keydown',e=>{if(!S.perfil||e.ctrlKey||e.metaKey||e.altKey)return;const t=e.target,tag=(t&&t.tagName)||'';if(/INPUT|TEXTAREA|SELECT/.test(tag)||t.isContentEditable)return;if(document.querySelector('.modal')&&e.key!='?')return;
+  const k=e.key.toLowerCase(),A={n:()=>irA('pedidos'),c:()=>irA('ventas',{vs:'cola'}),i:()=>irA('inicio'),r:()=>irA('reparto'),b:buscarTodo,'/':buscarTodo,'?':ayuda};if(A[k]){e.preventDefault();A[k]()}});
+
+/* 9. Deshacer */
+function snack(txt,deshacer){let e=$('#snk');if(!e){e=document.createElement('div');e.id='snk';document.body.appendChild(e)}clearTimeout(S._snk);
+  e.innerHTML=`<span>${esc(txt)}</span><button>Deshacer</button>`;e.style.display='flex';e.querySelector('button').onclick=async()=>{e.style.display='none';clearTimeout(S._snk);try{await deshacer()}catch(er){toast(er.message||er,1)}};S._snk=setTimeout(()=>e.style.display='none',8000)}
+
+/* 7. Abrir más rápido: guarda clientes y productos en el equipo */
+const CACHE_K='crm_cache_v1';
+function leerCache(uid){try{const x=JSON.parse(localStorage.getItem(CACHE_K)||'null');return x&&x.u==uid&&Date.now()-x.t<12*36e5&&Array.isArray(x.c)&&Array.isArray(x.p)?x:null}catch(e){return null}}
+function guardarCache(){try{localStorage.setItem(CACHE_K,JSON.stringify({u:S.perfil.id,t:Date.now(),c:S.clientes,p:S.productos}))}catch(e){try{localStorage.removeItem(CACHE_K)}catch(er){}}}
 
 /* ======================= VENTAS 8: conseguir clientes, proveedores y margen ======================= */
 const SQL_PRV='<div class="aviso">Falta correr <b>ventas-proveedores.sql</b> en Supabase (SQL Editor). Después recargá la página.</div>';
