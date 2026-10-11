@@ -746,7 +746,7 @@ async function vPrecios(){
     <p><small>El precio de venta se calcula solo: <b>costo ÷ (1 − margen)</b>. Con 30 %, un producto que te cuesta $ 700 se vende a $ 1.000 y te deja $ 300.</small></p>
     <div class="g" id="pr_l">Cargando…</div><button id="pr_lg">Guardar márgenes</button>
     <div class="g" style="margin-top:12px"><label class="f">Avisarme cuando un producto deje menos de (%) de ganancia<input type="number" id="pr_mm" min="0" max="89" step="1" value="${S.margenMin??15}"></label></div></div>
-  <div class="box"><div class="bh"><h3>Productos</h3><div class="fc-acc"><button class="alt" id="pr_fjl">🥜 Fotos Maní JL</button><button class="alt" id="pr_fot">🔎 Fotos automáticas</button><button class="alt" id="pr_et">🏷️ Imprimir etiquetas del filtro</button></div></div>
+  <div class="box"><div class="bh"><h3>Productos</h3><div class="fc-acc"><button class="alt" id="pr_fcat">🖼️ Fotos del catálogo</button><button class="alt" id="pr_fjl">🥜 Fotos Maní JL</button><button class="alt" id="pr_fot">🔎 Fotos automáticas</button><button class="alt" id="pr_et">🏷️ Imprimir etiquetas del filtro</button></div></div>
     <div class="g"><div class="conscan"><input id="pr_q" placeholder="Buscar por nombre o código" autocomplete="off">${btnScan('pr_sc')}</div>
       <select id="pr_pv"><option value="">Todos los proveedores</option></select>
       <select id="pr_ma"><option value="">Todas las marcas</option></select>
@@ -844,6 +844,7 @@ SDMP-01279	8.900</pre>
   $('#pr_et').onclick=()=>etiquetas(sel.slice(0,300).map(p=>p.producto_id));
   $('#pr_fot').onclick=()=>fotosAutomaticas(sel);
   $('#pr_fjl').onclick=()=>fotosJL();
+  $('#pr_fcat').onclick=()=>fotosCatalogo();
   $('#pr_mm').onchange=async e=>{const v=+e.target.value;if(!(v>=0&&v<90))return toast('Poné un porcentaje entre 0 y 89.',1);S.margenMin=v;const{error}=await sb.from('config_app').upsert({clave:'margen_minimo',valor:String(v)});toast(error?error.message:'Listo: te aviso cuando la ganancia baje del '+v+' %.',!!error)};
 }
 
@@ -2606,6 +2607,67 @@ async function fotosAutomaticas(lista){
       catch(e){mal++;if(/fijar_foto|bucket/i.test(e.message||'')){est('Falta correr mejoras-clientes.sql en Supabase.');break}}}
     $('#fa_ok').disabled=false;R.splice(0,R.length,...R.filter(r=>!r.hecho));pintar();
     est(`Guardé <b>${k-mal}</b> fotos.${mal?' '+mal+' no se pudieron bajar.':''}`);toast((k-mal)+' fotos guardadas.')};
+}
+
+/* ======================= FOTOS DEL CATÁLOGO (TODOS LOS PRODUCTOS) ======================= */
+// Fotos recortadas del catálogo "TODOS LOS PRODUCTOS", guardadas en fotos/catalogo/ con su índice catalogo.json
+// ([código, descripción, archivo, rubro]). Cruza primero por código y, si no, por descripción.
+const FC_STOP=new Set('de del la el los las con sin x en y a al u un una por tipo g gr kg ml l lt cc'.split(' '));
+const fcTok=t=>String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/(\d),(\d)/g,'$1.$2').replace(/(\d)(grs?|kgs?|g|ml|lts?|l|cc|u)\b/g,'$1 $2').split(/[^a-z0-9.ñ]+/).filter(w=>w&&!FC_STOP.has(w));
+function fcSim(a,b){const A=new Set(fcTok(a)),B=new Set(fcTok(b));if(!A.size||!B.size)return 0;let k=0;for(const w of A)if(B.has(w))k++;return 2*k/(A.size+B.size)}
+const fcCod=c=>String(c||'').trim().replace(/^0+/,'');
+async function cruzarFotosCatalogo(){
+  const res=await fetch('fotos/catalogo/catalogo.json',{cache:'no-cache'});if(!res.ok)throw new Error('No encontré el índice de fotos del catálogo.');
+  const CAT=(await res.json()).map(([c,d,f,r])=>({c:fcCod(c),d,f,r}));
+  const porCod={};for(const x of CAT)if(x.c)(porCod[x.c]=porCod[x.c]||[]).push(x);
+  const R=[];
+  for(const p of S.productos){
+    const cods=[fcCod(p.codigo),fcCod(S.min[p.producto_id]?.cf)].filter(Boolean);
+    let best=null,modo='';
+    for(const c of cods){const L=porCod[c];if(!L)continue;
+      best=L.map(x=>({x,s:fcSim(p.descripcion,x.d)})).sort((a,b)=>b.s-a.s)[0];modo='codigo';break}
+    if(!best){const L=CAT.map(x=>({x,s:fcSim(p.descripcion,x.d)})).sort((a,b)=>b.s-a.s);
+      if(L[0]&&L[0].s>=0.75&&(!L[1]||L[0].s-L[1].s>=0.08)){best=L[0];modo='desc'}}
+    if(!best)continue;
+    const ya=!!S.min[p.producto_id]?.foto;
+    // por código y con la descripción parecida: seguro. Por código pero descripción muy distinta, o solo por descripción: para revisar.
+    const dudosa=modo=='desc'||best.s<0.25;
+    R.push({p,c:best.x,modo,dudosa,img:'fotos/catalogo/'+best.x.f+'.webp',ya,ok:!ya&&!dudosa})}
+  const n=s=>{const v=parseInt(fcCod(s),10);return isNaN(v)?Infinity:v};
+  R.sort((a,b)=>a.dudosa-b.dudosa||n(a.p.codigo)-n(b.p.codigo)||String(a.p.descripcion).localeCompare(b.p.descripcion,'es'));
+  return{R,total:CAT.length}}
+async function fotosCatalogo(){
+  const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  m.innerHTML=`<div class="mc fa"><div class="bh"><h3>Fotos del catálogo</h3><button class="alt" id="fc_x">Cerrar</button></div>
+    <p>Fotos sacadas del catálogo <b>TODOS LOS PRODUCTOS</b>. Las crucé con tus productos por <b>código</b> y, si no coincide, por <b>descripción</b>. Están ordenadas por código. Las de borde amarillo son para revisar.</p>
+    <p id="fc_res"><small>Buscando…</small></p>
+    <div class="fc-acc" id="fc_f" hidden style="flex-wrap:wrap;gap:12px"><label style="display:inline-flex;align-items:center;gap:6px;margin:0"><input type="checkbox" style="width:auto;margin:0" id="fc_ya"> Mostrar también los que ya tienen foto</label><label style="display:inline-flex;align-items:center;gap:6px;margin:0"><input type="checkbox" style="width:auto;margin:0" id="fc_du" checked> Mostrar los dudosos</label></div>
+    <div id="fc_r" class="fa-grid"></div><p id="fc_e"></p>
+    <div class="fc-acc" id="fc_acc" hidden><button id="fc_ok">Guardar las fotos marcadas</button><a class="lnk" id="fc_all">Marcar las visibles</a> · <a class="lnk" id="fc_none">Desmarcar todas</a></div></div>`;
+  $('#fc_x').onclick=()=>m.remove();const est=t=>$('#fc_e').innerHTML=t;
+  let R=[],total=0;
+  try{({R,total}=await cruzarFotosCatalogo())}catch(e){$('#fc_res').innerHTML='';return est(esc(e.message))}
+  const vis=()=>R.filter(r=>($('#fc_ya').checked||!r.ya||r.hecho)&&($('#fc_du').checked||!r.dudosa));
+  const pintar=()=>{const V=vis();
+    $('#fc_r').innerHTML=V.map(r=>{const i=R.indexOf(r);return `<label class="fa-it ${r.ok?'on':''}" ${r.dudosa?'style="border-style:dashed;border-color:'+(r.ok?'var(--ok)':'#e0a800')+'"':''}><input type="checkbox" data-fc="${i}" ${r.ok?'checked':''}><img src="${esc(r.img)}" alt="" loading="lazy"><b>${esc(r.p.codigo||'')} · ${esc(r.p.descripcion)}</b><small>Catálogo: ${esc(r.c.c||'s/c')} · ${esc(r.c.d)}${r.dudosa?' — <b>revisar</b>':''}${r.ya&&!r.hecho?' — ya tiene foto, se reemplaza':''}${r.hecho?' — ✔ guardada':''}</small></label>`}).join('')||'<p>No hay fotos para mostrar con estos filtros.</p>';
+    const nm=R.filter(r=>r.ok&&!r.hecho).length;$('#fc_ok').textContent=nm?`Guardar ${nm} ${nm==1?'foto marcada':'fotos marcadas'}`:'Guardar las fotos marcadas';
+    $$('#fc_r [data-fc]').forEach(c=>c.onchange=()=>{R[c.dataset.fc].ok=c.checked;pintar()})};
+  const seg=R.filter(r=>!r.dudosa).length,du=R.length-seg,ya=R.filter(r=>r.ya).length;
+  $('#fc_res').innerHTML=`<small>${total} fotos en el catálogo · <b>${R.length}</b> de tus ${S.productos.length} productos tienen foto: ${seg} por código${du?`, ${du} para revisar`:''}${ya?` · ${ya} ya tenían foto (ocultos)`:''}.</small>`;
+  $('#fc_f').hidden=$('#fc_acc').hidden=!R.length;$('#fc_ya').onchange=$('#fc_du').onchange=pintar;
+  if(!R.length)return est('No encontré coincidencias. Revisá que tus productos tengan cargado el código del catálogo.');
+  pintar();
+  $('#fc_all').onclick=()=>{vis().forEach(r=>{if(!r.hecho)r.ok=true});pintar()};$('#fc_none').onclick=()=>{R.forEach(r=>r.ok=false);pintar()};
+  $('#fc_ok').onclick=async()=>{const A=R.filter(r=>r.ok&&!r.hecho);if(!A.length)return toast('No marcaste ninguna foto.',1);
+    $('#fc_ok').disabled=true;let k=0,mal=0;
+    for(const r of A){k++;est(`Guardando ${k} de ${A.length}…`);
+      try{const res=await fetch(r.img);if(!res.ok)throw new Error('foto no disponible');const bl=await res.blob();
+        const path=r.p.producto_id+'/cat-'+Date.now()+'.webp';const up=await sb.storage.from('productos').upload(path,bl,{contentType:'image/webp',upsert:true});if(up.error)throw up.error;
+        const url=sb.storage.from('productos').getPublicUrl(path).data.publicUrl;const{error}=await sb.rpc('fijar_foto',{p_producto:r.p.producto_id,p_url:url});if(error)throw error;
+        S.min[r.p.producto_id]=Object.assign(S.min[r.p.producto_id]||{},{foto:url});r.hecho=true;r.ok=false}
+      catch(e){mal++;if(/fijar_foto|bucket/i.test(e.message||'')){est('Falta correr mejoras-clientes.sql en Supabase.');break}}}
+    $('#fc_ok').disabled=false;pintar();est(`Guardé <b>${k-mal}</b> fotos.${mal?' '+mal+' no se pudieron guardar.':''}`);toast((k-mal)+' fotos guardadas.');
+    if(typeof vPrecios=='function'&&$('#pr_q'))vPrecios()};
 }
 
 /* ======================= FOTOS MANÍ JL (folleto oficial) ======================= */
