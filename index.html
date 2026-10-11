@@ -210,7 +210,7 @@ body{zoom:var(--z,1)}html.oscuro{filter:invert(.92) hue-rotate(180deg);backgroun
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-11.32';
+const VERSION='2026-10-11.33';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -293,7 +293,10 @@ async function cargarStock(){
   S.stockOk=!st.error;S.stock={};S.inv=false;
   for(const r of st.data||[]){S.stock[r.producto_id]={f:+r.fisico||0,r:+r.reservado||0,d:r.disponible!=null?+r.disponible:(+r.fisico||0)-(+r.reservado||0)};if(+r.fisico)S.inv=true}
   S.min={};S.bultoOk=(mi.data||[]).some(r=>'unidades_bulto' in r);for(const r of mi.data||[])S.min[r.id]={pw:!!r.por_peso,pk:r.peso_pieza!=null?+r.peso_pieza:null,pp:r.por_peso&&+r.peso_pieza>0?+r.peso_pieza:0,m:+r.stock_minimo||0,a:r.activo!==false,pv:r.proveedor_id,b:Math.max(1,+r.unidades_bulto||1),tb:r.tipo_bulto||'Caja',iva:r.alicuota_iva!=null?+r.alicuota_iva:21,foto:r.foto||'',uc:r.ultimo_conteo||null,cf:r.codigo_fabricante||'',nv:!!r.nuevo_hasta&&r.nuevo_hasta>=diaLocal(new Date()),nvh:r.nuevo_hasta||null,pvp:r.pvp!=null?+r.pvp:null,sb:!!r.solo_bulto};
+  await fotosCatFallback();
 }
+/* Productos sin foto guardada: usan la del catálogo (por código) para mostrarse, sin guardarla */
+async function fotosCatFallback(){try{await catalogoFotos();for(const p of S.productos){const x=S.min[p.producto_id];if(!x||x.foto)continue;const k=catPorCodigo(p.codigo,p.descripcion)||catPorCodigo(x.cf,p.descripcion);if(k){x.foto=new URL(k.img,location.href).href;x.fc=true}}}catch(e){}}
 const stk=id=>S.stock[id]||{f:0,r:0,d:0};
 const nf=n=>Number(n||0).toLocaleString('es-AR',{maximumFractionDigits:2});
 function chipStock(id,pide){if(!S.stockOk||!S.inv)return '';const d=stk(id).d,m=S.min[id]?.m||0;
@@ -1100,7 +1103,8 @@ async function vReportes(){
   <div class="dos fc2">
     <div class="box"><div class="bh"><h3>Mejores clientes</h3><button class="alt" id="cp_c">Copiar para Excel</button></div><div id="rp_c"></div></div>
     <div class="box"><div class="bh"><h3>Productos más vendidos</h3><button class="alt" id="cp_p">Copiar para Excel</button></div><div id="rp_pr"></div></div>
-  </div>`;
+  </div>
+  <div class="box"><div class="bh"><h3>Ventas y ganancia por familia</h3><button class="alt" id="cp_f">Copiar para Excel</button></div><div id="rp_fa"></div></div>`;
   $$('[data-rp]').forEach(b=>b.onclick=()=>{S.rp=b.dataset.rp;$$('[data-rp]').forEach(x=>x.className=x.dataset.rp==S.rp?'':'alt');pintar()});
   const[pe,co]=await Promise.all([
     todo(()=>sb.from('pedidos').select('id,numero,total,estado,cliente_id,fecha,creado_en,created_at,clientes(razon_social),pedido_items(producto_id,cantidad,precio_unitario)').not('estado','in','(pendiente,cancelado)').order('numero',{ascending:false})),
@@ -1111,7 +1115,7 @@ async function vReportes(){
   const costo={};for(const r of co.data||[])costo[r.id]=Number(r.costo)||0;
   for(const o of P)o._d=fechaDe(o)?diaLocal(fechaDe(o)):'';
   const nombre=id=>S.productos.find(p=>p.producto_id==id)?.descripcion||'Producto';
-  let TC=[],TP=[];
+  let TC=[],TP=[],TF=[];
   const pintar=()=>{
     const[a,b]=rango(S.rp),L=P.filter(o=>o._d>=a&&o._d<b);
     const v=L.reduce((x,o)=>x+Number(o.total||0),0);
@@ -1133,6 +1137,17 @@ async function vReportes(){
     // productos
     TP=Object.entries(pc).map(([id,x])=>({n:nombre(id),...x})).sort((x,y)=>y.v-x.v);
     $('#rp_pr').innerHTML=TP.length?'<table><tr><th>Producto</th><th class="n">Unid.</th><th class="n">Ventas</th><th class="n">Margen</th></tr>'+TP.slice(0,10).map(x=>`<tr><td>${esc(x.n)}</td><td class="n">${nf(x.q)}</td><td class="n">${$m(x.v)}</td><td class="n">${x.sc||!x.v?'—':Math.round((x.v-x.c)/x.v*100)+' %'}</td></tr>`).join('')+'</table>'+(TP.length>10?`<small>Y ${TP.length-10} productos más (se copian todos).</small>`:''):'<p><small>No hay ventas en este período.</small></p>';
+    // familias
+    const famDeId=id=>{const p=S.productos.find(x=>x.producto_id==id);return(p?.familia||'').trim()||'Sin familia'};
+    const FA={};for(const[id,x]of Object.entries(pc)){const f=famDeId(id),k=FA[f]=FA[f]||{f,g:famGrupo(f)||'Otras',v:0,c:0,vc:0,sc:0};k.v+=x.v;if(x.sc)k.sc+=x.v;else{k.vc+=x.v;k.c+=x.c}}
+    TF=Object.values(FA).sort((x,y)=>famCmp(x.f,y.f));const GRS=[...new Set(TF.map(x=>x.g))];const mgMin=(S.margenMin??15)/100;
+    const fila=(n,x,b)=>{const m=x.vc>0?(x.vc-x.c)/x.vc:null;return `<tr${b?' style="font-weight:700;background:#f6f7f9"':''}><td>${b?'':'&nbsp;&nbsp;'}${esc(n)}</td><td class="n">${$m(x.v)}</td><td class="n">${vi?Math.round(x.v/vi*100):0} %</td><td class="n ${m!=null&&m<mgMin?'mora':''}">${m==null?'—':Math.round(m*100)+' %'}</td><td class="n">${m==null?'—':$m(x.vc-x.c)}</td></tr>`};
+    const sum=L=>L.reduce((a,x)=>({v:a.v+x.v,c:a.c+x.c,vc:a.vc+x.vc}),{v:0,c:0,vc:0});
+    const bajos=TF.filter(x=>x.vc>0&&(x.vc-x.c)/x.vc<mgMin);
+    $('#rp_fa').innerHTML=TF.length?(bajos.length?`<p class="aviso">⚠️ ${bajos.length==1?'Esta familia te deja':'Estas familias te dejan'} menos del ${Math.round(mgMin*100)} % de ganancia: <b>${bajos.map(x=>esc(x.f)).join(', ')}</b>. Revisá costos y márgenes.</p>`:'')+
+      '<div style="overflow-x:auto"><table><tr><th>Familia</th><th class="n">Ventas</th><th class="n">% del total</th><th class="n">Margen</th><th class="n">Ganancia</th></tr>'+
+      GRS.map(g=>{const X=TF.filter(x=>x.g==g);return fila(g,sum(X),true)+X.map(x=>fila(x.f,x,false)).join('')}).join('')+'</table></div>'+
+      (TF.some(x=>x.f=='Sin familia')?'<p><small>Para ver todo ordenado, usá <b>Precios → 🗂️ Ordenar por familias</b>.</small></p>':''):'<p><small>No hay ventas en este período.</small></p>';
     grafico(a,b);vendedoresReporte()};
   const grafico=(a,b)=>{const h=new Date(),M=[];
     for(let i=11;i>=0;i--){const d=new Date(h.getFullYear(),h.getMonth()-i,1),k=diaLocal(d).slice(0,7);M.push({k,l:MESES[d.getMonth()]+(d.getMonth()==0||i==11?' '+String(d.getFullYear()).slice(2):''),v:0})}
@@ -1155,6 +1170,7 @@ async function vReportes(){
       el.onmouseleave=()=>tip.hidden=true})};
   $('#cp_c').onclick=()=>copiarTabla(['Cliente','Pedidos','Ventas','% del total'],TC.map(x=>{const t=TC.reduce((a,y)=>a+y.v,0);return[x.n,x.p,x.v.toFixed(2).replace('.',','),(t?x.v/t*100:0).toFixed(1).replace('.',',')]}));
   $('#v').insertAdjacentHTML('beforeend','<div class="box" id="rp_v"></div><div class="box" id="rp_h"></div>');historialBox();
+  $('#cp_f').onclick=()=>copiarTabla(['Sección','Familia','Ventas','Margen %','Ganancia'],TF.map(x=>[x.g,x.f,x.v.toFixed(2).replace('.',','),x.vc>0?((x.vc-x.c)/x.vc*100).toFixed(1).replace('.',','):'',x.vc>0?(x.vc-x.c).toFixed(2).replace('.',','):'']));
   $('#cp_p').onclick=()=>copiarTabla(['Producto','Unidades','Ventas','Margen %'],TP.map(x=>[x.n,x.q,x.v.toFixed(2).replace('.',','),x.sc||!x.v?'':((x.v-x.c)/x.v*100).toFixed(1).replace('.',',')]));
   pintar();
 }
@@ -2569,8 +2585,9 @@ async function historialBox(){const box=$('#rp_h');if(!box||S.perfil.rol!='dueno
 /* ======================= FOTOS AUTOMÁTICAS (Open Food Facts) ======================= */
 const eanValido=e=>/^\d{8,14}$/.test(String(e||'').trim());
 async function fotosAutomaticas(lista){
-  const P=(lista||S.productos).filter(p=>!S.min[p.producto_id]?.foto&&eanValido(p.ean));
-  const sinEan=(lista||S.productos).filter(p=>!S.min[p.producto_id]?.foto&&!eanValido(p.ean)).length;
+  const sinFoto=p=>!S.min[p.producto_id]?.foto||S.min[p.producto_id]?.fc;
+  const P=(lista||S.productos).filter(p=>sinFoto(p)&&eanValido(p.ean));
+  const sinEan=(lista||S.productos).filter(p=>sinFoto(p)&&!eanValido(p.ean)).length;
   const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
   let corriendo=false,parar=false;const R=[];
   m.innerHTML=`<div class="mc fa"><div class="bh"><h3>Fotos automáticas</h3><button class="alt" id="fa_x">Cerrar</button></div>
@@ -2686,7 +2703,7 @@ async function cruzarFotosCatalogo(){
     if(!best){const L=CAT.map(x=>({x,s:fcSim(p.descripcion,x.d)})).sort((a,b)=>b.s-a.s);
       if(L[0]&&L[0].s>=0.75&&(!L[1]||L[0].s-L[1].s>=0.08)){best=L[0];modo='desc'}}
     if(!best)continue;
-    const ya=!!S.min[p.producto_id]?.foto;
+    const ya=!!S.min[p.producto_id]?.foto&&!S.min[p.producto_id]?.fc;
     // por código y con la descripción parecida: seguro. Por código pero descripción muy distinta, o solo por descripción: para revisar.
     const dudosa=modo=='desc'||best.s<0.25;
     R.push({p,c:best.x,modo,dudosa,img:'fotos/catalogo/'+best.x.f+'.webp',ya,ok:!ya&&!dudosa})}
@@ -2755,7 +2772,7 @@ function cruzarFotosJL(){const sinT=t=>String(t||'').normalize('NFD').replace(/[
     let p=ean&&S.productos.find(x=>String(x.ean||'').trim()==ean&&!usados.has(x.producto_id));
     if(!p&&cod)p=S.productos.find(x=>String(S.min[x.producto_id]?.cf||'').trim()==cod&&!usados.has(x.producto_id));
     if(!p&&r1)p=S.productos.find(x=>{const d=sinT(x.descripcion);return r1.test(d)&&r2.test(d)&&/man[ií]|mani/.test(d)&&!usados.has(x.producto_id)});
-    if(!p)continue;usados.add(p.producto_id);const ya=!!S.min[p.producto_id]?.foto;
+    if(!p)continue;usados.add(p.producto_id);const ya=!!S.min[p.producto_id]?.foto&&!S.min[p.producto_id]?.fc;
     R.push({p,nom,img:'fotos/jl/'+arch+'.webp',ya,ok:!ya})}
   return R}
 function fotosJL(){
@@ -2840,7 +2857,7 @@ async function dibujarFolleto(items,o){const F=FMT[o.fmt],cv=document.createElem
       const z=pie-28;c.fillStyle='#fff';c.fillRect(F.w-m-z-8,F.h-pie+10,z+16,z+8);c.drawImage(im,F.w-m-z,F.h-pie+14,z,z)}}}catch(e){}
   return cv}
 async function folletoOfertas(){
-  const fams=[...new Set(S.productos.map(p=>(p.familia||'').trim()).filter(Boolean))].sort();
+  const fams=[...new Set(S.productos.map(p=>(p.familia||'').trim()).filter(Boolean))].sort(famCmp);
   const m=document.createElement('div');m.className='modal';document.body.appendChild(m);let sel=[],man=new Set(),quit=new Set();
   const hoy=new Date(),fin=new Date(hoy.getTime()+7*864e5);
   m.innerHTML=`<div class="mc fo"><div class="bh"><h3>📣 Folleto de ofertas</h3><button class="alt" id="fo_x">Cerrar</button></div>
@@ -6076,7 +6093,7 @@ function duplicados(){const P=[],vis=new Set(),T=S.clientes.filter(c=>c.activo!=
 /* 9. Revisión de datos */
 async function revisionDatos(){await cargarStock().catch(()=>{});const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
   const draw=()=>{const C=S.clientes.filter(c=>c.activo!==false),sinTel=C.filter(c=>!tel8(c.telefono)),sinUb=C.filter(c=>c.lat==null||c.lng==null),sinZ=C.filter(c=>!String(c.ciudad||c.zona||'').trim()),sinR=C.filter(c=>!String(c.rubro||'').trim());
-    const Pr=S.productos.filter(p=>S.min[p.producto_id]?.a!==false),sinC=Pr.filter(p=>!(+p.costo>0)),sinF=Pr.filter(p=>!S.min[p.producto_id]?.foto),raro=Pr.filter(p=>+p.costo>0&&+p.precio_mayorista>0&&(+p.precio_mayorista<=+p.costo||(+p.precio_mayorista-+p.costo)/+p.precio_mayorista>.7)),D=duplicados();
+    const Pr=S.productos.filter(p=>S.min[p.producto_id]?.a!==false),sinC=Pr.filter(p=>!(+p.costo>0)),sinF=Pr.filter(p=>!S.min[p.producto_id]?.foto||S.min[p.producto_id]?.fc),raro=Pr.filter(p=>+p.costo>0&&+p.precio_mayorista>0&&(+p.precio_mayorista<=+p.costo||(+p.precio_mayorista-+p.costo)/+p.precio_mayorista>.7)),D=duplicados();
     const sec=(t,n,body,ok)=>`<details class="box" ${n&&!ok?'':''}><summary><b>${n?'⚠️':'✅'} ${t}</b> <span class="badge">${n}</span></summary>${n?body:'<p><small>¡Todo en orden!</small></p>'}</details>`;
     const lc=L=>`<div class="tw" style="max-height:40vh;overflow:auto"><table>${L.slice(0,80).map(c=>`<tr><td>${esc(c.razon_social)}<br><small>${esc([c.domicilio,c.ciudad].filter(Boolean).join(', ')||'sin domicilio')}</small></td><td><button class="alt" data-rvf="${c.id}">Abrir ficha</button></td></tr>`).join('')}</table></div>`;
     const lp=L=>`<div class="tw" style="max-height:40vh;overflow:auto"><table>${L.slice(0,80).map(p=>`<tr><td>${esc(p.descripcion)} <small>${esc(p.codigo||'')}</small></td><td class="n"><small>${+p.costo>0?'costo '+$m(p.costo):''}${+p.precio_mayorista>0?' · may. '+$m(p.precio_mayorista):''}</small></td></tr>`).join('')}</table></div><p><small>Se corrigen en <b>Precios</b>.</small></p>`;
