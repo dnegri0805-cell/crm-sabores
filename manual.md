@@ -7,7 +7,7 @@ Guía ordenada por sección para consultar o pasarle al equipo. Cada punto dice 
 - **CRM (uso interno):** https://dnegri0805-cell.github.io/crm-sabores/ — se entra con usuario y contraseña.
 - **Catálogo de cada cliente:** link personal `pedido.html?c=…` que se manda desde la ficha del cliente (botón de WhatsApp). Cada cliente ve sus precios, su cuenta y sus promos.
 - **Catálogo público (sin precios de cliente):** `pedido.html?ver=catalogo` — para redes, folletos y nuevos clientes.
-- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-10.20`). Si algo "no aparece", cerrá y abrí la pestaña.
+- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-10.21`). Si algo "no aparece", cerrá y abrí la pestaña.
 - **En el celular:** abrí el CRM en Chrome → menú ⋮ → *Agregar a pantalla de inicio*. Queda como una app.
 - **Menú principal:** Inicio · Pedidos · Ventas · Reparto · Clientes · Cobranza · Caja · Compras · Stock · Precios · Reportes · Contable · Manual. Los números en rojo indican cosas pendientes.
 
@@ -15,9 +15,11 @@ Guía ordenada por sección para consultar o pasarle al equipo. Cada punto dice 
 
 Es el tablero del día. Arriba muestra el **objetivo del mes y la proyección** (si llegamos o no al ritmo actual).
 
-**📊 Resumen de hoy** (solo el dueño): vendido (y cuánto contra ayer), ganancia estimada, cobrado (por medio de pago), pedidos que falta entregar y kilos de quesos y fiambres vendidos. Con **📲 Mandármelo** te lo mandás por WhatsApp.
+**📊 Resumen de hoy** (solo el dueño): vendido (y cuánto contra ayer), ganancia estimada, cobrado (por medio de pago), pedidos que falta entregar y kilos de quesos y fiambres vendidos. Con **📲 Mandármelo** te lo mandás por WhatsApp. Ahí mismo están **🧾 Cierre del día** (cobrado por medio, gastos y pagos, efectivo neto, pedidos nuevos, entregados y lo que quedó sin entregar, para mandar por WhatsApp) y **📄 Informe del mes** (ventas, margen, cobranza, compras, gastos, merma, deuda, stock, mejores clientes y productos, en PDF para vos y tu contador; también en Reportes).
 
-En **⚠️ Alertas** también aparecen los **precios pactados que quedaron con poco margen** después de un aumento: **Revisar y actualizar** te propone el precio nuevo, los actualizás de una y le avisás a cada cliente por WhatsApp.
+**📝 Tareas:** anotá cosas para hacer con fecha (pagarle a un proveedor, llamar a un cliente). Las vencidas quedan en rojo; las tildás cuando las hacés.
+
+En **⚠️ Alertas** también aparecen la **🌡️ temperatura de cámara** fuera de rango (o sin anotar a las 11), los **🚦 clientes en riesgo alto** y los **precios pactados que quedaron con poco margen** después de un aumento: **Revisar y actualizar** te propone el precio nuevo, los actualizás de una y le avisás a cada cliente por WhatsApp.
 
 Debajo aparecen tarjetas de aviso; cada una lleva a la pantalla donde se actúa:
 
@@ -192,13 +194,19 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 - **Reparto:** pedidos listos para salir, armado del recorrido y remitos. El chofer marca *Entregado* y el cliente lo ve en su cuenta.
 - **🚚 Modo chofer** (en Reparto, con los pedidos elegidos): una parada por pantalla, en orden. Muestra cliente, dirección (**📍 Cómo llegar**), **📞 Llamar**, **📲 Estoy llegando**, lo que lleva, el total y **cuánto cobrar** (contado o saldo de la cuenta). **✅ Entregado y cobrado** registra el cobro (efectivo, transferencia, cheque) con su recibo, marca entregado y pide la foto del remito. También *Entregado sin cobrar* y *🚪 No estaba*. Al final, el resumen del reparto para mandarlo por WhatsApp.
 - **Cobranza:** quién debe y cuánto, con filtro *Con deuda vencida*. Registrás pagos (efectivo, transferencia, cheque) y se genera el **recibo**. El botón **pronto pago** aplica el descuento si paga dentro del plazo.
-- **Caja:** ingresos y egresos del día y cierre de caja.
+- **Caja:** ingresos y egresos del día y cierre de caja (arqueo). Arriba, **🧾 Cierre del día**.
+- **Cobranza → 🚦 Semáforo de riesgo:** 🔴 clientes con deuda vencida que además compran mucho menos, llevan 45 días o más de mora o pagan menos de la mitad de lo que compran; 🟡 los que tienen algo vencido. Botón para escribirles y **🔒 Cortar crédito** (el límite queda en su deuda actual).
+- **Cobranza → 💳 Crédito inteligente:** límite sugerido para cada cliente según cómo compra y paga (buen pagador 1,5 veces su compra mensual, regular 1 vez, malo media vez). Tildás y aplicás.
+- **Reparto → 🗺️ Zonas y camioneta:** para cada zona (sale de la zona o localidad del cliente), los **días de entrega** y el **costo por parada**. Ves cuánto te deja cada zona después del reparto y el **pedido mínimo sugerido**. Cargás la **capacidad de la camioneta** (bultos y kilos) y la hoja de reparto te avisa si te pasás o si hay pedidos de zonas que no entregás ese día. También en Ventas → Analizar.
 
 ## 10. Compras, stock, precios y reportes
 
 - **Compras:** Órdenes de compra (con botón **WhatsApp** que le manda el pedido armado al proveedor y la marca como enviada) · **Sugerencia de compra** (qué reponer según lo que se vende) · **🏷️ Mejor proveedor** · Proveedores · Facturas y pagos a proveedores.
 - **🏷️ Mejor proveedor:** el último costo de cada producto en cada proveedor (lo que compraste y las listas que importás), cuál es más barato, cuánto ahorrarías por mes y un botón para pasar el producto a ese proveedor. Requiere **operacion.sql**.
 - **Importar la lista del proveedor** (en Precios): elegí el proveedor. Si la lista trae productos que hoy le comprás a otro, **no te cambia el costo**: quedan guardados para comparar en *Mejor proveedor* (y te marca 💡 si son más baratos).
+- **Stock → 📉 Merma:** cargás roturas, vencidos, diferencias de peso, faltantes. Se descuenta del stock y ves cuánta plata perdés, por motivo y por producto (también en el informe del mes).
+- **Stock → 🔎 Lotes (trazabilidad):** al preparar un pedido se anota solo qué lote se usó (el que vence antes, de los vencimientos cargados) y sale en el remito. Ante un reclamo o retiro, buscás el producto o el lote y ves a qué clientes se les entregó, con botón para avisarles. Requiere **negocio.sql**.
+- **Stock → 🌡️ Temperatura:** anotás la temperatura de cada cámara; si está fuera de rango (lo configurás, por defecto 0 a 5 °C) queda en rojo y aparece en Inicio. **Planilla del mes** para imprimir ante una inspección.
 - **Stock:** existencias, movimientos y vencimientos. Los quesos y fiambres se ven **en kilos**; con **Solo quesos y fiambres** ves cuántos kilos tenés y cuánta plata al costo. En **📋 Conteo por partes → ⚖️ Quesos y fiambres** contás con el celular escribiendo los pesos de las etiquetas (**3,5 + 3,6**) o escaneando (te pide el peso de cada pieza).
 - **Precios:** costos y listas mayorista/minorista; los cambios se reflejan al instante en los catálogos.
 - **Reportes:** ventas por cliente, por producto y por marca, por período (este mes, mes anterior, este año).
