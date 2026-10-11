@@ -204,7 +204,7 @@ body{zoom:var(--z,1)}html.oscuro{filter:invert(.92) hue-rotate(180deg);backgroun
 <div id="app"></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
-const VERSION='2026-10-10.25';
+const VERSION='2026-10-10.26';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -1376,7 +1376,7 @@ async function listaPedidos(){
       return `<div class="ped est-${o.estado}">
         <div class="ped-top"><b>N° ${o.numero}</b> <a class="cli lnk" data-fc="${o.cliente_id}">${esc(o.clientes?.razon_social)}</a><span class="tot">${$m(o.total)}</span></div>
         <div class="ped-acc"><span class="badge b-${o.estado}">${EST_TXT[o.estado]||o.estado}</span>${o.origen=='online'?'<span class="badge b-online">Online</span>':''}${prin}${fb}
-          <button class="alt wa" data-w="${o.id}">WhatsApp</button><button class="alt" data-pdf="${o.id}">PDF</button>${['pendiente','cancelado'].includes(o.estado)?'':`<button class="alt" data-rm="${o.id}">Remito</button>`}${o.foto_remito?`<button class="alt" data-vr="${o.id}">🧾 Firmado</button>`:''}${['en_reparto','entregado'].includes(o.estado)?`<button class="alt wa" data-av="${o.id}">📲 Avisar</button>`:''}${o.estado=='entregado'?`<button class="alt" data-dv="${o.id}">Devolución</button>`:''}${o.estado=='cancelado'?`<button class="alt" data-rea="${o.id}">♻️ Reactivar</button>`:''}
+          <button class="alt wa" data-w="${o.id}">WhatsApp</button><button class="alt" data-pdf="${o.id}">PDF</button>${['pendiente','cancelado'].includes(o.estado)?'':`<button class="alt" data-rm="${o.id}">Remito</button>`}${o.foto_remito?`<button class="alt" data-vr="${o.id}">🧾 Firmado</button>`:''}${o.firma?`<button class="alt" data-rm="${o.id}">✍️ Firmado</button>`:''}${['en_reparto','entregado'].includes(o.estado)&&!o.firma?`<button class="alt" data-fi="${o.id}">✍️ Firma</button>`:''}${['en_reparto','entregado'].includes(o.estado)?`<button class="alt wa" data-av="${o.id}">📲 Avisar</button>`:''}${o.estado=='entregado'?`<button class="alt" data-dv="${o.id}">Devolución</button>`:''}${o.estado=='cancelado'?`<button class="alt" data-rea="${o.id}">♻️ Reactivar</button>`:''}
           <select class="mas" data-e="${o.id}" aria-label="Cambiar estado"><option value="">Más…</option>${ESTADOS.filter(e=>e!=o.estado).map(e=>`<option value="${e}">${e=='cancelado'?'Cancelar pedido':'Pasar a: '+EST_TXT[e]}</option>`).join('')}</select></div>${['pendiente','aprobado'].includes(o.estado)?`<div class="ped-ins" data-ins="${o.id}"></div>`:''}</div>`}).join('')
       :'<p><small>No hay pedidos en esta lista.</small></p>';
     const ped=id=>data.find(x=>x.id==id);insightsPedidos(data).catch(()=>{});
@@ -1385,7 +1385,7 @@ async function listaPedidos(){
       if(!await cambiarEstado(o,'aprobado'))return cargar();const f=await facturarPedido(o);
       if(f)toast('Pedido N° '+o.numero+' aprobado y facturado: '+f.tipo+' N° '+f.numero+' por '+$m(f.total)+'.');cargar()});
     $$('#pl [data-sig]').forEach(b=>b.onclick=async()=>{b.disabled=true;const o=ped(b.dataset.sig),n=SIG[o.estado][0];
-      if(await cambiarEstado(o,n)){toast('Pedido N° '+o.numero+': '+EST_TXT[n]+'.');if(n=='en_reparto')modalAvisos([o],'sale');if(n=='entregado')fotoRemito(o,()=>modalAvisos([o],'entrega'))}cargar()});
+      if(await cambiarEstado(o,n)){toast('Pedido N° '+o.numero+': '+EST_TXT[n]+'.');if(n=='en_reparto')modalAvisos([o],'sale');if(n=='entregado')firmaRemito(o,()=>modalAvisos([o],'entrega'))}cargar()});
     $$('#pl [data-fa]').forEach(b=>b.onclick=async()=>{b.disabled=true;const o=ped(b.dataset.fa),f=await facturarPedido(o);
       if(f)toast('Factura '+f.tipo+' N° '+f.numero+' generada por '+$m(f.total)+'.');cargar()});
     $$('#pl [data-e]').forEach(s=>s.onchange=async()=>{const o=ped(s.dataset.e),e=s.value;if(!e)return;
@@ -1395,6 +1395,7 @@ async function listaPedidos(){
     $$('#pl [data-fc]').forEach(a=>a.onclick=()=>{const c=S.clientes.find(x=>x.id==a.dataset.fc);if(c){S.tab='clientes';shell();fichaCliente(c)}});
     $$('#pl [data-pdf]').forEach(b=>b.onclick=()=>pedidoPDF(ped(b.dataset.pdf)));
     $$('#pl [data-rm]').forEach(b=>b.onclick=()=>remitos([ped(b.dataset.rm)]));
+    $$('#pl [data-fi]').forEach(b=>b.onclick=()=>firmaRemito(ped(b.dataset.fi),()=>cargar()));
     $$('#pl [data-rea]').forEach(b=>b.onclick=async()=>{const o=ped(b.dataset.rea);if(!confirm('¿Reactivar el pedido N° '+o.numero+'? Vuelve a «Por aprobar» con sus mismos productos.'))return;if(await cambiarEstado(o,'pendiente')){toast('Pedido N° '+o.numero+' reactivado: está en Por aprobar.');cargar()}});
     $$('#pl [data-vr]').forEach(b=>b.onclick=()=>verRemito(ped(b.dataset.vr)));
     $$('#pl [data-av]').forEach(b=>b.onclick=()=>{const o=ped(b.dataset.av);avisoPedidoWA(o,o.estado=='en_reparto'?'sale':'entrega')});
@@ -1451,7 +1452,7 @@ async function remitos(lista){lista=(lista||[]).filter(Boolean);if(!lista.length
       ${o.observaciones?`<p class="obs"><b>Observaciones:</b> ${esc(o.observaciones)}</p>`:''}
       ${copia=='ORIGINAL'?PG+(QB[o.cliente_id]||''):''}
       <p class="leg">Recibí la mercadería detallada en conformidad y en buen estado.</p>
-      <div class="firmas"><div>Firma</div><div>Aclaración</div><div>DNI</div><div>Fecha de recepción</div></div></section>`};
+      ${o.firma?`<div class="firmas fd"><div><img src="${o.firma}" alt="Firma" style="max-height:70px;max-width:100%"><br>Firma</div><div><b>${esc(o.firmado_por||'')}</b><br>Aclaración</div><div><br>DNI</div><div><b>${o.firmado_en?new Date(o.firmado_en).toLocaleString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):''}</b><br>Fecha de recepción</div></div>`:'<div class="firmas"><div>Firma</div><div>Aclaración</div><div>DNI</div><div>Fecha de recepción</div></div>'}</section>`};
   w.document.open();w.document.write(`<html><head><meta charset="utf-8"><title>Remito ${lista.length==1?nroRemito(lista[0])+' - '+esc(S.clientes.find(x=>x.id==lista[0].cliente_id)?.razon_social||''):'('+lista.length+' pedidos)'}</title><style>
   @page{size:A4;margin:12mm}body{font:13px system-ui,Segoe UI,sans-serif;color:#1c2333;margin:0}
   .hoja{page-break-after:always;padding:4px}.hoja:last-child{page-break-after:auto}
@@ -1463,7 +1464,7 @@ async function remitos(lista){lista=(lista||[]).filter(Boolean);if(!lista.length
   table{width:100%;border-collapse:collapse}th{background:#eceef3;text-align:left;padding:6px}td{padding:6px;border-bottom:1px solid #dcdfe5;vertical-align:top}
   .n{text-align:right}.cod{color:#6a7184;font-size:12px}td small{color:#6a7184}tfoot td{border-bottom:0;padding-top:8px}tr{page-break-inside:avoid}
   .obs{background:#f3f4f7;padding:8px 10px;border-radius:6px}.leg{margin:18px 0 0;color:#444}
-  .firmas{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:56px}.firmas div{border-top:1px solid #1c2333;text-align:center;padding-top:4px;font-size:12px}
+  .firmas{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:56px}.firmas.fd{margin-top:16px;align-items:end}.firmas div{border-top:1px solid #1c2333;text-align:center;padding-top:4px;font-size:12px}
   .ayuda{font:14px system-ui;background:#f6e9ec;padding:10px;border-radius:6px;margin:12px}@media print{.ayuda{display:none}}${QRB_CSS}
   </style></head><body><p class="ayuda">Se imprime <b>original y duplicado</b> de cada remito. Para guardarlo en PDF elegí <b>Guardar como PDF</b> como destino.</p>
   ${lista.map(o=>hoja(o,'ORIGINAL')+hoja(o,'DUPLICADO')).join('')}
@@ -1677,7 +1678,7 @@ async function vReparto(){
     $$('#rv_l [data-dn]').forEach(b=>b.onclick=()=>mover(b.dataset.dn,1));
     $$('#rv_l [data-ent]').forEach(b=>b.onclick=async()=>{b.disabled=true;const o=data.find(x=>x.id==b.dataset.ent);
       if(await cambiarEstado(o,'entregado')){toast('Pedido N° '+o.numero+' entregado.');S.rvSel=S.rvSel.filter(x=>x!=o.id);
-        if(o.foto_remito)modalAvisos([o],'entrega');else fotoRemito(o,()=>modalAvisos([o],'entrega'));vReparto()}});
+        if(o.foto_remito)modalAvisos([o],'entrega');else firmaRemito(o,()=>modalAvisos([o],'entrega'));vReparto()}});
     $$('#rv_l [data-fr]').forEach(b=>b.onclick=()=>fotoRemito(data.find(x=>x.id==b.dataset.fr)));
     $$('#rv_l [data-avs]').forEach(b=>b.onclick=()=>avisoPedidoWA(data.find(x=>x.id==b.dataset.avs),'sale'))};
   draw();
@@ -2440,7 +2441,7 @@ async function vMapa(){
 
 /* ======================= AVISOS POR WHATSAPP Y FOTO DEL REMITO ======================= */
 function avisoPedidoWA(o,tipo){const c=S.clientes.find(x=>x.id==o.cliente_id)||{};if(o.id)sb.from('envios_auto').insert({clave:'est_'+o.id+'_'+(tipo=='sale'?'sale':'entrega'),tipo:'estado',cliente_id:o.cliente_id,detalle:'Aviso pedido N° '+o.numero}).then(()=>{},()=>{});
-  const t=tipo=='sale'?`¡Hola! Te avisamos de *Sabores de mi País* que tu pedido N° ${o.numero} *ya salió* y hoy te lo llevamos. 🚚${c.condicion_pago_dias?'':'\nTotal a abonar: *'+$m(o.total)+'*'}`
+  const t=tipo=='sale'?`¡Hola! Te avisamos de *Sabores de mi País* que tu pedido N° ${o.numero} *ya salió* y hoy te lo llevamos. 🚚${c.condicion_pago_dias?'':'\nTotal a abonar: *'+$m(o.total)+'*'}${c.token_pedidos?'\n📍 Seguí la camioneta en vivo: '+linkPedidos(c)+'#seguir':''}`
     :`¡Hola! Te confirmamos que *entregamos tu pedido N° ${o.numero}* (${$m(o.total)}). ¡Gracias por tu compra! 🙌`+(S.linkMP&&!c.condicion_pago_dias?'\n\n💳 Si querés, pagalo con Mercado Pago:\n'+S.linkMP:'');
   const url=x=>'https://wa.me/'+telWA(c.telefono)+'?text='+encodeURIComponent(x);
   if(tipo=='sale'||S.sinEnc||!o.id)return window.open(url(t),'_blank');
@@ -3864,21 +3865,22 @@ const itemFolleto=(p,l)=>{const r=promoCerca(p.producto_id,l),base=+p['precio_'+
   return{d:p.descripcion,img:S.min[p.producto_id]?.foto||'',p:pr,ant:r?base:null,pct:r?+r.descuento_pct:0,cond:r&&condPromo(r)?condPromo(r):'',bulto:b?b.t+' × '+b.n+': '+$m(pr*b.n):''}};
 
 /* ---------- 5. Reclamos ---------- */
-async function vReclamos(){
+async function vReclamos(){S.garantia=await cfgJ('garantia',{activa:false,pct:10,dias:30});
   const{data,error}=await sb.from('reclamos').select('*').order('id',{ascending:false}).limit(150);
   if(error){$('#vs').innerHTML=SQL_SER;return}
   const ab=data.filter(r=>r.estado=='abierto'),cli=id=>S.clientes.find(c=>c.id==id)||{razon_social:'Cliente'};
   const fila=r=>`<div class="box ${r.estado=='abierto'?'alerta-i':''}" style="margin:8px 0"><div class="bh"><span><b>${esc(cli(r.cliente_id).razon_social)}</b> <small>· ${esc(r.tipo)}${r.pedido_numero?' · pedido N° '+r.pedido_numero:''} · ${hace(r.creado_en)}</small></span><span class="badge ${r.estado=='abierto'?'b-mora30':'b-entregado'}">${r.estado=='abierto'?'Abierto':'Resuelto'}</span></div>
     ${r.detalle?`<p>${esc(r.detalle)}</p>`:''}${r.foto?`<img src="${esc(r.foto)}" alt="Foto del reclamo" style="max-width:220px;max-height:220px;border-radius:8px;cursor:zoom-in" data-rz="${r.id}">`:''}
-    ${r.estado=='abierto'?`<div class="g"><input data-rr="${r.id}" placeholder="Qué le respondés (ej.: te lo reponemos en la próxima entrega)"></div><div class="fc-acc"><button data-rs="${r.id}">Resolver y avisarle por WhatsApp</button><a class="lnk" data-rf="${r.cliente_id}">Ver ficha</a></div>`:`<p><small>✓ ${esc(r.respuesta||'Resuelto')} · ${r.resuelto_en?fd(diaLocal(r.resuelto_en)):''}</small></p>`}</div>`;
+    ${r.estado=='abierto'?`<div class="g"><input data-rr="${r.id}" placeholder="Qué le respondés (ej.: te lo reponemos en la próxima entrega)"></div><label class="chk"><input type="checkbox" data-rg="${r.id}" ${S.garantia.activa?'checked':''}> 🎁 Compensarlo con un cupón de ${nf(S.garantia.pct)} % (garantía)</label><div class="fc-acc"><button data-rs="${r.id}">Resolver y avisarle por WhatsApp</button><a class="lnk" data-rf="${r.cliente_id}">Ver ficha</a></div>`:`<p><small>✓ ${esc(r.respuesta||'Resuelto')} · ${r.resuelto_en?fd(diaLocal(r.resuelto_en)):''}</small></p>`}</div>`;
   $('#vs').innerHTML=`<div class="kp"><div class="box ${ab.length?'alerta':'ok'}"><span class="lab">Reclamos abiertos</span><span class="num">${ab.length}</span><span class="det">resolvelos rápido</span></div><div class="box"><span class="lab">Últimos 30 días</span><span class="num">${data.filter(r=>Date.now()-new Date(r.creado_en)<30*864e5).length}</span></div></div>
-    <div class="box"><h3>🆘 Reclamos de clientes</h3><p><small>El cliente los manda desde "Mi cuenta" (faltó un producto, llegó roto, equivocado…), con foto. Respondé rápido: un reclamo bien resuelto fideliza más que una oferta.</small></p>
+    <div class="box"><div class="bh"><h3 style="margin:0">🆘 Reclamos de clientes</h3><button class="alt" onclick="garantiaCfg()">✅ Garantía ${S.garantia.activa?'activa':'(apagada)'}</button></div><p><small>El cliente los manda desde "Mi cuenta" (faltó un producto, llegó roto, equivocado…), con foto. Respondé rápido: un reclamo bien resuelto fideliza más que una oferta.</small></p>
     ${data.length?ab.map(fila).join('')+data.filter(r=>r.estado!='abierto').slice(0,30).map(fila).join(''):'<p><small>No hay reclamos. 👌</small></p>'}</div>`;
   $$('#vs [data-rz]').forEach(i=>i.onclick=()=>{const z=document.createElement('div');z.className='modal';z.innerHTML=`<div class="mc" style="text-align:center"><img src="${i.src}" style="max-width:100%"></div>`;z.onclick=()=>z.remove();document.body.appendChild(z)});
   $$('#vs [data-rf]').forEach(a=>a.onclick=()=>abrirFicha(a.dataset.rf));
   $$('#vs [data-rs]').forEach(b=>b.onclick=async()=>{const r=data.find(x=>x.id==b.dataset.rs),t=$(`[data-rr="${r.id}"]`).value.trim()||'Ya lo solucionamos.',c=cli(r.cliente_id);
-    const{error}=await sb.from('reclamos').update({estado:'resuelto',respuesta:t,resuelto_en:new Date().toISOString()}).eq('id',r.id);if(error)return toast(error.message,1);
-    if(c.telefono)window.open('https://wa.me/'+telWA(c.telefono)+'?text='+encodeURIComponent(`¡Hola ${nomCorto(c)}! Sobre tu reclamo${r.pedido_numero?' del pedido N° '+r.pedido_numero:''} (${r.tipo.toLowerCase()}): ${t} Disculpá las molestias y gracias por avisarnos 🙏`),'_blank');
+    let cup=null;if($(`[data-rg="${r.id}"]`)?.checked&&c.id){cup=await crearCuponPersonal(c,S.garantia.pct,S.garantia.dias,'Garantía: '+r.tipo,'GAR');if(!cup)return}
+    const{error}=await sb.from('reclamos').update({estado:'resuelto',respuesta:t+(cup?' · Cupón '+cup:''),resuelto_en:new Date().toISOString()}).eq('id',r.id);if(error)return toast(error.message,1);
+    if(c.telefono)window.open('https://wa.me/'+telWA(c.telefono)+'?text='+encodeURIComponent(`¡Hola ${nomCorto(c)}! Sobre tu reclamo${r.pedido_numero?' del pedido N° '+r.pedido_numero:''} (${r.tipo.toLowerCase()}): ${t}${cup?`\n\n🎁 Para compensarte tenés un *${nf(S.garantia.pct)} % de descuento* en tu próxima compra con el código *${cup}* (vale ${S.garantia.dias} días). Es nuestra garantía de pedido completo.`:''}\n\nDisculpá las molestias y gracias por avisarnos 🙏`),'_blank');
     toast('Reclamo resuelto.');vReclamos()})}
 
 /* ---------- 6. Lo que piden que traigas (dentro de Qué buscan) ---------- */
@@ -4234,7 +4236,7 @@ async function datosCola(crear){const A=await cfgAuto();if(crear)await autoOfert
   {const{data:EP}=await sb.from('pedidos').select('id,numero,total,estado,cliente_id').in('estado',['aprobado','en_reparto']).gte('actualizado_en',ini).then(r=>r,()=>({data:null}));
     for(const o of EP||[]){const c=cli(o.cliente_id);if(!c||!c.telefono||E.has('est_'+o.id+'_'+(o.estado=='en_reparto'?'sale':'aprobado')))continue;const sale=o.estado=='en_reparto';
       L.push({k:'est_'+o.id+'_'+(sale?'sale':'aprobado'),tipo:'estado',c,pri:97,val:0,mot:sale?'Su pedido N° '+o.numero+' salió a reparto':'Se aprobó su pedido N° '+o.numero,
-        txt:sale?`¡Hola ${nomCorto(c)}! Te avisamos de *Sabores de mi País* que tu pedido N° ${o.numero} *ya salió* y hoy te lo llevamos. 🚚${c.condicion_pago_dias?'':'\nTotal a abonar: *'+$m(o.total)+'*'}`:`¡Hola ${nomCorto(c)}! ✅ Recibimos y *aprobamos tu pedido N° ${o.numero}* por ${$m(o.total)}. Te avisamos cuando sale. ¡Gracias!`})}}
+        txt:sale?`¡Hola ${nomCorto(c)}! Te avisamos de *Sabores de mi País* que tu pedido N° ${o.numero} *ya salió* y hoy te lo llevamos. 🚚${c.condicion_pago_dias?'':'\nTotal a abonar: *'+$m(o.total)+'*'}${c.token_pedidos?'\n📍 Seguí la camioneta en vivo: '+linkPedidos(c)+'#seguir':''}`:`¡Hola ${nomCorto(c)}! ✅ Recibimos y *aprobamos tu pedido N° ${o.numero}* por ${$m(o.total)}. Te avisamos cuando sale. ¡Gracias!`})}}
   {const AP=((await cfgJ('aumentos_prog',{l:[]})).l||[]).filter(x=>!x.aplicado&&x.fecha>hoy&&diaLocal(new Date(Date.now()+(+x.aviso||0)*864e5))>=x.fecha);
     for(const x of AP){const ids=new Set(idsAumento(x).map(String)),dia=new Date(x.fecha+'T12:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'numeric'});
       for(const c of S.clientes){const r=H.C[c.id];if(!c.telefono||c.activo===false||!r||dDesde(r.ult)>90||![...r.pr].some(p=>ids.has(p))||E.has('aup_'+x.id+'_'+c.id))continue;
@@ -5494,11 +5496,11 @@ async function hojaArmado(){S.haE=S.haE||['aprobado','en_preparacion'];await car
   draw()}
 
 /* ---------- 6. Modo chofer ---------- */
-async function modoChofer(L){L=(L||[]).filter(Boolean);if(!L.length)return toast('Elegí los pedidos del reparto.',1);let i=0;const res={ent:0,cob:{},no:0};
+async function modoChofer(L){L=(L||[]).filter(Boolean);if(!L.length)return toast('Elegí los pedidos del reparto.',1);let i=0;const res={ent:0,cob:{},no:0};vivoIniciar(L);
   const ids=[...new Set(L.map(o=>o.cliente_id))];const[sa,fe]=await Promise.all([sb.from('saldos_clientes').select('*').in('cliente_id',ids),sb.from('facturas_estado').select('*').in('cliente_id',ids).gt('pendiente',0.005).order('vencimiento')]);
   const sal=id=>+(sa.data||[]).find(x=>x.cliente_id==id)?.saldo||0;
   const m=document.createElement('div');m.className='modal chofer';document.body.appendChild(m);
-  const fin=()=>{const tc=Object.values(res.cob).reduce((a,x)=>a+x,0);m.innerHTML=`<div class="mc" style="text-align:center"><h2>🏁 Reparto terminado</h2><p>Entregados: <b>${res.ent}</b> de ${L.length}${res.no?' · No estaban: <b>'+res.no+'</b>':''}</p><p>Cobrado: <b>${$m(tc)}</b><br><small>${Object.entries(res.cob).map(([k,v])=>k+': '+$m(v)).join(' · ')}</small></p>
+  const fin=()=>{vivoParar();const tc=Object.values(res.cob).reduce((a,x)=>a+x,0);m.innerHTML=`<div class="mc" style="text-align:center"><h2>🏁 Reparto terminado</h2><p>Entregados: <b>${res.ent}</b> de ${L.length}${res.no?' · No estaban: <b>'+res.no+'</b>':''}</p><p>Cobrado: <b>${$m(tc)}</b><br><small>${Object.entries(res.cob).map(([k,v])=>k+': '+$m(v)).join(' · ')}</small></p>
     <div class="fc-acc" style="justify-content:center"><button class="wa" id="mc_wa">📲 Mandar resumen</button><button class="alt" id="mc_x">Cerrar</button></div></div>`;
     m.querySelector('#mc_x').onclick=()=>{m.remove();if(S.tab=='reparto')vReparto()};
     m.querySelector('#mc_wa').onclick=()=>window.open('https://wa.me/?text='+encodeURIComponent(`🚚 *Reparto ${new Date().toLocaleDateString('es-AR')}*\nEntregados: ${res.ent} de ${L.length}${res.no?'\nNo estaban: '+res.no:''}\nCobrado: ${$m(tc)}${Object.keys(res.cob).length?'\n'+Object.entries(res.cob).map(([k,v])=>'• '+k+': '+$m(v)).join('\n'):''}`),'_blank')};
@@ -5511,8 +5513,8 @@ async function modoChofer(L){L=(L||[]).filter(Boolean);if(!L.length)return toast
       <div class="g"><input id="mc_i" type="number" step="0.01" min="0" placeholder="Importe cobrado" value="${cobrar>0.5?Math.round(cobrar*100)/100:''}"><select id="mc_m"><option value="efectivo">Efectivo</option><option value="transferencia">Transferencia</option><option value="cheque">Cheque</option><option value="otro">Otro</option></select></div>
       <div class="fc-acc" style="margin-top:8px"><button class="big" id="mc_en">✅ Entregado${cobrar>0.5?' y cobrado':''}</button><button class="alt" id="mc_so">Entregado sin cobrar</button><button class="alt" id="mc_no">🚪 No estaba</button></div>
       <div class="fc-acc" style="margin-top:6px">${i>0?'<a class="lnk" id="mc_ant">← Anterior</a>':''}<a class="lnk" id="mc_sig">Saltear →</a></div></div>`;
-    m.querySelector('#mc_x').onclick=()=>{if(i>0||res.ent)fin();else m.remove()};const q=s=>m.querySelector(s);if(navigator.onLine)notasMini(c.id,'#mc_nt');
-    q('#mc_ll')&&(q('#mc_ll').onclick=()=>window.open('https://wa.me/'+telWA(c.telefono)+'?text='+encodeURIComponent(`¡Hola ${nomCorto(c)}! Soy de *Sabores de mi País* 🚚 Estoy llegando con tu pedido N° ${o.numero} en unos minutos.${cont&&cobrar>0.5?' Total a pagar: '+$m(cobrar)+'.':''}`),'_blank'));
+    m.querySelector('#mc_x').onclick=()=>{if(i>0||res.ent)fin();else{vivoParar();m.remove()}};const q=s=>m.querySelector(s);if(navigator.onLine)notasMini(c.id,'#mc_nt');
+    q('#mc_ll')&&(q('#mc_ll').onclick=()=>window.open('https://wa.me/'+telWA(c.telefono)+'?text='+encodeURIComponent(`¡Hola ${nomCorto(c)}! Soy de *Sabores de mi País* 🚚 Estoy llegando con tu pedido N° ${o.numero} en unos minutos.${linkSeguir(c)?'\n📍 Seguilo en vivo: '+linkSeguir(c):''}${cont&&cobrar>0.5?' Total a pagar: '+$m(cobrar)+'.':''}`),'_blank'));
     q('#mc_ant')&&(q('#mc_ant').onclick=()=>{i--;draw()});q('#mc_sig').onclick=()=>{i++;draw()};
     q('#mc_no').onclick=async()=>{const n=prompt('¿Qué pasó? (opcional)','Cerrado / no estaba');if(n===null)return;await accionChofer({t:'contacto',row:{cliente_id:c.id,tipo:'visita',detalle:'Reparto: '+(n||'no estaba')+' · pedido N° '+o.numero}}).catch(()=>{});res.no++;i++;draw()};
     const entregar=async cobra=>{q('#mc_en').disabled=true;q('#mc_so').disabled=true;
@@ -5520,8 +5522,8 @@ async function modoChofer(L){L=(L||[]).filter(Boolean);if(!L.length)return toast
         try{await accionChofer({t:'cobro',args:{p_cliente:c.id,p_importe:imp,p_medio:med,p_imputaciones:im}})}catch(error){q('#mc_en').disabled=false;q('#mc_so').disabled=false;return toast('No se pudo registrar el cobro: '+error.message,1)}
         res.cob[med]=(res.cob[med]||0)+imp}}
       if(o.estado!='entregado'){const r2=await accionChofer({t:'estado',id:o.id,e:'entregado'}).catch(e=>{toast(e.message,1);return null});if(r2){o.estado='entregado';res.ent++}}
-      if(!navigator.onLine){toast('📴 Sin señal: quedó guardado y se manda solo cuando vuelva internet.');i++;return draw()}
-      fotoRemito(o,()=>{});const t=setInterval(()=>{if(!document.querySelector('.modal:not(.chofer)')){clearInterval(t);i++;draw()}},500)};
+      if(!navigator.onLine)toast('📴 Sin señal: quedó guardado y se manda solo cuando vuelva internet.');
+      VIVO&&VIVO.upd();firmaRemito(o,()=>{i++;draw()})};
     q('#mc_en').onclick=()=>entregar(true);q('#mc_so').onclick=()=>entregar(false)};
   draw()}
 
@@ -6102,10 +6104,10 @@ async function notasMini(cid,sel){const box=$(sel);if(!box)return;try{const{data
 const COLA_OFF='chofer_cola';
 const colaOff=()=>{try{return JSON.parse(localStorage.getItem(COLA_OFF)||'[]')}catch(e){return[]}},guardaOff=L=>{try{localStorage.setItem(COLA_OFF,JSON.stringify(L))}catch(e){}};
 const esRed=e=>!navigator.onLine||/fetch|network|Failed|conexi/i.test(String(e?.message||e||''));
-async function accionChofer(a){const run=async()=>{if(a.t=='cobro'){const{error}=await sb.rpc('registrar_cobranza',a.args);if(error)throw error}else if(a.t=='estado'){const{error}=await sb.from('pedidos').update({estado:a.e}).eq('id',a.id);if(error)throw error}else if(a.t=='contacto'){const{error}=await sb.from('contactos_clientes').insert(a.row);if(error)throw error}};
+async function accionChofer(a){const run=async()=>{if(a.t=='cobro'){const{error}=await sb.rpc('registrar_cobranza',a.args);if(error)throw error}else if(a.t=='estado'){const{error}=await sb.from('pedidos').update({estado:a.e}).eq('id',a.id);if(error)throw error}else if(a.t=='contacto'){const{error}=await sb.from('contactos_clientes').insert(a.row);if(error)throw error}else if(a.t=='firma'){const{error}=await sb.from('pedidos').update({firma:a.f,firmado_en:a.at,firmado_por:a.p}).eq('id',a.id);if(error)throw error}};
   if(!navigator.onLine){guardaOff([...colaOff(),a]);return'off'}try{await run();return'ok'}catch(e){if(esRed(e)){guardaOff([...colaOff(),a]);return'off'}throw e}}
 async function sincronizarOff(){const L=colaOff();if(!L.length||!navigator.onLine)return;const resto=[];let n=0;
-  for(const a of L){try{if(a.t=='cobro'){const{error}=await sb.rpc('registrar_cobranza',a.args);if(error)throw error}else if(a.t=='estado'){const{error}=await sb.from('pedidos').update({estado:a.e}).eq('id',a.id);if(error)throw error}else if(a.t=='contacto'){await sb.from('contactos_clientes').insert(a.row)}n++}catch(e){if(esRed(e))resto.push(a);else toast('No se pudo sincronizar una acción del reparto: '+(e.message||e),1)}}
+  for(const a of L){try{if(a.t=='cobro'){const{error}=await sb.rpc('registrar_cobranza',a.args);if(error)throw error}else if(a.t=='estado'){const{error}=await sb.from('pedidos').update({estado:a.e}).eq('id',a.id);if(error)throw error}else if(a.t=='contacto'){await sb.from('contactos_clientes').insert(a.row)}else if(a.t=='firma'){const{error}=await sb.from('pedidos').update({firma:a.f,firmado_en:a.at,firmado_por:a.p}).eq('id',a.id);if(error)throw error}n++}catch(e){if(esRed(e))resto.push(a);else toast('No se pudo sincronizar una acción del reparto: '+(e.message||e),1)}}
   guardaOff(resto);if(n)toast('📶 Volvió la señal: se sincronizaron '+n+' acciones del reparto.')}
 window.addEventListener('online',()=>setTimeout(sincronizarOff,1500));
 
@@ -6182,6 +6184,44 @@ function snack(txt,deshacer){let e=$('#snk');if(!e){e=document.createElement('di
 const CACHE_K='crm_cache_v1';
 function leerCache(uid){try{const x=JSON.parse(localStorage.getItem(CACHE_K)||'null');return x&&x.u==uid&&Date.now()-x.t<12*36e5&&Array.isArray(x.c)&&Array.isArray(x.p)?x:null}catch(e){return null}}
 function guardarCache(){try{localStorage.setItem(CACHE_K,JSON.stringify({u:S.perfil.id,t:Date.now(),c:S.clientes,p:S.productos}))}catch(e){try{localStorage.removeItem(CACHE_K)}catch(er){}}}
+
+/* ======================= DESTACARSE (tanda 20) ======================= */
+const SQL_VIVO='Falta correr vivo.sql en Supabase.';
+/* A. Seguimiento del reparto en vivo: el Modo chofer comparte la ubicación */
+let VIVO=null;
+function vivoIniciar(L){if(!navigator.geolocation||VIVO)return;const ruta=()=>L.filter(o=>o.estado=='en_reparto').map(o=>o.id);let last=0,lp=null;
+  const send=c=>{if(!navigator.onLine||!c)return;sb.from('reparto_vivo').upsert({id:1,lat:c.latitude,lng:c.longitude,at:new Date().toISOString(),ruta:ruta(),activo:true}).then(({error})=>{if(error&&/reparto_vivo/.test(error.message)&&!S._vivoAv){S._vivoAv=1;toast(SQL_VIVO,1)}},()=>{})};
+  const id=navigator.geolocation.watchPosition(p=>{const n=Date.now();if(n-last>40000||!lp||distKmO({lat:lp.latitude,lng:lp.longitude},{lat:p.coords.latitude,lng:p.coords.longitude})>.25){last=n;lp=p.coords;send(p.coords)}},()=>{},{enableHighAccuracy:true,maximumAge:30000,timeout:60000});
+  VIVO={id,upd:()=>send(lp)};try{navigator.wakeLock&&navigator.wakeLock.request('screen').then(w=>VIVO&&(VIVO.wl=w)).catch(()=>{})}catch(e){}}
+function vivoParar(){if(VIVO){navigator.geolocation.clearWatch(VIVO.id);try{VIVO.wl&&VIVO.wl.release()}catch(e){}VIVO=null}sb.from('reparto_vivo').update({activo:false}).eq('id',1).then(()=>{},()=>{})}
+const linkSeguir=c=>c&&c.token_pedidos?linkPedidos(c)+'#seguir':'';
+
+/* B. Remito firmado en el celular */
+function firmaRemito(o,alTerminar){const c=S.clientes.find(x=>x.id==o.cliente_id)||{},m=document.createElement('div');m.className='modal firma';document.body.appendChild(m);let hay=false;
+  m.innerHTML=`<div class="mc"><h3>✍️ Firma del cliente · Pedido N° ${o.numero}</h3><p><small>${esc(c.razon_social||'')} firma con el dedo que recibió la mercadería conforme.</small></p>
+    <canvas id="fi_c" width="600" height="230" style="width:100%;height:auto;border:1.5px dashed #9aa1b1;border-radius:10px;background:#fff;touch-action:none"></canvas>
+    <div class="g"><input id="fi_a" placeholder="Aclaración (nombre de quien recibe)" value="${esc(c.contacto||'')}"></div>
+    <div class="fc-acc"><button id="fi_ok">Guardar firma</button><a class="lnk" id="fi_b">Borrar</a><button class="alt" id="fi_f">📷 Prefiero foto del remito</button><button class="alt" id="fi_n">Sin firma</button></div></div>`;
+  const cv=m.querySelector('#fi_c'),cx=cv.getContext('2d');cx.lineWidth=3.2;cx.lineCap='round';cx.lineJoin='round';cx.strokeStyle='#14213d';let dw=false;
+  const pt=e=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*cv.width/r.width,(e.clientY-r.top)*cv.height/r.height]};
+  cv.onpointerdown=e=>{dw=true;hay=true;cv.setPointerCapture(e.pointerId);const[x,y]=pt(e);cx.beginPath();cx.moveTo(x,y)};cv.onpointermove=e=>{if(!dw)return;const[x,y]=pt(e);cx.lineTo(x,y);cx.stroke()};cv.onpointerup=cv.onpointercancel=()=>dw=false;
+  const fin=()=>{m.remove();alTerminar&&alTerminar()};
+  m.querySelector('#fi_b').onclick=()=>{cx.clearRect(0,0,cv.width,cv.height);hay=false};m.querySelector('#fi_n').onclick=fin;m.querySelector('#fi_f').onclick=()=>{m.remove();fotoRemito(o,()=>alTerminar&&alTerminar())};
+  m.querySelector('#fi_ok').onclick=async()=>{if(!hay)return toast('Pedile que firme en el recuadro.',1);const f=cv.toDataURL('image/png'),por=m.querySelector('#fi_a').value.trim()||null,at=new Date().toISOString();
+    let r;try{r=await accionChofer({t:'firma',id:o.id,f,p:por,at})}catch(e){return toast(/firma/.test(e.message)?SQL_VIVO:e.message,1)}o.firma=f;o.firmado_en=at;o.firmado_por=por;
+    m.innerHTML=`<div class="mc" style="text-align:center"><h3>✅ Remito firmado</h3><p>${r=='off'?'Sin señal: se guarda solo cuando vuelva internet.':'Quedó guardado en el pedido y en la cuenta del cliente.'}</p><div class="fc-acc" style="justify-content:center">${c.telefono?'<button class="wa" id="fi_w">📲 Mandarle el remito</button>':''}<button class="alt" id="fi_x">Seguir</button></div></div>`;
+    const w=m.querySelector('#fi_w');if(w)w.onclick=()=>{window.open('https://wa.me/'+telWA(c.telefono)+'?text='+encodeURIComponent(`¡Hola ${nomCorto(c)}! ✅ Entregamos tu pedido N° ${o.numero}${por?' (recibió '+por+')':''} a las ${new Date(at).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})}. Tenés el remito firmado${o.pedido_items?.some?.(i=>i.peso_real!=null)?' con los kilos reales':''} en tu cuenta:\n${c.token_pedidos?linkPedidos(c)+'#cuenta':''}\n¡Gracias por tu compra! 🙌`),'_blank');w.disabled=true};
+    m.querySelector('#fi_x').onclick=fin}}
+
+/* C. Garantía "pedido completo" */
+async function garantiaCfg(){const G=await cfgJ('garantia',{activa:false,pct:10,dias:30}),m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  m.innerHTML=`<div class="mc"><div class="bh"><h3>✅ Garantía "Pedido completo"</h3><button class="alt" id="ga_x">Cerrar</button></div>
+    <p><small>Si a un pedido le faltó algo o llegó mal, al resolver el reclamo se le genera solo un <b>cupón de compensación</b> para su próxima compra, con un mensaje de disculpas. En el catálogo los clientes ven el sello <b>"✅ Pedido completo garantizado"</b>. Genera mucha confianza: casi nadie lo ofrece.</small></p>
+    <label class="chk"><input type="checkbox" id="ga_a" ${G.activa?'checked':''}> Ofrecer la garantía (sello en el catálogo y cupón al resolver reclamos)</label>
+    <div class="g"><label class="f">Descuento del cupón (%)<input type="number" id="ga_p" min="1" max="50" value="${G.pct}"></label><label class="f">Vence en (días)<input type="number" id="ga_d" min="7" max="120" value="${G.dias}"></label></div>
+    <button id="ga_g">Guardar</button></div>`;
+  m.querySelector('#ga_x').onclick=()=>m.remove();m.querySelector('#ga_g').onclick=async()=>{const v={activa:m.querySelector('#ga_a').checked,pct:Math.max(1,+m.querySelector('#ga_p').value||10),dias:Math.max(7,+m.querySelector('#ga_d').value||30)};
+    const{error}=await guardaCfgJ('garantia',v);if(error)return toast(error.message,1);S.garantia=v;toast(v.activa?'Garantía activada: el sello ya aparece en el catálogo.':'Garantía apagada.');m.remove();if(S.vs=='reclamos')vReclamos()}}
 
 /* ======================= VENTAS 8: conseguir clientes, proveedores y margen ======================= */
 const SQL_PRV='<div class="aviso">Falta correr <b>ventas-proveedores.sql</b> en Supabase (SQL Editor). Después recargá la página.</div>';

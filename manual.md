@@ -7,7 +7,7 @@ Guía ordenada por sección para consultar o pasarle al equipo. Cada punto dice 
 - **CRM (uso interno):** https://dnegri0805-cell.github.io/crm-sabores/ — se entra con usuario y contraseña.
 - **Catálogo de cada cliente:** link personal `pedido.html?c=…` que se manda desde la ficha del cliente (botón de WhatsApp). Cada cliente ve sus precios, su cuenta y sus promos.
 - **Catálogo público (sin precios de cliente):** `pedido.html?ver=catalogo` — para redes, folletos y nuevos clientes.
-- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-10.25`). Si algo "no aparece", cerrá y abrí la pestaña.
+- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-10.26`). Si algo "no aparece", cerrá y abrí la pestaña.
 - **En el celular:** abrí el CRM en Chrome → menú ⋮ → *Agregar a pantalla de inicio*. Queda como una app.
 - **❓ Ayuda:** arriba, al lado del buscador, abre la explicación de la pantalla en la que estás.
 - **Aa Cómo se ve:** letra normal, grande o muy grande, modo claro u oscuro, y **🔔 avisos en este equipo** (notificación cuando entra un pedido online, aunque estés en otra app, mientras el CRM esté abierto). Se guarda por equipo.
@@ -214,7 +214,7 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 - **📅 Días sin reparto** (Reparto): feriados o días que no salís. El catálogo no los ofrece y con **📲 Avisar** les mandás a los clientes afectados que pidan antes.
 - **🧭 Ordenar recorrido** (Reparto): ordena las paradas por cercanía desde tu depósito (la primera vez te pide la ubicación del depósito, estando ahí). Los clientes sin ubicación quedan al final.
 - **📴 Sin señal en el reparto:** si en el Modo chofer te quedás sin internet, los entregados, cobros y "no estaba" quedan guardados en el celular y se mandan solos cuando vuelve la señal (no cierres la pantalla).
-- **🚚 Modo chofer** (en Reparto, con los pedidos elegidos): una parada por pantalla, en orden. Muestra cliente, dirección (**📍 Cómo llegar**), **📞 Llamar**, **📲 Estoy llegando**, lo que lleva, el total y **cuánto cobrar** (contado o saldo de la cuenta). **✅ Entregado y cobrado** registra el cobro (efectivo, transferencia, cheque) con su recibo, marca entregado y pide la foto del remito. También *Entregado sin cobrar* y *🚪 No estaba*. Al final, el resumen del reparto para mandarlo por WhatsApp.
+- **🚚 Modo chofer** (en Reparto, con los pedidos elegidos): una parada por pantalla, en orden. Muestra cliente, dirección (**📍 Cómo llegar**), **📞 Llamar**, **📲 Estoy llegando**, lo que lleva, el total y **cuánto cobrar** (contado o saldo de la cuenta). **✅ Entregado y cobrado** registra el cobro (efectivo, transferencia, cheque) con su recibo, marca entregado y pide la **firma del cliente en la pantalla** (o la foto del remito, si preferís). También *Entregado sin cobrar* y *🚪 No estaba*. Al final, el resumen del reparto para mandarlo por WhatsApp.
 - **Cobranza:** quién debe y cuánto, con filtro *Con deuda vencida*. Registrás pagos (efectivo, transferencia, cheque) y se genera el **recibo**. El botón **pronto pago** aplica el descuento si paga dentro del plazo.
 - **Caja:** ingresos y egresos del día y cierre de caja (arqueo). Arriba, **🧾 Cierre del día**.
 - **Cobranza → 🏦 Conciliar transferencias:** subís el extracto del banco o de Mercado Pago (Excel, CSV o PDF) o pegás las filas; el CRM sugiere de qué cliente es cada ingreso (por CUIT, nombre o importe) y registrás los cobros con un toque. Los ya registrados no se repiten.
@@ -222,6 +222,8 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 - **Cobranza → 🚦 Semáforo de riesgo:** 🔴 clientes con deuda vencida que además compran mucho menos, llevan 45 días o más de mora o pagan menos de la mitad de lo que compran; 🟡 los que tienen algo vencido. Botón para escribirles y **🔒 Cortar crédito** (el límite queda en su deuda actual).
 - **Cobranza → 💳 Crédito inteligente:** límite sugerido para cada cliente según cómo compra y paga (buen pagador 1,5 veces su compra mensual, regular 1 vez, malo media vez). Tildás y aplicás.
 - **Reparto → 🗺️ Zonas y camioneta:** para cada zona (sale de la zona o localidad del cliente), los **días de entrega** y el **costo por parada**. Ves cuánto te deja cada zona después del reparto y el **pedido mínimo sugerido**. Cargás la **capacidad de la camioneta** (bultos y kilos) y la hoja de reparto te avisa si te pasás o si hay pedidos de zonas que no entregás ese día. También en Ventas → Analizar.
+- **📍 Seguimiento en vivo:** mientras el **Modo chofer** está abierto (con permiso de ubicación), el celular comparte dónde está la camioneta. El cliente ve en su catálogo *"Tu pedido está en camino · antes que vos hay 2 paradas · llega aprox. 11:40"* y un mapa con **📍 Ver dónde está**. Los mensajes de *Ya salió* y *Estoy llegando* llevan el link para seguirlo. No ve a los demás clientes. Al cerrar el Modo chofer se deja de compartir. Requiere **vivo.sql**.
+- **✍️ Remito firmado en el celular:** al entregar, el cliente firma con el dedo y se anota quién recibió. Queda en el pedido (botón **✍️ Firmado**), sale impresa en el remito y el cliente lo ve en **Mi cuenta → ✍️ Remito** (con los kilos reales). Botón para mandárselo por WhatsApp. Funciona sin señal. Requiere **vivo.sql**.
 
 ## 10. Compras, stock, precios y reportes
 
@@ -262,7 +264,8 @@ Se abre con su link personal. Pasos para el cliente: **buscar → agregar → Ve
 
 **Mi cuenta** (pestaña dentro del catálogo del cliente):
 
-- Sus pedidos con **seguimiento**, comprobante y botón de **reclamo**.
+- Sus pedidos con **seguimiento**, comprobante y botón de **reclamo**. Si está en reparto, **📍 Dónde está** (mapa en vivo); si ya se entregó, **✍️ Remito** firmado.
+- Sello **✅ Pedido completo garantizado**, si activás la garantía.
 - Saldo, **recibos** y descuento por **pronto pago**.
 - **Puntos**, **Recomendá y ganá** (link para invitar a otro comercio), sorteo y desafío del mes.
 - Configuración de su **pedido automático**.
@@ -274,6 +277,8 @@ Se abre con su link personal. Pasos para el cliente: **buscar → agregar → Ve
 - Si arma un pedido, llega a *Ventas → Presupuestos* marcado 🌐 Catálogo, para confirmarlo vos.
 - Los que piden ser clientes aparecen arriba de todo en la **Cola del día** para el alta exprés.
 - Con un QR de campaña el link lleva `&qr=CÓDIGO` y todo lo que haga esa persona queda anotado a esa campaña.
+
+**✅ Garantía "Pedido completo"** (Ventas → Reclamos → **✅ Garantía**): la activás y elegís el % del cupón y su vencimiento. Los clientes ven el sello en el catálogo y, al resolver un reclamo, se genera solo un cupón de compensación que va en el mensaje de disculpas. Requiere **vivo.sql**.
 
 ## 13. Configuración inicial recomendada
 
