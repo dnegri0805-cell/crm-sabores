@@ -7,7 +7,7 @@ Guía ordenada por sección para consultar o pasarle al equipo. Cada punto dice 
 - **CRM (uso interno):** https://dnegri0805-cell.github.io/crm-sabores/ — se entra con usuario y contraseña.
 - **Catálogo de cada cliente:** link personal `pedido.html?c=…` que se manda desde la ficha del cliente (botón de WhatsApp). Cada cliente ve sus precios, su cuenta y sus promos.
 - **Catálogo público (sin precios de cliente):** `pedido.html?ver=catalogo` — para redes, folletos y nuevos clientes.
-- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-11.27`). Si algo "no aparece", cerrá y abrí la pestaña.
+- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-11.28`). Si algo "no aparece", cerrá y abrí la pestaña.
 - **En el celular:** abrí el CRM en Chrome → menú ⋮ → *Agregar a pantalla de inicio*. Queda como una app.
 - **📲 Atajos en el ícono:** mantené apretado el ícono de la app y vas directo a **Nuevo pedido**, **Cola del día**, **Reparto** o **Cobrar**. Si no aparecen, esperá un día o sacá la app y volvé a agregarla a la pantalla de inicio.
 - **🔐 Entrar con huella o cara** (en **Aa**): al abrir el CRM en ese equipo, o si quedó más de 5 minutos en segundo plano, te pide la huella, la cara o el PIN del celular. Si falla, **Entrar con mi contraseña**. Se activa en cada equipo.
@@ -31,6 +31,8 @@ Es el tablero del día. Arriba de todo, si falta algo: **🩺 Falta correr un SQ
 **📊 Resumen de hoy** (solo el dueño): vendido (y cuánto contra ayer), ganancia estimada, cobrado (por medio de pago), pedidos que falta entregar y kilos de quesos y fiambres vendidos. Con **📲 Mandármelo** te lo mandás por WhatsApp. Ahí mismo están **📈 Ganancia neta** (cargás tus gastos fijos del mes y ves la ganancia después de gastos y merma, la proyección del mes y el **punto de equilibrio**: cuánto tenés que vender en el mes y por día hábil para cubrir los gastos), **🧾 Cierre del día** (cobrado por medio, gastos y pagos, efectivo neto, pedidos nuevos, entregados y lo que quedó sin entregar, para mandar por WhatsApp) y **📄 Informe del mes** (ventas, margen, cobranza, compras, gastos, merma, deuda, stock, mejores clientes y productos, en PDF para vos y tu contador; también en Reportes).
 
 **🌙 Para mañana** (desde las 16 h, y en el atajo del ícono): qué entregás mañana y cuántos falta armar, pedidos por aprobar, **qué mercadería te falta** para esos pedidos, a quién cobrar (contado y vencidos), cheques para depositar y vencimientos (camioneta, cheques tuyos, proveedores, mercadería y tareas). Si tenés los **🔔 avisos** activados, a las **21 h** te llega como notificación. También va en el mail del resumen diario.
+
+**🤝 Hoy prometieron pagar** y **📂 Documentos por vencer** (de tus clientes, un mes antes): aparecen arriba cuando hay.
 
 **🚐 Camioneta:** si se vence la VTV, el seguro u otro papel (15 días antes) o se acerca el service, aparece arriba con botón **Ver**.
 
@@ -60,9 +62,10 @@ Debajo aparecen tarjetas de aviso; cada una lleva a la pantalla donde se actúa:
 - **Pegar de WhatsApp:** pegás el mensaje del cliente tal cual y el sistema reconoce productos y cantidades.
 - **Combos** y **cupón** se agregan desde el mismo formulario.
 - Abajo se ve el **ticket promedio** del cliente y, para el dueño, la **ganancia estimada** del pedido.
+- **📴 Sin señal:** si cargás un pedido sin internet (en la calle), queda guardado en el celular y se manda solo cuando vuelve la señal. Arriba de la lista ves cuántos están esperando.
 - **Mandar como presupuesto:** en vez de pedido, genera un presupuesto con link para que el cliente lo acepte (queda en *Ventas → Presupuestos*).
 
-**Pedidos online:** los que hace el cliente desde su catálogo entran en *Por aprobar*. Revisalos y aprobalos.
+**Pedidos online:** los que hace el cliente desde su catálogo entran en *Por aprobar*. Revisalos y aprobalos. Cada pedido por aprobar muestra **cuánto te deja**: 🟢 bien, 🟡 debajo de tu margen mínimo, 🔴 perdés plata, ya descontado el costo de reparto de su zona (el que cargás en Zonas y camioneta). Si perdés plata, antes de aprobar te pregunta.
 
 **Estados:** A preparación → Marcar listo → Salió a reparto → Entregado. Si te equivocás, abajo aparece **Deshacer** unos segundos (también al cambiar costos en Precios). Los cancelados se ven en **Cancelados** y se pueden **♻️ Reactivar**. El cliente ve el seguimiento en su cuenta.
 
@@ -203,6 +206,9 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 **Dónde:** menú *Clientes*. Pestañas: Clientes · Agenda de visitas · Mapa · Dormidos · Prospectos · Pedidos fijos.
 
 - **Clientes:** buscador y filtros (con deuda, por zona, por lista). Tocando un cliente se abre su **ficha**.
+- **📂 Documentos** (en la ficha): constancia de CUIT, de Ingresos Brutos, habilitación, contrato de comodato o DNI (foto o PDF). Quedan en una carpeta privada que solo se ve entrando al CRM; si tienen vencimiento te avisa en Inicio un mes antes. Requiere **cuentas.sql**.
+- **🏖️ Vacaciones** (en la ficha): cierra desde / vuelve el. Mientras está cerrado no se arma su pedido fijo y la Cola no le escribe; cuando vuelve, la Cola le manda *¡Bienvenido! ¿Reponemos?*.
+- **🕐 Horario de recepción** (en la ficha): por ejemplo de 8 a 12. **🧭 Ordenar recorrido** pone primero a los que cierran temprano y el **Modo chofer** avisa si llegás fuera de horario.
 - **🗒️ Notas** (en la ficha): anotás lo que no te querés olvidar del cliente; con fecha, también te queda como tarea. Las notas aparecen al cargarle un pedido y en el Modo chofer. Requiere **cobrar.sql**.
 - **📄 Estado de cuenta** (en la ficha): PDF con el saldo, los comprobantes pendientes (vencidos en rojo), los últimos pagos y tus datos para pagar; también le manda el resumen por WhatsApp.
 - **🧹 Revisión de datos** (arriba en Clientes): lo que conviene completar, con su arreglo: **clientes duplicados** (mismo teléfono, CUIT o nombre) con botón **Unificar** (todos sus pedidos, facturas y cobros pasan a uno; requiere **entregas.sql**), clientes **sin ubicación** (botón para ubicarlos solos en el mapa con su dirección), sin teléfono, sin localidad o sin rubro (se completan ahí mismo) y productos sin costo, sin foto o con margen raro.
@@ -223,6 +229,7 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 - **🚚 Modo chofer** (en Reparto, con los pedidos elegidos): una parada por pantalla, en orden. Muestra cliente, dirección (**📍 Cómo llegar**), **📞 Llamar**, **📲 Estoy llegando**, lo que lleva, el total y **cuánto cobrar** (contado o saldo de la cuenta). **✅ Entregado y cobrado** registra el cobro (efectivo, transferencia, cheque) con su recibo, marca entregado y pide la **firma del cliente en la pantalla** (o la foto del remito, si preferís). También *Entregado sin cobrar* y *🚪 No estaba*. Al final, el resumen del reparto para mandarlo por WhatsApp.
 - **🚐 Camioneta al día** (Reparto): patente, kilómetros, vencimientos (VTV, seguro, patente, matafuego, licencia, RUTA), service cada X km con **✅ Hice el service hoy**, y las **⛽ cargas de combustible** (km del tablero, litros, importe; si querés se anotan también como gasto de caja). Con dos tanques llenos te calcula el **consumo (km por litro)** y **cuánto te cuesta cada kilómetro** (combustible más service, seguro y arreglos que cargues en Caja). Requiere **practico.sql**.
 - **Cobranza:** quién debe y cuánto, con filtro *Con deuda vencida*. Registrás pagos (efectivo, transferencia, cheque) y se genera el **recibo**. El botón **pronto pago** aplica el descuento si paga dentro del plazo.
+- **🤝 Promesas de pago** (Cobranza → Clientes que deben → **🤝 Promesa**): anotás cuándo te dijo que paga y cuánto. Ese día aparece en Inicio; se marca **cumplida** sola cuando registrás el cobro, y si no pagó, al otro día la Cola le manda el recordatorio. En cada cliente ves cuántas promesas cumple.
 - **💸 Recargo por mora** (Cobranza → Clientes que deben): lo activás con el interés por mes y los días de gracia. A cada cliente con deuda vencida le aparece el recargo, que va en el WhatsApp de deuda, el resumen en PDF y el estado de cuenta. Con **perdonar o cobrado** vuelve a cero desde ese día.
 - **Caja:** ingresos y egresos del día y cierre de caja (arqueo). Arriba, **🧾 Cierre del día**.
 - **Cobranza → 🏦 Conciliar transferencias:** subís el extracto del banco o de Mercado Pago (Excel, CSV o PDF) o pegás las filas; el CRM sugiere de qué cliente es cada ingreso (por CUIT, nombre o importe) y registrás los cobros con un toque. Los ya registrados no se repiten.
@@ -242,6 +249,8 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 - **🏷️ Mejor proveedor:** el último costo de cada producto en cada proveedor (lo que compraste y las listas que importás), cuál es más barato, cuánto ahorrarías por mes y un botón para pasar el producto a ese proveedor. Requiere **operacion.sql**.
 - **Importar la lista del proveedor** (en Precios): elegí el proveedor. Si la lista trae productos que hoy le comprás a otro, **no te cambia el costo**: quedan guardados para comparar en *Mejor proveedor* (y te marca 💡 si son más baratos).
 - **Stock → 📉 Merma:** cargás roturas, vencidos, diferencias de peso, faltantes. Se descuenta del stock y ves cuánta plata perdés, por motivo y por producto (también en el informe del mes).
+- **🚨 Alerta de costo al recibir** (Compras → Recibir): si un producto llega más caro que la última vez (3 % o más) o si otro proveedor lo tiene más barato, te avisa antes de confirmar. Como el costo nuevo cambia tus precios de venta solos, podés tildar **Mantener costo anterior**.
+- **🏭 Día de pedido de cada proveedor** (Compras → Orden semanal → 🏭 Día de cada proveedor): marcás qué día pasa el preventista o cierra el pedido cada uno. Ese día se arma sola su orden de compra en borrador. Los que no tienen día siguen con la orden semanal.
 - **Stock → 🔪 Fraccionar:** cortás una horma o pieza entera para vender por kilo o en cuñas. Elegís qué cortaste, cuánto pesó entera y en qué la fraccionaste (kilos o cuñas). Se baja la pieza del stock, se suma lo fraccionado, la **merma del corte** queda en Merma y te muestra el **rendimiento** y el **costo real por kilo**; con un tilde actualiza el costo (y los precios) de lo fraccionado. Abajo, el rendimiento promedio de cada producto. Requiere **practico.sql**.
 - **Stock → 🔎 Lotes (trazabilidad):** al preparar un pedido se anota solo qué lote se usó (el que vence antes, de los vencimientos cargados) y sale en el remito. Ante un reclamo o retiro, buscás el producto o el lote y ves a qué clientes se les entregó, con botón para avisarles. Requiere **negocio.sql**.
 - **Stock → 🌡️ Temperatura:** anotás la temperatura de cada cámara; si está fuera de rango (lo configurás, por defecto 0 a 5 °C) queda en rojo y aparece en Inicio. **Planilla del mes** para imprimir ante una inspección.
@@ -267,6 +276,8 @@ Se abre con su link personal. Pasos para el cliente: **buscar → agregar → Ve
 - **✏️ Corregir el pedido** (Mi cuenta): mientras está por aprobar, el cliente lo pasa al carrito, lo cambia y lo vuelve a enviar.
 - **📅 Día de entrega:** en el carrito elige cuándo se lo llevás (los días de su zona, sin feriados).
 - **Sin stock:** si un producto está agotado, le ofrece uno parecido de la misma familia con botón **Agregar**.
+- **🤝 Pedido en grupo:** si no llega al mínimo, en el carrito puede **crear un grupo** y mandarle el código a un comercio vecino (o **unirse** con un código que le pasaron). Cada uno hace y paga su pedido; el mínimo se cuenta entre los dos y se entrega en la misma vuelta. El primero puede mandar su pedido apenas crea el grupo. En Pedidos se ven con la marca **🤝 Grupo**. Requiere **cuentas.sql**.
+- **🏷️ Etiquetas para la góndola** (Mi cuenta): el comercio elige los productos que te compra y la ganancia, y se imprime etiquetas de precio para recortar (los quesos y fiambres, con precio por kilo).
 - **🧀 Armá una picada:** el cliente pone para cuántas personas y qué tipo (liviana, picada o abundante) y le arma los kilos de cada queso y fiambre (puede cambiarlos, sumar o quitar). Le muestra cuánto le cuesta y **a cuánto venderla armada**, y con **🛒 Pasar al carrito** la agrega. Usa los quesos y fiambres que se venden por peso.
 - **❓ Preguntas frecuentes:** horario, días de entrega de su zona, mínimo, envío, formas de pago, cómo pedir, peso real, seguimiento y reclamos. Se arman solas con lo que cargaste; las completás o agregás las tuyas en **Ventas → 🤝 Clientes → 💬 Preguntas del catálogo** (ahí también está el link para compartirlas). Requiere **practico.sql**.
 - **🪄 Armame un pedido de $ …:** pone cuánto quiere gastar y se le arma el pedido con lo que siempre lleva.
