@@ -224,7 +224,12 @@ input,textarea{border:2px solid #ece3d6;border-radius:14px}
 .conv{background:#fff8e6;border-radius:14px;padding:8px 12px;margin:10px 0}.conv h3{margin:0 0 4px;font-size:15px}.conv .fila{padding:6px 0;font-size:14px}.conv button{border:0;background:var(--m);color:#fff;border-radius:999px;padding:6px 12px;font-weight:700;white-space:nowrap}
 .mor{background:#fdecea;color:#7f1d1d;border-radius:16px;padding:12px 14px;margin:10px 0;font-size:14px}.mor .mp{margin-top:8px}
 .inst{display:flex;gap:10px;align-items:center;background:#17213a;color:#fff;border-radius:16px;padding:10px 12px;margin:8px 0;font-size:14px}.inst img{width:40px;height:40px;border-radius:10px;background:#fff}.inst div{flex:1}.inst button{border:0;border-radius:999px;padding:8px 12px;font-weight:700;background:var(--sol,#ffc93c);color:#4a3000}.inst a{color:#fff;opacity:.7;cursor:pointer;padding:0 4px}
-.kgp{font-size:11.5px;color:#6b4e00;margin-top:2px}.kgu{font-size:12px;color:var(--mu);margin:0 2px}.seg{background:#e8f4ff;border:1px solid #9cc3ef;border-radius:12px;padding:10px 12px;margin:8px 0}.seg button{margin-top:6px}.gar{background:#ecfdf3;border:1px solid #9ad8b4;border-radius:10px;padding:8px 10px;margin:8px 0;font-size:13px;line-height:1.4}.alt{font-size:12px;background:#fff7e6;border:1px solid #f0c36d;border-radius:8px;padding:6px 8px;margin:4px 0;line-height:1.35}.alt button{margin-left:4px;padding:2px 8px;font-size:12px;border-radius:6px;border:1px solid var(--m);background:#fff;color:var(--m);cursor:pointer}.entsel{display:block;margin:8px 0;font-size:14px}.entsel select{margin-left:4px;padding:6px;border-radius:8px}.kgb{color:var(--m);text-decoration:underline;cursor:pointer}
+.kgp{font-size:11.5px;color:#6b4e00;margin-top:2px}.kgu{font-size:12px;color:var(--mu);margin:0 2px}.faql{font-size:13px;margin:6px 2px 10px;color:var(--mu)}.faql a{color:var(--m);font-weight:700;cursor:pointer;text-decoration:underline}
+.fq{border-bottom:1px solid #eceef3;padding:8px 0}.fq summary{font-weight:700;cursor:pointer;padding:4px 0}.fq p{margin:6px 0 4px;line-height:1.5}
+.pic{display:flex;gap:12px;align-items:center;justify-content:space-between;background:#fff7e6;border:1px solid #f2d39b;border-radius:12px;padding:10px 12px;margin:8px 0}.pic button{flex:none}
+.pkr{display:flex;gap:10px;flex-wrap:wrap}.pkr label{flex:1;min-width:140px;font-size:13px;color:var(--mu)}.pkr input,.pkr select{display:block;width:100%;margin-top:4px}
+.pki{display:flex;gap:10px;align-items:center;justify-content:space-between;border-bottom:1px solid #eceef3;padding:8px 0}.pkd{flex:1;min-width:0}.pkd select{width:100%;margin-bottom:3px}.pkq{text-align:right;font-weight:700;white-space:nowrap}.pkq a{display:block;font-weight:400;font-size:12px}
+.pkv{background:#ecfdf3;border:1px solid #9ad8b4;border-radius:12px;padding:10px 12px;margin-top:10px;line-height:1.6}.seg{background:#e8f4ff;border:1px solid #9cc3ef;border-radius:12px;padding:10px 12px;margin:8px 0}.seg button{margin-top:6px}.gar{background:#ecfdf3;border:1px solid #9ad8b4;border-radius:10px;padding:8px 10px;margin:8px 0;font-size:13px;line-height:1.4}.alt{font-size:12px;background:#fff7e6;border:1px solid #f0c36d;border-radius:8px;padding:6px 8px;margin:4px 0;line-height:1.35}.alt button{margin-left:4px;padding:2px 8px;font-size:12px;border-radius:6px;border:1px solid var(--m);background:#fff;color:var(--m);cursor:pointer}.entsel{display:block;margin:8px 0;font-size:14px}.entsel select{margin-left:4px;padding:6px;border-radius:8px}.kgb{color:var(--m);text-decoration:underline;cursor:pointer}
 .mcb{display:flex;gap:10px;align-items:center;background:#e8f4ec;color:#14532d;border-radius:16px;padding:10px 12px;margin:8px 0;font-size:14px}.mcb div{flex:1}.mcb button{border:0;border-radius:999px;background:#1d7a46;color:#fff;padding:9px 14px;font-weight:800;white-space:nowrap}
 .soc{font-size:11px;color:#b45309;font-weight:700;margin-top:2px}.avb{border:0;background:none;color:var(--mu);font-size:11px;padding:2px 0;cursor:pointer;text-align:left}.avb.on{color:#1d7a46;font-weight:700}
 .conv.ultm{background:#fdecea}.rec{margin-top:14px}.recb{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
@@ -242,7 +247,7 @@ input,textarea{border:2px solid #ece3d6;border-radius:14px}
 <div id="t" class="toast" hidden></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
-const VERSION='2026-10-10.26';
+const VERSION='2026-10-11.27';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -347,13 +352,13 @@ async function iniciar(){
   if(PUB){const a={};if(REF)a.p_ref=REF;if(RUB)a.p_rubro=RUB;const{data,error}=Object.keys(a).length?await sb.rpc('catalogo_publico',a):await sb.rpc('catalogo_publico');
     if(error){$('#hc').textContent='';$('#m').innerHTML=`<div class="msg"><h2>Catálogo no disponible</h2><p class="err">${esc(/catalogo_publico/.test(error.message)?'El catálogo todavía no está activado.':error.message)}</p></div>`;return}
     C=data;P=(data.productos||[]).filter(p=>p.p>0);hayFotos=P.some(p=>p.img);armarCombos();cargarCarrito();
-  cargarSeg();setInterval(cargarSeg,120000);sb.rpc('garantia_info').then(({data})=>{if(data&&data.activa){GAR=data;if(P.length&&$('#l'))lista()}},()=>{});if(BIO)return vistaBio();
+  cargarSeg();setInterval(cargarSeg,120000);cargarFaq();sb.rpc('garantia_info').then(({data})=>{if(data&&data.activa){GAR=data;if(P.length&&$('#l'))lista()}},()=>{});if(BIO)return vistaBio();
     document.title='Catálogo · Sabores de mi País';$('#hc').textContent=(C.rubro?'Catálogo para '+C.rubro.toLowerCase():'Catálogo de productos')+' · precios con IVA';pintar();return}
   if(!token){$('#hc').textContent='';$('#m').innerHTML='<div class="msg"><h2>Falta el link</h2><p>Abrí el link que te mandamos por WhatsApp para ver tu catálogo.</p></div>';return}
   const{data,error}=await sb.rpc('catalogo_cliente',{p_token:token});
   if(error){$('#hc').textContent='';$('#m').innerHTML=`<div class="msg"><h2>No pudimos abrir tu catálogo</h2><p class="err">${esc(error.message)}</p></div>`;return}
   C=data;P=(data.productos||[]).filter(p=>p.p>0);hayFotos=P.some(p=>p.img);armarCombos();cargarCarrito();
-  cargarSeg();setInterval(cargarSeg,120000);sb.rpc('garantia_info').then(({data})=>{if(data&&data.activa){GAR=data;if(P.length&&$('#l'))lista()}},()=>{});
+  cargarSeg();setInterval(cargarSeg,120000);cargarFaq();sb.rpc('garantia_info').then(({data})=>{if(data&&data.activa){GAR=data;if(P.length&&$('#l'))lista()}},()=>{});
   $('#hc').textContent=C.cliente+' · precios lista '+C.lista;
   $('#tabs').hidden=false;$$('[data-tab]').forEach(b=>b.onclick=()=>irTab(b.dataset.tab));regVista();pwaSetup();
   if(SUG&&(C.sugerido||[]).length){let hecho=false;try{hecho=sessionStorage.getItem('sug_'+token)=='1';sessionStorage.setItem('sug_'+token,'1')}catch(e){}if(!hecho)cargarSugerido(true)}
@@ -658,6 +663,75 @@ async function verRemito(n){const{data:r,error}=await sb.rpc('remito_cliente',{p
   document.body.appendChild(h);h.querySelector('#rmx').onclick=()=>h.remove();h.onclick=e=>{if(e.target===h)h.remove()};h.querySelector('#rmp').onclick=()=>window.print()}
 
 let S_SEG_OK=0;document.addEventListener('click',e=>{const t=e.target;if(!t||!t.closest)return;if(t.closest('#segb'))verMapa();const r=t.closest('[data-rmt]');if(r){e.preventDefault();verRemito(+r.dataset.rmt)}});
+/* ===== Preguntas frecuentes y armador de picadas (tanda 21) ===== */
+let FAQ=null;const DSEM=['','lunes','martes','miércoles','jueves','viernes','sábado','domingo'];
+const diasTxt=a=>{const d=[...new Set((a||[]).map(Number))].filter(x=>x>=1&&x<=7).sort((x,y)=>x-y).map(x=>DSEM[x]);return d.length>1?d.slice(0,-1).join(', ')+' y '+d.at(-1):d[0]||''};
+async function cargarFaq(){try{const{data}=await sb.rpc('faq_info');if(data&&typeof data=='object'){FAQ=data;if(location.hash=='#faq'&&!window._faqOk){window._faqOk=1;verFaq()}if(P.length&&$('#l'))lista()}}catch(e){}}
+function faqArmar(I){const F=I.faq||{},R=[],oc=F.ocultar||[],add=(k,p,r)=>{if(r&&!oc.includes(k))R.push({k,p,r})};
+  const ent=I.entrega||{},misD=!PUB&&C?.dias?.length?C.dias:null;
+  add('horario','¿En qué horario atienden?',F.horario?esc(F.horario):'');
+  let d='';if(misD)d=`A tu negocio te llevamos los <b>${diasTxt(misD)}</b>.`;
+  else if((I.zonas||[]).length)d='Repartimos según la zona:<br>'+I.zonas.map(z=>`• <b>${esc(z.z)}</b>: ${diasTxt(z.dias)}${+z.minimo?' (mínimo '+$m(z.minimo)+')':''}`).join('<br>');
+  else if((ent.dias||[]).length)d=`Repartimos los <b>${diasTxt(ent.dias)}</b>.`;
+  if(d&&ent.corte)d+=`<br>Los pedidos que entran antes de las <b>${esc(String(ent.corte))} h</b> salen en el próximo reparto.`;
+  if(d&&(I.feriados||[]).length)d+=`<br>Próximos días sin reparto: ${I.feriados.slice(0,5).map(f=>f.split('-').reverse().slice(0,2).join('/')).join(', ')}.`;
+  if(d&&!PUB)d+='<br>Cuando hacés el pedido elegís el día de entrega.';
+  add('dias','¿Qué días entregan?',d);
+  const mn=!PUB&&+C?.minimo?+C.minimo:+I.minimo||0;
+  add('minimo','¿Hay pedido mínimo?',mn?`Sí, el pedido mínimo es de <b>${$m(mn)}</b>${(I.zonas||[]).some(z=>+z.minimo)&&PUB?' (en algunas zonas cambia, mirá los días de entrega)':''}.`:'No, no hay pedido mínimo.');
+  const ev=!PUB&&+C?.envio?+C.envio:+I.envio||0;if(ev||F.envio)add('envio','¿Cobran el envío?',ev?`El envío es <b>gratis desde ${$m(ev)}</b>.${F.envio?' '+esc(F.envio):''}`:esc(F.envio));
+  const fp=['💵 Efectivo al recibir'];if(I.pago)fp.push('🏦 Transferencia');if(I.mp)fp.push('💳 Mercado Pago (link de pago o QR)');
+  add('pago','¿Cómo puedo pagar?',fp.join('<br>')+(F.pago?'<br>'+esc(F.pago):'')+(PUB?'':'<br>Los datos para transferir y el link de pago están en <b>Mi cuenta</b>.'));
+  add('pedido','¿Cómo hago un pedido?',PUB?'Elegí los productos, tocá <b>Revisar pedido</b> y mandanos el pedido. Te confirmamos por WhatsApp. Si querés ser cliente, tocá <b>Quiero ser cliente</b>.':'Elegí los productos en este catálogo, tocá <b>Revisar pedido</b> y después <b>Enviar</b>. Te llega la confirmación por WhatsApp. Podés repetir tu último pedido con un toque.');
+  add('peso','¿Cómo se cobran los quesos y fiambres?','Los que dicen <b>/kg</b> o <b>pieza ≈ kg</b> se cobran por el <b>peso real</b>: los pesamos al armar tu pedido y en el remito ves los kilos exactos.');
+  add('seguimiento','¿Puedo ver dónde está mi pedido?','Sí. Cuando sale el reparto te avisamos por WhatsApp con un link para ver la camioneta en el mapa y a qué hora llega aprox.'+(PUB?'':' También en <b>Mi cuenta → 📍 Dónde está</b>.'));
+  add('problema','¿Qué pasa si falta algo o llega mal?',I.garantia?`Tenés la garantía <b>Pedido completo</b>: avisanos desde <b>Mi cuenta → 🆘 Tuve un problema</b> y te compensamos con un <b>${nf(I.garantia.pct||10)} % de descuento</b> en tu próxima compra.`:'Avisanos desde <b>Mi cuenta → 🆘 Tuve un problema</b> (o por WhatsApp) y lo solucionamos.');
+  if(F.retiro)add('retiro','¿Puedo retirar por el depósito?',esc(F.retiro));
+  if(F.cambios)add('cambios','¿Hacen cambios o devoluciones?',esc(F.cambios));
+  for(const[i,x]of (F.extras||[]).entries())if(x&&x.p&&x.r)add('x'+i,esc(x.p),esc(x.r).replace(/\n/g,'<br>'));
+  return R}
+const faqLinkHTML=()=>FAQ&&!BIO?`<div class="faql"><a id="faqb">❓ Preguntas frecuentes</a><span> · días de entrega, mínimo, formas de pago</span></div>`:'';
+function verFaq(){if(!FAQ)return toast('Cargando…');const R=faqArmar(FAQ),tel=telLimpio(FAQ.tel||C?.tel),h=document.createElement('div');h.className='hoja';
+  h.innerHTML=`<div class="c"><h2>❓ Preguntas frecuentes</h2>${R.map((x,i)=>`<details class="fq" ${i<2?'open':''}><summary>${x.p}</summary><p>${x.r}</p></details>`).join('')}
+    ${tel?`<p style="margin:14px 0 6px">¿No encontraste tu respuesta?</p><a class="sec" style="display:block;text-align:center;text-decoration:none" target="_blank" rel="noopener" href="https://wa.me/${tel}?text=${encodeURIComponent('¡Hola! Tengo una consulta: ')}">💬 Preguntanos por WhatsApp</a>`:''}
+    <div class="acc" style="margin-top:12px"><button class="prim" id="fqx">Listo</button></div></div>`;
+  document.body.appendChild(h);const x=()=>{h.remove();if(location.hash=='#faq')try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}};h.querySelector('#fqx').onclick=x;h.onclick=e=>{if(e.target===h)x()}}
+
+/* Armador de picadas */
+const esQueso=p=>/queso|quesos|muzz|mozz|pategr|gouda|cremoso|reggian|sardo|provolone|holand|fontina|brie|camembert|azul|roquef|tybo|dambo|mascarpone|ricota/i.test(p.d+' '+(p.f||''));
+const esFiambre=p=>/fiambre|jam[oó]n|salame|salamín|salamin|bondiola|mortadela|lomito|longaniza|chorizo seco|cantimpalo|pancet|leberwurst|pastrami|chacinad|sopressata|fuet/i.test(p.d+' '+(p.f||''));
+const noPicada=p=>/rallad|untable|crema|fundir|feta|fetead|light|en polvo|x ?\d+ ?(g|gr)\b|sobre|sachet/i.test(p.d);
+function candPicada(){const ok=P.filter(p=>!p.combo&&!p.ss&&esPesoP(p.id)&&!noPicada(p)),pri=new Set([...(C?.favs||[]),...(C?.habituales||[]).map(x=>String(x.id||x))].map(String));
+  const ord=L=>L.sort((a,b)=>(pri.has(String(b.id))-pri.has(String(a.id)))||((+PZ[a.id]||0)-(+PZ[b.id]||0))||(+!!b.img-+!!a.img)||a.d.localeCompare(b.d));
+  return{q:ord(ok.filter(esQueso)),f:ord(ok.filter(p=>!esQueso(p)&&esFiambre(p)))}}
+const picadaHTML=()=>{if(BIO||!PZ||!P.length)return '';const k=candPicada();if(k.q.length<2||k.f.length<2)return '';return `<div class="pic"><div><b>🧀 Armá una picada</b><br><small>Decinos para cuántas personas y te calculamos los kilos de cada queso y fiambre.</small></div><button id="picb">Armar</button></div>`};
+function armadorPicada(){const K=candPicada();if(K.q.length<2||K.f.length<2)return toast('Todavía no hay suficientes quesos y fiambres en el catálogo.');
+  const h=document.createElement('div');h.className='hoja';document.body.appendChild(h);
+  let st={n:10,g:150,mq:K.q.slice(0,3).map(p=>p.id),mf:K.f.slice(0,3).map(p=>p.id),mg:60};
+  const calc=()=>{const tot=st.n*st.g/1000,kq=tot*.45/Math.max(1,st.mq.length),kf=tot*.55/Math.max(1,st.mf.length);
+    return[...st.mq.map(id=>({id,kg:kq,t:'q'})),...st.mf.map(id=>({id,kg:kf,t:'f'}))].map(x=>{const p=prod(x.id),pz=+PZ[x.id]||0,pu=puP(p,1),pkg=pz?pu/pz:pu;
+      const q=pz?Math.max(1,Math.ceil(x.kg/pz-0.15)):Math.max(1,Math.ceil(x.kg));return{...x,p,pz,q,kgL:pz?q*pz:q,pkg,costo:x.kg*pkg}})};
+  const draw=()=>{const L=calc(),tot=st.n*st.g/1000,costo=L.reduce((a,x)=>a+x.costo,0),pp=st.n?costo/st.n:0,venta=costo/(1-st.mg/100);
+    const sel=(arr,cand,i)=>`<select data-pk="${arr}:${i}">${cand.map(p=>`<option value="${p.id}" ${p.id==st[arr][i]?'selected':''}>${esc(p.d)}</option>`).join('')}</select>`;
+    h.innerHTML=`<div class="c"><h2>🧀 Armador de picadas</h2>
+      <div class="pkr"><label>Personas<input type="number" id="pkn" min="1" max="500" value="${st.n}" inputmode="numeric"></label>
+        <label>Tipo<select id="pkg">${[[100,'Liviana (100 g por persona)'],[150,'Picada (150 g por persona)'],[250,'Abundante, como comida (250 g)']].map(([g,t])=>`<option value="${g}" ${st.g==g?'selected':''}>${t}</option>`).join('')}</select></label></div>
+      <p style="margin:8px 0">Para <b>${st.n} ${st.n==1?'persona':'personas'}</b> van <b>${nf(Math.round(tot*100)/100)} kg</b>: ${nf(Math.round(tot*45)/100)} kg de quesos y ${nf(Math.round(tot*55)/100)} kg de fiambres.</p>
+      ${L.map((x,i)=>{const arr=x.t=='q'?'mq':'mf',j=x.t=='q'?i:i-st.mq.length,cand=x.t=='q'?K.q:K.f;return `<div class="pki"><div class="pkd">${x.t=='q'?'🧀':'🥓'} ${sel(arr,cand,j)}<small>Para la picada: <b>${nf(Math.round(x.kg*100)/100)} kg</b> · ${$m(x.pkg)} el kg</small></div>
+        <div class="pkq">${x.pz?`${x.q} ${x.q==1?'pieza':'piezas'}<br><small>≈ ${nf(Math.round(x.kgL*10)/10)} kg</small>`:`${x.q} kg`}${(x.t=='q'?st.mq:st.mf).length>1?`<a class="lnk" data-pkx="${arr}:${j}">quitar</a>`:''}</div></div>`}).join('')}
+      <p style="margin:6px 0">${st.mq.length<K.q.length?'<a class="lnk" id="pkaq">+ otro queso</a>':''}${st.mf.length<K.f.length?' &nbsp; <a class="lnk" id="pkaf">+ otro fiambre</a>':''}</p>
+      <div class="pkv"><b>Para vender la picada armada</b><br>Te cuesta <b>${$m(costo)}</b> (${$m(pp)} por persona).<br>
+        <label>Ganancia que querés <select id="pkm">${[40,50,60,70,80].map(m=>`<option value="${m}" ${st.mg==m?'selected':''}>${m} %</option>`).join('')}</select></label><br>
+        Vendela a <b>${$m(Math.ceil(venta/100)*100)}</b> (${$m(Math.ceil(venta/st.n/10)*10)} por persona).<br><small>Las piezas enteras te rinden para más picadas: lo que sobra lo usás en las próximas.</small></div>
+      <div class="acc" style="margin-top:12px"><button class="sec" id="pkx">Cerrar</button><button class="prim" id="pkok">🛒 Pasar al carrito</button></div></div>`;
+    const q=s=>h.querySelector(s);q('#pkx').onclick=()=>h.remove();h.onclick=e=>{if(e.target===h)h.remove()};
+    q('#pkn').onchange=e=>{st.n=Math.max(1,Math.min(500,Math.round(+e.target.value||1)));setTimeout(draw)};q('#pkg').onchange=e=>{st.g=+e.target.value;setTimeout(draw)};q('#pkm').onchange=e=>{st.mg=+e.target.value;setTimeout(draw)};
+    h.querySelectorAll('[data-pk]').forEach(s=>s.onchange=()=>{const[a,i]=s.dataset.pk.split(':');if(st[a].includes(s.value)&&st[a][+i]!=s.value){toast('Ya está en la picada.');return draw()}st[a][+i]=s.value;setTimeout(draw)});
+    h.querySelectorAll('[data-pkx]').forEach(b=>b.onclick=()=>{const[a,i]=b.dataset.pkx.split(':');st[a].splice(+i,1);draw()});
+    const mas=(a,cand)=>{const n=cand.find(p=>!st[a].includes(p.id));if(n){st[a].push(n.id);draw()}};q('#pkaq')&&(q('#pkaq').onclick=()=>mas('mq',K.q));q('#pkaf')&&(q('#pkaf').onclick=()=>mas('mf',K.f));
+    q('#pkok').onclick=()=>{for(const x of calc())car[x.id]=Math.max(car[x.id]||0,sbQ(x.id,x.q));guardar();h.remove();lista();barra();toast('🧀 ¡Listo! La picada para '+st.n+' está en el carrito.')}};
+  draw()}
+document.addEventListener('click',e=>{const t=e.target;if(!t||!t.closest)return;if(t.closest('#faqb')){e.preventDefault();verFaq()}if(t.closest('#picb')){e.preventDefault();armadorPicada()}});
 /* Si no hay stock, le ofrecemos uno parecido */
 function altDe(p){const f=famDe(p),pr=+p.p||0;let best=null,bs=-1;for(const x of P){if(x.id==p.id||x.ss||x.combo||famDe(x)!=f)continue;const r=pr?(+x.p||0)/pr:1;if(r<.65||r>1.35)continue;
   const s=(EST.social&&EST.social[x.id]?3:0)+(x.m&&x.m==p.m?1:0)+(1-Math.abs(1-r));if(s>bs){bs=s;best=x}}return best}
@@ -686,7 +760,7 @@ function grilla(L,ws){const busca=ws.length||marca;let html='',n=0;
     const FV=(C.favs||[]).map(id=>P.find(p=>p.id==id)).filter(Boolean);
     if(FV.length)html+=`<div class="sec-t"><h2>⭐ Mis favoritos</h2><small>${FV.length} ${FV.length==1?'producto':'productos'}</small></div><div class="ofertas">${FV.map(tarjeta).join('')}</div>`;
     else if(token&&!PUB)html+='<p class="mas" style="text-align:left;margin:8px 2px">⭐ Tocá la estrella de los productos que siempre pedís y te quedan acá arriba.</p>';
-    html+=segHTML()+garHTML()+bannerHTML();
+    html+=segHTML()+garHTML()+bannerHTML()+picadaHTML()+faqLinkHTML();
     const SU=(C.surt||[]).map(id=>P.find(p=>p.id==id)).filter(Boolean).slice(0,12);
     if(SU.length&&C.rubro)html+=`<div class="sur"><div class="sec-t"><h2>⭐ Lo más pedido en ${esc(C.rubro.toLowerCase())}</h2><small>negocios como el tuyo</small></div><div class="ofertas">${SU.map(tarjeta).join('')}</div></div>`;const O=P.filter(p=>promoP(p,0,true)).slice(0,14);if(O.length)html+=`<div class="ofb"><div class="sec-t"><h2>🔥 Ofertas</h2><small>${O.length} productos</small></div><div class="ofertas">${O.map(tarjeta).join('')}</div></div>`;
     if(CB.length)html+=`<div class="sec-t"><h2>🎁 Combos</h2><small>${CB.length} ${CB.length==1?'combo':'combos'} con descuento</small></div><div class="ofertas">${CB.map(tarjeta).join('')}</div>`;

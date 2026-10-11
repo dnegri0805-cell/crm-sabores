@@ -198,13 +198,15 @@ button.big.wa{background:var(--ok);color:#fff;border-color:var(--ok)}
 body{zoom:var(--z,1)}html.oscuro{filter:invert(.92) hue-rotate(180deg);background:#0e0e10}html.oscuro img,html.oscuro video,html.oscuro canvas,html.oscuro .hlogo{filter:invert(1) hue-rotate(180deg)}
 #snk{display:none;position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#1c2333;color:#fff;padding:10px 14px;border-radius:12px;gap:12px;align-items:center;z-index:9999;box-shadow:0 6px 24px rgba(0,0,0,.25);font-size:14px;max-width:92vw}#snk button{background:#ffd54a;color:#1c2333;border:0;border-radius:8px;padding:6px 12px;font-weight:700;cursor:pointer}
 .hbt{font-size:17px;margin-right:6px;cursor:pointer;text-decoration:none}
+#lock{position:fixed;inset:0;z-index:10000;background:#17213a;color:#fff;display:grid;place-items:center;text-align:center;padding:24px}#lock h2{color:#fff;margin:14px 0}#lock button{font-size:17px;padding:14px 20px}#lock .lnk{color:#cfd6e6}
+.pin.big{width:30px;height:30px}
 </style>
 </head>
 <body>
 <div id="app"></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
-const VERSION='2026-10-10.26';
+const VERSION='2026-10-11.27';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -240,7 +242,8 @@ async function init(){
   S.clientes=c.data;S.productos=pr.data;guardarCache()}await Promise.all([cargarStock(),cargarPromos(),cargarMarca(),cargarVentasCfg()]);
   if(location.hash=='#tablero')return tablero();
   if(location.hash=='#cola'){S.tab='ventas';S.vs='cola';try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
-  shell();
+  irAtajo();
+  shell();huellaArranque();programarManana();
 }
 function shell(){
   app.innerHTML=`<header><b>${MARCA.logo?`<img class="hlogo" src="${MARCA.logo}" alt="Sabores de mi País"><span class="hn">Sabores de mi País</span>`:'Sabores de mi País'}</b><nav>${['inicio','pedidos','ventas','reparto','clientes','cobranza','caja','compras','stock','precios','reportes','contable','manual'].filter(t=>!['precios','caja','contable'].includes(t)||S.perfil.rol=='dueno').map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${t=='manual'?'📖 Manual':t[0].toUpperCase()+t.slice(1)}</a>`).join('')}</nav><span><a class="hbt" onclick="buscarTodo()" title="Buscar (Ctrl+K)">🔎</a><a class="hbt" onclick="ayuda()" title="Ayuda de esta pantalla (?)">❓</a><a class="hbt" onclick="vistaCfg()" title="Letra, colores y avisos">Aa</a>${esc(S.perfil.nombre)} (${S.perfil.rol}) <small style="opacity:.6">v${VERSION}</small><a onclick="out()">Salir</a></span></header><main id="v"></main>`;
@@ -387,7 +390,7 @@ async function vInicio(){
   const hoyD=new Date(),hoy=diaLocal(hoyD),mes=hoy.slice(0,7);
   const en7=new Date();en7.setDate(en7.getDate()+7);const lim7=diaLocal(en7);
   $('#v').innerHTML=`<h2>Hoy, ${hoyD.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}</h2>
-  <div id="bk"></div><div id="chk"></div>${atajosHTML()}<div id="midia"></div><div id="resd"></div><div id="tari"></div>
+  <div id="bk"></div><div id="chk"></div><div id="cami"></div>${atajosHTML()}<div id="midia"></div><div id="mani"></div><div id="resd"></div><div id="tari"></div>
   <div class="herr" id="herr"></div>
   <div id="alm"></div>
   <div id="empi"></div><div id="metai"></div><div id="colai"></div><div id="plani"></div><div id="toca"></div><div id="fidel"></div><div id="masi"></div><div id="creci"></div><div id="servi"></div><div id="fieli"></div><div id="fechas"></div>
@@ -408,7 +411,7 @@ async function vInicio(){
   const kp=(id,num,det,cls)=>{const b=$('#'+id);b.querySelector('.num').textContent=num;b.querySelector('.det').textContent=det||'';if(cls)b.classList.add(cls)};
   const fallo=(id,e)=>kp(id,'—','No se pudo leer: '+e.message);
   if(S.perfil.rol=='dueno')cajaBackup();
-  herramientas();generarFijos();alertasMargen();objetivoMes();tocaInicio();fidelInicio().catch(()=>{});masInicio().catch(()=>{});crecerInicio().catch(()=>{});fielesInicio().catch(()=>{});servInicio().catch(()=>{});planInicio().catch(()=>{});colaInicio().catch(()=>{});resumenDia().catch(()=>{});tareasInicio().catch(()=>{});chequeoInicio().catch(()=>{});miDia().catch(()=>{});ocSemanal().catch(()=>{});aplicarAumentosProg().catch(()=>{});sincronizarOff().catch(()=>{});metasInicio().catch(()=>{});empujonBox($('#empi')).catch(()=>{});avisosEnVivo();fechasInicio();
+  herramientas();generarFijos();alertasMargen();objetivoMes();tocaInicio();fidelInicio().catch(()=>{});masInicio().catch(()=>{});crecerInicio().catch(()=>{});fielesInicio().catch(()=>{});servInicio().catch(()=>{});planInicio().catch(()=>{});colaInicio().catch(()=>{});resumenDia().catch(()=>{});tareasInicio().catch(()=>{});chequeoInicio().catch(()=>{});camionetaInicio().catch(()=>{});mananaInicio().catch(()=>{});miDia().catch(()=>{});ocSemanal().catch(()=>{});aplicarAumentosProg().catch(()=>{});sincronizarOff().catch(()=>{});metasInicio().catch(()=>{});empujonBox($('#empi')).catch(()=>{});avisosEnVivo();fechasInicio();
   const cli=id=>esc(S.clientes.find(c=>c.id==id)?.razon_social||'Cliente');
   const [fv,pe,fe,sp,fp]=await Promise.all([
     sb.from('facturas_venta').select('*').order('id',{ascending:false}).limit(500),
@@ -457,7 +460,7 @@ function bajos(){return S.productos.map(p=>({p,d:stk(p.producto_id).d,m:S.min[p.
 
 /* ---------- Stock ---------- */
 async function vStock(){
-  $('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Stock</h2><div class="fc-acc"><button id="s_cn">📋 Conteo por partes</button><button class="alt" onclick="merma()">📉 Merma</button><button class="alt" onclick="buscarLote()">🔎 Lotes</button><button class="alt" onclick="temperatura()">🌡️ Temperatura</button></div></div>
+  $('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Stock</h2><div class="fc-acc"><button id="s_cn">📋 Conteo por partes</button><button class="alt" onclick="fraccionar()">🔪 Fraccionar</button><button class="alt" onclick="merma()">📉 Merma</button><button class="alt" onclick="buscarLote()">🔎 Lotes</button><button class="alt" onclick="temperatura()">🌡️ Temperatura</button></div></div>
   <div class="box"><div class="g"><div class="conscan"><input id="s_q" placeholder="Buscar producto por nombre o código" autocomplete="off">${btnScan('s_sc')}</div>
     <label class="chk"><input type="checkbox" id="s_b" ${S.soloBajo?'checked':''}> Solo bajo el mínimo</label><label class="chk"><input type="checkbox" id="s_kg" ${S.soloKg?'checked':''}> Solo quesos y fiambres</label></div><p id="s_kgr"></p>
     <p><small>Escribí en <b>Contado</b> lo que hay en el depósito y, si querés, el <b>Mínimo</b> para que te avise cuándo reponer. Después tocá <b>Guardar cambios</b>. La diferencia de stock queda registrada como ajuste.</small></p>
@@ -1544,7 +1547,7 @@ async function extrasGuardar(modo,imp,concepto,info={}){if(S.perfil.rol!='dueno'
 
 /* ---------- Clientes que deben: resumen y aviso ---------- */
 async function morosos(){
-  const box=$('#mor');if(!box)return;box.innerHTML='<div class="box">Cargando deudas…</div>';
+  const box=$('#mor');if(!box)return;box.innerHTML='<div class="box">Cargando deudas…</div>';await cargarRecargo();
   const[fe,av,cf]=await Promise.all([todo(()=>sb.from('facturas_estado').select('*').gt('pendiente',0.005).order('vencimiento')),
     todo(()=>sb.from('avisos_deuda').select('cliente_id,fecha').order('fecha',{ascending:false})),
     sb.from('config_app').select('valor').eq('clave','datos_pago').maybeSingle()]);
@@ -1558,7 +1561,7 @@ async function morosos(){
   box.innerHTML=`<div class="kp">
     <div class="box"><span class="lab">Te deben en total</span><span class="num">${$m(tot)}</span><span class="det">${L.length} ${L.length==1?'cliente':'clientes'}</span></div>
     <div class="box ${tv?'alerta':'ok'}"><span class="lab">Vencido</span><span class="num">${$m(tv)}</span><span class="det">${nv} ${nv==1?'cliente':'clientes'} con deuda vencida</span></div></div>
-  <div class="box"><div class="bh"><h3>Clientes que deben</h3><div class="sub" style="margin:0">${[['vencidos','Con deuda vencida'],['todos','Todos']].map(([k,t])=>`<button class="${S.morF==k?'':'alt'}" data-mf="${k}">${t}</button>`).join('')}</div></div>
+  <div class="box"><div class="bh"><h3>Clientes que deben</h3><button class="alt" onclick="recargoCfg()">💸 Recargo por mora${S.recargo.activa?': '+nf(S.recargo.pct)+' % mensual':' (apagado)'}</button><div class="sub" style="margin:0">${[['vencidos','Con deuda vencida'],['todos','Todos']].map(([k,t])=>`<button class="${S.morF==k?'':'alt'}" data-mf="${k}">${t}</button>`).join('')}</div></div>
     <div class="g"><label class="f">Tono del mensaje<select id="mo_t"><option value="amable" ${S.morTono=='amable'?'selected':''}>Recordatorio amable</option><option value="firme" ${S.morTono=='firme'?'selected':''}>Aviso firme</option></select></label>
       <label class="f">Datos para transferir (van al final del mensaje)<input id="mo_d" placeholder="Ej.: Alias SABORES.MP · CBU 0000…" value="${esc(S.datosPago)}"></label>
       ${S.perfil.rol=='dueno'?`<label class="f">Link de pago de Mercado Pago<input id="mo_mp" placeholder="Ej.: https://link.mercadopago.com.ar/sabores" value="${esc(S.linkMP||'')}"></label>
@@ -1578,7 +1581,7 @@ async function morosos(){
   const hace=d=>{if(!d)return'Nunca';const n=Math.floor((Date.now()-new Date(d))/864e5);return n<=0?'Hoy':n==1?'Ayer':'Hace '+n+' días'};
   $('#mo_l').innerHTML=V.length?`<div class="tw"><table><tr><th>Cliente</th><th class="n">Debe</th><th class="n">Vencido</th><th>Mora</th><th>Último aviso</th><th></th></tr>${V.map(g=>`<tr>
     <td><a class="lnk" data-fc="${g.id}">${esc(g.c.razon_social)}</a><br><small>${g.F.length} ${g.F.length==1?'factura':'facturas'}${g.c.telefono?'':' · sin teléfono'}</small></td>
-    <td class="n">${$m(g.t)}</td><td class="n ${g.v?'mora':''}">${g.v?$m(g.v):'—'}</td><td>${g.mora?`<span class="badge ${g.mora>30?'b-mora30':'b-pendiente'}">${g.mora} días</span>`:'<small>Al día</small>'}</td>
+    <td class="n">${$m(g.t)}</td><td class="n ${g.v?'mora':''}">${g.v?$m(g.v):'—'}${recargoG(g.F,g.id)>0?`<br><small>+ recargo ${$m(recargoG(g.F,g.id))}<br><a class="lnk" data-rgp="${g.id}">perdonar o cobrado</a></small>`:''}</td><td>${g.mora?`<span class="badge ${g.mora>30?'b-mora30':'b-pendiente'}">${g.mora} días</span>`:'<small>Al día</small>'}</td>
     <td><small>${sinAvisos?'—':hace(ult[g.id])}</small></td>
     <td style="white-space:nowrap"><button class="alt wa" data-mw="${g.id}">WhatsApp</button> <button class="alt" data-mp="${g.id}">PDF</button> <button class="alt" data-mc="${g.id}">Cobrar</button></td></tr>`).join('')}</table></div>`
     :`<p><small>${S.morF=='vencidos'?'Ningún cliente tiene deuda vencida. ':'Nadie te debe. '}</small></p>`;
@@ -1586,6 +1589,7 @@ async function morosos(){
   $$('#mo_l [data-fc]').forEach(a=>a.onclick=()=>{S.tab='clientes';shell();fichaCliente(S.clientes.find(c=>c.id==a.dataset.fc))});
   $$('#mo_l [data-mc]').forEach(b=>b.onclick=()=>{$('#k_c').value=b.dataset.mc;$('#k_c').onchange();$('#k_c').scrollIntoView({behavior:'smooth'})});
   $$('#mo_l [data-mp]').forEach(b=>b.onclick=()=>resumenPDF(gr(b.dataset.mp)));
+  $$('#mo_l [data-rgp]').forEach(a=>a.onclick=()=>{const g=gr(a.dataset.rgp);recargoPerdonar(g.id,recargoG(g.F,g.id),morosos)});
   $$('#mo_l [data-mw]').forEach(b=>b.onclick=async()=>{const g=gr(b.dataset.mw);avisoWA(g,$('#mo_t').value,$('#mo_d').value.trim());
     const{error}=await sb.from('avisos_deuda').insert({cliente_id:g.id,medio:'whatsapp',monto:+g.t.toFixed(2)});
     if(!error){b.closest('tr').querySelector('td:nth-child(5) small').textContent='Hoy'}});
@@ -1599,7 +1603,7 @@ function avisoWA(g,tono,pago){const c=g.c,hoy=new Date().toLocaleDateString('es-
     ?`Por favor, coordiná el pago o avisanos la fecha en que lo vas a hacer. Si ya pagaste, mandanos el comprobante y lo imputamos.`
     :`Cuando puedas, avisanos cómo vas a abonar. Si ya pagaste, mandanos el comprobante así lo registramos. ¡Gracias!`;
   const extra=(S.linkMP?'\n\n💳 *Pagá con Mercado Pago:*\n'+S.linkMP:'')+(c.token_pedidos?'\n\n📄 *Mirá tu cuenta online:*\n'+linkCuenta(c):'');
-  const t=`${intro}\n\n${lin}\n\n*Total adeudado: ${$m(g.t)}*${g.v&&g.v<g.t?'\n(Vencido: '+$m(g.v)+')':''}${pago?'\n\n*Datos para el pago:*\n'+pago:''}${extra}\n\n${cierre}`;
+  const t=`${intro}\n\n${lin}\n\n*Total adeudado: ${$m(g.t)}*${g.v&&g.v<g.t?'\n(Vencido: '+$m(g.v)+')':''}${recargoTxt(g.F,g.id)}${pago?'\n\n*Datos para el pago:*\n'+pago:''}${extra}\n\n${cierre}`;
   const tel=telWA(c.telefono);window.open('https://wa.me/'+tel+'?text='+encodeURIComponent(t),'_blank');
   if(!tel)toast('Este cliente no tiene teléfono cargado: elegí el contacto en WhatsApp.')}
 function resumenPDF(g){const c=g.c,w=window.open('','_blank');if(!w)return toast('Permití las ventanas emergentes para generar el PDF.',1);
@@ -1610,7 +1614,7 @@ function resumenPDF(g){const c=g.c,w=window.open('','_blank');if(!w)return toast
   <p><b>Cliente:</b> ${esc(c.razon_social)}${c.cuit?'<br><b>CUIT:</b> '+esc(c.cuit):''}${c.domicilio?'<br><b>Domicilio:</b> '+esc(c.domicilio):''}</p>
   <table><tr><th>Factura</th><th>Vencimiento</th><th>Estado</th><th class="n">Pendiente</th></tr>
   ${g.F.map(f=>`<tr><td>${f.tipo} N° ${f.numero}</td><td>${fd(f.vencimiento)}</td><td class="${f.dias_mora>0?'v':''}">${f.dias_mora>0?'Vencida hace '+f.dias_mora+' días':'A vencer'}</td><td class="n">${$m(f.pendiente)}</td></tr>`).join('')}
-  <tr class="tot"><td colspan="3" class="n">Total adeudado</td><td class="n">${$m(g.t)}</td></tr>${g.v&&g.v<g.t?`<tr><td colspan="3" class="n v">Vencido</td><td class="n v">${$m(g.v)}</td></tr>`:''}</table>
+  <tr class="tot"><td colspan="3" class="n">Total adeudado</td><td class="n">${$m(g.t)}</td></tr>${g.v&&g.v<g.t?`<tr><td colspan="3" class="n v">Vencido</td><td class="n v">${$m(g.v)}</td></tr>`:''}${recargoG(g.F,g.id)>0?`<tr><td colspan="3" class="n v">Recargo por mora (${nf(S.recargo.pct)} % mensual)</td><td class="n v">${$m(recargoG(g.F,g.id))}</td></tr>`:''}</table>
   ${pago?`<p class="pago"><b>Datos para el pago</b>\n${esc(pago)}</p>`:''}
   <p>Si ya realizó el pago, le pedimos que nos envíe el comprobante para registrarlo. ¡Gracias!</p>
   <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close()}
@@ -1647,7 +1651,7 @@ async function reciboPDF(x,c){if(!x||!c)return;const w=window.open('','_blank');
 
 /* ---------- Hoja de reparto ---------- */
 async function vReparto(){
-  $('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Hoja de reparto</h2><div class="fc-acc"><button class="alt" onclick="hojaArmado()">🧺 Hoja de armado</button><button class="alt" onclick="zonasReparto()">🗺️ Zonas y camioneta</button><button class="alt" onclick="diasSinReparto()">📅 Días sin reparto</button></div></div>
+  $('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Hoja de reparto</h2><div class="fc-acc"><button class="alt" onclick="hojaArmado()">🧺 Hoja de armado</button><button class="alt" onclick="zonasReparto()">🗺️ Zonas y camioneta</button><button class="alt" onclick="camioneta()">🚐 Camioneta al día</button><button class="alt" onclick="diasSinReparto()">📅 Días sin reparto</button></div></div>
   <p><small>Marcá los pedidos que salen hoy y ordenalos con las flechas según el recorrido. Después imprimí la hoja, mandásela al chofer o abrí el recorrido en Google Maps.</small></p>
   <div class="box"><div class="sub" id="rv_f"></div><div id="rv_l">Cargando…</div></div>
   <div class="box" id="rv_acc" hidden><div class="bh"><h3 id="rv_t"></h3></div><div id="rv_cap"></div>
@@ -2389,18 +2393,19 @@ async function vendedoresReporte(){const box=$('#rp_v');if(!box)return;
 async function vMapa(){
   if(!S.clientes.length||!('lat' in S.clientes[0])){$('#cs').innerHTML='<div class="aviso">Falta correr <b>control.sql</b> en Supabase. Después recargá la página.</div>';return}
   S.mpF=S.mpF||'todos';
-  const[fe,uc,pz]=await Promise.all([todo(()=>sb.from('facturas_estado').select('cliente_id,pendiente,dias_mora').gt('pendiente',0.005).order('cliente_id')),
-    S.mpF=='compra'?sb.from('pedidos').select('cliente_id,creado_en').neq('estado','cancelado').order('numero',{ascending:false}).limit(4000):{data:[]},
-    S.mpF=='prospectos'?sb.from('prospectos').select('*').not('estado','in','(cliente,no_interesado)'):{data:[]}]);
+  const[fe,uc,pz,mo]=await Promise.all([todo(()=>sb.from('facturas_estado').select('cliente_id,pendiente,dias_mora').gt('pendiente',0.005).order('cliente_id')),
+    (S.mpF=='compra'||S.mpF=='cerca')?sb.from('pedidos').select('cliente_id,creado_en').neq('estado','cancelado').order('numero',{ascending:false}).limit(4000):{data:[]},
+    (S.mpF=='prospectos'||S.mpF=='cerca')?sb.from('prospectos').select('*').not('estado','in','(cliente,no_interesado)'):{data:[]},
+    S.mpF=='monto'?todo(()=>sb.from('pedidos').select('cliente_id,total').neq('estado','cancelado').gte('creado_en',new Date(Date.now()-90*864e5).toISOString()).order('numero')):S.mpF=='cerca'?sb.from('pedidos').select('cliente_id').in('estado',['aprobado','en_preparacion','listo','en_reparto']):{data:[]}]);
   const ult={};for(const o of uc.data||[])if(!ult[o.cliente_id])ult[o.cliente_id]=o.creado_en;
   const PZ=pz.data||[],pzU=PZ.filter(x=>x.lat!=null&&x.lng!=null),pzS=PZ.filter(x=>x.lat==null&&x.domicilio);
   const colU=c=>{const d=ult[c.id]?(Date.now()-new Date(ult[c.id]))/864e5:null;return d==null?'#8a90a0':d<=30?'#2e7d4f':d<=60?'#d99a00':'#b3261e'};
   const deuda={},venc={};for(const f of fe.data||[]){deuda[f.cliente_id]=(deuda[f.cliente_id]||0)+Number(f.pendiente);if(f.dias_mora>0)venc[f.cliente_id]=1}
   const conU=S.clientes.filter(c=>c.lat!=null&&c.lng!=null),sinU=S.clientes.filter(c=>(c.lat==null||c.lng==null));
   const COL=['#7b2d3e','#1f5fa8','#2e7d4f','#c4571a','#6b3fa0','#b3261e','#333a45'];
-  $('#cs').innerHTML=`<div class="sub">${[['todos','Todos'],['deuda','Con deuda'],['compra','Última compra'],['prospectos','🎯 Prospectos'],...DIAS.slice(0,6).map(([n,t])=>['d'+n,t])].map(([k,t])=>`<button class="${S.mpF==k?'':'alt'}" data-mpf="${k}">${t}</button>`).join('')}</div>
-    <div id="mapa" class="mapa"></div>
-    <p><small>${conU.length} de ${S.clientes.length} clientes ubicados. ${S.mpF=='compra'?'🟢 compró en los últimos 30 días · 🟡 30 a 60 días · 🔴 hace más de 60 · ⚪ nunca compró. Los rojos y grises cerca de tu recorrido son plata para recuperar.':S.mpF=='prospectos'?'🟧 prospectos (negocios que todavía no te compran) · ⚪ tus clientes. Buscá zonas con muchos naranjas y pocos clientes.':S.mpF[0]=='d'&&S.mpF!='deuda'?'Los números son el orden de visita.':'Color por día de visita · rojo = deuda vencida.'}</small></p>
+  $('#cs').innerHTML=`<div class="sub">${[['todos','Todos'],['deuda','Con deuda'],['compra','Última compra'],['monto','💰 Cuánto compra'],['cerca','🚚 Cerca del reparto'],['prospectos','🎯 Prospectos'],...DIAS.slice(0,6).map(([n,t])=>['d'+n,t])].map(([k,t])=>`<button class="${S.mpF==k?'':'alt'}" data-mpf="${k}">${t}</button>`).join('')}</div>
+    <div id="mapa" class="mapa"></div>${S.mpF=='cerca'?'<div class="box" id="mp_cerca">Buscando…</div>':''}
+    <p><small>${conU.length} de ${S.clientes.length} clientes ubicados. ${S.mpF=='monto'?'Lo que compró cada cliente en los últimos 3 meses: 🟢 oscuro el 20 % que más compra · 🟢 medio · 🟢 claro · 🟡 compra poco · ⚪ no compró. Tocá un punto para ver cuánto.':S.mpF=='cerca'?'🔵 paradas del recorrido · 🔴 clientes dormidos cerca · 🟧 prospectos cerca. Abajo, la lista para pasar a verlos.':S.mpF=='compra'?'🟢 compró en los últimos 30 días · 🟡 30 a 60 días · 🔴 hace más de 60 · ⚪ nunca compró. Los rojos y grises cerca de tu recorrido son plata para recuperar.':S.mpF=='prospectos'?'🟧 prospectos (negocios que todavía no te compran) · ⚪ tus clientes. Buscá zonas con muchos naranjas y pocos clientes.':S.mpF[0]=='d'&&S.mpF!='deuda'?'Los números son el orden de visita.':'Color por día de visita · rojo = deuda vencida.'}</small></p>
     ${S.mpF=='prospectos'?`<div class="box"><div class="bh"><h3>Prospectos en el mapa: ${pzU.length} de ${PZ.length}</h3>${pzS.length?`<button id="mp_pg">Ubicar ${pzS.length} por su domicilio</button>`:''}</div><div id="mp_pe"></div></div>`:''}
     <div class="box"><div class="bh"><h3>Ubicar clientes en el mapa</h3>${sinU.filter(c=>c.domicilio).length?`<button id="mp_geo">Ubicar ${sinU.filter(c=>c.domicilio).length} por su domicilio</button>`:''}</div><div id="mp_e"></div>
       ${sinU.length?`<p><small>Sin ubicar: ${sinU.slice(0,30).map(c=>`<a class="lnk" data-mpu="${c.id}">${esc(c.razon_social)}</a>`).join(' · ')}${sinU.length>30?' · y '+(sinU.length-30)+' más':''}</small></p>
@@ -2410,14 +2415,15 @@ async function vMapa(){
   catch(e){$('#mapa').innerHTML='<p class="err" style="padding:12px">No se pudo cargar el mapa. Revisá la conexión.</p>';return}
   const map=L.map('mapa',{zoomControl:true}).setView([-34.6037,-58.3816],11);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
-  let V=conU;if(S.mpF=='deuda')V=V.filter(c=>deuda[c.id]);else if(S.mpF[0]=='d'){const n=+S.mpF.slice(1);V=V.filter(c=>(c.dias_visita||[]).includes(n)).sort((a,b)=>(a.orden_visita||0)-(b.orden_visita||0))}
+  const colM=S.mpF=='monto'?mapaColM(mo.data||[]):null;let V=conU;if(S.mpF=='cerca')V=mapaRuta(conU,mo.data||[]);if(S.mpF=='deuda')V=V.filter(c=>deuda[c.id]);else if(S.mpF[0]=='d'){const n=+S.mpF.slice(1);V=V.filter(c=>(c.dias_visita||[]).includes(n)).sort((a,b)=>(a.orden_visita||0)-(b.orden_visita||0))}
   let mover=null;const pts=[];
-  V.forEach((c,i)=>{const d=(c.dias_visita||[])[0],col=S.mpF=='compra'?colU(c):S.mpF=='prospectos'?'#b9bfcc':venc[c.id]?'#b3261e':d?COL[(d-1)%COL.length]:'#8a90a0',num=S.mpF[0]=='d'&&S.mpF!='deuda'?i+1:'';
+  V.forEach((c,i)=>{const d=(c.dias_visita||[])[0],col=S.mpF=='monto'?colM(c):S.mpF=='cerca'?'#1f5fa8':S.mpF=='compra'?colU(c):S.mpF=='prospectos'?'#b9bfcc':venc[c.id]?'#b3261e':d?COL[(d-1)%COL.length]:'#8a90a0',num=S.mpF[0]=='d'&&S.mpF!='deuda'?i+1:'';
     const ic=L.divIcon({className:'',html:`<div class="pin" style="background:${col}">${num}</div>`,iconSize:[24,24],iconAnchor:[12,12]});
     const mk=L.marker([+c.lat,+c.lng],{icon:ic}).addTo(map);pts.push([+c.lat,+c.lng]);
-    mk.bindPopup(`<b>${esc(c.razon_social)}</b><br>${esc(c.domicilio||'')}${deuda[c.id]?'<br>Debe '+$m(deuda[c.id]):''}${(c.dias_visita||[]).length?'<br>Visita: '+c.dias_visita.map(x=>DIAS[x-1][1]).join(', '):''}<br><a class="lnk" data-pfc="${c.id}">Ficha</a> · <a class="lnk" data-pmv="${c.id}">Mover</a> · <a class="lnk" target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${+c.lat},${+c.lng}">Cómo llegar</a>`)});
+    mk.bindPopup(`<b>${esc(c.razon_social)}</b><br>${esc(c.domicilio||'')}${S.mpF=='monto'?'<br>Compró '+$m(S.mpM.t[c.id]||0)+' en 3 meses ('+$m((S.mpM.t[c.id]||0)/3)+' por mes)':''}${deuda[c.id]?'<br>Debe '+$m(deuda[c.id]):''}${(c.dias_visita||[]).length?'<br>Visita: '+c.dias_visita.map(x=>DIAS[x-1][1]).join(', '):''}<br><a class="lnk" data-pfc="${c.id}">Ficha</a> · <a class="lnk" data-pmv="${c.id}">Mover</a> · <a class="lnk" target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${+c.lat},${+c.lng}">Cómo llegar</a>`)});
   if(S.mpF=='prospectos')pzU.forEach(x=>{const ic=L.divIcon({className:'',html:'<div class="pin" style="background:#e8711c;border-radius:4px">★</div>',iconSize:[24,24],iconAnchor:[12,12]});
     L.marker([+x.lat,+x.lng],{icon:ic}).addTo(map).bindPopup(`<b>${esc(x.nombre)}</b>${x.rubro?' · '+esc(x.rubro):''}<br>${esc(x.domicilio||'')}${x.telefono?'<br>'+esc(x.telefono):''}<br><a class="lnk" target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${+x.lat},${+x.lng}">Cómo llegar</a>`);pts.push([+x.lat,+x.lng])});
+  if(S.mpF=='cerca')mapaCerca(map,pts,V,ult,pz.data||[]);
   if(pts.length)map.fitBounds(pts,{padding:[30,30],maxZoom:15});
   $('#mp_pg')&&($('#mp_pg').onclick=async()=>{$('#mp_pg').disabled=true;let ok=0;
     for(let i=0;i<pzS.length;i++){const x=pzS[i];$('#mp_pe').innerHTML=`<p>Buscando ${i+1} de ${pzS.length}: ${esc(x.nombre)}…</p>`;
@@ -2767,7 +2773,7 @@ const nomCorto=c=>{const n=String(c.contacto||'').trim().split(/\s+/)[0];return 
 function vVentas(){
   S.vs=S.vs||'cola';const due=S.perfil.rol=='dueno';
   let GR=[['⚡ Hoy',[['cola','⚡ Cola del día'],['plansem','🗓️ Plan de ataque'],['plan','📋 Plan del día'],['auto','⚙️ Automatizaciones']]],
-    ['🤝 Clientes',[['toca','📞 Les toca comprar'],['miraron','👀 Miraron el catálogo'],['carritos','🛒 Carritos sin enviar'],['menos','📉 Comprando menos'],['presupuestos','📝 Presupuestos'],['esperan','🔔 Esperan productos'],['clave','👑 Cuentas clave'],['ataque','⚔️ Ataque a la competencia'],['nuevos90','🌱 Primeros 90 días'],['bienvenida','👋 Bienvenida y aniversarios'],['encuestas','⭐ Encuestas'],['reclamos','🆘 Reclamos'],['muestras','🧪 Muestras'],['comodatos','🧊 Exhibidores']]],
+    ['🤝 Clientes',[['toca','📞 Les toca comprar'],['miraron','👀 Miraron el catálogo'],['carritos','🛒 Carritos sin enviar'],['menos','📉 Comprando menos'],['presupuestos','📝 Presupuestos'],['esperan','🔔 Esperan productos'],['clave','👑 Cuentas clave'],['ataque','⚔️ Ataque a la competencia'],['nuevos90','🌱 Primeros 90 días'],['bienvenida','👋 Bienvenida y aniversarios'],['encuestas','⭐ Encuestas'],['reclamos','🆘 Reclamos'],['faq','💬 Preguntas del catálogo'],['muestras','🧪 Muestras'],['comodatos','🧊 Exhibidores']]],
     ['🧲 Prospectos',[['embudo','🧲 Embudo de prospectos'],['ruta','🚶 Ruta de prospección'],['llamadas','📞 Modo llamadas'],['buscarneg','🗺️ Buscar negocios'],['cobertura','🧭 Zonas sin cubrir']]],
     ['🏷️ Ofertas',[['relampago','⚡ Relámpago'],['cupo','🔥 Oferta por cupo'],['personal','🎯 Ofertas personales'],['combos','🎁 Combos'],['cantidad','🏷️ Precio por cantidad'],['cupones','🎟️ Cupones'],['liquidar','📦 Liquidar stock'],['preventa','🔜 Preventa'],['novedades','✨ Novedades'],['acuerdos','📜 Acuerdos comerciales'],['micombo','🧺 Combo de siempre'],['checkout','🛒 Oferta de último momento'],['empujar','🚀 Productos para empujar'],['online','📲 Premio por pedir online'],['quincenal','📦 Pedido quincenal'],['niveles','🥇 Niveles'],['pvp','💰 Precio sugerido'],['bultos','📦 Venta por bulto'],['redondeo','🏷️ Precios redondeados'],['aumento','📈 Aviso de aumento'],['reglas','💲 Descuentos y mínimo']]],
     ['📣 Difundir',[['campanias','📣 Campañas'],['novsem','📋 Novedades semanal'],['estados','📱 Estados de WhatsApp'],['tarjeta','🖼️ Tarjeta de producto'],['difusion','🖼️ Folletos y catálogo'],['fiambres','🧀 Fiambres por kilo'],['fechas','📅 Fechas'],['rubros','🏪 Por rubro'],['qr','🔳 QR por campaña'],['contactos','📇 Contactos para WhatsApp'],['puntos','🏆 Puntos y desafío'],['liga','🏆 Liga de clientes'],['sorteo','🎟️ Sorteo del mes'],['cambios','📢 Cambios de precio']]],
@@ -2783,7 +2789,7 @@ function vVentas(){
     $('#vsubs').innerHTML=(T||act).map(([k,t,g])=>`<button class="${S.vs==k?'':'alt'}" data-vs="${k}">${t}${T?` <small style="opacity:.6">· ${esc(g.replace(/^\S+\s/,''))}</small>`:''}</button>`).join('')||'<small>No encontré esa pantalla.</small>';
     $$('#vsubs [data-vs]').forEach(b=>b.onclick=()=>{S.vs=b.dataset.vs;vVentas()})};
   $$('[data-vs]').forEach(b=>b.onclick=()=>{S.vs=b.dataset.vs;vVentas()});
-  ({anual:vAnual,zonasrep:()=>{$('#vs').innerHTML='<div class="box"><p>Se abrió la pantalla de zonas de reparto. También está en Reparto → 🗺️ Zonas y camioneta.</p><button onclick="zonasReparto()">Abrir de nuevo</button></div>';zonasReparto()},rentkg:vRentKg,fiambres:vFiambresKg,micombo:vMiCombo,checkout:vCheckout,empujar:vEmpujar,online:vOnline,pronostico:vPronostico,tablero:vTableroInfo,ig:vIG,igcal:vIGCal,igbio:vIGBio,igsorteo:vIGSorteo,igpros:vIGPros,igshop:vIGShop,plansem:vPlanSem,clave:vClave,ataque:vAtaque,cupo:vCupo,acuerdos:vAcuerdos,quincenal:vQuincenal,liga:vLiga,rentcli:vRentCli,simulador:vSimulador,llamadas:vLlamadas,contactos:vContactos,cobertura:vCobertura,cola:vCola,auto:vAuto,nuevos90:vNuevos90,ruta:vRuta,qr:vQR,captacion:vCaptacion,buscarneg:vBuscarNegocios,comodatos:vComodatos,proveedores:vProveedores,horarios:vHorarios,plan:vPlan,semana:vSemana,embudo:vEmbudo,preventa:vPreventa,bultos:vBultos,redondeo:vRedondeo,reclamos:vReclamos,niveles:vNiveles,estados:vEstados,tarjeta:vTarjeta,perdidas:vPerdidas,potencial:vPotencial,zonas:vZonas,miraron:vMiraron,bienvenida:vBienvenida,personal:vPersonal,pvp:vPVP,sorteo:vSorteo,cambios:vCambiosPrecio,muestras:vMuestras,aumento:vAumento,novsem:vNovSemana,marcas:vMarcas,competencia:vCompetencia,nocompra:vNoCompra,carritos:vCarritos,esperan:vEsperan,liquidar:vLiquidar,relampago:vRelampago,buscan:vBuscan,abc:vABC,rubros:vRubros,fechas:vFechas,toca:vToca,menos:vMenos,encuestas:vEncuestas,presupuestos:vPresupuestos,cantidad:vCantidad,cupones:vCupones,puntos:vPuntos,campanias:vCampanias,combos:vCombos,novedades:vNovedades,reglas:vReglas,difusion:()=>{$('#vs').innerHTML='<div class="box" id="pr_vd"></div>';cajaVender()}})[S.vs]();
+  ({faq:vFaq,anual:vAnual,zonasrep:()=>{$('#vs').innerHTML='<div class="box"><p>Se abrió la pantalla de zonas de reparto. También está en Reparto → 🗺️ Zonas y camioneta.</p><button onclick="zonasReparto()">Abrir de nuevo</button></div>';zonasReparto()},rentkg:vRentKg,fiambres:vFiambresKg,micombo:vMiCombo,checkout:vCheckout,empujar:vEmpujar,online:vOnline,pronostico:vPronostico,tablero:vTableroInfo,ig:vIG,igcal:vIGCal,igbio:vIGBio,igsorteo:vIGSorteo,igpros:vIGPros,igshop:vIGShop,plansem:vPlanSem,clave:vClave,ataque:vAtaque,cupo:vCupo,acuerdos:vAcuerdos,quincenal:vQuincenal,liga:vLiga,rentcli:vRentCli,simulador:vSimulador,llamadas:vLlamadas,contactos:vContactos,cobertura:vCobertura,cola:vCola,auto:vAuto,nuevos90:vNuevos90,ruta:vRuta,qr:vQR,captacion:vCaptacion,buscarneg:vBuscarNegocios,comodatos:vComodatos,proveedores:vProveedores,horarios:vHorarios,plan:vPlan,semana:vSemana,embudo:vEmbudo,preventa:vPreventa,bultos:vBultos,redondeo:vRedondeo,reclamos:vReclamos,niveles:vNiveles,estados:vEstados,tarjeta:vTarjeta,perdidas:vPerdidas,potencial:vPotencial,zonas:vZonas,miraron:vMiraron,bienvenida:vBienvenida,personal:vPersonal,pvp:vPVP,sorteo:vSorteo,cambios:vCambiosPrecio,muestras:vMuestras,aumento:vAumento,novsem:vNovSemana,marcas:vMarcas,competencia:vCompetencia,nocompra:vNoCompra,carritos:vCarritos,esperan:vEsperan,liquidar:vLiquidar,relampago:vRelampago,buscan:vBuscan,abc:vABC,rubros:vRubros,fechas:vFechas,toca:vToca,menos:vMenos,encuestas:vEncuestas,presupuestos:vPresupuestos,cantidad:vCantidad,cupones:vCupones,puntos:vPuntos,campanias:vCampanias,combos:vCombos,novedades:vNovedades,reglas:vReglas,difusion:()=>{$('#vs').innerHTML='<div class="box" id="pr_vd"></div>';cajaVender()}})[S.vs]();
 }
 
 /* ---------- Les toca comprar ---------- */
@@ -5887,7 +5893,7 @@ async function gananciaNeta(){const due=S.perfil.rol=='dueno';let G=await cfgJ('
   draw()}
 
 /* 2. Estado de cuenta del cliente */
-async function estadoCuenta(c){const[fe,re,sa]=await Promise.all([todo(()=>sb.from('facturas_estado').select('*').eq('cliente_id',c.id).gt('pendiente',0.005).order('vencimiento')),
+async function estadoCuenta(c){await cargarRecargo();const[fe,re,sa]=await Promise.all([todo(()=>sb.from('facturas_estado').select('*').eq('cliente_id',c.id).gt('pendiente',0.005).order('vencimiento')),
     sb.from('recibos').select('numero,fecha,importe,medio').eq('cliente_id',c.id).eq('anulado',false).gte('fecha',new Date(Date.now()-120*864e5).toISOString()).order('fecha',{ascending:false}).limit(15),sb.from('saldos_clientes').select('*').eq('cliente_id',c.id).maybeSingle()]);
   const F=fe.data||[],R=re.data||[],saldo=+sa.data?.saldo||F.reduce((a,x)=>a+(+x.pendiente||0),0),venc=F.filter(x=>x.dias_mora>0).reduce((a,x)=>a+(+x.pendiente||0),0);
   const w=window.open('','_blank');if(!w)return toast('Permití las ventanas emergentes.',1);
@@ -5895,12 +5901,12 @@ async function estadoCuenta(c){const[fe,re,sa]=await Promise.all([todo(()=>sb.fr
     <p class="ayuda">Para guardarlo en PDF elegí <b>Guardar como PDF</b>. Después lo mandás por WhatsApp desde la ficha del cliente.</p>
     <div style="display:flex;gap:14px;align-items:center;border-bottom:2px solid ${MARCA.c};padding-bottom:10px">${logoImg(70)}<div><h1>Estado de cuenta</h1><div>Sabores de mi País · al ${new Date().toLocaleDateString('es-AR')}</div></div></div>
     <p><b>Cliente:</b> ${esc(c.razon_social)}${c.cuit?' · CUIT '+esc(c.cuit):''}<br>${c.condicion_pago_dias?'Cuenta corriente a '+c.condicion_pago_dias+' días':'Contado'}</p>
-    <p class="tot">Saldo: ${$m(saldo)}${venc?` · <span class="v">vencido ${$m(venc)}</span>`:''}</p>
+    <p class="tot">Saldo: ${$m(saldo)}${venc?` · <span class="v">vencido ${$m(venc)}</span>`:''}${recargoG(F,c.id)>0?`<br><span class="v">Recargo por mora (${nf(S.recargo.pct)} % mensual): ${$m(recargoG(F,c.id))}</span>`:''}</p>
     <h3>Comprobantes pendientes</h3><table><tr><th>Comprobante</th><th>Vence</th><th>Estado</th><th class="n">Pendiente</th></tr>${F.map(x=>`<tr><td>Factura ${x.tipo} N° ${x.numero}</td><td>${fd(x.vencimiento)}</td><td class="${x.dias_mora>0?'v':''}">${x.dias_mora>0?'Vencida hace '+x.dias_mora+' días':'A vencer'}</td><td class="n">${$m(x.pendiente)}</td></tr>`).join('')||'<tr><td colspan="4">No hay comprobantes pendientes.</td></tr>'}</table>
     <h3>Últimos pagos</h3><table><tr><th>Recibo</th><th>Fecha</th><th>Medio</th><th class="n">Importe</th></tr>${R.map(x=>`<tr><td>N° ${x.numero}</td><td>${fd(String(x.fecha).slice(0,10))}</td><td>${esc(x.medio)}</td><td class="n">${$m(x.importe)}</td></tr>`).join('')||'<tr><td colspan="4">Sin pagos en los últimos 4 meses.</td></tr>'}</table>
     ${await bloquePago().catch(()=>'')}
     <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close();
-  if(c.telefono&&confirm('¿Mandarle también el resumen por WhatsApp?'))window.open('https://wa.me/'+telWA(c.telefono)+'?text='+encodeURIComponent(`¡Hola ${nomCorto(c)}! Te paso tu estado de cuenta de *Sabores de mi País* al ${new Date().toLocaleDateString('es-AR')}:\n\n`+(F.length?F.map(x=>'• Factura '+x.tipo+' N° '+x.numero+' · vence '+fd(x.vencimiento)+(x.dias_mora>0?' (vencida)':'')+': '+$m(x.pendiente)).join('\n'):'No tenés comprobantes pendientes 🙌')+`\n\n*Saldo: ${$m(saldo)}*${venc?' (vencido '+$m(venc)+')':''}${S.datosPago?'\n\n'+S.datosPago:''}\n\n¡Gracias!`),'_blank')}
+  if(c.telefono&&confirm('¿Mandarle también el resumen por WhatsApp?'))window.open('https://wa.me/'+telWA(c.telefono)+'?text='+encodeURIComponent(`¡Hola ${nomCorto(c)}! Te paso tu estado de cuenta de *Sabores de mi País* al ${new Date().toLocaleDateString('es-AR')}:\n\n`+(F.length?F.map(x=>'• Factura '+x.tipo+' N° '+x.numero+' · vence '+fd(x.vencimiento)+(x.dias_mora>0?' (vencida)':'')+': '+$m(x.pendiente)).join('\n'):'No tenés comprobantes pendientes 🙌')+`\n\n*Saldo: ${$m(saldo)}*${venc?' (vencido '+$m(venc)+')':''}${recargoTxt(F,c.id)}${S.datosPago?'\n\n'+S.datosPago:''}\n\n¡Gracias!`),'_blank')}
 
 /* 7. Feriados y días sin reparto */
 async function diasSinReparto(){let F=(await cfgJ('feriados',{l:[]})).l||[];const due=S.perfil.rol=='dueno',m=document.createElement('div');m.className='modal';document.body.appendChild(m);
@@ -6115,7 +6121,7 @@ window.addEventListener('online',()=>setTimeout(sincronizarOff,1500));
 const RAW_SQL='https://raw.githubusercontent.com/dnegri0805-cell/crm-sabores/main/sql/',SUPA_SQL='https://supabase.com/dashboard/project/ggfqdkgqtpnkvxoykoty/sql/new';
 /* 1. Chequeo del sistema: qué SQL falta correr */
 const SQL_CHK=[['control.sql','vencimientos','id'],['ventas-auto.sql','envios_auto','id'],['ventas-auto2.sql','envios_auto','variante'],['ventas-auto3.sql','clientes','cumpleanos'],['ventas-estrategia.sql','acuerdos','id'],['ventas-instagram.sql','prospectos','instagram'],
-  ['ventas-mas2.sql','alertas_oferta','id'],['ventas-peso.sql','pedido_items','peso_real'],['operacion.sql','costos_proveedor','producto_id'],['negocio.sql','mermas','id'],['solo.sql','pedidos','auto_aprobado'],['entregas.sql','pedidos','entrega'],['cobrar.sql','notas_cliente','id']];
+  ['ventas-mas2.sql','alertas_oferta','id'],['ventas-peso.sql','pedido_items','peso_real'],['operacion.sql','costos_proveedor','producto_id'],['negocio.sql','mermas','id'],['solo.sql','pedidos','auto_aprobado'],['entregas.sql','pedidos','entrega'],['cobrar.sql','notas_cliente','id'],['vivo.sql','reparto_vivo','id'],['practico.sql','fraccionados','id']];
 async function sqlFaltantes(){const R=await Promise.all(SQL_CHK.map(([f,t,c])=>sb.from(t).select(c).limit(1).then(({error})=>error&&/does not exist|Could not find|schema cache|no existe/i.test(error.message)?f:null,()=>null)));return R.filter(Boolean)}
 async function copiarSQL(f,b){try{const t=await(await fetch(RAW_SQL+f+'?nc='+Date.now())).text();await navigator.clipboard.writeText(t);if(b){b.textContent='✓ Copiado';b.classList.add('hecho')}toast('SQL copiado. Ahora pegalo en Supabase (Ctrl + V) y tocá Run.')}catch(e){window.open(RAW_SQL+f,'_blank');toast('Se abrió el SQL: copialo con Ctrl + A y Ctrl + C.')}}
 /* 2. Configuración pendiente */
@@ -6165,10 +6171,10 @@ function vistaCfg(){const p=prefV(),m=document.createElement('div');m.className=
   m.innerHTML=`<div class="mc"><div class="bh"><h3>Aa Cómo se ve</h3><button class="alt" id="vc_x">Cerrar</button></div><p><small>Se guarda en este equipo (podés tener letra grande en el celular y normal en la PC).</small></p>
     <h4>Tamaño de letra</h4><div class="sub">${[[1,'Normal'],[1.12,'Grande'],[1.25,'Muy grande']].map(([z,t])=>`<button class="${(p.z||1)==z?'':'alt'}" data-vz="${z}">${t}</button>`).join('')}</div>
     <h4>Colores</h4><div class="sub">${[['claro','☀️ Claro'],['oscuro','🌙 Oscuro'],['auto','Automático']].map(([k,t])=>`<button class="${(p.t||'claro')==k?'':'alt'}" data-vt="${k}">${t}</button>`).join('')}</div>
-    <h4>🔔 Avisos en este equipo</h4><p><small>Te avisa con una notificación cuando entra un pedido online, un reclamo o un presupuesto aceptado, aunque estés en otra app. El CRM tiene que quedar abierto (en el celular, mejor instalado como app).</small></p>
+    ${huellaHTML()}<h4>🔔 Avisos en este equipo</h4><p><small>Te avisa con una notificación cuando entra un pedido online, un reclamo o un presupuesto aceptado, aunque estés en otra app. El CRM tiene que quedar abierto (en el celular, mejor instalado como app).</small></p>
     ${ns=='no'?'<p><small>Este navegador no permite notificaciones.</small></p>':ns=='denied'?'<p><small>Bloqueaste las notificaciones para esta página: habilitalas en el candado de la barra de direcciones.</small></p>':`<button id="vc_n" class="${S.vivoBg&&ns=='granted'?'alt':''}">${S.vivoBg&&ns=='granted'?'🔕 Apagar avisos':'🔔 Activar avisos'}</button>`}</div>`;
   const q=s=>m.querySelector(s),sv=o=>{try{localStorage.setItem('pref_vista',JSON.stringify({...prefV(),...o}))}catch(e){}aplicarVista();m.remove();vistaCfg()};
-  q('#vc_x').onclick=()=>m.remove();m.querySelectorAll('[data-vz]').forEach(b=>b.onclick=()=>sv({z:+b.dataset.vz}));m.querySelectorAll('[data-vt]').forEach(b=>b.onclick=()=>sv({t:b.dataset.vt}));
+  q('#vc_x').onclick=()=>m.remove();huellaBind(m);m.querySelectorAll('[data-vz]').forEach(b=>b.onclick=()=>sv({z:+b.dataset.vz}));m.querySelectorAll('[data-vt]').forEach(b=>b.onclick=()=>sv({t:b.dataset.vt}));
   const n=q('#vc_n');if(n)n.onclick=async()=>{if(S.vivoBg&&Notification.permission=='granted'){S.vivoBg=false;try{localStorage.setItem('notif_on','0')}catch(e){}m.remove();return toast('Avisos apagados.')}
     const r=await Notification.requestPermission();if(r!='granted')return toast('No diste permiso para las notificaciones.',1);S.vivoBg=true;try{localStorage.setItem('notif_on','1')}catch(e){}avisosEnVivo();notificar('Sabores de mi País','✅ Listo: así te van a llegar los avisos de pedidos nuevos.');m.remove()}}
 
@@ -6222,6 +6228,245 @@ async function garantiaCfg(){const G=await cfgJ('garantia',{activa:false,pct:10,
     <button id="ga_g">Guardar</button></div>`;
   m.querySelector('#ga_x').onclick=()=>m.remove();m.querySelector('#ga_g').onclick=async()=>{const v={activa:m.querySelector('#ga_a').checked,pct:Math.max(1,+m.querySelector('#ga_p').value||10),dias:Math.max(7,+m.querySelector('#ga_d').value||30)};
     const{error}=await guardaCfgJ('garantia',v);if(error)return toast(error.message,1);S.garantia=v;toast(v.activa?'Garantía activada: el sello ya aparece en el catálogo.':'Garantía apagada.');m.remove();if(S.vs=='reclamos')vReclamos()}}
+
+/* ======================= PRÁCTICO (tanda 21) ======================= */
+const SQL_PRAC='Falta correr practico.sql en Supabase.';
+const hoyL=()=>diaLocal(new Date()),diasEntre=(a,b)=>Math.round((new Date(b+'T12:00')-new Date(a+'T12:00'))/864e5);
+
+/* ---------- 1. Preguntas frecuentes del catálogo ---------- */
+const DSEMC=['','lunes','martes','miércoles','jueves','viernes','sábado','domingo'];
+const diasTxtC=a=>{const d=[...new Set((a||[]).map(Number))].filter(x=>x>=1&&x<=7).sort((x,y)=>x-y).map(x=>DSEMC[x]);return d.length>1?d.slice(0,-1).join(', ')+' y '+d.at(-1):d[0]||''};
+async function vFaq(){const{data:I,error}=await sb.rpc('faq_info');
+  if(error){$('#vs').innerHTML=`<div class="box"><h3>💬 Preguntas del catálogo</h3><p class="err">${/faq_info/.test(error.message)?SQL_PRAC:esc(error.message)}</p></div>`;return}
+  const F=Object.assign({horario:'',retiro:'',cambios:'',envio:'',pago:'',extras:[],ocultar:[]},I.faq||{});
+  const AUTO=[['horario','¿En qué horario atienden?',F.horario?'✔ '+F.horario:'⚠️ Cargá el horario abajo'],
+    ['dias','¿Qué días entregan?',(I.zonas||[]).length?'✔ '+I.zonas.map(z=>z.z+': '+diasTxtC(z.dias)).join(' · '):(I.entrega?.dias||[]).length?'✔ '+diasTxtC(I.entrega.dias):'⚠️ Cargá los días de cada zona en Reparto → 🗺️ Zonas y camioneta'],
+    ['minimo','¿Hay pedido mínimo?',+I.minimo?'✔ '+$m(I.minimo):'✔ "No hay pedido mínimo"'],['envio','¿Cobran el envío?',+I.envio?'✔ Gratis desde '+$m(I.envio):F.envio?'✔ '+F.envio:'(no aparece: no cargaste envío gratis)'],
+    ['pago','¿Cómo puedo pagar?','✔ Efectivo'+(I.pago?', transferencia':'')+(I.mp?', Mercado Pago':'')],['pedido','¿Cómo hago un pedido?','✔ Explicación de cómo pedir'],
+    ['peso','¿Cómo se cobran los quesos y fiambres?','✔ Por el peso real'],['seguimiento','¿Puedo ver dónde está mi pedido?','✔ Seguimiento en vivo'],
+    ['problema','¿Qué pasa si falta algo o llega mal?',I.garantia?'✔ Con la garantía Pedido completo':'✔ Que avisen desde Mi cuenta']];
+  const linkPub=new URL('pedido.html?ver=catalogo#faq',location.href.split('#')[0].split('?')[0]).href;
+  $('#vs').innerHTML=`<div class="box"><div class="bh"><h3 style="margin:0">💬 Preguntas frecuentes del catálogo</h3><button class="alt" id="fq_v">👀 Ver como cliente</button></div>
+    <p><small>En el catálogo aparece <b>❓ Preguntas frecuentes</b> con las respuestas armadas solas con lo que ya cargaste (días de cada zona, mínimo, envío gratis, formas de pago, garantía). Si cambiás algo en el CRM, la respuesta se actualiza sola. Así te escriben menos para preguntar.</small></p>
+    <h4>Las que se arman solas</h4>${AUTO.map(([k,p,r])=>`<div class="vi" style="align-items:center;padding:4px 0"><label class="chk" style="flex:1;margin:0"><input type="checkbox" data-fqo="${k}" ${F.ocultar.includes(k)?'':'checked'} style="width:auto;margin:0 8px 0 0"><span><b>${p}</b><br><small>${esc(r)}</small></span></label></div>`).join('')}
+    <h4>Completá</h4><div class="g"><label class="f">Horario de atención<input id="fq_h" placeholder="Ej.: Lunes a viernes de 8 a 17 y sábados de 8 a 13" value="${esc(F.horario)}"></label>
+      <label class="f">¿Se puede retirar por el depósito? (vacío = no aparece)<input id="fq_r" placeholder="Ej.: Sí, de lunes a viernes de 9 a 16 en Av. X 1234" value="${esc(F.retiro)}"></label>
+      <label class="f">Cambios y devoluciones (vacío = no aparece)<input id="fq_c" placeholder="Ej.: Si algo llega mal, lo cambiamos en la próxima entrega" value="${esc(F.cambios)}"></label>
+      <label class="f">Algo más sobre el envío (opcional)<input id="fq_e" placeholder="Ej.: Fuera de tu zona, consultanos" value="${esc(F.envio)}"></label>
+      <label class="f">Algo más sobre los pagos (opcional)<input id="fq_p" placeholder="Ej.: Cuenta corriente a 15 días para clientes habituales" value="${esc(F.pago)}"></label></div>
+    <h4>Tus propias preguntas</h4><div id="fq_x"></div><a class="lnk" id="fq_a">+ Agregar una pregunta</a>
+    <div class="fc-acc" style="margin-top:12px"><button id="fq_g">Guardar</button><button class="alt" id="fq_l">📋 Copiar link de las preguntas</button></div></div>`;
+  let X=(F.extras||[]).map(x=>({...x}));
+  const dx=()=>{$('#fq_x').innerHTML=X.map((x,i)=>`<div class="g" style="align-items:end"><input data-fxp="${i}" placeholder="Pregunta" value="${esc(x.p||'')}"><input data-fxr="${i}" placeholder="Respuesta" value="${esc(x.r||'')}"><a class="lnk" data-fxd="${i}">quitar</a></div>`).join('')||'<p><small>Por ejemplo: "¿Venden al público?", "¿Hacen factura A?".</small></p>';
+    $$('[data-fxp]').forEach(e=>e.oninput=()=>X[+e.dataset.fxp].p=e.value);$$('[data-fxr]').forEach(e=>e.oninput=()=>X[+e.dataset.fxr].r=e.value);$$('[data-fxd]').forEach(a=>a.onclick=()=>{X.splice(+a.dataset.fxd,1);dx()})};dx();
+  $('#fq_a').onclick=()=>{X.push({p:'',r:''});dx()};
+  $('#fq_v').onclick=()=>window.open(linkPub,'_blank');
+  $('#fq_l').onclick=async()=>{try{await navigator.clipboard.writeText(linkPub);toast('Link copiado: pegalo en WhatsApp o en tu Instagram.')}catch(e){prompt('Copiá el link:',linkPub)}};
+  $('#fq_g').onclick=async()=>{const v={horario:$('#fq_h').value.trim(),retiro:$('#fq_r').value.trim(),cambios:$('#fq_c').value.trim(),envio:$('#fq_e').value.trim(),pago:$('#fq_p').value.trim(),
+      extras:X.filter(x=>String(x.p||'').trim()&&String(x.r||'').trim()).map(x=>({p:x.p.trim(),r:x.r.trim()})),ocultar:[...$$('[data-fqo]')].filter(c=>!c.checked).map(c=>c.dataset.fqo)};
+    const{error}=await guardaCfgJ('faq',v);if(error)return toast(error.message,1);toast('Preguntas guardadas: ya se ven en el catálogo.');vFaq()}}
+
+/* ---------- 2. Fraccionado de hormas y piezas ---------- */
+const costoKgDe=id=>{const p=S.productos.find(x=>x.producto_id==id);if(!p||!(+p.costo>0))return 0;return esPeso(id)&&ppz(id)?+p.costo/ppz(id):+p.costo};
+async function fraccionar(){await cargarStock();const m=document.createElement('div');m.className='modal';document.body.appendChild(m);let O=null,D=[];
+  const unidad=id=>esKg(id)?'kg':esPeso(id)?'piezas':'unidades';
+  const draw=async()=>{const{data:H,error}=await sb.from('fraccionados').select('*').gte('fecha',new Date(Date.now()-120*864e5).toISOString()).order('fecha',{ascending:false}).limit(500);
+    const G={};for(const x of H||[]){const g=G[x.origen_id]=G[x.origen_id]||{n:0,b:0,u:0,m:0,c:0};g.n++;g.b+=+x.kg_bruto;g.u+=+x.kg_util;g.m+=+x.merma_kg;g.c+=+x.merma_kg*(+x.costo/(+x.kg_bruto||1))}
+    m.innerHTML=`<div class="mc"><div class="bh"><h3>🔪 Fraccionar hormas y piezas</h3><button class="alt" id="fr_x">Cerrar</button></div>
+      <p><small>Comprás la horma o la pieza entera y la cortás para vender por kilo o en cuñas. Cargás cuánto pesó entera y en qué la cortaste: se descuenta la pieza del stock, se suma lo fraccionado, se anota la merma del corte y te calcula el <b>costo real por kilo</b>.</small></p>
+      ${error?`<p class="err">${/fraccionados/.test(error.message)?SQL_PRAC:esc(error.message)}</p>`:`<div class="box"><h4 style="margin-top:0">1. ¿Qué cortaste?</h4>
+        ${O?`<p><b>${esc(O.descripcion)}</b> · ${unidad(O.producto_id)} · stock ${nf(stk(O.producto_id).f)} <a class="lnk" id="fr_oc">cambiar</a></p>
+          <div class="g">${esKg(O.producto_id)?'':`<label class="f">Cuántas ${esPeso(O.producto_id)?'piezas':'unidades'}<input id="fr_n" inputmode="decimal" value="${O._n||1}"></label>`}
+          <label class="f">Peso real entero (kg)<input id="fr_kg" inputmode="decimal" placeholder="Ej.: 4,25" value="${O._kg||''}"></label>
+          <label class="f">Costo de lo que cortaste ($)<input id="fr_c" inputmode="decimal" placeholder="Costo total" value="${O._c||''}"></label></div>`
+        :`<div class="conscan"><input id="fr_q" placeholder="Horma o pieza entera (nombre o código)" autocomplete="off">${btnScan('fr_sc')}</div><div id="fr_r"></div>`}
+        ${O?`<h4>2. ¿En qué lo fraccionaste?</h4>${D.map((d,i)=>`<div class="vi" style="align-items:center;gap:8px"><span style="flex:1"><b>${esc(d.p.descripcion)}</b><br><small>${esKg(d.p.producto_id)?'se vende por kilo':esPeso(d.p.producto_id)?'piezas de ≈ '+nf(ppz(d.p.producto_id))+' kg':'por unidad'}</small></span>
+            <label class="f" style="max-width:110px">${esKg(d.p.producto_id)?'Kilos':'Cantidad'}<input data-frq="${i}" inputmode="decimal" value="${d.q||''}"></label>
+            ${esKg(d.p.producto_id)?'':`<label class="f" style="max-width:110px">Kilos en total<input data-frk="${i}" inputmode="decimal" value="${d.kg||''}"></label>`}<a class="lnk" data-frd="${i}">quitar</a></div>`).join('')}
+          <div class="conscan"><input id="fr_dq" placeholder="+ Agregar producto fraccionado (ej.: Pategrás x kg, cuña)" autocomplete="off">${btnScan('fr_dsc')}</div><div id="fr_dr"></div>
+          <div id="fr_res"></div>`:''}</div>
+      ${Object.keys(G).length?`<h4>Rendimiento de tus cortes (últimos 4 meses)</h4><div class="tw"><table><tr><th>Producto</th><th class="n">Cortes</th><th class="n">Rinde</th><th class="n">Merma</th><th class="n">Plata perdida</th></tr>${Object.entries(G).sort((a,b)=>b[1].c-a[1].c).map(([id,g])=>`<tr><td>${esc(nomProd(id))}</td><td class="n">${g.n}</td><td class="n ${g.u/g.b<.9?'mora':''}">${pctf(Math.round(g.u/g.b*1000)/10)}</td><td class="n">${nf(Math.round(g.m*100)/100)} kg</td><td class="n">${$m(g.c)}</td></tr>`).join('')}</table></div>
+        <h4>Últimos cortes</h4><div class="tw"><table>${(H||[]).slice(0,12).map(x=>`<tr><td><small>${fd(String(x.fecha).slice(0,10))}</small></td><td>${esc(nomProd(x.origen_id))}<br><small>${(x.destinos||[]).map(d=>esc(nomProd(d.id))+' '+nf(d.q)).join(' · ')}</small></td><td class="n">${nf(x.kg_bruto)} → ${nf(x.kg_util)} kg</td><td class="n">${$m(x.costo_kg)}/kg</td></tr>`).join('')}</table></div>`:''}`}</div>`;
+    const q=s=>m.querySelector(s);q('#fr_x').onclick=()=>m.remove();if(error)return;
+    if(!O){buscador('#fr_q','#fr_r',p=>{O=p;O._n=1;D=[];draw()});q('#fr_sc').onclick=()=>escanear('Horma o pieza',p=>{O=p;O._n=1;D=[];draw();return '✔ '+p.descripcion});return}
+    q('#fr_oc').onclick=()=>{O=null;D=[];draw()};
+    const add=p=>{if(p.producto_id==O.producto_id)return toast('Elegí el producto en que lo cortaste (otro distinto).',1);if(D.some(d=>d.p.producto_id==p.producto_id))return;D.push({p,q:'',kg:''});sv();draw()};
+    buscador('#fr_dq','#fr_dr',add);q('#fr_dsc').onclick=()=>escanear('Producto fraccionado',p=>{add(p);return '✔ '+p.descripcion});
+    const sv=()=>{const n=q('#fr_n');O._n=n?n.value:O._n;O._kg=q('#fr_kg').value;O._c=q('#fr_c').value;
+      D.forEach((d,i)=>{d.q=q(`[data-frq="${i}"]`)?.value??d.q;const k=q(`[data-frk="${i}"]`);if(k)d.kg=k.value})};
+    const calc=()=>{sv();const id=O.producto_id,kgB=sumaKg(O._kg),n=esKg(id)?kgB:+String(O._n||'').replace(',','.')||0;
+      if(!O._c&&kgB>0){const ck=costoKgDe(id);if(ck)O._c=String(Math.round((esKg(id)||esPeso(id)?ck*kgB:(+O.costo||0)*n)*100)/100);if(q('#fr_c'))q('#fr_c').value=O._c||''}
+      const costo=numAR(O._c)||0;
+      const L=D.map(d=>{const did=d.p.producto_id,qq=+String(d.q||'').replace(',','.')||0;let kg=esKg(did)?qq:numAR(d.kg)||0;if(!kg&&esPeso(did)&&qq)kg=qq*ppz(did);return{...d,id:did,qq,kg}});
+      const kgU=L.reduce((a,x)=>a+x.kg,0),merma=Math.max(0,kgB-kgU),ckU=kgU>0?costo/kgU:0;return{id,kgB,n,costo,L,kgU,merma,ckU}};
+    const res=()=>{const c=calc(),box=q('#fr_res');if(!box)return;
+      if(!(c.kgB>0)||!c.L.length){box.innerHTML='<p><small>Poné el peso de la pieza entera y agregá en qué la cortaste.</small></p>';return}
+      if(c.kgU>c.kgB*1.02){box.innerHTML=`<p class="err">Lo fraccionado (${nf(Math.round(c.kgU*100)/100)} kg) pesa más que la pieza entera. Revisá los kilos.</p>`;return}
+      box.innerHTML=`<div class="kp"><div class="box"><span class="lab">Rinde</span><span class="num">${pctf(Math.round(c.kgU/c.kgB*1000)/10)}</span><span class="det">${nf(Math.round(c.kgU*100)/100)} de ${nf(c.kgB)} kg</span></div>
+        <div class="box ${c.merma/c.kgB>.08?'alerta':''}"><span class="lab">Merma del corte</span><span class="num">${nf(Math.round(c.merma*100)/100)} kg</span><span class="det">${c.costo?$m(c.merma*c.costo/c.kgB):''}</span></div>
+        <div class="box"><span class="lab">Costo real por kilo</span><span class="num">${c.ckU?$m(c.ckU):'—'}</span><span class="det">${c.costo&&c.kgB?'entero: '+$m(c.costo/c.kgB)+'/kg':''}</span></div></div>
+        ${c.ckU&&S.perfil.rol=='dueno'?`<label class="chk"><input type="checkbox" id="fr_uc" checked> Actualizar el costo de lo fraccionado (${c.L.filter(x=>x.qq>0).map(x=>esc(x.p.descripcion)+': '+$m(esPeso(x.id)||esKg(x.id)?c.ckU:c.ckU*x.kg/(x.qq||1))+(esPeso(x.id)||esKg(x.id)?'/kg':' c/u')).join(' · ')}). Los precios se recalculan solos.</label>`:''}
+        <div class="g"><input id="fr_no" placeholder="Nota (opcional)"></div><button id="fr_g">Guardar el corte</button>`;
+      q('#fr_g').onclick=guardar};
+    const guardar=async()=>{const c=calc();if(c.L.some(x=>!(x.qq>0)))return toast('Poné la cantidad de cada producto fraccionado.',1);if(!(c.n>0))return toast('Poné cuántas piezas cortaste.',1);
+      const oid=c.id,mq=esKg(oid)?c.merma:esPeso(oid)&&ppz(oid)?c.merma/ppz(oid):c.n?c.merma/(c.kgB/c.n):c.merma;
+      const p={origen:oid,cantidad:c.n,kg_bruto:Math.round(c.kgB*1000)/1000,kg_util:Math.round(c.kgU*1000)/1000,merma_kg:Math.round(c.merma*1000)/1000,merma_q:Math.round(mq*1000)/1000,costo:Math.round(c.costo*100)/100,
+        costo_kg:Math.round(c.ckU*100)/100,costo_kg_bruto:c.kgB?Math.round(c.costo/c.kgB*100)/100:0,destinos:c.L.map(x=>({id:x.id,q:x.qq,kg:Math.round(x.kg*1000)/1000})),nota:q('#fr_no').value.trim(),stock:!!S.inv};
+      q('#fr_g').disabled=true;const{error:e}=await sb.rpc('fraccionar',{p});if(e){q('#fr_g').disabled=false;return toast(/fraccionar|mover_stock/.test(e.message)?SQL_PRAC:e.message,1)}
+      let msg='Corte guardado: rinde '+pctf(Math.round(c.kgU/c.kgB*1000)/10)+', costo real '+$m(c.ckU)+'/kg.';
+      if(q('#fr_uc')?.checked){const it=c.L.map(x=>({id:x.id,costo:Math.round((esPeso(x.id)||esKg(x.id)?c.ckU:c.ckU*x.kg/(x.qq||1))*100)/100})).filter(x=>x.costo>0);
+        const{error:e2}=await sb.rpc('fijar_costos',{p_items:it});if(e2)msg+=' No se pudo actualizar el costo: '+e2.message;else{msg+=' Costos actualizados.';await recargarProductos()}}
+      await cargarStock();toast(msg);O=null;D=[];draw();if(S.tab=='stock')vStock()};
+    m.querySelectorAll('input').forEach(e=>{if(!['fr_dq','fr_q','fr_no'].includes(e.id))e.oninput=()=>{if(e.id=='fr_kg'&&!q('#fr_c').dataset.t)O._c='';if(e.id=='fr_c')q('#fr_c').dataset.t=1;res()}});
+    m.querySelectorAll('[data-frd]').forEach(a=>a.onclick=()=>{sv();D.splice(+a.dataset.frd,1);draw()});
+    res()};
+  draw()}
+
+/* ---------- 3. Camioneta al día ---------- */
+const CAM_V=[['vtv','🔧 VTV'],['seguro','🛡️ Seguro'],['patente','🧾 Patente (cuota)'],['matafuego','🧯 Matafuego'],['licencia','🪪 Licencia de conducir'],['ruta','📄 RUTA / habilitación']];
+const camCfg=()=>cfgJ('camioneta',{patente:'',km:0,venc:{},service:{cada:10000,ultimo:0}});
+function camAlertas(K){const A=[],h=hoyL();for(const[k,t]of CAM_V){const v=(K.venc||{})[k];if(!v)continue;const d=diasEntre(h,v);if(d<=15)A.push({t:t+(d<0?' vencida hace '+(-d)+' días':d==0?' vence hoy':' vence en '+d+' días'),mal:d<0,d})}
+  const s=K.service||{};if(+s.cada&&+K.km){const f=(+s.ultimo||0)+(+s.cada)-(+K.km);if(f<=1000)A.push({t:'🛠️ Service '+(f<0?'pasado por '+nf(-f)+' km':'en '+nf(f)+' km'),mal:f<0,d:f/100})}
+  return A.sort((a,b)=>a.d-b.d)}
+async function camionetaInicio(){const box=$('#cami');if(!box||S.perfil.rol!='dueno')return;const K=await camCfg(),A=camAlertas(K);if(!A.length){box.innerHTML='';return}
+  box.innerHTML=`<div class="box ${A.some(a=>a.mal)?'alerta':''}"><div class="bh"><h3 style="margin:0">🚐 Camioneta${K.patente?' '+esc(K.patente):''}</h3><button class="alt" onclick="camioneta()">Ver</button></div>${A.map(a=>`<div>${a.mal?'🔴':'🟡'} ${esc(a.t)}</div>`).join('')}</div>`}
+function consumo(C){const L=(C||[]).filter(x=>+x.km>0).sort((a,b)=>+a.km-+b.km);const fu=L.map((x,i)=>x.lleno?i:-1).filter(i=>i>=0);if(fu.length<2)return null;
+  const a=fu[0],b=fu.at(-1),km=+L[b].km-+L[a].km;if(km<=0)return null;const T=L.slice(a+1,b+1),lt=T.reduce((s,x)=>s+(+x.litros||0),0),pe=T.reduce((s,x)=>s+(+x.importe||0),0);
+  return{km,lt,kml:lt?km/lt:null,pkm:pe/km,desde:L[a].fecha,hasta:L[b].fecha}}
+async function camioneta(){const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  const draw=async()=>{const K=await camCfg(),[cc,ga]=await Promise.all([sb.from('cargas_combustible').select('*').order('fecha',{ascending:false}).order('id',{ascending:false}).limit(60),
+      sb.from('gastos').select('fecha,categoria,descripcion,importe').gte('fecha',diaLocal(new Date(Date.now()-180*864e5))).limit(2000)]);
+    const C=cc.data||[],co=consumo(C),A=camAlertas(K),h=hoyL(),s=K.service||{};
+    const otros=(ga.data||[]).filter(g=>/manten|seguro|patente|vtv|camioneta|veh[ií]c|repuest|gomer|cubiert|mec[aá]nic|lavad/i.test(g.categoria+' '+(g.descripcion||''))&&g.categoria!='Combustible');
+    const kmPer=co?co.km/Math.max(1,diasEntre(co.desde,co.hasta)):0,oTot=otros.filter(g=>g.fecha>=diaLocal(new Date(Date.now()-90*864e5))).reduce((a,g)=>a+(+g.importe||0),0),oKm=kmPer?oTot/(kmPer*90):0;
+    m.innerHTML=`<div class="mc"><div class="bh"><h3>🚐 Camioneta al día</h3><button class="alt" id="ca_x">Cerrar</button></div>
+      ${A.length?`<div class="box alerta">${A.map(a=>`<div>${a.mal?'🔴':'🟡'} ${esc(a.t)}</div>`).join('')}</div>`:'<p class="ok">✅ Todo al día.</p>'}
+      <div class="g"><label class="f">Patente<input id="ca_p" value="${esc(K.patente||'')}" placeholder="AB 123 CD"></label><label class="f">Kilómetros del tablero<input id="ca_km" inputmode="numeric" value="${+K.km||''}" placeholder="Ej.: 152300"></label></div>
+      <h4>Vencimientos</h4><div class="g">${CAM_V.map(([k,t])=>{const v=(K.venc||{})[k],d=v?diasEntre(h,v):null;return `<label class="f">${t}${v?` <small class="${d<0?'err':d<=15?'mora':''}">${d<0?'vencida':d==0?'hoy':'en '+d+' días'}</small>`:''}<input type="date" data-cav="${k}" value="${v||''}"></label>`}).join('')}</div>
+      <h4>Service</h4><div class="g"><label class="f">Cada cuántos km<input id="ca_sc" inputmode="numeric" value="${+s.cada||''}" placeholder="10000"></label><label class="f">Último service (km)<input id="ca_su" inputmode="numeric" value="${+s.ultimo||''}"></label></div>
+      ${+s.cada&&+K.km?`<p><small>Próximo service a los <b>${nf((+s.ultimo||0)+(+s.cada))} km</b> (faltan ${nf((+s.ultimo||0)+(+s.cada)-(+K.km))} km).</small> <a class="lnk" id="ca_sh">✅ Hice el service hoy</a></p>`:''}
+      <button id="ca_g">Guardar</button>
+      <h4>⛽ Cargas de combustible</h4>${cc.error?`<p class="err">${/cargas_combustible/.test(cc.error.message)?SQL_PRAC:esc(cc.error.message)}</p>`:`
+      <div class="g"><input type="date" id="cc_f" value="${h}"><input id="cc_k" inputmode="numeric" placeholder="Km del tablero"><input id="cc_l" inputmode="decimal" placeholder="Litros"><input id="cc_i" inputmode="decimal" placeholder="Importe $"></div>
+      <label class="chk"><input type="checkbox" id="cc_ll" checked> Llené el tanque</label><label class="chk"><input type="checkbox" id="cc_g" checked> Anotarlo también como gasto de caja (Combustible)</label><button class="alt" id="cc_ok">Cargar</button>
+      <div class="kp">${co?`<div class="box"><span class="lab">Consumo</span><span class="num">${co.kml?nf(Math.round(co.kml*10)/10)+' km/l':'—'}</span><span class="det">${nf(co.km)} km medidos</span></div>
+        <div class="box"><span class="lab">Combustible por km</span><span class="num">${$m(co.pkm)}</span><span class="det">${co.kml?nf(Math.round(100/co.kml*10)/10)+' litros cada 100 km':''}</span></div>
+        <div class="box"><span class="lab">Cada km te cuesta</span><span class="num">${$m(co.pkm+oKm)}</span><span class="det">${oKm?'con service, seguro y arreglos':'solo combustible (cargá los otros gastos en Caja)'}</span></div>`
+        :'<p><small>Cargá al menos dos tanques llenos con los km del tablero y te calcula el consumo y cuánto te cuesta cada kilómetro.</small></p>'}</div>
+      ${C.length?`<div class="tw"><table><tr><th>Fecha</th><th class="n">Km</th><th class="n">Litros</th><th class="n">Importe</th><th></th></tr>${C.slice(0,12).map(x=>`<tr><td>${fd(x.fecha)}${x.lleno?'':' <small>(parcial)</small>'}</td><td class="n">${x.km?nf(x.km):'—'}</td><td class="n">${x.litros?nf(x.litros):'—'}</td><td class="n">${$m(x.importe)}</td><td><a class="lnk" data-ccd="${x.id}">borrar</a></td></tr>`).join('')}</table></div>`:''}`}</div>`;
+    const q=s=>m.querySelector(s);q('#ca_x').onclick=()=>m.remove();
+    const leer=()=>{const v={};m.querySelectorAll('[data-cav]').forEach(e=>{if(e.value)v[e.dataset.cav]=e.value});return{...K,patente:q('#ca_p').value.trim(),km:Math.round(numAR(q('#ca_km').value)||0),venc:v,service:{cada:Math.round(numAR(q('#ca_sc').value)||0),ultimo:Math.round(numAR(q('#ca_su').value)||0)}}};
+    const gu=async(v,msg)=>{const{error}=await guardaCfgJ('camioneta',v);if(error)return toast(error.message,1);toast(msg||'Camioneta guardada.');draw();camionetaInicio().catch(()=>{})};
+    q('#ca_g').onclick=()=>gu(leer());q('#ca_sh')&&(q('#ca_sh').onclick=()=>{const v=leer();v.service.ultimo=v.km;gu(v,'Service anotado a los '+nf(v.km)+' km.')});
+    if(cc.error)return;
+    m.querySelectorAll('[data-ccd]').forEach(a=>a.onclick=async()=>{if(!confirm('¿Borrar esta carga?'))return;await sb.from('cargas_combustible').delete().eq('id',a.dataset.ccd);draw()});
+    q('#cc_ok').onclick=async()=>{const r={fecha:q('#cc_f').value||h,km:Math.round(numAR(q('#cc_k').value)||0)||null,litros:numAR(q('#cc_l').value)||null,importe:numAR(q('#cc_i').value)||0,lleno:q('#cc_ll').checked};
+      if(!r.importe&&!r.litros)return toast('Poné los litros o el importe.',1);const{error}=await sb.from('cargas_combustible').insert(r);if(error)return toast(error.message,1);
+      if(q('#cc_g').checked&&r.importe>0){const{error:e2}=await sb.from('gastos').insert({fecha:r.fecha,categoria:'Combustible',descripcion:'Camioneta'+(r.litros?' · '+nf(r.litros)+' l':''),importe:r.importe,medio:'efectivo'});if(e2)toast('La carga quedó, pero no se pudo anotar el gasto: '+e2.message,1)}
+      const K2=leer();if(r.km&&r.km>(+K2.km||0)){K2.km=r.km;await guardaCfgJ('camioneta',K2)}toast('Carga anotada.');draw();camionetaInicio().catch(()=>{})}};
+  draw()}
+
+/* ---------- 4. Mapa: cuánto compra cada cliente y a quién visitar cerca del reparto ---------- */
+function mapaColM(P){const t={};for(const o of P)t[o.cliente_id]=(t[o.cliente_id]||0)+(+o.total||0);const v=Object.values(t).filter(x=>x>0).sort((a,b)=>a-b),q=f=>v[Math.min(v.length-1,Math.floor(f*v.length))]||0;
+  const q1=q(.25),q2=q(.5),q3=q(.8);S.mpM={t,q1,q2,q3};
+  return c=>{const x=t[c.id]||0;return!x?'#b9bfcc':x>=q3?'#0b5d2a':x>=q2?'#2e9d55':x>=q1?'#9ccc65':'#f2b705'}}
+function mapaRuta(conU,P){const ids=new Set((P||[]).map(o=>o.cliente_id));let R=conU.filter(c=>ids.has(c.id));S.mpRutaHoy=false;
+  if(!R.length){const d=new Date().getDay()||7;R=conU.filter(c=>(c.dias_visita||[]).includes(d)).sort((a,b)=>(a.orden_visita||0)-(b.orden_visita||0));S.mpRutaHoy=true}return R}
+function mapaCerca(map,pts,R,ult,PZ){const box=$('#mp_cerca');if(!box)return;
+  if(!R.length){box.innerHTML='<p><small>No hay pedidos para repartir ni clientes con visita hoy. Cuando tengas pedidos aprobados, acá te muestro a quién pasar a ver cerca del recorrido.</small></p>';return}
+  const ids=new Set(R.map(c=>c.id)),cerca=(la,lo)=>{let b=null;for(const c of R){const d=distKm([+c.lat,+c.lng],[+la,+lo]);if(!b||d<b.d)b={d,c}}return b};
+  const dorm=S.clientes.filter(c=>c.lat!=null&&c.lng!=null&&!ids.has(c.id)).map(c=>{const u=ult[c.id],dd=u?Math.floor((Date.now()-new Date(u))/864e5):null;return{c,dd,b:cerca(c.lat,c.lng)}}).filter(x=>(x.dd==null||x.dd>45)&&x.b.d<=1.2).sort((a,b)=>a.b.d-b.b.d).slice(0,25);
+  const pros=(PZ||[]).filter(x=>x.lat!=null&&x.lng!=null&&!['cliente','no_interesado'].includes(x.estado)).map(x=>({x,b:cerca(x.lat,x.lng)})).filter(x=>x.b.d<=1.2).sort((a,b)=>a.b.d-b.b.d).slice(0,25);
+  const ic=(bg,t,r)=>L.divIcon({className:'',html:`<div class="pin" style="background:${bg};${r?'border-radius:4px':''}">${t}</div>`,iconSize:[24,24],iconAnchor:[12,12]});
+  for(const d of dorm){L.marker([+d.c.lat,+d.c.lng],{icon:ic('#b3261e','z')}).addTo(map).bindPopup(`<b>${esc(d.c.razon_social)}</b><br>${d.dd==null?'Nunca compró':'No compra hace '+d.dd+' días'}<br>A ${Math.round(d.b.d*1000)} m de ${esc(d.b.c.razon_social)}`);pts.push([+d.c.lat,+d.c.lng])}
+  for(const p of pros){L.marker([+p.x.lat,+p.x.lng],{icon:ic('#e8711c','★',1)}).addTo(map).bindPopup(`<b>${esc(p.x.nombre)}</b>${p.x.rubro?' · '+esc(p.x.rubro):''}<br>Prospecto · a ${Math.round(p.b.d*1000)} m de ${esc(p.b.c.razon_social)}`);pts.push([+p.x.lat,+p.x.lng])}
+  const m=d=>d<1?Math.round(d*1000/50)*50+' m':nf(Math.round(d*10)/10)+' km',wa=(tel,t)=>tel?`<a class="alt btnl wa" target="_blank" rel="noopener" href="https://wa.me/${telWA(tel)}?text=${encodeURIComponent(t)}">WhatsApp</a>`:'';
+  const go=(la,lo)=>`<a class="alt btnl" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${+la},${+lo}">Cómo llegar</a>`;
+  box.innerHTML=`<h3 style="margin-top:0">🚚 Para pasar ${S.mpRutaHoy?'hoy (clientes que visitás hoy)':'en el reparto'}</h3><p><small>🔵 ${R.length} paradas del recorrido · 🔴 clientes dormidos (más de 45 días sin comprar) · 🟧 prospectos. Todos a menos de 1,2 km de una parada.</small></p>
+    ${dorm.length?`<h4>😴 Clientes para recuperar</h4>${dorm.map(d=>`<div class="bh cpf"><span><b>${esc(d.c.razon_social)}</b><br><small>${d.dd==null?'Nunca compró':'Hace '+d.dd+' días que no compra'} · a ${m(d.b.d)} de ${esc(d.b.c.razon_social)}</small></span><span>${wa(d.c.telefono,`¡Hola ${nomCorto(d.c)}! Mañana paso con la camioneta cerca de tu negocio. ¿Te dejo algo? Te paso el catálogo: ${d.c.token_pedidos?linkPedidos(d.c):''}`)} ${go(d.c.lat,d.c.lng)}</span></div>`).join('')}`:''}
+    ${pros.length?`<h4>🎯 Prospectos para visitar</h4>${pros.map(p=>`<div class="bh cpf"><span><b>${esc(p.x.nombre)}</b><br><small>${p.x.rubro?esc(p.x.rubro)+' · ':''}a ${m(p.b.d)} de ${esc(p.b.c.razon_social)}</small></span><span>${wa(p.x.telefono,'¡Hola! Somos Sabores de mi País, distribuidora de fiambres, quesos y almacén. Pasamos cerca de tu negocio con el reparto: ¿te puedo dejar una muestra y la lista de precios?')} ${go(p.x.lat,p.x.lng)}</span></div>`).join('')}`:''}
+    ${!dorm.length&&!pros.length?'<p><small>No hay clientes dormidos ni prospectos cerca del recorrido. 👌</small></p>':''}`}
+
+/* ---------- 5. Recargo por mora ---------- */
+async function cargarRecargo(){S.recargo=await cfgJ('recargo',{activa:false,pct:3,gracia:10,perdon:{},cobrados:[]});return S.recargo}
+function recargoF(f,cid){const R=S.recargo;if(!R||!R.activa||!(+f.dias_mora>0)||!f.vencimiento)return 0;const h=hoyL();let ini=diaLocal(new Date(new Date(String(f.vencimiento).slice(0,10)+'T12:00').getTime()+(+R.gracia||0)*864e5));
+  const p=(R.perdon||{})[cid];if(p&&p>ini)ini=p;const d=diasEntre(ini,h);return d>0?Math.round((+f.pendiente||0)*(+R.pct||0)/100/30*d*100)/100:0}
+const recargoG=(F,cid)=>Math.round((F||[]).reduce((a,f)=>a+recargoF(f,cid),0)*100)/100;
+const recargoTxt=(F,cid)=>{const r=recargoG(F,cid);return r>0?`\n➕ Recargo por mora (${nf(S.recargo.pct)} % mensual desde ${S.recargo.gracia?S.recargo.gracia+' días después del ':'el '}vencimiento): *${$m(r)}*`:''};
+async function recargoCfg(){const R=await cargarRecargo(),m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  const mes=hoyL().slice(0,7),cob=(R.cobrados||[]).filter(x=>String(x.f).startsWith(mes)).reduce((a,x)=>a+(+x.m||0),0);
+  m.innerHTML=`<div class="mc"><div class="bh"><h3>💸 Recargo por mora</h3><button class="alt" id="rg_x">Cerrar</button></div>
+    <p><small>Si lo activás, a las facturas vencidas se les suma un interés por cada día de atraso (después de los días de gracia). Aparece en el aviso de deuda por WhatsApp, en el resumen en PDF y en el estado de cuenta. A cada cliente se lo podés <b>perdonar</b> con un toque (o marcar que ya te lo pagó) y vuelve a cero.</small></p>
+    <label class="chk"><input type="checkbox" id="rg_a" ${R.activa?'checked':''}> Cobrar recargo por mora</label>
+    <div class="g"><label class="f">Interés por mes (%)<input id="rg_p" inputmode="decimal" value="${R.pct}"></label><label class="f">Días de gracia después del vencimiento<input id="rg_g" inputmode="numeric" value="${R.gracia}"></label></div>
+    <p><small>Ejemplo: una factura de $ 100.000 vencida hace 40 días, con ${nf(R.pct)} % mensual y ${R.gracia} días de gracia: <b>${$m(100000*R.pct/100/30*Math.max(0,40-R.gracia))}</b> de recargo.</small></p>
+    ${cob?`<p><small>Recargos cobrados este mes: <b>${$m(cob)}</b>.</small></p>`:''}<button id="rg_ok">Guardar</button></div>`;
+  const q=s=>m.querySelector(s);q('#rg_x').onclick=()=>m.remove();
+  q('#rg_ok').onclick=async()=>{const v={...R,activa:q('#rg_a').checked,pct:Math.max(0,Math.min(20,numAR(q('#rg_p').value)||0)),gracia:Math.max(0,Math.round(numAR(q('#rg_g').value)||0))};
+    const{error}=await guardaCfgJ('recargo',v);if(error)return toast(error.message,1);S.recargo=v;m.remove();toast(v.activa?'Recargo activado.':'Recargo apagado.');morosos()}}
+async function recargoPerdonar(cid,monto,despues){const c=S.clientes.find(x=>x.id==cid)||{razon_social:'el cliente'},m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  m.innerHTML=`<div class="mc"><h3>💸 Recargo de ${esc(c.razon_social)}: ${$m(monto)}</h3><p><small>En los dos casos el recargo vuelve a cero desde hoy (si sigue sin pagar, empieza a correr de nuevo).</small></p>
+    <div class="fc-acc"><button id="rp_p">🙏 Perdonarlo</button><button class="alt" id="rp_c">✅ Ya me lo pagó</button><button class="alt" id="rp_x">Cancelar</button></div></div>`;
+  const fin=async cobr=>{const R=await cargarRecargo();R.perdon={...(R.perdon||{}),[cid]:hoyL()};if(cobr)R.cobrados=[...(R.cobrados||[]).slice(-300),{c:cid,m:monto,f:hoyL()}];
+    const{error}=await guardaCfgJ('recargo',R);if(error)return toast(error.message,1);S.recargo=R;m.remove();toast(cobr?'Recargo cobrado: anotalo como ingreso en Caja si lo cobraste aparte.':'Recargo perdonado.');despues&&despues()};
+  m.querySelector('#rp_p').onclick=()=>fin(false);m.querySelector('#rp_c').onclick=()=>fin(true);m.querySelector('#rp_x').onclick=()=>m.remove()}
+
+/* ---------- 6. Entrar con huella o cara ---------- */
+const b64u=b=>btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''),ub64=s=>Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));
+const huellaDe=()=>{try{const h=JSON.parse(localStorage.getItem('lock_huella')||'null');return h&&h.u==S.perfil?.id?h:null}catch(e){return null}};
+const huellaHTML=()=>`<h4>🔐 Entrar con huella o cara</h4><p><small>Al abrir el CRM en este equipo (y si quedó en segundo plano más de 5 minutos) te pide la huella, la cara o el PIN del celular. Si lo perdés o lo prestás, nadie ve tus datos.</small></p>
+  ${!window.PublicKeyCredential?'<p><small>Este navegador no permite huella.</small></p>':huellaDe()?'<button class="alt" id="vc_hu">🔓 Sacar el bloqueo</button>':'<button id="vc_hu">🔐 Activar el bloqueo</button>'}`;
+function huellaBind(m){const b=m.querySelector('#vc_hu');if(!b)return;b.onclick=async()=>{if(huellaDe()){try{localStorage.removeItem('lock_huella')}catch(e){}m.remove();return toast('Bloqueo con huella sacado.')}
+  try{if(PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable&&!(await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()))return toast('Este equipo no tiene huella, cara ni PIN configurado.',1);
+    const cr=await navigator.credentials.create({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),rp:{name:'CRM Sabores de mi País'},user:{id:new TextEncoder().encode(S.perfil.id),name:S.perfil.email||S.perfil.nombre||'usuario',displayName:S.perfil.nombre||'Usuario'},
+      pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'discouraged'},timeout:60000}});
+    localStorage.setItem('lock_huella',JSON.stringify({id:b64u(cr.rawId),u:S.perfil.id}));m.remove();toast('🔐 Listo: la próxima vez que abras el CRM te pide la huella.')}catch(e){toast('No se pudo activar: '+(e.name=='NotAllowedError'?'cancelaste o se venció el tiempo.':e.message),1)}}}
+function bloquear(){const h=huellaDe();if(!h||$('#lock'))return;const d=document.createElement('div');d.id='lock';
+  d.innerHTML=`<div><img src="${MARCA.logo||'icon-192.png'}" alt="" style="max-width:110px;max-height:110px;border-radius:16px"><h2>CRM bloqueado</h2><button id="lk_ok">🔓 Desbloquear con huella o cara</button><p><a class="lnk" id="lk_pw">Entrar con mi contraseña</a></p></div>`;document.body.appendChild(d);
+  const ok=async auto=>{try{await navigator.credentials.get({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),allowCredentials:[{type:'public-key',id:ub64(h.id)}],userVerification:'required',timeout:60000}});d.remove();S._bgDesde=0}catch(e){if(!auto)toast(e.name=='NotAllowedError'?'No se pudo verificar. Probá de nuevo.':e.message,1)}};
+  d.querySelector('#lk_ok').onclick=()=>ok();d.querySelector('#lk_pw').onclick=()=>{d.remove();out()};setTimeout(()=>ok(1),250)}
+function huellaArranque(){if(!huellaDe())return;bloquear();if(S._lockBind)return;S._lockBind=1;
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){S._bgDesde=Date.now();return}if(S._bgDesde&&Date.now()-S._bgDesde>5*60000)bloquear()})}
+
+/* ---------- 7. Atajos en el ícono de la app ---------- */
+function irAtajo(){let ir=null;try{ir=new URLSearchParams(location.search).get('ir')}catch(e){}if(!ir)return;try{history.replaceState(null,'',location.pathname)}catch(e){}
+  const M={pedido:['pedidos'],cola:['ventas',{vs:'cola'}],reparto:['reparto'],cobrar:['cobranza'],manana:['inicio']},x=M[ir];if(!x)return;Object.assign(S,x[1]||{});S.tab=x[0];if(ir=='manana')setTimeout(()=>preparaManana(),700)}
+
+/* ---------- 8. Para mañana (resumen a la noche) ---------- */
+async function datosManana(){const man=diaLocal(new Date(Date.now()+864e5)),sf=p=>Promise.resolve(p).then(r=>r||{data:null},()=>({data:null}));
+  const[pe,fe,ch,fp,ta,ve,K]=await Promise.all([sf(sb.from('pedidos').select('id,numero,estado,total,entrega,cliente_id,pedido_items(producto_id,cantidad,peso_real)').in('estado',['pendiente','aprobado','en_preparacion','listo'])),
+    sf(sb.from('facturas_estado').select('cliente_id,pendiente,dias_mora').gt('pendiente',0.005).gt('dias_mora',0)),sf(sb.from('cheques').select('tipo,importe,fecha_pago,estado').in('estado',['en_cartera','emitido']).lte('fecha_pago',man)),
+    sf(sb.from('facturas_proveedor').select('proveedor_id,vencimiento,tipo,total').eq('vencimiento',man)),sf(sb.from('tareas').select('titulo').eq('hecha',false).eq('fecha',man)),
+    sf(sb.from('vencimientos').select('producto_id,vence').eq('retirado',false).lte('vence',diaLocal(new Date(Date.now()+3*864e5)))),camCfg()]);
+  const P=(pe.data||[]).filter(o=>!o.entrega||o.entrega<=man),E=P.filter(o=>o.estado!='pendiente'),cli=id=>S.clientes.find(c=>c.id==id)||{razon_social:'Cliente'};
+  const dem={};for(const o of E)for(const i of o.pedido_items||[]){if(i.peso_real!=null&&!esKg(i.producto_id))continue;dem[i.producto_id]=(dem[i.producto_id]||0)+(+i.cantidad||0)}
+  const falta=S.inv?Object.entries(dem).map(([id,q])=>({id,q,f:Math.max(0,q-stk(id).f)})).filter(x=>x.f>0).sort((a,b)=>b.f-a.f):[];
+  const ven={};for(const f of fe.data||[])ven[f.cliente_id]=(ven[f.cliente_id]||0)+(+f.pendiente||0);
+  const cob=[...new Set(E.map(o=>o.cliente_id))].map(id=>{const c=cli(id),ct=c.condicion_pago_dias?0:E.filter(o=>o.cliente_id==id).reduce((a,o)=>a+(+o.total||0),0);return{c,ct,v:ven[id]||0}}).filter(x=>x.ct||x.v);
+  const chR=(ch.data||[]).filter(c=>c.tipo=='recibido'&&c.estado=='en_cartera'),chE=(ch.data||[]).filter(c=>c.tipo=='emitido'&&c.fecha_pago==man);
+  const V=[...camAlertas(K).filter(a=>a.d<=7).map(a=>'🚐 '+a.t),...chE.map(c=>'🏦 Se debita un cheque tuyo de '+$m(c.importe)),...(fp.data||[]).filter(f=>f.tipo!='NC').map(f=>'💸 Vence factura de proveedor'+(f.total?' por '+$m(f.total):'')),
+    ...(ve.data||[]).map(v=>'📦 Vence '+nomProd(v.producto_id)+' ('+fd(v.vence)+')'),...(ta.data||[]).map(t=>'📝 '+t.titulo)];
+  return{man,E,porArmar:E.filter(o=>['aprobado','en_preparacion'].includes(o.estado)),pend:P.filter(o=>o.estado=='pendiente'),falta,cob,chR,V}}
+function txtManana(D){const r=[];if(D.E.length)r.push('🚚 '+D.E.length+' pedidos para entregar ('+$m(D.E.reduce((a,o)=>a+(+o.total||0),0))+')');if(D.porArmar.length)r.push('🧺 '+D.porArmar.length+' por armar');if(D.pend.length)r.push('📥 '+D.pend.length+' por aprobar');
+  if(D.falta.length)r.push('📦 Faltan '+D.falta.length+' productos');if(D.cob.length)r.push('💵 Cobrar a '+D.cob.length);if(D.chR.length)r.push('🏦 '+D.chR.length+' cheques para depositar');if(D.V.length)r.push('⚠️ '+D.V.length+' vencimientos');return r}
+async function preparaManana(){const D=await datosManana(),m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  const dia=new Date(D.man+'T12:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'numeric'}),tot=D.E.reduce((a,o)=>a+(+o.total||0),0);
+  m.innerHTML=`<div class="mc"><div class="bh"><h3>🌙 Para mañana, ${dia}</h3><button class="alt" id="mn_x">Cerrar</button></div>
+    <h4>🚚 Entregás</h4>${D.E.length?`<p><b>${D.E.length} ${D.E.length==1?'pedido':'pedidos'}</b> · ${$m(tot)}${D.porArmar.length?` · <b>${D.porArmar.length} sin armar</b>`:' · todos armados ✅'}</p><p><small>${D.E.map(o=>esc((S.clientes.find(c=>c.id==o.cliente_id)||{}).razon_social||'Cliente')).join(' · ')}</small></p>
+      <div class="fc-acc">${D.porArmar.length?'<button class="alt" onclick="hojaArmado()">🧺 Hoja de armado</button>':''}<button class="alt" onclick="this.closest(\'.modal\').remove();irA(\'reparto\')">🚚 Reparto</button></div>`:'<p><small>No hay pedidos para mañana todavía.</small></p>'}
+    ${D.pend.length?`<p>📥 <b>${D.pend.length} por aprobar</b> <a class="lnk" onclick="this.closest('.modal').remove();irA('pedidos',{pf:'pendiente'})">ver</a></p>`:''}
+    ${D.falta.length?`<h4>📦 Te falta mercadería</h4><div class="tw"><table><tr><th>Producto</th><th class="n">Piden</th><th class="n">Faltan</th></tr>${D.falta.slice(0,20).map(x=>`<tr><td>${esc(nomProd(x.id))}</td><td class="n">${esc(cantTxt(x.id,x.q))}</td><td class="n mora">${esc(cantTxt(x.id,Math.round(x.f*1000)/1000))}</td></tr>`).join('')}</table></div><button class="alt" onclick="this.closest('.modal').remove();irA('compras',{sub:'ordenes'})">🛒 Ir a Compras</button>`:''}
+    ${D.cob.length?`<h4>💵 Cobrar</h4>${D.cob.map(x=>`<div class="vi"><span style="flex:1">${esc(x.c.razon_social)}</span><span>${x.ct?'contado '+$m(x.ct):''}${x.ct&&x.v?' · ':''}${x.v?'<span class="mora">vencido '+$m(x.v)+'</span>':''}</span></div>`).join('')}<p><small>Total a cobrar: <b>${$m(D.cob.reduce((a,x)=>a+x.ct+x.v,0))}</b></small></p>`:''}
+    ${D.chR.length?`<h4>🏦 Cheques para depositar</h4><p>${D.chR.length} · ${$m(D.chR.reduce((a,c)=>a+(+c.importe||0),0))}</p>`:''}
+    ${D.V.length?`<h4>⚠️ Vencimientos</h4>${D.V.map(t=>`<div>${esc(t)}</div>`).join('')}`:''}
+    ${S.vivoBg?'':'<p><small>💡 Activá los avisos en <b>Aa → 🔔 Avisos</b> y a las 21 h te llega este resumen como notificación (con el CRM abierto o instalado como app).</small></p>'}</div>`;
+  m.querySelector('#mn_x').onclick=()=>m.remove()}
+async function mananaInicio(){const box=$('#mani');if(!box||S.perfil.rol!='dueno')return;if(new Date().getHours()<16){box.innerHTML='';return}
+  const D=await datosManana(),r=txtManana(D);box.innerHTML=`<div class="box"><div class="bh"><h3 style="margin:0">🌙 Para mañana</h3><button class="alt" onclick="preparaManana()">Ver todo</button></div><p style="margin:6px 0 0">${r.length?r.map(esc).join(' · '):'Nada pendiente para mañana. 🙌'}</p></div>`}
+function programarManana(){if(S._manT)return;const ahora=new Date(),a21=new Date();a21.setHours(21,0,0,0);let k='';try{k=localStorage.getItem('manana_av')||''}catch(e){}
+  const avisar=async()=>{if(S.perfil?.rol!='dueno'||!S.vivoBg)return;const h=hoyL();try{if(localStorage.getItem('manana_av')==h)return;localStorage.setItem('manana_av',h)}catch(e){}
+    const r=txtManana(await datosManana());if(r.length)notificar('🌙 Para mañana',r.join('\n'))};
+  if(ahora>=a21){if(ahora.getHours()<23&&k!=hoyL())avisar().catch(()=>{});return}S._manT=setTimeout(()=>{S._manT=null;avisar().catch(()=>{})},a21-ahora)}
 
 /* ======================= VENTAS 8: conseguir clientes, proveedores y margen ======================= */
 const SQL_PRV='<div class="aviso">Falta correr <b>ventas-proveedores.sql</b> en Supabase (SQL Editor). Después recargá la página.</div>';
