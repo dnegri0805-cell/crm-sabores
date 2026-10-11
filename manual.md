@@ -7,13 +7,17 @@ Guía ordenada por sección para consultar o pasarle al equipo. Cada punto dice 
 - **CRM (uso interno):** https://dnegri0805-cell.github.io/crm-sabores/ — se entra con usuario y contraseña.
 - **Catálogo de cada cliente:** link personal `pedido.html?c=…` que se manda desde la ficha del cliente (botón de WhatsApp). Cada cliente ve sus precios, su cuenta y sus promos.
 - **Catálogo público (sin precios de cliente):** `pedido.html?ver=catalogo` — para redes, folletos y nuevos clientes.
-- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-10.19`). Si algo "no aparece", cerrá y abrí la pestaña.
+- **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-10.20`). Si algo "no aparece", cerrá y abrí la pestaña.
 - **En el celular:** abrí el CRM en Chrome → menú ⋮ → *Agregar a pantalla de inicio*. Queda como una app.
 - **Menú principal:** Inicio · Pedidos · Ventas · Reparto · Clientes · Cobranza · Caja · Compras · Stock · Precios · Reportes · Contable · Manual. Los números en rojo indican cosas pendientes.
 
 ## 2. Inicio
 
 Es el tablero del día. Arriba muestra el **objetivo del mes y la proyección** (si llegamos o no al ritmo actual).
+
+**📊 Resumen de hoy** (solo el dueño): vendido (y cuánto contra ayer), ganancia estimada, cobrado (por medio de pago), pedidos que falta entregar y kilos de quesos y fiambres vendidos. Con **📲 Mandármelo** te lo mandás por WhatsApp.
+
+En **⚠️ Alertas** también aparecen los **precios pactados que quedaron con poco margen** después de un aumento: **Revisar y actualizar** te propone el precio nuevo, los actualizás de una y le avisás a cada cliente por WhatsApp.
 
 Debajo aparecen tarjetas de aviso; cada una lleva a la pantalla donde se actúa:
 
@@ -40,6 +44,8 @@ Debajo aparecen tarjetas de aviso; cada una lleva a la pantalla donde se actúa:
 **Pedidos online:** los que hace el cliente desde su catálogo entran en *Por aprobar*. Revisalos y aprobalos.
 
 **Estados:** A preparación → Marcar listo → Salió a reparto → Entregado. El cliente ve el seguimiento en su cuenta.
+
+**🧺 Hoja de armado** (botón al lado de *Últimos pedidos*, y también en Reparto): todo lo que hay que preparar sumado por producto, agrupado por familia, con los kilos de quesos y fiambres, en qué pedidos va cada cosa y aviso si falta stock. Tildás lo que vas juntando (o escaneás el código), la imprimís (con una hoja por pedido) y pasás todos a *En preparación* con un botón.
 
 **En cada pedido** aparecen avisos útiles: ganancia, si el cliente tiene deuda, si **se olvidó** algo que suele comprar y cuánto le falta para el descuento por monto o el envío gratis. Con **💬 ¿Te agrego…?** le mandás el mensaje para completar el pedido antes de prepararlo.
 
@@ -157,6 +163,7 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 - **💼 Rentabilidad por cliente:** cuánto te deja cada cliente después de reparto, devoluciones y mora, con qué hacer con los que no rinden.
 - **🧪 Simulador de aumento:** elegís marca o familia y %: ganancia extra, cuánto volumen podés perder sin salir perdiendo, dónde quedarías más caro que la competencia y a qué clientes cuidar.
 - **📊 Resumen semanal:** cómo fue la semana contra la anterior.
+- **🧀 Rentabilidad quesos y fiambres:** kilos vendidos, venta, ganancia y **ganancia por kilo** de cada uno (con el peso real), y cuáles conviene **🚀 empujar** o **⚠️ revisar el precio**.
 - **🏭 Metas y reintegros:** objetivos por proveedor/marca y reintegros que te deben.
 - **🕐 Cuándo piden:** días y horarios en que entran los pedidos (para saber cuándo mandar mensajes).
 - **🅰️ ABC:** qué productos y clientes hacen la mayor parte de la venta.
@@ -183,13 +190,16 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 ## 9. Reparto, cobranza y caja
 
 - **Reparto:** pedidos listos para salir, armado del recorrido y remitos. El chofer marca *Entregado* y el cliente lo ve en su cuenta.
+- **🚚 Modo chofer** (en Reparto, con los pedidos elegidos): una parada por pantalla, en orden. Muestra cliente, dirección (**📍 Cómo llegar**), **📞 Llamar**, **📲 Estoy llegando**, lo que lleva, el total y **cuánto cobrar** (contado o saldo de la cuenta). **✅ Entregado y cobrado** registra el cobro (efectivo, transferencia, cheque) con su recibo, marca entregado y pide la foto del remito. También *Entregado sin cobrar* y *🚪 No estaba*. Al final, el resumen del reparto para mandarlo por WhatsApp.
 - **Cobranza:** quién debe y cuánto, con filtro *Con deuda vencida*. Registrás pagos (efectivo, transferencia, cheque) y se genera el **recibo**. El botón **pronto pago** aplica el descuento si paga dentro del plazo.
 - **Caja:** ingresos y egresos del día y cierre de caja.
 
 ## 10. Compras, stock, precios y reportes
 
-- **Compras:** Órdenes de compra · **Sugerencia de compra** (qué reponer según lo que se vende) · Proveedores · Facturas y pagos a proveedores.
-- **Stock:** existencias, movimientos y vencimientos.
+- **Compras:** Órdenes de compra (con botón **WhatsApp** que le manda el pedido armado al proveedor y la marca como enviada) · **Sugerencia de compra** (qué reponer según lo que se vende) · **🏷️ Mejor proveedor** · Proveedores · Facturas y pagos a proveedores.
+- **🏷️ Mejor proveedor:** el último costo de cada producto en cada proveedor (lo que compraste y las listas que importás), cuál es más barato, cuánto ahorrarías por mes y un botón para pasar el producto a ese proveedor. Requiere **operacion.sql**.
+- **Importar la lista del proveedor** (en Precios): elegí el proveedor. Si la lista trae productos que hoy le comprás a otro, **no te cambia el costo**: quedan guardados para comparar en *Mejor proveedor* (y te marca 💡 si son más baratos).
+- **Stock:** existencias, movimientos y vencimientos. Los quesos y fiambres se ven **en kilos**; con **Solo quesos y fiambres** ves cuántos kilos tenés y cuánta plata al costo. En **📋 Conteo por partes → ⚖️ Quesos y fiambres** contás con el celular escribiendo los pesos de las etiquetas (**3,5 + 3,6**) o escaneando (te pide el peso de cada pieza).
 - **Precios:** costos y listas mayorista/minorista; los cambios se reflejan al instante en los catálogos.
 - **Reportes:** ventas por cliente, por producto y por marca, por período (este mes, mes anterior, este año).
 - **Contable:** Resultados · Rentabilidad · IVA · Retenciones · Cheques · Bancos · Flujo de caja · Valor del stock · Para el contador (exportaciones).
