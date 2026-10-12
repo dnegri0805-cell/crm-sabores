@@ -111,7 +111,7 @@ body{font-family:'DM Sans',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;ba
 header{background:radial-gradient(120% 140% at 100% 0%,color-mix(in srgb,var(--m) 70%,#000) 0%,var(--m) 45%,var(--n) 100%);padding-bottom:26px;border-radius:0 0 28px 28px;position:relative;overflow:hidden}
 header::after{content:"";position:absolute;right:-60px;top:-60px;width:200px;height:200px;border-radius:50%;background:var(--sol);opacity:.16}
 header b{font-family:var(--fd);font-weight:800;font-size:22px;letter-spacing:-.01em;position:relative;z-index:1}
-header b img{height:64px;background:#fff;border-radius:16px;padding:4px 8px;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+header b img{height:86px;max-width:150px;background:none;border-radius:0;padding:0;box-shadow:none;filter:drop-shadow(0 0 1.5px rgba(255,255,255,.85)) drop-shadow(0 6px 12px rgba(0,0,0,.4))}
 header small{font-size:15px;color:#fff;opacity:.9;margin-top:8px;position:relative;z-index:1}
 header>*{max-width:688px;margin-left:auto!important;margin-right:auto!important}
 .tabs{position:relative;z-index:1;background:rgba(0,0,0,.22);padding:4px;border-radius:16px;margin-top:14px}
@@ -274,7 +274,7 @@ input,textarea{border:2px solid #ece3d6;border-radius:14px}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-12.31';
+const VERSION='2026-10-12.32';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
