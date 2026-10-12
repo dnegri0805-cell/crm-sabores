@@ -32,6 +32,13 @@ select{font:inherit;padding:9px 10px;border:1px solid var(--line);border-radius:
 .cnt{color:var(--mut);font-size:13px;font-variant-numeric:tabular-nums;width:100%}
 .grp{font-family:var(--disp);font-weight:800;font-size:clamp(22px,4.5vw,28px);color:var(--acc);margin:38px 0 0;padding-bottom:6px;border-bottom:2px solid var(--acc);display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
 .grp small{font-family:var(--body);font-weight:600;font-size:13px;color:var(--mut)}
+details.rb>summary{list-style:none;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none}
+details.rb>summary::-webkit-details-marker{display:none}
+details.rb>summary .gt{display:flex;align-items:center;gap:10px}
+details.rb>summary .gt::before{content:"";width:10px;height:10px;flex:none;border-right:3px solid currentColor;border-bottom:3px solid currentColor;transform:rotate(-45deg);transition:transform .15s}
+details.rb[open]>summary .gt::before{transform:rotate(45deg) translate(-2px,-2px)}
+details.rb>summary:hover{opacity:.85}
+details.rb>.cont{padding-bottom:6px}
 h2{font-family:var(--disp);font-weight:600;font-size:19px;margin:26px 0 10px;display:flex;gap:10px;align-items:baseline}
 h2 small{font-family:var(--body);font-weight:400;color:var(--mut);font-size:13px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
@@ -88,6 +95,7 @@ function sim(a,b){const A=new Set(tok(a)),B=new Set(tok(b));if(!A.size||!B.size)
 const cod=c=>String(c??'').trim().replace(/^0+/,'');
 const money=v=>'$ '+(+v).toLocaleString('es-AR',{minimumFractionDigits:Number.isInteger(+v)?0:2,maximumFractionDigits:2});
 let CAT=[],PROD=[],orden='r';
+const ABIERTOS=new Set(); /* rubros desplegados (arrancan todos cerrados) */
 
 async function cargar(){
   const r=await fetch('fotos/catalogo/catalogo.json',{cache:'no-cache'});
@@ -139,12 +147,18 @@ function pintar(){
   if(orden=='r'){
     $('#out').innerHTML=GR.map(([g,gn])=>{const G=L.filter(x=>x.g==g);if(!G.length)return'';
       const fs=[...new Set(G.map(x=>x.f))].sort((a,b)=>(FO[a]??999)-(FO[b]??999)||a.localeCompare(b,'es'));
-      return `<div class="grp" id="${slug(g)}">${gn}<small>${G.length} ${G.length==1?'producto':'productos'}</small></div>`+fs.map(f=>{const xs=G.filter(x=>x.f==f).sort(cmp);
-        return `<h2>${esc(f)}<small>${xs.length}</small></h2><div class="grid">${xs.map(card).join('')}</div>`}).join('')}).join('');
+      const ab=q.length||fm||ABIERTOS.has(g); /* con búsqueda o familia elegida se abren solos */
+      return `<details class="rb" data-g="${esc(g)}" id="${slug(g)}"${ab?' open':''}><summary class="grp"><span class="gt">${gn}</span><small>${G.length} ${G.length==1?'producto':'productos'}</small></summary><div class="cont">`+fs.map(f=>{const xs=G.filter(x=>x.f==f).sort(cmp);
+        return `<h2>${esc(f)}<small>${xs.length}</small></h2><div class="grid">${xs.map(card).join('')}</div>`}).join('')+'</div></details>'}).join('');
+    document.querySelectorAll('#out details.rb').forEach(d=>d.ontoggle=()=>{if(q.length||fm)return;d.open?ABIERTOS.add(d.dataset.g):ABIERTOS.delete(d.dataset.g)});
   }else{L=L.slice().sort(orden=='c'?cmp:(a,b)=>a.d.localeCompare(b.d,'es'));$('#out').innerHTML=`<div class="grid" style="margin-top:14px">${L.map(card).join('')}</div>`}
 }
 $('#fam').innerHTML+=FAMS.map(([g,fs])=>`<optgroup label="${GR.find(x=>x[0]==g)[1]}">${fs.map(f=>`<option>${esc(f)}</option>`).join('')}</optgroup>`).join('');
 $('#nav').innerHTML=GR.filter(([g])=>g!='Otros').map(([g,gn])=>`<a href="#${slug(g)}">${gn}</a>`).join('');
+/* tocar un rubro arriba lo despliega y lleva hasta él */
+$('#nav').onclick=e=>{const a=e.target.closest('a');if(!a)return;e.preventDefault();
+  const d=document.getElementById(a.getAttribute('href').slice(1));if(!d)return;
+  if(!d.open){d.open=true;ABIERTOS.add(d.dataset.g)}d.scrollIntoView({behavior:'smooth',block:'start'})};
 for(const[id,v]of[['o_r','r'],['o_c','c'],['o_d','d']])$('#'+id).onclick=()=>{orden=v;document.querySelectorAll('.seg button').forEach(b=>b.setAttribute('aria-pressed',b.id==id));pintar()};
 $('#q').oninput=pintar;$('#fam').onchange=pintar;$('#solo').onchange=pintar;
 $('#lista').onchange=()=>{try{localStorage.setItem('cat_lista',$('#lista').value)}catch(e){}pintar()};
