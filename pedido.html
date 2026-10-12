@@ -125,6 +125,16 @@ input,textarea{border:2px solid #ece3d6;border-radius:14px}
 .cat i{width:62px;height:62px;overflow:hidden;box-shadow:var(--sombra);font-family:var(--fd);font-size:24px}
 .cat i:has(img){background:#fff!important}.cat i img{width:100%;height:100%;object-fit:cover;transform:scale(1.3)}
 .cat.on i{outline:3px solid var(--sol);outline-offset:3px}.cat.on span{color:var(--m)}
+.rubs{display:flex;gap:6px;overflow-x:auto;padding:12px 0 4px;scrollbar-width:none}.rubs::-webkit-scrollbar{display:none}
+.rub{flex:none;width:84px;display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:0;padding:2px;color:var(--t);font-weight:700;font-size:12.5px;cursor:pointer}
+.rub i{width:62px;height:62px;border-radius:20px;display:grid;place-items:center;font-style:normal;font-size:32px;background:#fff;box-shadow:var(--sombra);transition:transform .12s}
+.ico0{font-size:64px;line-height:1;filter:saturate(1.1)}
+.rub span{line-height:1.15;text-align:center}.rub.on i{background:var(--m);outline:3px solid var(--sol);outline-offset:2px;transform:scale(1.05)}.rub.on span{color:var(--m)}
+.rub:first-child i{color:var(--m);font-size:28px}.rub.on:first-child i{color:#fff}
+.fchips{display:flex;gap:8px;overflow-x:auto;padding:10px 0 4px;scrollbar-width:none}.fchips::-webkit-scrollbar{display:none}
+.fch{flex:none;display:flex;align-items:center;gap:6px;border:2px solid transparent;background:#fff;color:var(--t);border-radius:999px;padding:6px 14px 6px 6px;font-weight:600;font-size:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);white-space:nowrap;cursor:pointer;min-height:44px}
+.fch:first-child{padding-left:14px}.fch img{width:32px;height:32px;border-radius:50%;object-fit:cover}.fch b{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--crema);font-size:18px;font-weight:400}
+.fch.on{background:var(--m);color:#fff;border-color:var(--m)}.fch.on b{background:rgba(255,255,255,.2)}
 .rep{border:0;background:var(--sol2);color:#6b4a00;font-weight:700;border-radius:14px;padding:13px;display:flex;align-items:center;justify-content:center;gap:8px}
 .rep::before{content:"↻";font-size:18px}
 .sec-t{margin:26px 2px 12px;align-items:center}
@@ -501,12 +511,21 @@ function instHTML(){if(PUB||!token)return '';let no=false;try{no=localStorage.ge
   if(no||matchMedia('(display-mode: standalone)').matches||navigator.standalone)return '';const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
   return `<div class="inst" id="inst" ${instEv||ios?'':'hidden'}><img src="icon-192.png" alt=""><div><b>Tené tu catálogo como app</b><br><small>${ios?'Tocá Compartir ⬆️ y "Agregar a inicio"':'Queda el ícono en tu celular para pedir en un toque'}</small></div>${ios?'':'<button id="instb">Instalar</button>'}<a id="instx" aria-label="Cerrar">✕</a></div>`}
 const btnAv=p=>(C.avisos||[]).includes(p.id)?'<button class="av ok" disabled>✓ Te avisamos cuando llegue</button>':`<button class="av" data-av="${p.id}">🔔 Avisame cuando llegue</button>`;
-let hayFotos=false,fam='',vista=(()=>{try{return localStorage.getItem('vista_cat')||'grilla'}catch(e){return 'grilla'}})();
+let hayFotos=false,fam='',rub='',vista=(()=>{try{return localStorage.getItem('vista_cat')||'grilla'}catch(e){return 'grilla'}})();
 const cap=t=>{if(typeof FAM_ORDEN!='undefined'&&FAM_ORDEN[String(t||'').toUpperCase()]!=null)return String(t);t=String(t||'').toLowerCase();return t.charAt(0).toUpperCase()+t.slice(1)};
 const famDe=p=>(p.f||'').trim()||'Otros';
 async function completarFotos(L){try{if(typeof catalogoFotos!='function')return;await catalogoFotos();for(const p of L)if(!p.img){const k=catPorCodigo(p.c,p.d);if(k)p.img=k.img}}catch(e){}}
 function familias(){const c={};for(const p of P){const f=famDe(p);c[f]=(c[f]||0)+1}return Object.keys(c).sort(famCmp)}
 const PAL=['#7b2d3e','#1f5fa8','#2e7d4f','#c4571a','#6b3fa0','#0f766e','#b45309','#be185d','#334155','#4d7c0f'];
+/* Rubros (grupos de familias) e íconos para las familias que no tienen foto */
+const rubDe=p=>(typeof famGrupo=='function'&&famGrupo(famDe(p)))||'Otros';
+const RUB_ICO={'Fiambres':'🥓','Quesos':'🧀','Lácteos':'🥛','Almacén':'🛒','Dulces':'🍯','Heladería y panadería':'🍦','Congelados':'❄️','Higiene personal':'🧴','Otros':'📦'};
+const FAM_ICO=[[/jamon crudo/,'🥩'],[/jamon|pata|paleta|emparedado/,'🍖'],[/bondiola|lomo/,'🥩'],[/panceta|pastron/,'🥓'],[/mortadela|leverwurst|salchich/,'🌭'],[/salam/,'🍕'],[/feteado/,'🥪'],
+ [/mozzarella/,'🍕'],[/rallado/,'🧀'],[/untable|crema/,'🧈'],[/queso|provoleta|cheddar/,'🧀'],[/manteca/,'🧈'],[/leche(s)?$/,'🥛'],[/yogur/,'🥄'],[/postre|flan|gelatina/,'🍮'],[/dulce de leche/,'🍯'],
+ [/mani/,'🥜'],[/snack/,'🍿'],[/semilla/,'🌻'],[/tostada|galleta|cracker/,'🍪'],[/pescado/,'🐟'],[/pate|picadillo/,'🥫'],[/conservas de fruta/,'🍑'],[/tomate/,'🍅'],[/verdura|legumbre/,'🫘'],[/aceite|grasa/,'🫒'],[/vinagre|limon/,'🍋'],[/mayonesa|aderezo/,'🥫'],[/arroz/,'🍚'],[/harina|polenta/,'🌾'],[/^sal$/,'🧂'],[/especia|condimento/,'🌶️'],[/yerba/,'🧉'],[/cafe|cacao/,'☕'],
+ [/mermelada/,'🍓'],[/batata|membrillo/,'🍠'],[/reposteria|miel/,'🍰'],[/cobertura|chocolate/,'🍫'],[/chips|crocante|decoracion/,'🍬'],[/frutos secos/,'🌰'],[/sembrar/,'🍓'],[/variegato|pasta/,'🍯'],[/salsas para helado/,'🍨'],[/insumo/,'🧪'],[/cucurucho|capelina/,'🍦'],[/descartable|envase/,'🥤'],[/congelado/,'❄️'],[/higiene/,'🧴']];
+const famIco=f=>{const n=norm(f);const r=FAM_ICO.find(([re])=>re.test(n));return r?r[1]:(RUB_ICO[(typeof famGrupo=='function'&&famGrupo(f))||'']||'📦')};
+function rubros(){const c={};for(const p of P){const r=rubDe(p);c[r]=(c[r]||0)+1}const ord=[...(typeof FAMILIAS!='undefined'?FAMILIAS.map(x=>x[0]):[]),'Otros'];return ord.filter(r=>c[r]).map(r=>[r,c[r]])}
 const colorDe=t=>{let h=0;for(const ch of String(t||''))h=(h*31+ch.charCodeAt(0))>>>0;return PAL[h%PAL.length]};
 function irTab(t){$$('[data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab==t));try{history.replaceState(null,'',t=='cuenta'?'#cuenta':location.pathname+location.search)}catch(e){}
   if(t=='cuenta'){$('#bar').hidden=true;miCuenta()}else pintar();window.scrollTo(0,0)}
@@ -626,7 +645,10 @@ async function presupuesto(){document.title='Presupuesto · Sabores de mi País'
 function pintar(){
   const marcas=[...new Set(P.map(p=>p.m).filter(Boolean))].sort(),fams=familias();
   $('#m').innerHTML=`<div class="busca"><div class="vbar"><input id="q" type="search" placeholder="Buscar producto (ej.: maní 85, crocante pizza)" value="${esc(filtro)}" autocomplete="off" aria-label="Buscar producto"><button class="vbtn" id="scb" aria-label="Escanear código de barras" title="Escanear el código de un producto">📷</button><button class="vbtn" id="vt" aria-label="${vista=='grilla'?'Ver como lista':'Ver con fotos'}" title="${vista=='grilla'?'Ver como lista':'Ver con fotos'}">${vista=='grilla'?'☰':'▦'}</button></div>
-    <div class="sgq" id="sgq" hidden></div>${fams.length>1?`<div class="cats"><button class="cat ${fam?'':'on'}" data-fm=""><i style="background:var(--m)">★</i><span>Todo</span></button>${fams.map(f=>{const ph=P.find(p=>famDe(p)==f&&p.img);return `<button class="cat ${fam==f?'on':''}" data-fm="${esc(f)}"><i style="background:${colorDe(f)}">${ph?`<img src="${esc(ph.img)}" alt="" loading="lazy">`:esc(f[0]||'?')}</i><span>${esc(cap(f))}</span></button>`}).join('')}</div>`:''}
+    <div class="sgq" id="sgq" hidden></div>${(()=>{const R=rubros();if(R.length<2)return fams.length>1?`<div class="fchips"><button class="fch ${fam?'':'on'}" data-fm="">Todo</button>${fams.map(f=>`<button class="fch ${fam==f?'on':''}" data-fm="${esc(f)}">${famIco(f)} ${esc(cap(f))}</button>`).join('')}</div>`:'';
+      const FR=rub?fams.filter(f=>((typeof famGrupo=='function'&&famGrupo(f))||'Otros')==rub):[];
+      return `<div class="rubs" role="group" aria-label="Rubros"><button class="rub ${rub?'':'on'}" data-rb=""><i>★</i><span>Todo</span></button>${R.map(([r,n])=>`<button class="rub ${rub==r?'on':''}" data-rb="${esc(r)}"><i>${RUB_ICO[r]||'📦'}</i><span>${esc(r=='Otros'?'Otros productos':r)}</span></button>`).join('')}</div>`+
+        (FR.length>1?`<div class="fchips" role="group" aria-label="Familias"><button class="fch ${fam?'':'on'}" data-fm="">Todo ${esc(rub.toLowerCase())}</button>${FR.map(f=>{const ph=P.find(p=>famDe(p)==f&&p.img);return `<button class="fch ${fam==f?'on':''}" data-fm="${esc(f)}">${ph?`<img src="${esc(ph.img)}" alt="" loading="lazy">`:`<b aria-hidden="true">${famIco(f)}</b>`}${esc(cap(f))}</button>`}).join('')}</div>`:'')})()}
     ${marcas.length>1?`<select class="msel" id="mk" aria-label="Marca"><option value="">Todas las marcas</option>${marcas.map(m=>`<option ${marca==m?'selected':''}>${esc(m)}</option>`).join('')}</select>`:''}</div>
     ${instHTML()}${morosoHTML()}${micomboHTML()}${premioHTML()}${ligaHTML()}${acuerdoHTML()}${nivelHTML()}${entregaHTML()}${creditoHTML()}
     ${C.aumento&&C.aumento.fecha?`<div class="aum">⚠️ <b>${esc(C.aumento.texto||'Aumentan los precios')}</b> a partir del ${new Date(C.aumento.fecha+'T12:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'numeric'})}. ¡Comprá antes con los precios de hoy!<br><small data-ca="${esc(C.aumento.fecha)}">…</small></div>`:''}
@@ -642,7 +664,8 @@ function pintar(){
   $('#q').oninput=e=>{filtro=e.target.value;lim=60;lista();sugQ()};$('#q').onfocus=sugQ;
   $('#q').onblur=()=>setTimeout(()=>{const d=$('#sgq');if(d)d.hidden=true;recGuardar(filtro)},200);$('#q').onkeydown=e=>{if(e.key=='Enter'){recGuardar(filtro);e.target.blur()}};
   $('#mk')&&($('#mk').onchange=e=>{marca=e.target.value;lim=60;lista()});
-  $$('[data-fm]').forEach(b=>b.onclick=()=>{fam=b.dataset.fm;if(fam)regVista(fam);lim=60;$$('[data-fm]').forEach(x=>x.classList.toggle('on',x.dataset.fm==fam));lista();window.scrollTo({top:0,behavior:'smooth'})});
+  $$('[data-fm]').forEach(b=>b.onclick=()=>{fam=b.dataset.fm;if(fam)regVista(fam);lim=60;$$('[data-fm]').forEach(x=>x.classList.toggle('on',x.dataset.fm==fam));lista()});
+  $$('[data-rb]').forEach(b=>b.onclick=()=>{rub=b.dataset.rb;fam='';lim=60;pintar();const e=document.querySelector('.rubs');if(e)window.scrollTo({top:Math.max(0,e.getBoundingClientRect().top+window.scrollY-8),behavior:'smooth'})});
   $('#vt').onclick=()=>{vista=vista=='grilla'?'lista':'grilla';try{localStorage.setItem('vista_cat',vista)}catch(e){}pintar()};
   $('#rep')&&($('#rep').onclick=()=>{let n=0;for(const u of C.ultimo){if(prod(u.id)){car[u.id]=(car[u.id]||0)+Math.max(1,Math.round(u.q));n++}}guardar();lista();barra();toast(n?n+' productos agregados de tu último pedido.':'Esos productos ya no están disponibles.')});
   $('#instb')&&($('#instb').onclick=async()=>{if(!instEv)return;instEv.prompt();try{await instEv.userChoice}catch(e){}instEv=null;$('#inst')?.remove()});
@@ -651,18 +674,19 @@ function pintar(){
   $('#alta')&&($('#alta').onclick=altaCliente);$('#rap')&&($('#rap').onclick=()=>{rapido=true;lista();window.scrollTo({top:0,behavior:'smooth'})});$('#scb').onclick=escanearCat;$('#sgp')&&($('#sgp').onclick=()=>sugerirProducto(''));
   $('#arm')&&($('#arm').onclick=armarPorMonto);
   $('#sgb')&&($('#sgb').onclick=()=>{const n=cargarSugerido(false);lista();barra();toast(n?n+' productos agregados. Revisá las cantidades.':'Esos productos ya no están disponibles.')});
+  {const o=document.querySelector('.rub.on');if(o&&rub)o.scrollIntoView({inline:'center',block:'nearest'})}
   lista();barra();
 }
 function lista(){
   if(rapido&&!PUB)return listaRapida();
   const ws=norm(filtro).split(/\s+/).filter(Boolean);
-  const base=P.filter(p=>(!marca||p.m==marca)&&(!fam||famDe(p)==fam));
+  const base=P.filter(p=>(!marca||p.m==marca)&&(!fam||famDe(p)==fam)&&(!rub||rubDe(p)==rub));
   let L=base.filter(p=>ws.every(w=>norm(p.d+' '+(p.m||'')+' '+(p.f||'')+' '+p.c).includes(w))),parec=false;
   if(ws.length&&L.length<5){const fw=ws.map(fon).filter(Boolean),ya=new Set(L),F=fw.length?base.filter(p=>!ya.has(p)&&fw.every(w=>palabraOk(w,fx(p)))):[];if(F.length){parec=!L.length;L=L.concat(F)}}
   if(ws.length&&!L.length&&filtro.trim().length>=3)anotarBusqueda(filtro);
   if(vista=='grilla'){grilla(L,ws);return parecHint(parec)}
   const V=L.slice(0,lim);
-  $('#l').innerHTML=V.map(p=>{const q=car[p.id]||0;return `<div class="p ${q?'sel':''}"><div class="d">${p.img?`<img class="ft" src="${esc(p.img)}" alt="" loading="lazy" data-z="${p.id}">`:(hayFotos?`<span class="ft0" aria-hidden="true">${esc((p.d||'?')[0])}</span>`:'')}<div class="tx"><b>${token&&!PUB?`<button class="fv ${esFav(p.id)?'on':''}" data-fv="${p.id}" aria-label="Favorito">★</button>`:''}${esc(p.d)}</b><small>${p.m?`<span class="marca">${esc(p.m)}</span>`:''}${p.b>1?`<span class="bulto">${esc(p.tb)} × ${p.b}</span>`:''}${esc(p.c)}</small></div></div><div class="pr">${(()=>{const r=promoP(p,q),rc=r?null:promoP(p,q,true);return (r?`<s>${$m(p.p)}</s> ${$m(puP(p,q))}`:$m(p.p))+(p.b>1?`<small>${esc(p.tb)}: ${$m((rc&&rc.mt=='bulto'?Math.round(p.p*(1-rc.pct/100)*100)/100:puP(p,q))*p.b)}</small>`:'')+(r?`<span class="promo">−${nf(r.pct)} %</span>`:rc?`<span class="promo cerca">−${nf(rc.pct)} % ${esc(condP(rc,p))}</span>`:'')})()}</div>
+  $('#l').innerHTML=V.map(p=>{const q=car[p.id]||0;return `<div class="p ${q?'sel':''}"><div class="d">${p.img?`<img class="ft" src="${esc(p.img)}" alt="" loading="lazy" data-z="${p.id}">`:(hayFotos?`<span class="ft0" aria-hidden="true">${famIco(famDe(p))}</span>`:'')}<div class="tx"><b>${token&&!PUB?`<button class="fv ${esFav(p.id)?'on':''}" data-fv="${p.id}" aria-label="Favorito">★</button>`:''}${esc(p.d)}</b><small>${p.m?`<span class="marca">${esc(p.m)}</span>`:''}${p.b>1?`<span class="bulto">${esc(p.tb)} × ${p.b}</span>`:''}${esc(p.c)}</small></div></div><div class="pr">${(()=>{const r=promoP(p,q),rc=r?null:promoP(p,q,true);return (r?`<s>${$m(p.p)}</s> ${$m(puP(p,q))}`:$m(p.p))+(p.b>1?`<small>${esc(p.tb)}: ${$m((rc&&rc.mt=='bulto'?Math.round(p.p*(1-rc.pct/100)*100)/100:puP(p,q))*p.b)}</small>`:'')+(r?`<span class="promo">−${nf(r.pct)} %</span>`:rc?`<span class="promo cerca">−${nf(rc.pct)} % ${esc(condP(rc,p))}</span>`:'')})()}</div>
     <div class="q">${p.ss&&!q?'<small class="eq">Sin stock por ahora</small>'+btnAv(p):''}${p.ss&&!q?'':`${q&&enB(p,q)?`<small class="eq">= ${enB(p,q)}</small>`:''}${q?`<button data-r="${p.id}" aria-label="Restar">−</button><input type="number" inputmode="numeric" min="0" value="${q}" data-i="${p.id}" aria-label="Cantidad"><button data-s="${p.id}" aria-label="Sumar">+</button>`:`<button class="add${p.b>1?' sec2':''}" data-s="${p.id}">Agregar 1</button>`}${p.b>1?`<button class="add" data-bb="${p.id}">+ ${esc(p.tb)} (${p.b})</button>`:''}`}</div></div>`}).join('')+
     (L.length>V.length?`<button class="sec" id="mas" style="width:100%">Ver más productos (${L.length-V.length})</button>`:'')+
     (L.length?'':'<p class="mas">No encontramos productos con esa búsqueda.</p><button class="sec rep" data-sug="1">🗳️ ¿No lo tenemos? Pedinos que lo traigamos</button>')+(hayFotos&&L.length<=V.length?'<p class="mas" style="font-size:11px">Algunas fotos: Open Food Facts (CC BY-SA)</p>':'');
@@ -880,7 +904,7 @@ function altDe(p){const f=famDe(p),pr=+p.p||0;let best=null,bs=-1;for(const x of
 function altHTML(p){const a=altDe(p);return a?`<div class="alt">No hay ahora. ¿Te sirve <b>${esc(a.d)}</b> a ${$m(puP(a,1))}? <button data-alt="${a.id}">Agregar</button></div>`:''}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-alt]');if(!b)return;e.stopPropagation();cambiar(b.dataset.alt,1);toast('Agregado: '+(prod(b.dataset.alt)?.d||''))},true);
 function tarjeta(p){const q=car[p.id]||0,r=promoP(p,q),rc=r?null:promoP(p,q,true),pu=puP(p,q);
-  return `<div class="card ${q?'sel':''}" style="--fc:${colorDe(famDe(p))}">${p.img?`<div class="ph" data-z="${p.id}"><img src="${esc(p.img)}" alt="" loading="lazy">${FVB(p)}</div>`:`<div class="ph ini" ${p.combo?'':`data-fi="${p.id}"`} style="background:${colorDe(p.m||famDe(p))}1a;color:${colorDe(p.m||famDe(p))}">${esc((p.d||'?')[0])}${FVB(p)}</div>`}
+  return `<div class="card ${q?'sel':''}" style="--fc:${colorDe(famDe(p))}">${p.img?`<div class="ph" data-z="${p.id}"><img src="${esc(p.img)}" alt="" loading="lazy">${FVB(p)}</div>`:`<div class="ph ini" ${p.combo?'':`data-fi="${p.id}"`} style="background:${colorDe(p.m||famDe(p))}1a;color:${colorDe(p.m||famDe(p))}"><span class="ico0" aria-hidden="true">${p.combo?'🎁':famIco(famDe(p))}</span>${FVB(p)}</div>`}
     ${p.ss?'<span class="rib ss">Sin stock</span>':p.pac?'<span class="rib pac">Tu precio</span>':r&&!/^🛒/.test(r.n||'')?`<span class="rib ${/^⚡/.test(r.n||'')?'rl':''}">${r.bon?esc(String(r.n).replace('Bonificación ','')):(/^⚡/.test(r.n||'')?'⚡ ':'')+'−'+nf(r.pct)+' %'}</span>`:rc?`<span class="rib cerca">${rc.bon?esc(String(rc.n).replace('Bonificación ','')):'−'+nf(rc.pct)+' %'}</span>`:''}
     ${p.combo?`<span class="rib">−${nf(p.pct)} %</span>`:''}${EST.cupos&&EST.cupos[(r||rc||{}).n]!=null?'<span class="nuevo ult">🔥 QUEDAN '+EST.cupos[(r||rc||{}).n]+'</span>':/^Últimas/.test((r||rc||{}).n||'')?'<span class="nuevo ult">ÚLTIMAS UNIDADES</span>':etiquetaHTML(p)}
     <div class="cn" ${p.combo?'':`data-fi="${p.id}"`}>${p.combo?'🎁 ':''}${esc(p.d)}</div>${p.ss&&!q?altHTML(p):''}${pesoHTML(p,pu)}${socialHTML(p)}${avisoHTML(p,r||rc)}<div class="cm">${p.combo?'':esc(p.m||'')}${p.b>1?' · '+esc(p.tb)+' × '+p.b:''}</div>${p.sb?`<div class="sbt">📦 Solo por ${esc(String(p.tb||'caja').toLowerCase())} cerrada</div>`:''}${p.combo&&p.nuevo?'<div class="kitn">🎁 Solo para tu primer pedido</div>':''}${p.combo?`<div class="cdet">${esc(p.det)}</div>`:''}
@@ -894,9 +918,9 @@ function bannerDatos(){if(BAN&&BAN.on===false)return null;if(BAN&&(BAN.t||BAN.im
   if(P.some(p=>/crocante/i.test(p.d)))return{tag:'Nuevo',t:'Crocantes JL',s:'Maní japonés horneado. Pizza, queso y jamón.',img:'fotos/jl/mix-crocante-65.webp',bg:'#c98a00',q:'crocante'};return null}
 function bannerHTML(){const b=bannerDatos();if(!b)return '';const bg=/^#[0-9a-f]{6}$/i.test(b.bg||'')?b.bg:'#e0322b';
   return `<div class="ban" style="--bb:${bg}"><div class="bt">${b.tag?`<span class="bk">${esc(b.tag)}</span>`:''}${b.t?`<h3>${esc(b.t)}</h3>`:''}${b.s?`<p>${esc(b.s)}</p>`:''}${b.q?`<button id="banb">${esc(b.btn||'Ver productos')} →</button>`:''}</div>${b.img?`<img src="${esc(String(b.img).replace(/^fotos\/jl\/(?!sf\/)/,'fotos/jl/sf/'))}" alt="">`:''}</div>`}
-function bannerAcc(){const x=$('#banb');if(x)x.onclick=()=>{filtro=bannerDatos()?.q||'';fam='';lim=60;pintar();window.scrollTo({top:0,behavior:'smooth'})}}
+function bannerAcc(){const x=$('#banb');if(x)x.onclick=()=>{filtro=bannerDatos()?.q||'';fam='';rub='';lim=60;pintar();window.scrollTo({top:0,behavior:'smooth'})}}
 function grilla(L,ws){const busca=ws.length||marca;let html='',n=0;
-  if(!busca&&!fam){const RL=(C.relampago||[]).map(x=>({...x,p:P.find(p=>p.id==x.id)})).filter(x=>x.p);
+  if(!busca&&!fam&&!rub){const RL=(C.relampago||[]).map(x=>({...x,p:P.find(p=>p.id==x.id)})).filter(x=>x.p);
     if(RL.length){const h=RL.map(x=>x.hasta).sort()[0];html+=`<div class="rel"><div class="sec-t"><h2>⚡ Oferta relámpago</h2><small data-cd="${esc(h)}">…</small></div><div class="ofertas">${RL.map(x=>tarjeta(x.p)).join('')}</div></div>`}
     html+=preventasHTML()+siempreHTML();
     const FV=(C.favs||[]).map(id=>P.find(p=>p.id==id)).filter(Boolean);
@@ -913,7 +937,7 @@ function grilla(L,ws){const busca=ws.length||marca;let html='',n=0;
     html+=`<div class="sec-t" style="--fc:${colorDe(f)}"><h2>${esc(cap(f))}</h2><small>${X.length} ${X.length==1?'producto':'productos'}</small></div><div class="grid">${V.map(tarjeta).join('')}</div>`;
     if(V.length<X.length)html+=`<button class="sec" data-mas2="1" style="width:100%;margin-top:8px">Ver más de ${esc(cap(f))} (${X.length-V.length})</button>`}
   if(!L.length)html+=`<p class="mas">No encontramos productos con esa búsqueda.</p><button class="sec rep" data-sug="1">🗳️ ¿No lo tenemos? Pedinos que lo traigamos</button>`;
-  else if(!busca&&!fam)html+='<button class="sec rep" data-sug="1" style="margin-top:18px">🗳️ ¿Qué producto querés que traigamos?</button>';
+  else if(!busca&&!fam&&!rub)html+='<button class="sec rep" data-sug="1" style="margin-top:18px">🗳️ ¿Qué producto querés que traigamos?</button>';
   if(hayFotos)html+='<p class="mas" style="font-size:11px">Algunas fotos: Open Food Facts (CC BY-SA)</p>';
   $('#l').innerHTML=html;bannerAcc();
   $$('#l [data-z]').forEach(i=>i.onclick=()=>ficha(i.dataset.z));
@@ -942,7 +966,7 @@ function revisar(){
       ${I.map(([id,q])=>{const p=prod(id);return `<div class="it"><div>${esc(p.d)}<br><small>${$m(puP(p,q))} ${esKgP(id)?'el kg · '+nf(q)+' kg':'c/u'}${promoP(p,q)?' (−'+nf(promoP(p,q).pct)+' %)':''}${enB(p,q)?' · '+nf(q)+' u. = '+enB(p,q):''}</small></div><div class="n">${$m(puP(p,q)*q)}</div>
         <div class="q"><button data-r="${id}" aria-label="Restar">−</button><input type="number" inputmode="numeric" min="0" value="${q}" data-i="${id}" aria-label="Cantidad"><button data-s="${id}" aria-label="Sumar">+</button><button class="x" data-x="${id}">Quitar</button></div></div>`}).join('')}
       ${(()=>{const O=olvidados();return O.length?`<div class="agt olv"><h3>🤔 ¿Te olvidaste de algo? <small style="color:var(--mu);font-weight:400">· lo que siempre llevás</small></h3><div class="agl">${O.map(x=>`<div class="sc">${x.p.img?`<img src="${esc(x.p.img)}" alt="" loading="lazy">`:`<span class="i0">${esc((x.p.d||'?')[0])}</span>`}<span>${esc(x.p.d)}</span><b>${$m(puP(x.p,x.q))}${esKgP(x.p.id)?'<small> /kg</small>':''}</b><button data-olv="${x.p.id}" data-n="${x.q}">+ ${nf(x.q)}${esKgP(x.p.id)?' kg':''}</button></div>`).join('')}</div></div>`:''})()}
-      ${(()=>{const OI=new Set(olvidados().map(x=>String(x.p.id))),S=sugeridos().filter(p=>!OI.has(String(p.id)));return S.length?`<div class="agt"><h3>👉 Agregá también <small style="color:var(--mu);font-weight:400">· lo que otros llevan junto</small></h3><div class="agl">${S.map(p=>`<div class="sc">${p.img?`<img src="${esc(p.img)}" alt="" loading="lazy">`:`<span class="i0">${esc((p.d||'?')[0])}</span>`}<span>${esc(p.d)}</span><b>${$m(puP(p,1))}</b><button data-ag="${p.id}">+ Agregar</button></div>`).join('')}</div></div>`:''})()}
+      ${(()=>{const OI=new Set(olvidados().map(x=>String(x.p.id))),S=sugeridos().filter(p=>!OI.has(String(p.id)));return S.length?`<div class="agt"><h3>👉 Agregá también <small style="color:var(--mu);font-weight:400">· lo que otros llevan junto</small></h3><div class="agl">${S.map(p=>`<div class="sc">${p.img?`<img src="${esc(p.img)}" alt="" loading="lazy">`:`<span class="i0">${famIco(famDe(p))}</span>`}<span>${esc(p.d)}</span><b>${$m(puP(p,1))}</b><button data-ag="${p.id}">+ Agregar</button></div>`).join('')}</div></div>`:''})()}
       ${I.some(([id])=>esPesoP(id))?'<div class="cred">⚖️ Los fiambres y quesos se cobran por el <b>peso real</b> de cada pieza: el total final puede variar un poco.</div>':''}
       ${(()=>{const k=EST.checkout;if(PUB||!k)return '';const p=prod(k.pid);if(!p||car[p.id])return '';return `<div class="conv ultm"><h3>⚡ Oferta de último momento</h3><div class="fila"><span>${esc(p.d)} a <b>${$m(puP(p,paso(p.id)))}</b> (−${nf(k.pct)} %), solo ahora</span><button data-ck="${p.id}">Sumar</button></div></div>`})()}
       ${(()=>{const T=conviene();return T.length?`<div class="conv"><h3>💡 Te conviene</h3>${T.map(x=>`<div class="fila"><span>${esc(x.p.d)}: ${x.txt}</span><button data-cv2="${x.id}" data-n="${x.need}">+${x.need}</button></div>`).join('')}</div>`:''})()}
@@ -1056,7 +1080,7 @@ function sugQ(){const d=$('#sgq'),q=$('#q');if(!d||!q)return;const t=q.value.tri
   d.onpointerdown=e=>{if(e.target.closest('button,a'))e.preventDefault()};
   d.querySelectorAll('[data-rq]').forEach(b=>b.onclick=()=>{q.value=b.dataset.rq;filtro=q.value;lim=60;lista();d.hidden=true;q.blur()});
   const rx=d.querySelector('[data-rcx]');if(rx)rx.onclick=()=>{try{localStorage.removeItem('busq_rec')}catch(e){}d.hidden=true};
-  d.querySelectorAll('[data-sf]').forEach(b=>b.onclick=()=>{filtro='';fam=b.dataset.sf;regVista(fam);lim=60;pintar();window.scrollTo({top:0,behavior:'smooth'})});
+  d.querySelectorAll('[data-sf]').forEach(b=>b.onclick=()=>{filtro='';fam=b.dataset.sf;rub=(typeof famGrupo=='function'&&famGrupo(fam))||'Otros';regVista(fam);lim=60;pintar();window.scrollTo({top:0,behavior:'smooth'})});
   d.querySelectorAll('[data-sp]').forEach(b=>b.onclick=()=>{recGuardar(t);d.hidden=true;q.blur();ficha(b.dataset.sp)})}
 /* Ficha del producto (como en las apps de delivery) */
 function combinaCon(p){const id=String(p.id),R=[],ya=new Set([id]),pop=topIds(),hab=(C?.habituales||[]).map(x=>String(x&&x.id||x));
