@@ -216,7 +216,7 @@ body{zoom:var(--z,1)}html.oscuro{filter:invert(.92) hue-rotate(180deg);backgroun
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-11.42';
+const VERSION='2026-10-12.43';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -957,7 +957,7 @@ function catalogoPDF(l,L,c,nomLista){const w=window.open('','_blank');if(!w)retu
   const card=x=>{const b=bul(x.id),r=promoCerca(x.id,l);return`<div class="cd">${r?`<span class="rb">−${nf(r.descuento_pct)} %</span>`:''}
     ${x.f?`<div class="ph"><img src="${esc(x.f)}" alt=""></div>`:`<div class="ph in" style="background:${col(x.m)}1a;color:${col(x.m)}">${esc((x.d||'?')[0])}</div>`}
     ${x.c?`<div class="cc">Cód. ${esc(x.c)}</div>`:''}<div class="nm">${esc(x.d)}</div><div class="mk">${esc(x.m=='Otros'?'':x.m)}${b?(x.m=='Otros'?'':' · ')+esc(b.t)+' × '+b.n:''}</div>
-    <div class="pr">${$m(x.p).replace(/,(\d\d)$/,'<small>,$1</small>')}</div>${b?`<div class="bu">${esc(b.t)}: ${$m(x.p*b.n)}</div>`:''}${r?`<div class="pc">${esc(condPromo(r)||r.nombre)}</div>`:''}</div>`};
+    <div class="pr">${$m(x.p).replace(/,(\d\d)$/,'<small>,$1</small>')}${esKg(x.id)?'<span class="u"> x kg</span>':ppz(x.id)?'<span class="u"> la pieza</span>':''}</div>${ppz(x.id)&&!esKg(x.id)?`<div class="bu">Pieza ≈ ${nf(ppz(x.id))} kg · ${$m(x.p/ppz(x.id))} x kg</div>`:''}${b?`<div class="bu">${esc(b.t)}: ${$m(x.p*b.n)}</div>`:''}${r?`<div class="pc">${esc(condPromo(r)||r.nombre)}</div>`:''}</div>`};
   const G={};for(const x of L)(G[x.fa]=G[x.fa]||[]).push(x);
   const F=Object.keys(G).sort(famCmp);const fNom=f=>FAM_ORDEN[String(f).toUpperCase()]!=null?f:cap(f);const nCod=v=>{const n=parseInt(String(v||'').replace(/\D/g,''),10);return isNaN(n)?Infinity:n};
   const O=L.filter(x=>promoCerca(x.id,l));
@@ -974,7 +974,7 @@ function catalogoPDF(l,L,c,nomLista){const w=window.open('','_blank');if(!w)retu
     .ph{aspect-ratio:1;border-radius:2mm;display:grid;place-items:center;overflow:hidden;background:#fff}.ph img{width:100%;height:100%;object-fit:contain}.ph.in{font-size:34px;font-weight:800}
     .rb{position:absolute;top:3.5mm;left:3.5mm;background:#b3261e;color:#fff;font-weight:800;font-size:11px;padding:1mm 2mm;border-radius:2mm}
     .nm{font-size:10.5px;font-weight:600;line-height:1.25;max-height:3.75em;overflow:hidden}.mk{font-size:8px;color:#6a7184;text-transform:uppercase;letter-spacing:.03em}
-    .pr{font-size:17px;font-weight:800;margin-top:auto}.pr small{font-size:10px}.bu{font-size:9px;color:#444}.pc{font-size:8.5px;color:#1d7a46;font-weight:700}
+    .pr{font-size:17px;font-weight:800;margin-top:auto}.pr small{font-size:10px}.pr .u{font-size:11px;font-weight:700;color:#6a7184}.bu{font-size:9px;color:#444}.pc{font-size:8.5px;color:#1d7a46;font-weight:700}
     .pie{margin-top:6mm;font-size:10px;color:#6a7184;text-align:center}.cc{font-size:8.5px;font-weight:700;color:${MARCA.c}}.gr{font-size:26px;font-weight:800;color:${MARCA.c};border-bottom:2px solid ${MARCA.c};margin:6mm 0 3mm;padding-bottom:1mm;page-break-after:avoid}
     .ayuda{font:14px system-ui;background:#f6e9ec;padding:10px;border-radius:6px;margin:10px}@media print{.ayuda{display:none}}</style></head><body>
     <p class="ayuda">Para guardarlo en PDF elegí <b>Guardar como PDF</b>. En "Más opciones" activá <b>Gráficos de fondo</b> para que salgan los colores.${conFoto<L.length?' '+(L.length-conFoto)+' productos todavía no tienen foto: salen con su inicial.':''}</p>
