@@ -38,6 +38,7 @@ h2 small{font-family:var(--body);font-weight:400;color:var(--mut);font-size:13px
 .it{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px;display:grid;grid-template-rows:auto auto 1fr auto;gap:6px;min-width:0}
 .ph{background:#fff;border-radius:6px;aspect-ratio:1;max-width:100%;overflow:hidden}
 .ph img{width:100%;height:100%;object-fit:contain;display:block}
+.ph.sin{display:grid;place-items:center;background:var(--accs);color:var(--acc);font-family:var(--disp);font-weight:800;font-size:clamp(28px,8vw,44px)}
 .cod{font-variant-numeric:tabular-nums;font-weight:700;color:var(--acc);font-size:12px;background:var(--accs);justify-self:start;padding:1px 7px;border-radius:4px}
 .cod.no{color:var(--mut);background:transparent;border:1px dashed var(--line)}
 .d{font-size:14px;line-height:1.3;overflow-wrap:anywhere}
@@ -75,7 +76,7 @@ document.getElementById('back').onclick=e=>{e.preventDefault();
   setTimeout(()=>{if(history.length>1)history.back();else location.href='index.html'},150)};</script>
 <script>
 const sb=supabase.createClient('https://ggfqdkgqtpnkvxoykoty.supabase.co','sb_publishable_kfvkZgS8FewPabohJrKf9Q_UDyEcQiR');
-const FAMS=FAMILIAS.map(([g,fs])=>[g,fs]);const GR=FAMILIAS.map(([g])=>[g,g]);
+const FAMS=FAMILIAS.map(([g,fs])=>[g,fs]);const GR=[...FAMILIAS.map(([g])=>[g,g]),['Otros','Otros productos']];
 const F2G={},FO={};let o=0;for(const[g,fs]of FAMS)for(const f of fs){F2G[f]=g;FO[f]=o++}
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
@@ -94,16 +95,16 @@ async function cargar(){
   const{data:{session}}=await sb.auth.getSession();
   if(session){
     const[pp,pr]=await Promise.all([
-      sb.from('precios_productos').select('producto_id,codigo,descripcion,precio_mayorista,precio_minorista,precio_especial,costo'),
+      sb.from('precios_productos').select('producto_id,codigo,descripcion,familia,precio_mayorista,precio_minorista,precio_especial,costo'),
       sb.from('productos').select('*')]);
     if(pp.error){$('#aviso').innerHTML=`<div class="msg">No pude leer tus precios: ${esc(pp.error.message)}</div>`}
     const X={};for(const p of pr.data||[])X[p.id]=p;
-    PROD=(pp.data||[]).filter(p=>X[p.producto_id]?.activo!==false).map(p=>({...p,cf:X[p.producto_id]?.codigo_fabricante,pw:!!X[p.producto_id]?.por_peso}));
+    PROD=(pp.data||[]).filter(p=>X[p.producto_id]?.activo!==false).map(p=>({...p,cf:X[p.producto_id]?.codigo_fabricante,pw:!!X[p.producto_id]?.por_peso,foto:X[p.producto_id]?.foto||''}));
     $('#lista').hidden=false;
   }else{
     const{data,error}=await sb.rpc('catalogo_publico');
     if(error){$('#aviso').innerHTML=`<div class="msg">Para ver tus precios, primero <a href="./">entrá al CRM</a> con tu usuario y después volvé a abrir esta página.</div>`;$('#solo').checked=false}
-    else{PROD=(data.productos||[]).map(p=>({producto_id:p.id,codigo:p.c,descripcion:p.d,precio_publico:p.p}));$('#lista').innerHTML='<option value="precio_publico">Precio</option>'}
+    else{PROD=(data.productos||[]).map(p=>({producto_id:p.id,codigo:p.c,descripcion:p.d,familia:p.f,precio_publico:p.p,pw:!!p.pw}));$('#lista').innerHTML='<option value="precio_publico">Precio</option>'}
   }
   cruzar();pintar();
 }
@@ -116,12 +117,16 @@ function cruzar(){
   // 2) sin código coincidente: por descripción, solo si es muy parecida
   const libres=PROD.filter(p=>!usados.has(p.producto_id));
   for(const x of CAT){if(x.p)continue;
-    const L=libres.map(p=>({p,s:sim(x.d,p.descripcion)})).sort((a,b)=>b.s-a.s);
-    if(L[0]&&L[0].s>=0.8&&(!L[1]||L[0].s-L[1].s>=0.1)){x.p=L[0].p}}
+    const L=libres.filter(p=>!(F2G[(p.familia||'').trim()]&&(p.familia||'').trim()!=x.f)).map(p=>({p,s:sim(x.d,p.descripcion)})).sort((a,b)=>b.s-a.s); /* no cruzar por nombre si tu familia es otra */
+    if(L[0]&&L[0].s>=0.8&&(!L[1]||L[0].s-L[1].s>=0.1)){x.p=L[0].p;usados.add(L[0].p.producto_id)}}
+  // 3) los productos tuyos que no están en el catálogo de fotos (ej. heladería): van en su familia del CRM
+  for(const p of PROD){if(usados.has(p.producto_id))continue;
+    const fa=(p.familia||'').trim(),f=F2G[fa]?fa:(famPorDescripcion(p.descripcion)||fa||'Otros');
+    CAT.push({c:cod(p.codigo),d:p.descripcion,img:p.foto||'',f,g:F2G[f]||'Otros',n:/^\d+$/.test(cod(p.codigo))?parseInt(cod(p.codigo),10):Infinity,k:sinT(p.codigo+' '+p.descripcion+' '+f),p,propio:true})}
 }
 const precio=x=>{const v=x.p&&+x.p[$('#lista').value];return v>0?v:null};
 function card(x){const v=precio(x);
-  return `<article class="it"><div class="ph"><img loading="lazy" src="${esc(x.img)}" alt="${esc(x.d)}"></div><span class="cod ${x.c?'':'no'}">${x.c?'Cód. '+esc(x.c):'Sin código'}</span><div class="d">${esc(x.d)}</div>`+
+  return `<article class="it">${x.img?`<div class="ph"><img loading="lazy" src="${esc(x.img)}" alt="${esc(x.d)}"></div>`:`<div class="ph sin" aria-hidden="true">${esc((x.d||'?').trim().charAt(0).toUpperCase())}</div>`}<span class="cod ${x.c?'':'no'}">${x.c?'Cód. '+esc(x.c):'Sin código'}</span><div class="d">${esc(x.d)}</div>`+
     (v?`<div class="pr"><b>${money(v)}</b><span>${x.p.pw?'por kg':'por unidad'}</span></div>`:`<div class="pr no"><b>Consultar</b></div>`)+`</article>`}
 function pintar(){
   const q=sinT($('#q').value).trim().split(/\s+/).filter(Boolean),fm=$('#fam').value,solo=$('#solo').checked;
@@ -133,13 +138,13 @@ function pintar(){
   const cmp=(a,b)=>a.n-b.n||a.d.localeCompare(b.d,'es');
   if(orden=='r'){
     $('#out').innerHTML=GR.map(([g,gn])=>{const G=L.filter(x=>x.g==g);if(!G.length)return'';
-      const fs=[...new Set(G.map(x=>x.f))].sort((a,b)=>FO[a]-FO[b]);
+      const fs=[...new Set(G.map(x=>x.f))].sort((a,b)=>(FO[a]??999)-(FO[b]??999)||a.localeCompare(b,'es'));
       return `<div class="grp" id="${slug(g)}">${gn}<small>${G.length} ${G.length==1?'producto':'productos'}</small></div>`+fs.map(f=>{const xs=G.filter(x=>x.f==f).sort(cmp);
         return `<h2>${esc(f)}<small>${xs.length}</small></h2><div class="grid">${xs.map(card).join('')}</div>`}).join('')}).join('');
   }else{L=L.slice().sort(orden=='c'?cmp:(a,b)=>a.d.localeCompare(b.d,'es'));$('#out').innerHTML=`<div class="grid" style="margin-top:14px">${L.map(card).join('')}</div>`}
 }
 $('#fam').innerHTML+=FAMS.map(([g,fs])=>`<optgroup label="${GR.find(x=>x[0]==g)[1]}">${fs.map(f=>`<option>${esc(f)}</option>`).join('')}</optgroup>`).join('');
-$('#nav').innerHTML=GR.map(([g,gn])=>`<a href="#${slug(g)}">${gn}</a>`).join('');
+$('#nav').innerHTML=GR.filter(([g])=>g!='Otros').map(([g,gn])=>`<a href="#${slug(g)}">${gn}</a>`).join('');
 for(const[id,v]of[['o_r','r'],['o_c','c'],['o_d','d']])$('#'+id).onclick=()=>{orden=v;document.querySelectorAll('.seg button').forEach(b=>b.setAttribute('aria-pressed',b.id==id));pintar()};
 $('#q').oninput=pintar;$('#fam').onchange=pintar;$('#solo').onchange=pintar;
 $('#lista').onchange=()=>{try{localStorage.setItem('cat_lista',$('#lista').value)}catch(e){}pintar()};
