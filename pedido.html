@@ -140,6 +140,17 @@ input,textarea{border:2px solid #ece3d6;border-radius:14px}
 .tbar{display:flex;gap:8px;margin-top:10px}.tsel{flex:1;display:flex;align-items:center;gap:6px;background:#fff;border-radius:14px;padding:4px 4px 4px 12px;box-shadow:0 1px 4px rgba(0,0,0,.08);min-width:0}
 .tsel span{font-size:13px;font-weight:700;color:var(--m);white-space:nowrap}.tsel select{flex:1;min-width:0;border:0;background:transparent;font:inherit;font-size:14px;font-weight:600;padding:10px 4px;color:var(--t)}
 body.foco .busca{position:static}
+body.foco #l .grid{grid-template-columns:1fr;gap:14px}
+body.foco #l .card{display:grid;grid-template-columns:40% minmax(0,1fr);grid-auto-rows:auto;column-gap:14px;row-gap:0;padding:14px;border-radius:18px;align-content:start}
+body.foco #l .card>*{grid-column:2;margin-bottom:6px}
+body.foco #l .card>.ph{grid-column:1;grid-row:1 / span 12;align-self:start;border:1px solid var(--l);background:#fff;margin:0}
+body.foco #l .card .cn{font-size:16px;font-weight:600;-webkit-line-clamp:3;min-height:0;line-height:1.3}
+body.foco #l .card .cp{font-size:30px;font-weight:800}body.foco #l .card .cp small.kg{display:block;font-size:13px;font-weight:500;margin-top:4px}
+body.foco #l .card .cq{margin-top:4px}body.foco #l .card .cq .ag{height:50px;border-radius:12px;font-size:18px;background:var(--rojo)}
+body.foco #l .card .cq .mn,body.foco #l .card .cq .ms{height:50px;min-width:50px}
+body.foco #l .card .fab{display:none}
+body.foco #l .card .rib,body.foco #l .card .nuevo{grid-column:1}
+.rtit #rtc{position:relative;font-size:22px}.rtit #rtc i{position:absolute;top:-4px;right:-4px;background:var(--rojo);color:#fff;font-style:normal;font-size:11px;font-weight:800;min-width:18px;height:18px;border-radius:9px;display:grid;place-items:center;padding:0 4px}
 body.foco .sto,body.foco .sgb,body.foco #rep,body.foco #alta,body.foco .opi,body.foco .inv{display:none}
 .rtit{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;background:var(--crema);padding:10px 2px;margin-top:8px;border-bottom:2px solid var(--m)}
 .rtit button{width:44px;height:44px;border-radius:50%;border:0;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.1);font-size:22px;color:var(--m)}.rtit b{font-family:var(--fd);font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:.02em;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rtit small{color:var(--mu);font-weight:600;white-space:nowrap}
@@ -714,7 +725,7 @@ function lista(){
   if(ws.length&&!L.length&&filtro.trim().length>=3)anotarBusqueda(filtro);
   if(orden){const pk=p=>{if(esKgP(p.id))return puP(p,1);const k=kgDe(p);return k&&k.k>0?puP(p,1)/k.k:Infinity};
     L=L.slice().sort(orden=='pa'?(a,b)=>puP(a,1)-puP(b,1):orden=='pd'?(a,b)=>puP(b,1)-puP(a,1):orden=='kg'?(a,b)=>pk(a)-pk(b):(a,b)=>a.d.localeCompare(b.d,'es'))}
-  {const t=$('#rtit');if(t)t.remove();if(rub&&!ws.length){const n=base.length;$('#l').insertAdjacentHTML('beforebegin',`<div class="rtit" id="rtit"><button id="rtb" aria-label="Volver a todo">←</button><b>${RUB_ICO[rub]||''} ${esc(fam?cap(fam):rub)}</b><small>${n} ${n==1?'producto':'productos'}</small></div>`);$('#rtb').onclick=()=>{if(fam){fam='';lista();$$('[data-fm]').forEach(x=>x.classList.toggle('on',!x.dataset.fm))}else{rub='';pintar()}}}}
+  {const t=$('#rtit');if(t)t.remove();if(rub&&!ws.length){const n=base.length;$('#l').insertAdjacentHTML('beforebegin',`<div class="rtit" id="rtit"><button id="rtb" aria-label="Volver a todo">←</button><b>${RUB_ICO[rub]||''} ${esc(fam?cap(fam):rub)}</b><small>${n} ${n==1?'producto':'productos'}</small><button id="rtc" aria-label="Ver mi pedido">🛒${Object.keys(car).length?`<i>${Object.keys(car).length}</i>`:''}</button></div>`);$('#rtc').onclick=()=>$('#bv')&&!$('#bar').hidden?$('#bv').click():toast('Tu pedido está vacío. Tocá Agregar en los productos.');$('#rtb').onclick=()=>{if(fam){fam='';lista();$$('[data-fm]').forEach(x=>x.classList.toggle('on',!x.dataset.fm))}else{rub='';pintar()}}}}
   if(vista=='grilla'){grilla(L,ws);return parecHint(parec)}
   const V=L.slice(0,lim);
   $('#l').innerHTML=V.map(p=>{const q=car[p.id]||0;return `<div class="p ${q?'sel':''}"><div class="d">${p.img?`<img class="ft" src="${esc(p.img)}" alt="" loading="lazy" data-z="${p.id}">`:(hayFotos?`<span class="ft0" aria-hidden="true">${famIco(famDe(p))}</span>`:'')}<div class="tx"><b>${token&&!PUB?`<button class="fv ${esFav(p.id)?'on':''}" data-fv="${p.id}" aria-label="Favorito">★</button>`:''}${esc(p.d)}</b><small>${p.m?`<span class="marca">${esc(p.m)}</span>`:''}${p.b>1?`<span class="bulto">${esc(p.tb)} × ${p.b}</span>`:''}${esc(p.c)}</small></div></div><div class="pr">${(()=>{const r=promoP(p,q),rc=r?null:promoP(p,q,true);return (r?`<s>${$m(p.p)}</s> ${$m(puP(p,q))}`:$m(p.p))+kgHTML(p,puP(p,q||1))+(p.b>1?`<small>${esc(p.tb)}: ${$m((rc&&rc.mt=='bulto'?Math.round(p.p*(1-rc.pct/100)*100)/100:puP(p,q))*p.b)}</small>`:'')+(r?`<span class="promo">−${nf(r.pct)} %</span>`:rc?`<span class="promo cerca">−${nf(rc.pct)} % ${esc(condP(rc,p))}</span>`:'')})()}</div>
