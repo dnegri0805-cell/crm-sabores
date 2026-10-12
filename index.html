@@ -347,6 +347,8 @@ function chipStock(id,pide){if(!S.stockOk||!S.inv)return '';const d=stk(id).d,m=
 
 /* Búsqueda sin importar tildes ni mayúsculas; todas las palabras tienen que aparecer */
 const norm=t=>String(t??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+/* La lista "especial" se usa para gastronomía (restaurantes, pizzerías, hoteles): solo cambia el nombre que se muestra */
+const nomL=l=>l=='especial'?'gastronomía':l;
 const coincide=(texto,q)=>{const t=norm(texto);return norm(q).split(/\s+/).filter(Boolean).every(w=>t.includes(w))};
 const txtProd=p=>p.descripcion+' '+p.codigo+' '+(p.marca||'')+' '+(p.familia||'');
 
@@ -852,7 +854,7 @@ function vClientes(){
     return ({agenda:vAgenda,prospectos:vProspectos,fijos:vFijos,dormidos:vDormidos,mapa:vMapa})[S.cs]()}
   $('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Clientes</h2><button class="alt" onclick="revisionDatos()">🧹 Revisión de datos</button><button class="alt" onclick="ordenarDirecciones()">🏠 Ordenar direcciones</button><button class="alt" onclick="llegueToggle()">📍 ${llegueOn()?'Aviso al llegar: activo':'Avisarme al llegar'}</button></div>${subs}<div class="box"><div class="g"><input id="c_n" placeholder="Razón social *"><input id="c_c" placeholder="CUIT"><input id="c_t" placeholder="Teléfono"><input id="c_d" placeholder="Domicilio (calle y número)">${dirCampos('c')}
   <select id="c_i"><option value="responsable_inscripto">Responsable Inscripto</option><option value="monotributo">Monotributo</option><option value="consumidor_final">Consumidor final</option><option value="exento">Exento</option></select>
-  <select id="c_l"><option>mayorista</option><option>minorista</option><option>especial</option></select>
+  <select id="c_l"><option>mayorista</option><option>minorista</option><option value="especial">gastronomía</option></select>
   <input id="c_p" type="number" min="0" placeholder="Días de pago (0 = contado)"></div><button id="c_g">Guardar cliente</button></div>
   <input id="q" placeholder="Buscar por nombre o CUIT · tocá un cliente para ver su ficha"><table id="ct"></table>`;
   const draw=()=>{const q=$('#q').value.toLowerCase();
@@ -876,7 +878,7 @@ async function vPrecios(){
   $('#v').innerHTML=`<div class="bh"><h2>Precios y márgenes</h2><div class="fc-acc"><button class="alt" onclick="aumentosProg()">📅 Aumentos programados</button><button class="alt" onclick="pesablesModal()">⚖️ Productos por peso</button></div></div>
   <div class="box" id="pm"></div>
   <div class="box"><div class="bh"><h3>Lista de precios para clientes</h3><button id="pr_lp">Armar lista de precios</button></div>
-    <p><small>Generá la lista mayorista, minorista o especial en PDF, por WhatsApp o para Excel. Para mandársela a un cliente puntual con sus precios, usá el botón <b>Lista de precios</b> de su ficha.</small></p></div>
+    <p><small>Generá la lista mayorista, minorista o de gastronomía en PDF, por WhatsApp o para Excel. Para mandársela a un cliente puntual con sus precios, usá el botón <b>Lista de precios</b> de su ficha.</small></p></div>
   <div class="box"><div class="bh"><h3>Margen de cada lista</h3></div>
     <p><small>El precio de venta se calcula solo: <b>costo ÷ (1 − margen)</b>. Con 30 %, un producto que te cuesta $ 700 se vende a $ 1.000 y te deja $ 300.</small></p>
     <div class="g" id="pr_l">Cargando…</div><button id="pr_lg">Guardar márgenes</button>
@@ -917,7 +919,7 @@ SDMP-01279	8.900</pre>
     const ord=[...FAMILIAS.map(x=>x[0]),'Otras familias'].filter(g=>G[g]);
     $('#pr_mf').innerHTML=ord.map(g=>{const con=G[g].filter(f=>MF[f.toUpperCase()]).length;
       return `<details class="mfg"><summary><b>${esc(g)}</b> <small>· ${G[g].length} ${G[g].length==1?'familia':'familias'}${con?` · <span class="badge">${con} con ajuste</span>`:''}</small></summary>
-      <div class="tw"><table><tr><th>Familia</th><th class="n">Ajuste (puntos)</th><th class="n">Mayorista</th><th class="n">Minorista</th><th class="n">Especial</th></tr>
+      <div class="tw"><table><tr><th>Familia</th><th class="n">Ajuste (puntos)</th><th class="n">Mayorista</th><th class="n">Minorista</th><th class="n">Gastronomía</th></tr>
       ${G[g].map(f=>{const a=MF[f.toUpperCase()];return `<tr><td>${esc(f)} <small>(${cnt[f]})</small></td>
         <td class="n"><input type="number" step="0.5" min="-50" max="50" data-mf="${esc(f)}" value="${a||''}" placeholder="0" style="max-width:90px"></td>
         ${LIS.map(l=>`<td class="n" data-mfl="${l}">${mgEf(l,f)!=null?pctf(mgEf(l,f)):'—'}</td>`).join('')}</tr>`}).join('')}</table></div></details>`}).join('')||'<p>Todavía no hay productos con familia.</p>';
@@ -931,7 +933,7 @@ SDMP-01279	8.900</pre>
       if(v)MF[e.dataset.mf.toUpperCase()]=v;else delete MF[e.dataset.mf.toUpperCase()]}
     $('#pr_mfg').disabled=false;await recargarProductos();pintarMF();draw();toast('Márgenes por familia guardados. Los precios ya están actualizados.')};
   $('#pr_l').innerHTML=cl.error?'<p class="err">No se pudieron leer los márgenes: '+esc(cl.error.message)+'. Corré precios.sql en Supabase.</p>':
-    LIS.map(l=>`<label class="f">Lista ${l} (%)<input type="number" step="0.5" min="0" max="89" data-li="${l}" value="${L[l]??''}"></label>`).join('');
+    LIS.map(l=>`<label class="f">Lista ${nomL(l)} (%)${l=='especial'&&L.mayorista!=null?` <small>(sugerido: ${nf(Math.max(0,L.mayorista-2))} %, 2 puntos menos que mayorista)</small>`:''}<input type="number" step="0.5" min="0" max="89" data-li="${l}" value="${L[l]??''}"></label>`).join('');
   $('#pr_lg').onclick=async()=>{const ch=[...$$('[data-li]')].filter(e=>+e.value!==L[e.dataset.li]);if(!ch.length)return toast('No cambiaste ningún margen.',1);
     for(const e of ch){const{error}=await sb.rpc('fijar_margen_lista',{p_lista:e.dataset.li,p_margen:+e.value});if(error)return toast(error.message,1);L[e.dataset.li]=+e.value}
     await recargarProductos();pintarMF();draw();toast('Márgenes guardados. Los precios ya están actualizados.')};
@@ -948,7 +950,7 @@ SDMP-01279	8.900</pre>
   const upd=()=>{const n=Object.keys(nuevo).length;$('#pr_n').textContent=n?n+(n==1?' costo cambiado sin guardar':' costos cambiados sin guardar'):''};
   const draw=()=>{sel=filtrar();$('#pr_cnt').textContent=sel.length+(sel.length==1?' producto':' productos');
     const V=sel.slice(0,150);
-    $('#pr_t').innerHTML='<tr><th>Foto</th><th>Producto</th><th class="n">Costo</th><th class="n">Mayorista</th><th class="n">Minorista</th><th class="n">Especial</th><th class="n">Ganás (may.)</th><th>Bulto</th><th>Último cambio</th></tr>'+
+    $('#pr_t').innerHTML='<tr><th>Foto</th><th>Producto</th><th class="n">Costo</th><th class="n">Mayorista</th><th class="n">Minorista</th><th class="n">Gastronomía</th><th class="n">Ganás (may.)</th><th>Bulto</th><th>Último cambio</th></tr>'+
       V.map(p=>{const id=p.producto_id,c=nuevo[id]??+p.costo/(ppz(id)||1),pm=precio(c,'mayorista',p.familia),u=ult[id];
         return `<tr${nuevo[id]!=null?' class="cambio"':''}><td class="fto">${S.min[id]?.foto?`<img src="${esc(S.min[id].foto)}" alt="" data-ft="${id}" loading="lazy">`:`<button class="alt" data-ft="${id}" aria-label="Cargar foto">📷</button>`}</td><td>${esc(p.descripcion)} <small>${esc(p.codigo)}</small>${ppz(id)&&pm!=null?`<br><span class="badge">⚖️ precios por kg · pieza ≈ ${nf(ppz(id))} kg → ${$m(pm*ppz(id))}</span>`:''}</td>
         <td class="n"><input type="number" step="0.01" min="0" class="cs" data-id="${id}" value="${nuevo[id]??''}" placeholder="${p.costo!=null?nf(+p.costo/(ppz(id)||1)):'—'}"></td>
@@ -1051,7 +1053,7 @@ function catalogoPDF(l,L,c,nomLista){const w=window.open('','_blank');if(!w)retu
 /* ---------- Lista de precios para clientes ---------- */
 function abrirListaPrecios(c){
   catalogoFotos();
-  const LIS={mayorista:'Mayorista',minorista:'Minorista',especial:'Especial'};
+  const LIS={mayorista:'Mayorista',minorista:'Minorista',especial:'Gastronomía'};
   const uniq=k=>[...new Set(S.productos.map(p=>p[k]).filter(Boolean))].sort();
   const m=document.createElement('div');m.className='modal';
   m.innerHTML=`<div class="mc" role="dialog" aria-label="Lista de precios"><div class="bh"><h3>Lista de precios${c?' · '+esc(c.razon_social):''}</h3><button class="alt" id="lp_x">Cerrar</button></div>
@@ -1199,7 +1201,7 @@ async function vPromos(){
       <label class="f">Hasta (vacío = sin fin)<input id="pm_h" type="date"></label></div>
       <div class="chk-row">📅 Solo estos días (vacío = todos los días): ${DIAS.map(([n,t])=>`<label class="chk"><input type="checkbox" class="pm_ds" value="${n}"> ${t}</label>`).join('')}</div>
       <div id="pm_r"></div>
-      <div class="chk-row">Listas: ${['mayorista','minorista','especial'].map(l=>`<label class="chk"><input type="checkbox" class="pm_l" value="${l}" checked> ${l}</label>`).join('')}</div>
+      <div class="chk-row">Listas: ${['mayorista','minorista','especial'].map(l=>`<label class="chk"><input type="checkbox" class="pm_l" value="${l}" checked> ${nomL(l)}</label>`).join('')}</div>
       <p id="pm_prev"><small></small></p>
       <button id="pm_g">Guardar promoción</button> <button class="alt" id="pm_x">Cancelar</button></div>
     ${data.length?`<div class="tw"><table><tr><th>Promoción</th><th>Aplica a</th><th>Condición</th><th>Vigencia</th><th>Estado</th><th></th></tr>${data.map(r=>{const[e,c]=estado(r);return `<tr>
@@ -1338,7 +1340,7 @@ async function fichaCliente(c){
   if(!c)return;window.scrollTo(0,0);
   const IVA={responsable_inscripto:'Responsable Inscripto',monotributo:'Monotributo',consumidor_final:'Consumidor final',exento:'Exento'};
   $('#v').innerHTML=`<p><a class="lnk" id="fc_vol">← Volver a Clientes</a></p>
-  <div class="fc-head"><div><h2>${esc(c.razon_social)}</h2><small>${c.cuit?'CUIT '+esc(c.cuit)+' · ':''}${IVA[c.condicion_iva]||esc(c.condicion_iva||'')} ${c.rubro?' · '+esc(c.rubro):''} · Lista ${esc(c.lista)} · ${c.condicion_pago_dias?c.condicion_pago_dias+' días':'Contado'}${+c.limite_credito>0?' · Límite '+$m(c.limite_credito):''}</small>
+  <div class="fc-head"><div><h2>${esc(c.razon_social)}</h2><small>${c.cuit?'CUIT '+esc(c.cuit)+' · ':''}${IVA[c.condicion_iva]||esc(c.condicion_iva||'')} ${c.rubro?' · '+esc(c.rubro):''} · Lista ${esc(nomL(c.lista))} · ${c.condicion_pago_dias?c.condicion_pago_dias+' días':'Contado'}${+c.limite_credito>0?' · Límite '+$m(c.limite_credito):''}</small>
     <div><small>${c.telefono?'Tel. '+esc(c.telefono):'Sin teléfono'}${dirCompleta(c)?' · '+esc(dirCompleta(c)):''}</small></div></div>
     <div class="fc-acc"><button id="fc_np">Nuevo pedido</button><button class="alt" id="fc_rp">🔁 Repetir último</button><button class="alt" id="fc_po">🛒 Pedido online</button><button class="alt" id="fc_co">Registrar cobro</button><button class="alt" id="fc_ec">📄 Estado de cuenta</button><button class="alt" id="fc_lp">Lista de precios</button><button class="alt" id="fc_ed">Editar datos</button><button class="alt" id="fc_fj">Pedido fijo</button><button class="alt" id="fc_gl">📞 Guion de llamada</button><button class="alt" id="fc_ng">🧮 Negociar</button><button class="alt" id="fc_gon">📸 Góndola</button><button class="alt" id="fc_doc">📂 Documentos</button><button class="alt" id="fc_vac">${vacBtn(c)}</button><button class="alt" id="fc_hr">${horarioTxt(c)||'🕐 Horario de recepción'}</button>${'cuenta_clave' in c?`<button class="alt" id="fc_kc">${c.cuenta_clave?'👑 Es cuenta clave':'☆ Cuenta clave'}</button><button class="alt" id="fc_pd">${c.perdido_en?'🚩 Perdido ('+esc(c.perdido_con||'')+')':'🚩 Se fue a la competencia'}</button>`:''}</div></div>
   <div id="fc_nt"></div>
@@ -1350,7 +1352,7 @@ async function fichaCliente(c){
     <label class="f">Razón social<input id="e_n" value="${esc(c.razon_social)}"></label><label class="f">CUIT<input id="e_c" value="${esc(c.cuit)}"></label>
     <label class="f">Teléfono<input id="e_t" value="${esc(c.telefono)}"></label><label class="f">Domicilio (calle y número)<input id="e_d" value="${esc(c.domicilio)}"></label>${'codigo_postal' in c?`<div class="f" style="grid-column:1/-1"><span>Barrio · Localidad · Provincia · CP</span><div class="g">${dirCampos('e',c)}</div></div>`:''}
     <label class="f">Condición IVA<select id="e_i">${Object.entries(IVA).map(([k,t])=>`<option value="${k}" ${k==c.condicion_iva?'selected':''}>${t}</option>`).join('')}</select></label>
-    <label class="f">Lista<select id="e_l">${['mayorista','minorista','especial'].map(l=>`<option ${l==c.lista?'selected':''}>${l}</option>`).join('')}</select></label>
+    <label class="f">Lista<select id="e_l">${['mayorista','minorista','especial'].map(l=>`<option value="${l}" ${l==c.lista?'selected':''}>${nomL(l)}</option>`).join('')}</select></label>
     <label class="f">Días de pago<input id="e_p" type="number" min="0" value="${c.condicion_pago_dias||0}"></label>
     <label class="f">Límite de crédito $ (0 = sin límite)<input id="e_lc" type="number" min="0" step="1000" value="${Number(c.limite_credito||0)}"></label></div>
     ${'cliente_desde' in c?`<label class="f">Cliente desde (para el aniversario)<input id="e_cd" type="date" value="${c.cliente_desde||''}"></label>`:''}
@@ -2554,7 +2556,7 @@ async function etiquetas(ids){
     <div class="g"><label class="f">Agregar por marca<select id="et_m"><option value="">Elegí…</option>${uniq('marca').map(x=>`<option>${esc(x)}</option>`).join('')}</select></label>
       <label class="f">Agregar los que cambiaron de precio<select id="et_h"><option value="">Elegí…</option><option value="7">En los últimos 7 días</option><option value="15">En los últimos 15 días</option><option value="30">En los últimos 30 días</option></select></label></div>
     <div class="conscan"><input id="et_q" placeholder="Agregar un producto (nombre o código)" autocomplete="off">${btnScan('et_sc')}</div><div id="et_r"></div>
-    <div class="g"><label class="f">Precio de la lista<select id="et_l"><option value="minorista">Minorista</option><option value="mayorista">Mayorista</option><option value="especial">Especial</option></select></label>
+    <div class="g"><label class="f">Precio de la lista<select id="et_l"><option value="minorista">Minorista</option><option value="mayorista">Mayorista</option><option value="especial">Gastronomía</option></select></label>
       <label class="f">Tamaño<select id="et_t">${depUsar()?`<option value="dep" selected>🖨️ Imprimir en el depósito (rollo)</option>`:''}${tkW()?`<option value="t" selected>Rollo térmico (${tkW()} mm)</option>`:''}<option value="3">Chica (24 por hoja)</option><option value="2" selected>Mediana (12 por hoja)</option><option value="1">Grande (6 por hoja)</option></select></label></div>
     <label class="chk"><input type="checkbox" id="et_cb" checked> Con código de barras</label><label class="chk"><input type="checkbox" id="et_bu"> Mostrar también el precio por caja/pack</label>
     <p id="et_n"></p><div class="fc-acc"><button id="et_g">Imprimir etiquetas</button><a class="lnk" id="et_v">Vaciar</a></div></div>`;
@@ -3121,7 +3123,7 @@ async function cajaVender(){const box=$('#pr_vd');if(!box)return;
   const{data}=await sb.from('config_app').select('valor').eq('clave','catalogo_publico').maybeSingle();const v=data?.valor||'';
   box.innerHTML=`<div class="bh"><h3>📣 Para salir a vender</h3><button id="pv_fo">Armar folleto de ofertas</button></div>
     <p><small>Folletos con fotos y precios de oferta por familia, listos para WhatsApp, estados o Instagram. Y un catálogo público para que cualquiera vea tus productos y te pida por WhatsApp.</small></p>
-    <div class="g"><label class="f">Catálogo público (para clientes nuevos)<select id="pv_cl"><option value="">Desactivado</option>${['minorista','mayorista','especial'].map(l=>`<option value="${l}" ${v==l?'selected':''}>Activado con precios ${l}</option>`).join('')}</select></label></div>
+    <div class="g"><label class="f">Catálogo público (para clientes nuevos)<select id="pv_cl"><option value="">Desactivado</option>${['minorista','mayorista','especial'].map(l=>`<option value="${l}" ${v==l?'selected':''}>Activado con precios ${nomL(l)}</option>`).join('')}</select></label></div>
     ${v?`<input readonly value="${linkPublico()}" id="pv_lk"><div class="fc-acc"><button class="alt" id="pv_cp">Copiar link</button><button class="alt wa" id="pv_wa">Compartir por WhatsApp</button><a class="lnk" href="${linkPublico()}" target="_blank" rel="noopener">Ver cómo se ve</a></div>
       ${S.telEmp?'':'<p class="err"><small>Cargá tu WhatsApp en Cobranza (Tu WhatsApp) para que te lleguen los pedidos del catálogo.</small></p>'}`:''}`;
   $('#pv_fo').onclick=()=>folletoOfertas();
@@ -3176,7 +3178,7 @@ async function folletoOfertas(){
   const hoy=new Date(),fin=new Date(hoy.getTime()+7*864e5);
   m.innerHTML=`<div class="mc fo"><div class="bh"><h3>📣 Folleto de ofertas</h3><button class="alt" id="fo_x">Cerrar</button></div>
     <div class="g"><label class="f">Familia<select id="fo_f"><option value="">Todas las ofertas</option>${fams.map(f=>`<option>${esc(f)}</option>`).join('')}</select></label>
-      <label class="f">Precios de la lista<select id="fo_l"><option>minorista</option><option>mayorista</option><option>especial</option></select></label>
+      <label class="f">Precios de la lista<select id="fo_l"><option>minorista</option><option>mayorista</option><option value="especial">gastronomía</option></select></label>
       <label class="f">Formato<select id="fo_t">${Object.entries(FMT).map(([k,f])=>`<option value="${k}">${f.t} · ${f.n} productos</option>`).join('')}</select></label>
       <label class="f">Título<input id="fo_ti" value="OFERTAS" maxlength="22"></label>
       <label class="f">Vigencia<input id="fo_vg" value="Válido hasta el ${fin.toLocaleDateString('es-AR',{day:'numeric',month:'long'})} o hasta agotar stock" maxlength="70"></label></div>
@@ -3507,7 +3509,7 @@ async function vCantidad(){const due=S.perfil.rol=='dueno';await cargarPromos();
     const draw=()=>{$('#xc_f').innerHTML=`<div class="pmf"><h3>${esc(p.descripcion)}</h3><p><small>Precio normal mayorista: <b>${$m(pm)}</b> por unidad${u>1?' · '+esc(b.t)+' de '+u+' = <b>'+$m(pm*u)+'</b>':''}</small></p>
       <table><tr><th>Desde</th><th>Precio por unidad (mayorista)</th><th>Descuento</th><th></th></tr>${E.map((e,i)=>`<tr><td><input type="number" min="1" step="1" value="${e.n}" data-xn="${i}" style="width:80px;margin:0"> ${u>1?esc(plural(b.t,2)):'unidades'}</td>
         <td>$ <input type="number" min="0" step="0.01" value="${Math.round(pm*(1-e.pct/100)*100)/100}" data-xp="${i}" style="width:120px;margin:0"></td><td>−${nf(Math.round(e.pct*100)/100)} %</td><td><a class="lnk" data-xx="${i}">Quitar</a></td></tr>`).join('')}</table>
-      <button class="alt" id="xc_a">+ Otro escalón</button><p><small>El mismo descuento se aplica a las listas minorista y especial.</small></p><div class="fc-acc"><button id="xc_g">Guardar</button><button class="alt" id="xc_x">Cancelar</button></div></div>`;
+      <button class="alt" id="xc_a">+ Otro escalón</button><p><small>El mismo descuento se aplica a las listas minorista y gastronomía.</small></p><div class="fc-acc"><button id="xc_g">Guardar</button><button class="alt" id="xc_x">Cancelar</button></div></div>`;
       $$('[data-xn]').forEach(i=>i.onchange=()=>{E[i.dataset.xn].n=Math.max(1,Math.round(+i.value||1));setTimeout(draw)});
       $$('[data-xp]').forEach(i=>i.onchange=()=>{const v=+i.value;E[i.dataset.xp].pct=pm>0&&v>0&&v<pm?Math.round((1-v/pm)*10000)/100:0;setTimeout(draw)});
       $$('[data-xx]').forEach(a=>a.onclick=()=>{E.splice(+a.dataset.xx,1);draw()});
@@ -3637,7 +3639,7 @@ function editarPresupuesto(pre){pre=pre||{};let cli=pre.cliente||null,pac={};con
     <div id="pe_cw"><input id="pe_cq" placeholder="Cliente: escribí el nombre (o dejalo vacío si es alguien nuevo)" autocomplete="off"><div id="pe_cr"></div></div>
     <div id="pe_cs" hidden class="clirow"><b id="pe_cn"></b> <a id="pe_cx">Cambiar</a></div>
     <div class="g" id="pe_nv"><label class="f">Nombre (si es nuevo)<input id="pe_n" placeholder="Ej.: Almacén Don Pepe"></label><label class="f">WhatsApp<input id="pe_t" placeholder="11 2345 6789"></label>
-      <label class="f">Lista de precios<select id="pe_l"><option>mayorista</option><option>minorista</option><option>especial</option></select></label></div>
+      <label class="f">Lista de precios<select id="pe_l"><option>mayorista</option><option>minorista</option><option value="especial">gastronomía</option></select></label></div>
     <div class="conscan"><input id="pe_q" placeholder="Agregar producto (nombre o código)" autocomplete="off">${btnScan('pe_sc')}</div><div id="pe_r"></div><div id="pe_i"></div>
     <div class="g"><label class="f">Válido por<select id="pe_v"><option value="7">7 días</option><option value="15" selected>15 días</option><option value="30">30 días</option></select></label><label class="f">Nota (opcional)<input id="pe_nt" placeholder="Ej.: Entrega sin cargo"></label></div>
     <div class="fc-acc"><button id="pe_g">Guardar y mandar por WhatsApp</button></div></div>`;
@@ -4484,7 +4486,7 @@ async function vEstados(){await Promise.all([cargarStock(),cargarPromos(),cargar
   const conF=p=>S.min[p.producto_id]?.foto,act=p=>S.min[p.producto_id]?.a!==false&&+p.precio_mayorista>0,azar=a=>a.length?a[Math.floor(Math.random()*a.length)]:null;
   const of=S.productos.filter(p=>act(p)&&promoCerca(p.producto_id,S.esL)).sort((a,b)=>!!conF(b)-!!conF(a)),nv=S.productos.filter(p=>act(p)&&S.min[p.producto_id]?.nv),top=S.productos.filter(p=>act(p)&&conF(p));
   $('#vs').innerHTML=`<div class="box"><h3>📱 Estados de WhatsApp</h3><p><small>Tres imágenes listas para tu <b>estado de WhatsApp</b> de hoy: una oferta, una novedad y un combo. Todos tus contactos las ven sin que les escribas. Ideal: publicar una a la mañana, otra al mediodía y otra a la tarde. Tocá "Otras" para cambiarlas.</small></p>
-    <div class="g"><label class="f">Precios de la lista<select id="es_l">${['mayorista','minorista','especial'].map(l=>`<option ${S.esL==l?'selected':''}>${l}</option>`).join('')}</select></label></div>
+    <div class="g"><label class="f">Precios de la lista<select id="es_l">${['mayorista','minorista','especial'].map(l=>`<option value="${l}" ${S.esL==l?'selected':''}>${nomL(l)}</option>`).join('')}</select></label></div>
     <div class="fc-acc"><button id="es_g">Armar las 3 imágenes</button><button class="alt" id="es_o">Otras</button></div><div id="es_out"></div></div>`;
   const armar=async()=>{S.esL=$('#es_l').value;const l=S.esL;$('#es_out').innerHTML='<p>Armando…</p>';const cvs=[];
     const p1=azar(of.slice(0,8))||azar(top);if(p1)cvs.push(await dibujarFolleto([itemFolleto(p1,l)],{fmt:'historia',lista:l,titulo:'OFERTA',sub:'del día',vig:'Hasta agotar stock'}));
@@ -4499,7 +4501,7 @@ async function vEstados(){await Promise.all([cargarStock(),cargarPromos(),cargar
 function vTarjeta(){let sel=null;
   $('#vs').innerHTML=`<div class="box"><h3>🖼️ Tarjeta de producto</h3><p><small>Una imagen de un producto con foto, precio y (si tenés el catálogo público activo) el QR para pedir. Para mandar por WhatsApp a un cliente o subir a Instagram/estados.</small></p>
     <div class="conscan"><input id="tj_q" placeholder="Elegí el producto (nombre o código)" autocomplete="off">${btnScan('tj_sc')}</div><div id="tj_r"></div><p id="tj_s"></p>
-    <div class="g"><label class="f">Precios de la lista<select id="tj_l"><option>mayorista</option><option>minorista</option><option>especial</option></select></label>
+    <div class="g"><label class="f">Precios de la lista<select id="tj_l"><option>mayorista</option><option>minorista</option><option value="especial">gastronomía</option></select></label>
       <label class="f">Formato<select id="tj_f"><option value="cuadrado">Cuadrado (posteo, WhatsApp)</option><option value="historia">Historia / estado</option></select></label>
       <label class="f">Título<input id="tj_t" maxlength="20" value="RECOMENDADO"></label></div>
     <button id="tj_g">Armar tarjeta</button><div id="tj_out"></div></div>`;
@@ -4648,11 +4650,11 @@ async function vRedondeo(){const due=S.perfil.rol=='dueno';
   const OPC=[['0|0','Sin redondear'],['10|0','A $ 10 (ej. 687 → 690)'],['50|0','A $ 50 (ej. 687 → 700)'],['100|0','A $ 100 (ej. 687 → 700)'],['100|90','Terminado en 90 (ej. 687 → 690, 3.041 → 3.090)'],['100|99','Terminado en 99 (ej. 687 → 699)']];
   const red=(v,r)=>{const[pa,fi]=String(r||'0|0').split('|').map(Number);return !pa?v:Math.max(pa,Math.ceil((v-fi)/pa)*pa+fi)};
   $('#vs').innerHTML=`<div class="box"><h3>🏷️ Precios redondeados</h3><p><small>Las listas salen de costo + margen, y quedan precios como $ 687,24. Acá elegís cómo redondearlas (siempre hacia arriba). Se aplica a todo: catálogo, pedidos, listas y folletos. Mirá la vista previa antes de guardar.</small></p>
-    <div class="g">${['mayorista','minorista','especial'].map(l=>`<label class="f">Lista ${l}<select data-rl="${l}" ${due?'':'disabled'}>${OPC.map(([v,t])=>`<option value="${v}" ${(d[l]?d[l].paso+'|'+(d[l].fin||0):'0|0')==v?'selected':''}>${t}</option>`).join('')}</select></label>`).join('')}</div>
+    <div class="g">${['mayorista','minorista','especial'].map(l=>`<label class="f">Lista ${nomL(l)}<select data-rl="${l}" ${due?'':'disabled'}>${OPC.map(([v,t])=>`<option value="${v}" ${(d[l]?d[l].paso+'|'+(d[l].fin||0):'0|0')==v?'selected':''}>${t}</option>`).join('')}</select></label>`).join('')}</div>
     <div id="rd_p"></div>${due?'<button id="rd_g">Guardar y aplicar</button>':''}</div>`;
   const prev=()=>{const L=S.productos.filter(p=>+p.precio_mayorista>0).slice(0,12),cfg={};$$('[data-rl]').forEach(s=>cfg[s.dataset.rl]=s.value);
     let dm=0,n=0;for(const p of S.productos)for(const l of ['mayorista','minorista','especial']){const v=+p['precio_'+l];if(v>0){dm+=(red(v,cfg[l])-v)/v;n++}}
-    $('#rd_p').innerHTML=`<p><small>En promedio los precios ${dm>0?'suben <b>'+nf(Math.round(dm/n*1000)/10)+' %</b> (esa diferencia es ganancia extra)':'no cambian'}.</small></p><div class="tw"><table><tr><th>Producto</th>${['mayorista','minorista','especial'].map(l=>`<th class="n">${l}</th>`).join('')}</tr>${L.map(p=>`<tr><td>${esc(p.descripcion)}</td>${['mayorista','minorista','especial'].map(l=>{const v=+p['precio_'+l],r=red(v,cfg[l]);return`<td class="n">${r!=v?`<s><small>${$m(v)}</small></s><br><b>${$m(r)}</b>`:$m(v)}</td>`}).join('')}</tr>`).join('')}</table></div>`};
+    $('#rd_p').innerHTML=`<p><small>En promedio los precios ${dm>0?'suben <b>'+nf(Math.round(dm/n*1000)/10)+' %</b> (esa diferencia es ganancia extra)':'no cambian'}.</small></p><div class="tw"><table><tr><th>Producto</th>${['mayorista','minorista','especial'].map(l=>`<th class="n">${nomL(l)}</th>`).join('')}</tr>${L.map(p=>`<tr><td>${esc(p.descripcion)}</td>${['mayorista','minorista','especial'].map(l=>{const v=+p['precio_'+l],r=red(v,cfg[l]);return`<td class="n">${r!=v?`<s><small>${$m(v)}</small></s><br><b>${$m(r)}</b>`:$m(v)}</td>`}).join('')}</tr>`).join('')}</table></div>`};
   $$('[data-rl]').forEach(s=>s.onchange=prev);prev();
   $('#rd_g')&&($('#rd_g').onclick=async()=>{const o={};$$('[data-rl]').forEach(s=>{const[pa,fi]=s.value.split('|').map(Number);if(pa)o[s.dataset.rl]={paso:pa,fin:fi}});
     if(!confirm('¿Aplicar el redondeo a todas las listas de precios?'))return;const{error}=await sb.from('config_app').upsert({clave:'redondeo_precios',valor:JSON.stringify(o)});if(error)return toast(error.message,1);
@@ -5559,7 +5561,7 @@ async function placaTexto(o){const W=1080,Hh=o.alto||1350,cv=document.createElem
 async function vIG(){const K=await cfgIG();await Promise.all([cargarStock(),cargarPromos(),cargarVentasCfg()]);S.igL=S.igL||'mayorista';const due=S.perfil.rol=='dueno';
   $('#vs').innerHTML=`<div class="box"><h3>📸 Contenido para Instagram</h3><p><small>Imágenes listas con tus productos reales, en formato de <b>publicación (1080×1350)</b> y de <b>historia (1080×1920)</b>, cada una con su texto y hashtags de tu zona. Las descargás y las subís desde el celular.</small></p>
     <div class="g"><label class="f">Tu usuario de Instagram<input id="ig_u" placeholder="@saboresdemipais" value="${esc(K.usuario)}" ${due?'':'disabled'}></label><label class="f">Tu zona (para hashtags)<input id="ig_z" value="${esc(K.zona)}" ${due?'':'disabled'}></label><label class="f">Hashtags propios (opcional)<input id="ig_t" placeholder="#belgrano #nuñez" value="${esc(K.tags)}" ${due?'':'disabled'}></label>
-      <label class="f">Precios de la lista<select id="ig_l">${['mayorista','minorista','especial'].map(l=>`<option ${S.igL==l?'selected':''}>${l}</option>`).join('')}</select></label></div>${due?'<button class="alt" id="ig_g">Guardar</button>':''}
+      <label class="f">Precios de la lista<select id="ig_l">${['mayorista','minorista','especial'].map(l=>`<option value="${l}" ${S.igL==l?'selected':''}>${nomL(l)}</option>`).join('')}</select></label></div>${due?'<button class="alt" id="ig_g">Guardar</button>':''}
     <div class="fc-acc" style="margin-top:10px"><button data-igt="oferta">🔥 Oferta</button><button data-igt="novedad">✨ Novedad</button><button data-igt="combo">🎁 Combo</button><button data-igt="cupo">⏳ Oferta por cupo</button><button data-igt="top">🏆 Top 5 de la semana (carrusel)</button><button data-igt="testimonio">⭐ Testimonios</button></div></div><div id="ig_o"></div>`;
   $('#ig_g')&&($('#ig_g').onclick=async()=>{const o={usuario:$('#ig_u').value.trim(),zona:$('#ig_z').value.trim(),tags:$('#ig_t').value.trim()};const{error}=await sb.from('config_app').upsert({clave:'ig_cfg',valor:JSON.stringify(o)});if(error)return toast(error.message,1);S.igCfg={...IG_DEF,...o};toast('Guardado.')});
   $$('[data-igt]').forEach(b=>b.onclick=()=>{S.igL=$('#ig_l').value;armarIG(b.dataset.igt)});if(S.igPre){const t=S.igPre;S.igPre=null;armarIG(t)}}
@@ -5665,7 +5667,7 @@ async function vIGShop(){await cargarStock();S.isL=S.isL||'minorista';
   const L=()=>S.productos.filter(p=>S.min[p.producto_id]?.a!==false&&+p['precio_'+S.isL]>0&&/^https:\/\//.test(S.min[p.producto_id]?.foto||''));
   const draw=()=>{const X=L(),sin=S.productos.filter(p=>S.min[p.producto_id]?.a!==false&&+p['precio_'+S.isL]>0).length-X.length;
     $('#vs').innerHTML=`<div class="box"><h3>🛍️ Catálogo para Instagram Shopping</h3><p><small>Un archivo con tus productos en el formato de Meta, para que puedas <b>etiquetarlos en tus publicaciones</b> (con nombre y precio). Se sube en el Commerce Manager de Meta.</small></p>
-      <label class="f">Precios de la lista<select id="is_l">${['minorista','mayorista','especial'].map(l=>`<option ${S.isL==l?'selected':''}>${l}</option>`).join('')}</select></label>
+      <label class="f">Precios de la lista<select id="is_l">${['minorista','mayorista','especial'].map(l=>`<option value="${l}" ${S.isL==l?'selected':''}>${nomL(l)}</option>`).join('')}</select></label>
       <p><b>${X.length}</b> productos con foto y precio${sin>0?` · ${sin} sin foto (no entran: cargales la foto en Precios)`:''}.</p><button id="is_d">⬇️ Descargar catálogo (.csv)</button>
       <ol><li><small>Entrá a <b>business.facebook.com/commerce</b> con la cuenta de tu página → <b>Agregar catálogo</b> → Comercio electrónico.</small></li><li><small>En el catálogo: <b>Fuentes de datos → Agregar artículos → Carga masiva</b> y subí este archivo.</small></li>
         <li><small>En Instagram: Configuración → <b>Empresa → Compras</b> y vinculá el catálogo (Meta lo revisa unos días).</small></li><li><small>Cuando cambien precios o productos, descargá el archivo de nuevo y volvé a subirlo.</small></li></ol></div>`;
@@ -5829,7 +5831,7 @@ async function pesarPedido(o){const{data,error}=await sb.from('pedido_items').se
 
 /* ======================= FIAMBRES Y QUESOS: lista por kilo, vencimientos y reposición ======================= */
 const $r=n=>'$ '+Math.round(+n||0).toLocaleString('es-AR');
-const LISTAS_KG=[['mayorista','Mayorista'],['minorista','Minorista'],['especial','Especial']];
+const LISTAS_KG=[['mayorista','Mayorista'],['minorista','Minorista'],['especial','Gastronomía']];
 function listaKg(lista){return S.productos.filter(p=>esPeso(p.producto_id)&&S.min[p.producto_id]?.a!==false).map(p=>{const id=p.producto_id,pz=ppz(id)||1,pu=precioLista(id,lista),pr=promoPara(id,lista,1),pct=pr?+pr.descuento_pct||0:0,pf=pu*(1-pct/100);
   return{id,p,pz:ppz(id),kg:pf/pz,kgA:pct?pu/pz:0,pu:pf,pct,fam:String(p.familia||'Otros').trim()||'Otros'}}).filter(x=>x.pu>0).sort((a,b)=>a.fam.localeCompare(b.fam)||a.p.descripcion.localeCompare(b.p.descripcion))}
 function textoKg(L,lista,c){const fams=[...new Set(L.map(x=>x.fam))];
