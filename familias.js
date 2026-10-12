@@ -85,7 +85,10 @@ const FAM_REGLAS=[
  ['Yerba mate',/^yerba/],
  ['Higiene personal',/^(pasta dental|cepillo)/]];
 const famSinT=t=>String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
-function famPorDescripcion(d){const s=famSinT(d);for(const[f,re]of FAM_REGLAS)if(re.test(s))return f;return ''}
+/* Abreviaturas de las listas de proveedores (AC. GIRASOL, JAM. COC., QSO, DDL…): se expanden para reconocer la familia y mostrar nombres claros */
+const ABREV=[[/\bac\.? ?(griega|verde|negra|rellena|descarozada|en rodajas|aceituna)/g,'aceituna $1'],[/^ac\.? /,'aceite '],[/\bac\. /g,'aceite '],[/\bjam\.? /g,'jamon '],[/\bcoc\.? /g,'cocido '],[/\bqso\.? /g,'queso '],[/\bddl\b/g,'dulce de leche'],[/\bmerm\.? /g,'mermelada '],[/\bmant\.? /g,'manteca '],[/\bmuzza?\b|\bmzza\b/g,'mozzarella'],[/\bsalch\.? /g,'salchicha '],[/\bfiamb\.? /g,'fiambre '],[/\bmayon\.? /g,'mayonesa '],[/\bgalle?t\.? /g,'galletitas '],[/\bchoc\.? /g,'chocolate '],[/\bpal\.? /g,'paleta ']];
+const famExpandir=t=>{let s=famSinT(t)+' ';for(const[re,r]of ABREV)s=s.replace(re,r);return s.trim()};
+function famPorDescripcion(d){const s=famExpandir(d);for(const[f,re]of FAM_REGLAS)if(re.test(s))return f;return ''}
 /* Índice del catálogo de fotos (fotos/catalogo/catalogo.json): [código, descripción, archivo, familia] */
 let FAM_CAT=null;
 async function catalogoFotos(){if(FAM_CAT)return FAM_CAT;

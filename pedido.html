@@ -404,13 +404,13 @@ async function iniciar(){
   if(PUB)sb.rpc('opiniones_publicas').then(({data})=>{if(Array.isArray(data)&&data.length){OPI=data;if(BIO&&C)vistaBio();else if(typeof lista=='function'&&P.length)lista()}},()=>{});
   if(PUB){const a={};if(REF)a.p_ref=REF;if(RUB)a.p_rubro=RUB;const{data,error}=Object.keys(a).length?await sb.rpc('catalogo_publico',a):await sb.rpc('catalogo_publico');
     if(error){$('#hc').textContent='';$('#m').innerHTML=`<div class="msg"><h2>Catálogo no disponible</h2><p class="err">${esc(/catalogo_publico/.test(error.message)?'El catálogo todavía no está activado.':error.message)}</p></div>`;return}
-    C=data;P=(data.productos||[]).filter(p=>p.p>0);await completarFotos(P);hayFotos=P.some(p=>p.img);armarCombos();cargarCarrito();
+    C=data;P=(data.productos||[]).filter(p=>p.p>0);await completarFotos(P);prepararP(P);hayFotos=P.some(p=>p.img);armarCombos();cargarCarrito();
   cargarSeg();setInterval(cargarSeg,120000);cargarFaq();grpRefrescar();chkNoEstoy();votCargar();sb.rpc('garantia_info').then(({data})=>{if(data&&data.activa){GAR=data;if(P.length&&$('#l'))lista()}},()=>{});if(BIO)return vistaBio();
     document.title='Catálogo · Sabores de mi País';$('#hc').textContent=(C.rubro?'Catálogo para '+C.rubro.toLowerCase():'Catálogo de productos')+' · precios con IVA';pintar();return}
   if(!token){$('#hc').textContent='';$('#m').innerHTML='<div class="msg"><h2>Falta el link</h2><p>Abrí el link que te mandamos por WhatsApp para ver tu catálogo.</p></div>';return}
   const{data,error}=await sb.rpc('catalogo_cliente',{p_token:token});
   if(error){$('#hc').textContent='';$('#m').innerHTML=`<div class="msg"><h2>No pudimos abrir tu catálogo</h2><p class="err">${esc(error.message)}</p></div>`;return}
-  C=data;P=(data.productos||[]).filter(p=>p.p>0);await completarFotos(P);hayFotos=P.some(p=>p.img);armarCombos();cargarCarrito();
+  C=data;P=(data.productos||[]).filter(p=>p.p>0);await completarFotos(P);prepararP(P);hayFotos=P.some(p=>p.img);armarCombos();cargarCarrito();
   cargarSeg();setInterval(cargarSeg,120000);cargarFaq();grpRefrescar();chkNoEstoy();votCargar();sb.rpc('garantia_info').then(({data})=>{if(data&&data.activa){GAR=data;if(P.length&&$('#l'))lista()}},()=>{});
   $('#hc').textContent=C.cliente+' · precios lista '+C.lista;
   $('#tabs').hidden=false;$$('[data-tab]').forEach(b=>b.onclick=()=>irTab(b.dataset.tab));regVista();pwaSetup();
@@ -525,7 +525,14 @@ function instHTML(){if(PUB||!token)return '';let no=false;try{no=localStorage.ge
 const btnAv=p=>(C.avisos||[]).includes(p.id)?'<button class="av ok" disabled>✓ Te avisamos cuando llegue</button>':`<button class="av" data-av="${p.id}">🔔 Avisame cuando llegue</button>`;
 let hayFotos=false,fam='',rub='',vista=(()=>{try{return localStorage.getItem('vista_cat')||'grilla'}catch(e){return 'grilla'}})();
 const cap=t=>{if(typeof FAM_ORDEN!='undefined'&&FAM_ORDEN[String(t||'').toUpperCase()]!=null)return String(t);t=String(t||'').toLowerCase();return t.charAt(0).toUpperCase()+t.slice(1)};
-const famDe=p=>(p.f||'').trim()||'Otros';
+const famDe=p=>p.fx||(p.f||'').trim()||'Otros';
+/* Al cargar: familia estándar (si la del producto no es del catálogo, se deduce por el nombre) y nombres en MAYÚSCULAS abreviados más legibles */
+const ACENTOS={jamon:'jamón',limon:'limón',azucar:'azúcar',mani:'maní',pure:'puré',jardin:'jardín',salmon:'salmón',atun:'atún',algodon:'algodón',melon:'melón',limpia:'limpia'};
+const MINUS=new Set('de del con sin y x en a al p/ c/ s/'.split(' '));
+function nombreBonito(d){const t=String(d||'');const L=t.replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ]/g,''),U=L.replace(/[^A-ZÁÉÍÓÚÑ]/g,'');if(L.length<4||U.length/L.length<.7)return t;
+  return famExpandir(t).split(' ').map((w,i)=>{if(ACENTOS[w])w=ACENTOS[w];if(/\d/.test(w)||/^(kg|g|gr|grs|ml|cc|lt|lts|l|cm|un|u)\.?$/.test(w))return w;if(i&&MINUS.has(w))return w;return w.charAt(0).toUpperCase()+w.slice(1)}).join(' ')}
+function prepararP(L){for(const p of L){const f=(p.f||'').trim();if(!(typeof FAM_ORDEN!='undefined'&&FAM_ORDEN[f.toUpperCase()]!=null)&&typeof famPorDescripcion=='function'){const g=famPorDescripcion(p.d);if(g)p.fx=g}
+  if(!p.combo){const b=nombreBonito(p.d);if(b!==p.d){p.d0=p.d;p.d=b}}}}
 async function completarFotos(L){try{if(typeof catalogoFotos!='function')return;await catalogoFotos();for(const p of L)if(!p.img){const k=catPorCodigo(p.c,p.d);if(k)p.img=k.img}}catch(e){}}
 function familias(){const c={};for(const p of P){const f=famDe(p);c[f]=(c[f]||0)+1}return Object.keys(c).sort(famCmp)}
 const PAL=['#7b2d3e','#1f5fa8','#2e7d4f','#c4571a','#6b3fa0','#0f766e','#b45309','#be185d','#334155','#4d7c0f'];
