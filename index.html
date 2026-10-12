@@ -104,6 +104,12 @@ button.bb{width:auto;font-size:13px;white-space:nowrap}small.eq{color:#7a5a00;fo
 td input.ub{width:56px;text-align:right;margin:0;padding:5px}td select.tb{width:auto;margin:0;padding:5px}
 .gbar{position:relative;display:flex;justify-content:space-between;gap:8px;padding:6px 8px;margin:4px 0;border-radius:6px;overflow:hidden;font-size:14px}.gbar span,.gbar b{position:relative;z-index:1}.gbar i{position:absolute;left:0;top:0;bottom:0;background:#f6e9ec;border-radius:6px}
 tr.tot td{border-top:2px solid #d9dce3}
+.qk{max-width:720px}.qk-l{max-height:58vh;overflow:auto;margin:6px 0}.qk-h{margin:12px 0 4px;position:sticky;top:0;background:var(--b,#fff);padding:4px 0;z-index:1}
+.qk-r{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:8px;align-items:center;padding:6px 4px;border-bottom:1px solid var(--l)}.qk-r.on{background:#eef7f1}
+.qk-ph{width:44px;height:44px;border-radius:6px;background:#fff;overflow:hidden}.qk-ph img{width:100%;height:100%;object-fit:contain}
+.qk-d{min-width:0;display:grid;font-size:14px;line-height:1.25}.qk-d b{font-weight:600;overflow-wrap:anywhere}.qk-d small{color:#6a7184}
+.qk-c{display:flex;align-items:center;gap:3px}.qk-c button{width:34px;height:34px;padding:0;font-size:18px;line-height:1}.qk-c input{width:58px;text-align:center;margin:0;padding:6px 2px}.qk-c small{width:30px;color:#6a7184;font-size:11px}
+.qk-pie{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;border-top:1px solid var(--l);padding-top:8px}
 .conscan{display:flex;gap:6px;align-items:flex-start;flex-wrap:wrap}.conscan input{flex:1 1 240px;min-width:0}.conscan>button{flex:0 0 auto}
 button.scan{display:inline-flex;align-items:center;justify-content:center;padding:0 12px;height:42px;flex:none}
 .scanm .mc{max-width:520px}.cam{position:relative;background:#000;border-radius:10px;overflow:hidden;aspect-ratio:4/3;max-width:100%}
@@ -210,7 +216,7 @@ body{zoom:var(--z,1)}html.oscuro{filter:invert(.92) hue-rotate(180deg);backgroun
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-11.40';
+const VERSION='2026-10-11.41';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -1362,13 +1368,47 @@ async function fichaCliente(c){
 }
 
 /* ---------- Pedidos y facturación ---------- */
+/* 📋 Carga rápida: todos los productos por familia, con cantidad, para armar el pedido de una pasada */
+function cargaRapida(lista,items,setQ,fin){
+  const Q={};for(const it of items)if(!it.cb)Q[it.p.producto_id]=it.q;
+  const pre=p=>Number(p['precio_'+lista])||0,nCod=v=>{const n=parseInt(String(v||'').replace(/\D/g,''),10);return isNaN(n)?Infinity:n};
+  const P=S.productos.filter(p=>S.min[p.producto_id]?.a!==false&&pre(p)>0);
+  const fam=p=>(p.familia||'').trim()||'Otros';
+  const FAM=[...new Set(P.map(fam))].sort(famCmp);
+  const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  m.innerHTML=`<div class="mc qk"><div class="bh"><h3>📋 Carga rápida</h3><button class="alt" id="qk_x">Cerrar</button></div>
+    <div class="g" style="margin-bottom:6px"><input id="qk_q" type="search" placeholder="🔎 Filtrar por nombre o código" autocomplete="off"><select id="qk_f"><option value="">Todas las familias</option>${FAM.map(f=>`<option>${esc(f)}</option>`).join('')}</select></div>
+    <label class="chk"><input type="checkbox" id="qk_s" style="width:auto;margin:0 8px 0 0">Ver solo lo que ya cargué</label>
+    <div id="qk_l" class="qk-l"></div>
+    <div class="qk-pie"><span id="qk_t"></span><button id="qk_ok">Agregar al pedido</button></div></div>`;
+  const unidad=id=>ppz(id)?'pzas':esKg(id)?'kg':'u.';
+  const paso=id=>esKg(id)?0.5:1;
+  const fila=p=>{const id=p.producto_id,q=Q[id]||0,f=S.min[id]?.foto;return `<div class="qk-r ${q?'on':''}" data-r="${id}">
+      <div class="qk-ph">${f?`<img src="${esc(f)}" alt="" loading="lazy">`:''}</div>
+      <div class="qk-d"><b>${esc(p.descripcion)}</b><small>${p.codigo?'Cód. '+esc(p.codigo)+' · ':''}${$m(pre(p))}${ppz(id)?' la pieza (≈ '+nf(ppz(id))+' kg)':esKg(id)?' el kg':''}</small></div>
+      <div class="qk-c"><button class="alt" data-m="${id}" aria-label="Menos">−</button><input type="number" inputmode="decimal" min="0" step="${paso(id)}" value="${q||''}" placeholder="0" data-q="${id}" aria-label="Cantidad"><button class="alt" data-p="${id}" aria-label="Más">+</button><small>${unidad(id)}</small></div></div>`};
+  const total=()=>{let n=0,t=0;for(const[id,q]of Object.entries(Q))if(q>0){const p=S.productos.find(x=>x.producto_id==id);if(!p)continue;n++;t+=q*pre(p)}
+    $('#qk_t').innerHTML=n?`<b>${n}</b> ${n==1?'producto':'productos'} · ≈ ${$m(t)}`:'Todavía no cargaste nada';$('#qk_ok').disabled=!Object.keys(Q).length};
+  const pintar=()=>{const q=$('#qk_q').value,f=$('#qk_f').value,solo=$('#qk_s').checked;
+    const L=P.filter(p=>(!f||fam(p)==f)&&(!q||coincide(p.descripcion+' '+(p.codigo||'')+' '+(p.marca||''),q))&&(!solo||Q[p.producto_id]>0));
+    const G={};for(const p of L)(G[fam(p)]=G[fam(p)]||[]).push(p);
+    $('#qk_l').innerHTML=L.length?Object.keys(G).sort(famCmp).map(g=>`<h4 class="qk-h">${esc(g)} <small>(${G[g].length})</small></h4>`+G[g].sort((a,b)=>nCod(a.codigo)-nCod(b.codigo)||a.descripcion.localeCompare(b.descripcion,'es')).map(fila).join('')).join(''):`<p><small>${solo?'Todavía no cargaste ningún producto.':'No hay productos con ese filtro.'}</small></p>`;
+    total()};
+  const setV=(id,v)=>{v=Math.max(0,Math.round((+v||0)*100)/100);Q[id]=v;const r=m.querySelector(`[data-r="${id}"]`);if(r){r.classList.toggle('on',v>0);const i=r.querySelector('[data-q]');if(i&&+i.value!==v)i.value=v||''}total()};
+  $('#qk_l').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const id=b.dataset.m||b.dataset.p;if(!id)return;setV(id,(Q[id]||0)+(b.dataset.p?1:-1)*paso(id))});
+  $('#qk_l').addEventListener('input',e=>{const i=e.target.closest('[data-q]');if(i)setV(i.dataset.q,i.value)});
+  $('#qk_q').oninput=pintar;$('#qk_f').onchange=pintar;$('#qk_s').onchange=pintar;
+  $('#qk_x').onclick=()=>m.remove();
+  $('#qk_ok').onclick=()=>{let n=0;for(const[id,q]of Object.entries(Q)){const p=S.productos.find(x=>x.producto_id==id);if(p){setQ(p,q);if(q>0)n++}}m.remove();if(fin)fin();toast(n?n+(n==1?' producto en el pedido.':' productos en el pedido.'):'Pedido actualizado.')};
+  pintar();setTimeout(()=>$('#qk_q')?.focus(),50)}
+
 async function vPedidos(){
   S.items=[];S.pcli=null;S.pcup=null;S.pac={};S.pniv=null;
   $('#v').innerHTML=`<h2>Pedidos</h2><div class="box">
   <input id="p_cq" placeholder="Cliente: escribí nombre o CUIT" autocomplete="off"><div id="p_cr"></div>
   <div id="p_sel" hidden><div class="clirow"><b id="p_cn"></b> <small id="p_cl"></small> <a id="p_cx">Cambiar</a></div>
     <div id="p_rep"></div><div id="p_fav" class="chips"></div></div><div id="p_cb" class="chips sug"></div>
-  <div class="conscan"><input id="p_q" type="search" placeholder="🔎 Buscar producto por nombre o código" autocomplete="off">${btnScan('p_sc')}<button class="alt" id="p_wa" title="Pegar el pedido que te mandó por WhatsApp">📋 Pegar de WhatsApp</button><button class="alt" id="p_vo" title="Dictar el pedido">🎤 Dictar</button></div><div id="p_r"></div><table id="p_i"></table><p><b id="p_t"></b><br><span id="p_tk"></span></p><div id="p_av"></div><div id="p_sug" class="chips sug"></div><div class="cupw"><input id="p_cu" placeholder="Cupón (opcional)" autocomplete="off" style="text-transform:uppercase"><button class="alt" id="p_cuo">Aplicar cupón</button> <small id="p_cum"></small></div><div class="fc-acc"><button id="p_g">Guardar pedido</button><button class="alt" id="p_pre">📝 Mandar como presupuesto</button></div></div>
+  <div class="conscan"><input id="p_q" type="search" placeholder="🔎 Buscar producto por nombre o código" autocomplete="off">${btnScan('p_sc')}<button class="alt" id="p_qk" title="Ver todos los productos por familia y cargar cantidades">⚡ Carga rápida</button><button class="alt" id="p_wa" title="Pegar el pedido que te mandó por WhatsApp">📋 Pegar de WhatsApp</button><button class="alt" id="p_vo" title="Dictar el pedido">🎤 Dictar</button></div><div id="p_r"></div><table id="p_i"></table><p><b id="p_t"></b><br><span id="p_tk"></span></p><div id="p_av"></div><div id="p_sug" class="chips sug"></div><div class="cupw"><input id="p_cu" placeholder="Cupón (opcional)" autocomplete="off" style="text-transform:uppercase"><button class="alt" id="p_cuo">Aplicar cupón</button> <small id="p_cum"></small></div><div class="fc-acc"><button id="p_g">Guardar pedido</button><button class="alt" id="p_pre">📝 Mandar como presupuesto</button></div></div>
   <div class="bh"><h3>Últimos pedidos</h3><div class="fc-acc"><button class="alt" onclick="hojaArmado()">🧺 Hoja de armado</button><button class="alt" onclick="autoAprobarCfg()">🤖 Aprobación automática</button></div></div><table id="pl"></table>`;
   const cli=()=>S.pcli;
   const pr=p=>S.pac[p.producto_id]||Number(p['precio_'+(cli()?.lista||'mayorista')]);
@@ -1427,6 +1467,7 @@ async function vPedidos(){
   buscador('#p_q','#p_r',p=>{add(p);drawI();$('#p_q').focus()},p=>`<b>${$m(pr(p))}</b> ${chipStock(p.producto_id)} ${chipBulto(p.producto_id)} ${chipPromo(promoCerca(p.producto_id,lis()))}`);
   $('#p_sc').onclick=()=>escanear('Escanear productos del pedido',p=>{add(p);drawI();const it=S.items.find(i=>i.p.producto_id==p.producto_id);return '✔ '+p.descripcion+' · llevás '+it.q});
   $('#p_q').onkeydown=e=>{if(e.key=='Enter'){const f=$('#p_r .r');if(f)f.click()}};
+  $('#p_qk').onclick=()=>cargaRapida(lis(),S.items,(p,q)=>{const it=S.items.find(i=>i.p.producto_id==p.producto_id&&!i.cb);if(it){if(q>0)it.q=sbq(p.producto_id,q);else S.items.splice(S.items.indexOf(it),1)}else if(q>0)add(p,q)},drawI);
   $('#p_wa').onclick=()=>pegarPedido((p,q)=>{add(p,q);drawI()});
   $('#p_vo').onclick=()=>{pegarPedido((p,q)=>{add(p,q);drawI()});setTimeout(()=>$('#pp_mic')?.click(),150)};
   if(S.preCli){const c=S.preCli;S.preCli=null;elegir(c).then(()=>{if(S.preRep){S.preRep=null;const b=$('#p_ru');if(b)b.click();else toast('Es su primer pedido: no hay nada para repetir.')}});if(S.preItems){for(const id of S.preItems){const p=S.productos.find(x=>x.producto_id==id);if(p)add(p,bul(id)?.n||1)}S.preItems=null;setTimeout(drawI,50)}}else $('#p_cq').focus();
