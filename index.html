@@ -217,7 +217,7 @@ body{zoom:var(--z,1)}html.oscuro{filter:invert(.92) hue-rotate(180deg);backgroun
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-12.50';
+const VERSION='2026-10-12.51';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -6580,7 +6580,7 @@ window.addEventListener('online',()=>setTimeout(sincronizarOff,1500));
 /* ======================= ORDEN, VELOCIDAD Y COMODIDAD (tanda 19) ======================= */
 const RAW_SQL='https://raw.githubusercontent.com/dnegri0805-cell/crm-sabores/main/sql/',SUPA_SQL='https://supabase.com/dashboard/project/ggfqdkgqtpnkvxoykoty/sql/new';
 /* 1. Chequeo del sistema: qué SQL falta correr */
-const SQL_CHK=[['catalogo-app.sql','rpc:catalogo_extra',''],['pedidos-extra.sql','pedidos','fecha_entrega'],['clientes-direccion.sql','clientes','codigo_postal'],['impresion.sql','cola_impresion','id'],['control.sql','vencimientos','id'],['ventas-auto.sql','envios_auto','id'],['ventas-auto2.sql','envios_auto','variante'],['ventas-auto3.sql','clientes','cumpleanos'],['ventas-estrategia.sql','acuerdos','id'],['ventas-instagram.sql','prospectos','instagram'],
+const SQL_CHK=[['catalogo-app.sql','rpc:catalogo_extra',''],['pedido-cambios.sql','pedido_items','precio_lista'],['pedidos-extra.sql','pedidos','fecha_entrega'],['clientes-direccion.sql','clientes','codigo_postal'],['impresion.sql','cola_impresion','id'],['control.sql','vencimientos','id'],['ventas-auto.sql','envios_auto','id'],['ventas-auto2.sql','envios_auto','variante'],['ventas-auto3.sql','clientes','cumpleanos'],['ventas-estrategia.sql','acuerdos','id'],['ventas-instagram.sql','prospectos','instagram'],
   ['ventas-mas2.sql','alertas_oferta','id'],['ventas-peso.sql','pedido_items','peso_real'],['operacion.sql','costos_proveedor','producto_id'],['negocio.sql','mermas','id'],['solo.sql','pedidos','auto_aprobado'],['entregas.sql','pedidos','entrega'],['cobrar.sql','notas_cliente','id'],['vivo.sql','reparto_vivo','id'],['practico.sql','fraccionados','id'],['cuentas.sql','promesas_pago','id'],['visitas.sql','repartos_dia','id'],['avisos.sql','comprobantes_cliente','id']];
 async function sqlFaltantes(){const R=await Promise.all(SQL_CHK.map(([f,t,c])=>(/^rpc:/.test(t)?sb.rpc(t.slice(4)):sb.from(t).select(c).limit(1)).then(({error})=>error&&/does not exist|Could not find|schema cache|no existe/i.test(error.message)?f:null,()=>null)));return R.filter(Boolean)}
 async function copiarSQL(f,b){try{const t=await(await fetch(RAW_SQL+f+'?nc='+Date.now())).text();await navigator.clipboard.writeText(t);if(b){b.textContent='✓ Copiado';b.classList.add('hecho')}toast('SQL copiado. Ahora pegalo en Supabase (Ctrl + V) y tocá Run.')}catch(e){window.open(RAW_SQL+f,'_blank');toast('Se abrió el SQL: copialo con Ctrl + A y Ctrl + C.')}}

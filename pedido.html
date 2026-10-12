@@ -264,6 +264,10 @@ input,textarea{border:2px solid #ece3d6;border-radius:14px}
 .fic .fq .mn,.fic .fq .ms{width:50px;height:50px;border-radius:50%;font-size:24px;padding:0}.fic .fq input{width:80px;height:50px;text-align:center;font-size:18px;margin:0}
 .fic .fsub{font-size:14px;color:var(--ok);margin:4px 0}.fic .ffv{width:100%;margin:8px 0;border-radius:999px}.fic .fver{width:100%;height:50px;border-radius:999px;margin-top:12px;position:sticky;bottom:0}
 .fic .agl .sc{cursor:pointer}.olv{background:#fff8e6;border-radius:14px;padding:8px 10px}
+
+.editb{background:#fff4d1;color:#5a3a00;border:1px solid #f0c95a;border-radius:14px;padding:10px 12px;margin:10px 0;font-size:14px;line-height:1.4}.editb a{color:var(--m);font-weight:700;cursor:pointer;text-decoration:underline;white-space:nowrap}
+.sfalta{margin:10px 0}.sfalta b{font-size:14px}.sfo{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.sfo button{border:1px solid var(--l);background:#fff;color:inherit;border-radius:999px;padding:8px 12px;font-size:13px;min-height:0;height:auto}.sfo button.on{background:var(--m);border-color:var(--m);color:#fff;font-weight:700}
+.aho{background:linear-gradient(135deg,#e8f6ee,#fff)}.aho .big{color:var(--ok)}
 </style>
 </head>
 <body>
@@ -274,7 +278,7 @@ input,textarea{border:2px solid #ece3d6;border-radius:14px}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-12.33';
+const VERSION='2026-10-12.34';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -523,7 +527,7 @@ async function miCuenta(){$('#m').innerHTML='<p class="mas">Cargando tu cuenta�
       ${debe?bloquePago(x,+x.saldo):''}</div>
     <div class="cta"><h3 style="margin:0 0 4px">Facturas pendientes</h3>${F.length?F.map(f=>`<div class="fila"><div>Factura ${esc(f.t)} N° ${f.n}<br><small>${f.f?'del '+fdc(f.f)+' · ':''}vence ${fdc(f.v)}</small>${f.dm>0?`<br><small class="venc">Vencida hace ${f.dm} ${f.dm==1?'día':'días'}</small>`:''}${(()=>{const pp=x.pronto;if(!pp||!(+pp.pct>0)||!f.f)return '';const lim=new Date(new Date(String(f.f).slice(0,10)+'T12:00').getTime()+pp.dias*864e5);return lim>=new Date(new Date().toDateString())?`<br><small class="okt">💸 Pagando hasta el ${lim.toLocaleDateString('es-AR')}: <b>${$m(f.p*(1-pp.pct/100))}</b> (−${nf(pp.pct)} %)</small>`:''})()}</div><div class="n">${$m(f.p)}${+f.p<+f.tot?`<br><small>de ${$m(f.tot)}</small>`:''}</div></div>`).join(''):'<p class="mas" style="padding:4px 0;text-align:left">No tenés facturas pendientes.</p>'}</div>
     ${(x.pedidos||[]).length?`<div class="cta"><h3 style="margin:0 0 4px">📦 Tus pedidos</h3>${x.pedidos.map(o=>{const k=TRK[o.e]??0;return`<div class="pdl"><div class="fila" style="border:0;padding:0"><div><b>Pedido N° ${o.n}</b><br><small>${fdc(o.f)} · ${TRKT[k]}${o.e=='entregado'&&o.ent?' el '+fdc(o.ent):''}</small></div><div class="n">${$m(o.t)}</div></div>
-      <div class="trk">${[0,1,2,3].map(i=>`<i class="${i<=k?'on':''}"></i>`).join('')}</div><div class="acc2"><a data-cv="${o.n}">🧾 Ver comprobante</a>${o.e=='pendiente'?`<a data-cor="${o.n}">✏️ Corregir el pedido</a>`:''}${o.e=='entregado'?`<a data-rmt="${o.n}">✍️ Remito</a>`:''}${o.e=='en_reparto'?`<a onclick="verMapa()">📍 Dónde está</a>`:''}${o.e=='entregado'||o.e=='en_reparto'?`<a data-rcl="${o.n}">🆘 Tuve un problema</a>`:''}</div></div>`}).join('')}</div>`:''}
+      <div class="trk">${[0,1,2,3].map(i=>`<i class="${i<=k?'on':''}"></i>`).join('')}</div><div class="acc2"><a data-cv="${o.n}">🧾 Ver comprobante</a>${['pendiente','aprobado'].includes(o.e)?`<a data-mod="${o.n}">✏️ Modificar</a><a data-can="${o.n}">✖️ Cancelar</a>`:''}${o.e=='entregado'?`<a data-rmt="${o.n}">✍️ Remito</a>`:''}${o.e=='en_reparto'?`<a onclick="verMapa()">📍 Dónde está</a>`:''}${o.e=='entregado'||o.e=='en_reparto'?`<a data-rcl="${o.n}">🆘 Tuve un problema</a>`:''}</div></div>`}).join('')}</div>`:''}
     ${(x.reclamos||[]).length?`<div class="cta"><h3 style="margin:0 0 4px">🆘 Tus reclamos</h3>${x.reclamos.map(r=>`<div class="fila"><div>${esc(r.tipo)}${r.n?' · pedido N° '+r.n:''}<br><small>${fdc(r.f)}${r.r?' · '+esc(r.r):''}</small></div><div class="n ${r.e=='abierto'?'venc':'okt'}">${r.e=='abierto'?'En revisión':'Resuelto'}</div></div>`).join('')}</div>`:''}
     <div class="cta"><h3 style="margin:0 0 4px">Tus últimos pagos</h3>${Pg.length?Pg.map(r=>`<div class="fila"><div>Recibo N° ${r.n}<br><small>${fdc(r.f)} · ${esc(String(r.m||'').replace('_',' '))} · <a data-rv="${r.n}" style="color:var(--m);cursor:pointer">Ver recibo</a></small></div><div class="n">${$m(r.i)}</div></div>`).join(''):'<p class="mas" style="padding:4px 0;text-align:left">Todavía no hay pagos registrados.</p>'}</div>
     ${x.puntos_activo&&'puntos' in x?`<div class="cta"><div class="lab">🏆 Tus puntos</div><div class="big">${nf(x.puntos)} puntos</div><small style="color:var(--mu)">Valen ${$m(x.puntos*(+x.valor_punto||10))} de descuento. Sumás 1 punto cada ${$m(x.puntos_cada||1000)} de compra entregada. Usalos tildando "Usar mis puntos" al enviar tu pedido.</small>
@@ -540,6 +544,9 @@ async function miCuenta(){$('#m').innerHTML='<p class="mas">Cargando tu cuenta�
   $$('#m [data-cor]').forEach(a=>a.onclick=async()=>{if(!confirm('Vamos a pasar tu pedido N° '+a.dataset.cor+' al carrito para que lo corrijas. Cuando termines, tocá Enviar pedido de nuevo. ¿Seguimos?'))return;
     const{data,error}=await sb.rpc('corregir_pedido_cliente',{p_token:token,p_numero:+a.dataset.cor});if(error)return toast(/corregir_pedido/.test(error.message)?'Esta opción todavía no está activada: escribinos por WhatsApp.':error.message);
     car={};for(const x of data.items||[])if(prod(x.id))car[x.id]=+x.q;guardar();irTab('pedido');barra();toast('Listo: tu pedido está en el carrito. Cambiá lo que quieras y envialo de nuevo.')});
+  $$('#m [data-mod]').forEach(a=>a.onclick=()=>modificarPedido(+a.dataset.mod));
+  $$('#m [data-can]').forEach(a=>a.onclick=()=>cancelarPedido(+a.dataset.can));
+  sb.rpc('ahorro_cliente',{p_token:token}).then(({data})=>{if(!data||!(+data.anio>0))return;const f=$('#m .cta');if(f&&!$('#aho'))f.insertAdjacentHTML('afterend',`<div class="cta aho" id="aho"><div class="lab">💰 Lo que ahorraste comprando acá</div><div class="big">${$m(data.anio)}</div><small>este año, con ofertas, descuentos, cupones y puntos${+data.total>+data.anio?' · '+$m(data.total)+' en total':''}</small></div>`)},()=>{});
   $$('#m [data-rcl]').forEach(a=>a.onclick=()=>reclamo(+a.dataset.rcl));
   $$('#m [data-rv]').forEach(a=>a.onclick=()=>{const r=Pg.find(z=>z.n==a.dataset.rv);docImprimir('Recibo N° '+r.n,`<p><b>Recibimos de:</b> ${esc(x.cliente)}</p><p><b>Fecha:</b> ${fdc(r.f)} · <b>Medio:</b> ${esc(String(r.m||'').replace('_',' '))}</p><table><tr class="tot"><td>Importe recibido</td><td class="n">${$m(r.i)}</td></tr></table>`)});
   const fb=$('#fjb');if(fb)fb.onclick=async()=>{fb.disabled=true;const{error}=await sb.rpc('fijo_cliente',{p_token:token,p_dias:x.fijo.dias||[],p_items:x.fijo.items||[],p_activo:!x.fijo.activo});if(error){fb.disabled=false;return toast(error.message)}toast(x.fijo.activo?'Pedido automático pausado.':'Pedido automático reactivado.');miCuenta()};
@@ -630,6 +637,8 @@ function pintar(){
     ${!PUB&&((C.habituales||[]).length||(C.favs||[]).length)?`<button class="sgb" id="rap" style="background:#eef4ff;border-color:#1f5fa8;color:#1e3a8a">⚡ Pedido rápido: tus ${(C.habituales||[]).length||(C.favs||[]).length} productos de siempre en una lista</button>`:''}
     ${(C.ultimo||[]).length?`<button class="sec rep" id="rep">Repetir mi último pedido (${C.ultimo.length} productos)</button>`:''}
     <div class="lista" id="l"></div>`;
+  if(EDIT&&!PUB)$('#m').insertAdjacentHTML('afterbegin',`<div class="editb">✏️ <b>Estás modificando el pedido N° ${EDIT.n}.</b> Agregá o sacá lo que quieras y después tocá <b>Ver pedido → Guardar cambios</b>. <a id="edx">Descartar cambios</a></div>`);
+  $('#edx')&&($('#edx').onclick=()=>{if(!confirm('¿Descartás los cambios? El pedido N° '+EDIT.n+' queda como estaba.'))return;const n=EDIT.n;car=EDIT.prev||{};editSet(null);guardar();pintar();toast('Listo: el pedido N° '+n+' quedó como estaba.')});
   $('#q').oninput=e=>{filtro=e.target.value;lim=60;lista();sugQ()};$('#q').onfocus=sugQ;
   $('#q').onblur=()=>setTimeout(()=>{const d=$('#sgq');if(d)d.hidden=true;recGuardar(filtro)},200);$('#q').onkeydown=e=>{if(e.key=='Enter'){recGuardar(filtro);e.target.blur()}};
   $('#mk')&&($('#mk').onchange=e=>{marca=e.target.value;lim=60;lista()});
@@ -925,11 +934,11 @@ function barra(){const n=Object.keys(car).length;$('#bar').hidden=!n;if(!n)retur
 $('#bv').onclick=revisar;
 function revisar(){
   const cerrar=()=>{h.remove();lista();barra()};
-  const h=document.createElement('div');h.className='hoja';
+  const h=document.createElement('div');h.className='hoja';if(EDIT&&!PUB&&EDIT.nota&&h._nota==null)h._nota=EDIT.nota;
   if(!PUB&&EST.micombo&&totalCar()>=+EST.micombo.minimo)h._cup={codigo:EST.micombo.codigo,pct:+EST.micombo.pct};
   const draw=()=>{const I=Object.entries(car).filter(([id])=>prod(id));
     if(!I.length){cerrar();return}
-    h.innerHTML=`<div class="c" role="dialog" aria-label="Tu pedido"><h2>Tu pedido</h2>
+    h.innerHTML=`<div class="c" role="dialog" aria-label="Tu pedido"><h2>${EDIT&&!PUB?'✏️ Modificando el pedido N° '+EDIT.n:'Tu pedido'}</h2>
       ${I.map(([id,q])=>{const p=prod(id);return `<div class="it"><div>${esc(p.d)}<br><small>${$m(puP(p,q))} ${esKgP(id)?'el kg · '+nf(q)+' kg':'c/u'}${promoP(p,q)?' (−'+nf(promoP(p,q).pct)+' %)':''}${enB(p,q)?' · '+nf(q)+' u. = '+enB(p,q):''}</small></div><div class="n">${$m(puP(p,q)*q)}</div>
         <div class="q"><button data-r="${id}" aria-label="Restar">−</button><input type="number" inputmode="numeric" min="0" value="${q}" data-i="${id}" aria-label="Cantidad"><button data-s="${id}" aria-label="Sumar">+</button><button class="x" data-x="${id}">Quitar</button></div></div>`}).join('')}
       ${(()=>{const O=olvidados();return O.length?`<div class="agt olv"><h3>🤔 ¿Te olvidaste de algo? <small style="color:var(--mu);font-weight:400">· lo que siempre llevás</small></h3><div class="agl">${O.map(x=>`<div class="sc">${x.p.img?`<img src="${esc(x.p.img)}" alt="" loading="lazy">`:`<span class="i0">${esc((x.p.d||'?')[0])}</span>`}<span>${esc(x.p.d)}</span><b>${$m(puP(x.p,x.q))}${esKgP(x.p.id)?'<small> /kg</small>':''}</b><button data-olv="${x.p.id}" data-n="${x.q}">+ ${nf(x.q)}${esKgP(x.p.id)?' kg':''}</button></div>`).join('')}</div></div>`:''})()}
@@ -947,11 +956,12 @@ function revisar(){
         (!PUB&&C.puntos_activo&&+C.puntos>0?`<label class="ptchk"><input type="checkbox" id="ptc" ${h._pts?'checked':''}><span>Usar mis <b>${nf(C.puntos)} puntos</b> (valen ${$m(C.puntos*(+C.valor_punto||10))}; se puede pagar hasta el ${nf(+C.canje_max||20)} % del pedido)</span></label>`:'')})()}
       ${!PUB&&token?`<div class="fij"><label><input type="checkbox" id="fjc" ${h._fij?'checked':''}> 🔁 Repetir este pedido automáticamente</label>${h._fij?`<div class="dch">${['Lun','Mar','Mié','Jue','Vie','Sáb'].map((d,i)=>`<button data-fd="${i+1}" class="${(h._fd||[]).includes(i+1)?'on':''}">${d}</button>`).join('')}</div><small style="color:var(--mu)">Te lo armamos solo esos días, con los precios del momento. Lo pausás cuando quieras en "Mi cuenta".</small>`:''}</div>`:''}
       ${PUB?`<input id="pnom" maxlength="80" placeholder="Tu nombre o el de tu negocio *" value="${esc(h._nom||'')}" style="margin-bottom:8px"><input id="ptel" maxlength="30" inputmode="tel" placeholder="Tu WhatsApp *" value="${esc(h._tel||'')}" style="margin-bottom:8px"><input id="pdir" maxlength="120" placeholder="Dirección o zona de entrega" value="${esc(h._dir||'')}" style="margin-bottom:8px">`:''}
-      ${grupoHTML(totalFinal())}<textarea id="nota" rows="2" maxlength="500" placeholder="¿Algo que tengamos que saber? (horario de entrega, etc.)">${esc(h._nota||'')}</textarea>
+      ${EDIT&&!PUB?'':grupoHTML(totalFinal())}${(()=>{h._sf=h._sf||sfLeer();return `<div class="sfalta"><b>Si falta algún producto:</b><div class="sfo">${SF.map(([k,t])=>`<button class="${h._sf==k?'on':''}" data-sf="${k}">${t}</button>`).join('')}</div></div>`})()}<textarea id="nota" rows="2" maxlength="500" placeholder="¿Algo que tengamos que saber? (horario de entrega, etc.)">${esc(h._nota||'')}</textarea>
       ${PUB?'':entregaHTML()}${PUB?'':garHTML()}${PUB||!C?.entrega?'':(()=>{const F=fechasEntrega(4);if(F.length<2)return '';h._ent=h._ent||ymdL(F[0]);return `<label class="entsel">📅 ¿Cuándo te lo llevamos? <select id="entd">${F.map(d=>`<option value="${ymdL(d)}" ${h._ent==ymdL(d)?'selected':''}>${d.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'numeric'})}</option>`).join('')}</select></label>`})()}
       <p style="font-size:13px;color:var(--mu)">Los precios incluyen IVA. ${PUB?'Te escribimos por WhatsApp para confirmar stock y entrega.':'Te confirmamos el pedido cuando lo revisemos.'}</p>
-      <div class="acc"><button class="sec" id="seg">Seguir comprando</button><button class="prim" id="env">Enviar pedido</button></div></div>`;
+      <div class="acc"><button class="sec" id="seg">Seguir comprando</button><button class="prim" id="env">${EDIT&&!PUB?'Guardar cambios':'Enviar pedido'}</button></div></div>`;
     const sv=()=>{h._nota=$('#nota').value;if($('#entd'))h._ent=$('#entd').value;if($('#cupi'))h._cupv=$('#cupi').value;if(PUB){h._nom=$('#pnom').value;h._tel=$('#ptel').value;h._dir=$('#pdir').value}};
+    h.querySelectorAll('[data-sf]').forEach(b=>b.onclick=()=>{sv();h._sf=b.dataset.sf;try{localStorage.setItem('si_falta',h._sf)}catch(e){}draw()});
     const fj=h.querySelector('#fjc');if(fj)fj.onchange=()=>{sv();h._fij=fj.checked;h._fd=h._fd||[];draw()};
     h.querySelectorAll('[data-fd]').forEach(b=>b.onclick=()=>{sv();const d=+b.dataset.fd;h._fd=(h._fd||[]).includes(d)?h._fd.filter(x=>x!=d):[...(h._fd||[]),d];draw()});
     h.querySelectorAll('[data-ck]').forEach(b=>b.onclick=()=>{sv();car[b.dataset.ck]=(car[b.dataset.ck]||0)+paso(b.dataset.ck);guardar();toast('¡Sumado!');draw()});
@@ -974,25 +984,26 @@ function revisar(){
     if(PUB)h.querySelector('#env').onclick=async e=>{sv();if(bajoMin())return;const nom=(h._nom||'').trim();if(!nom){toast('Poné tu nombre o el de tu negocio.');$('#pnom').focus();return}
       if(!telLimpio(h._tel)){toast('Poné tu WhatsApp para que te confirmemos el pedido.');$('#ptel').focus();return}
       const b=e.target;b.disabled=true;b.textContent='Enviando…';
-      const{data:pw,error:pe}=await sb.rpc('pedido_publico',{p_nombre:nom,p_telefono:h._tel.trim(),p_domicilio:(h._dir||'').trim(),p_items:I.map(([id,q])=>({id,q})),p_nota:h._nota||null,p_ref:REF||null,p_cupon:h._cup?.codigo||null,p_rubro:RUB||C.rubro||null});
+      const{data:pw,error:pe}=await sb.rpc('pedido_publico',{p_nombre:nom,p_telefono:h._tel.trim(),p_domicilio:(h._dir||'').trim(),p_items:I.map(([id,q])=>({id,q})),p_nota:notaFinal(h),p_ref:REF||null,p_cupon:h._cup?.codigo||null,p_rubro:RUB||C.rubro||null});
       if(!pe){marcarQR(h._tel.trim());car={};guardar();h.remove();$('#bar').hidden=true;
         $('#m').innerHTML=`<div class="msg"><div class="ok">✓</div><h2>¡Recibimos tu pedido!</h2><p>Pedido N° <b>${pw.numero}</b> · ${pw.productos} ${pw.productos==1?'producto':'productos'} · <b>${$m(pw.total)}</b></p><p>Te escribimos por WhatsApp al <b>${esc(h._tel)}</b> para confirmar stock y entrega. ¡Gracias!</p>${telLimpio(C.tel)?`<a class="sec" style="display:block;text-decoration:none;margin:10px 0" target="_blank" rel="noopener" href="https://wa.me/${telLimpio(C.tel)}?text=${encodeURIComponent('¡Hola! Soy '+nom+'. Les acabo de mandar el pedido N° '+pw.numero+' desde el catálogo.')}">Avisar por WhatsApp</a>`:''}<button class="sec" id="otro">Volver al catálogo</button></div>`;
         $('#otro').onclick=()=>{filtro='';pintar()};window.scrollTo(0,0);return}
       if(!/pedido_publico|function|schema/i.test(pe.message)){b.disabled=false;b.textContent='Enviar pedido';toast(pe.message);return}
       const tel=telLimpio(C.tel);if(!tel){b.disabled=false;b.textContent='Enviar pedido';toast('Escribinos por WhatsApp para hacer el pedido.');return}
-      const t=`*Pedido desde el catálogo*\n${nom}${h._dir?'\n'+h._dir.trim():''}\n\n`+I.map(([id,q])=>{const p=prod(id);return `• ${nf(q)}${esKgP(id)?' kg':''} x ${p.d}${enB(p,q)?' ('+enB(p,q)+')':''} — ${$m(puP(p,q)*q)}`}).join('\n')+(()=>{const k=cuentas(h);return (k.e||k.cu?`\n\nSubtotal: ${$m(k.t)}`:'')+(k.e?`\nDescuento por monto ${nf(k.e)} %: −${$m(k.t-k.b1)}`:'')+(k.cu?`\nCupón ${h._cup.codigo} ${nf(k.cu)} %: −${$m(k.bn-k.b2)}`:'')+`\n\n*Total: ${$m(k.fin)}*`})()+(h._nota?'\n\nNota: '+h._nota.trim():'')+(C.ref_nombre?`\n\n🤝 Me recomendó: ${C.ref_nombre} (código ${REF})`:'');
+      const t=`*Pedido desde el catálogo*\n${nom}${h._dir?'\n'+h._dir.trim():''}\n\n`+I.map(([id,q])=>{const p=prod(id);return `• ${nf(q)}${esKgP(id)?' kg':''} x ${p.d}${enB(p,q)?' ('+enB(p,q)+')':''} — ${$m(puP(p,q)*q)}`}).join('\n')+(()=>{const k=cuentas(h);return (k.e||k.cu?`\n\nSubtotal: ${$m(k.t)}`:'')+(k.e?`\nDescuento por monto ${nf(k.e)} %: −${$m(k.t-k.b1)}`:'')+(k.cu?`\nCupón ${h._cup.codigo} ${nf(k.cu)} %: −${$m(k.bn-k.b2)}`:'')+`\n\n*Total: ${$m(k.fin)}*`})()+(notaFinal(h)?'\n\nNota: '+notaFinal(h):'')+(C.ref_nombre?`\n\n🤝 Me recomendó: ${C.ref_nombre} (código ${REF})`:'');
       window.open('https://wa.me/'+tel+'?text='+encodeURIComponent(t),'_blank');car={};guardar();h.remove();$('#bar').hidden=true;
       $('#m').innerHTML=`<div class="msg"><div class="ok">✓</div><h2>¡Listo!</h2><p>Se abrió WhatsApp con tu pedido. <b>Tocá enviar</b> en WhatsApp y te respondemos para confirmar.</p><button class="sec" id="otro">Volver al catálogo</button></div>`;
       $('#otro').onclick=()=>{filtro='';pintar()};window.scrollTo(0,0)};
     else h.querySelector('#env').onclick=async e=>{sv();const b=e.target;b.disabled=true;b.textContent='Enviando…';
-      const k=cuentas(h),args={p_token:token,p_items:I.map(([id,q])=>({id,q})),p_nota:h._nota||null};if(h._cup)args.p_cupon=h._cup.codigo;if(k.pts)args.p_puntos=true;
+      const k=cuentas(h),args={p_token:token,p_items:I.map(([id,q])=>({id,q})),p_nota:notaFinal(h)};const ED=EDIT;if(ED)args.p_numero=ED.n;if(h._cup)args.p_cupon=h._cup.codigo;if(k.pts)args.p_puntos=true;
       if(h._fij&&!(h._fd||[]).length){b.disabled=false;b.textContent='Enviar pedido';toast('Elegí qué días repetir el pedido.');return}
-      if(GRP)args.p_grupo=GRP.codigo;const{data,error}=await sb.rpc(GRP?'crear_pedido_grupo':'crear_pedido_cliente',args);if(!error&&GRP)grpGuardar(null);
-      if(error){b.disabled=false;b.textContent='Enviar pedido';toast(error.message);return}
+      if(GRP&&!ED)args.p_grupo=GRP.codigo;const{data,error}=await sb.rpc(ED?'reemplazar_pedido_cliente':GRP?'crear_pedido_grupo':'crear_pedido_cliente',args);if(!error&&GRP&&!ED)grpGuardar(null);
+      if(error){b.disabled=false;b.textContent=ED?'Guardar cambios':'Enviar pedido';toast(ED&&/reemplazar_pedido/.test(error.message)?'Esta opción todavía no está activada: escribinos por WhatsApp.':error.message);return}
+      if(ED)editSet(null);
       let fijoOk=false;if(h._fij){const{error:fe}=await sb.rpc('fijo_cliente',{p_token:token,p_dias:h._fd,p_items:I.map(([id,q])=>({id,q})),p_activo:true});fijoOk=!fe;if(!fe)C.fijo={dias:h._fd,activo:true}}
       if(h._ent&&data?.numero)sb.rpc('fijar_entrega',{p_token:token,p_numero:data.numero,p_fecha:h._ent}).then(()=>{},()=>{});
       car={};guardar();h.remove();$('#bar').hidden=true;if(+data.puntos)C.puntos=Math.max(0,(+C.puntos||0)-data.puntos);
-      $('#m').innerHTML=`<div class="msg"><div class="ok">✓</div><h2>¡Recibimos tu pedido!</h2>${h._ent?`<p>📅 Te lo llevamos el <b>${new Date(h._ent+'T12:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'numeric'})}</b></p>`:''}<p>Pedido N° <b>${data.numero}</b> · ${data.productos} ${data.productos==1?'producto':'productos'} · <b>${$m(data.total)}</b></p>${+data.cupon||+data.puntos||+data.descuento?`<p class="okt">Ahorraste con ${[+data.descuento?'descuento por monto':'',+data.cupon?'tu cupón':'',+data.puntos?nf(data.puntos)+' puntos':''].filter(Boolean).join(' + ')} 🎉</p>`:''}${fijoOk?`<p class="okt">🔁 Listo: lo repetimos solo los ${h._fd.sort().map(d=>['lunes','martes','miércoles','jueves','viernes','sábados','domingos'][d-1]).join(' y ')}.</p>`:''}<p>Te avisamos cuando esté confirmado. ¡Gracias por tu compra!</p>${C.mp||C.pago?`<details style="margin:12px 0;text-align:left"><summary>¿Querés pagarlo ya?</summary>${bloquePago(C,data.total)}</details>`:''}<button class="sec" id="otro">Hacer otro pedido</button></div>`;
+      $('#m').innerHTML=`<div class="msg"><div class="ok">✓</div><h2>${ED?'¡Listo, guardamos los cambios!':'¡Recibimos tu pedido!'}</h2>${ED?`<p class="okt">✏️ Tu pedido N° ${ED.n} quedó reemplazado por este.</p>`:''}${h._ent?`<p>📅 Te lo llevamos el <b>${new Date(h._ent+'T12:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'numeric'})}</b></p>`:''}<p>Pedido N° <b>${data.numero}</b> · ${data.productos} ${data.productos==1?'producto':'productos'} · <b>${$m(data.total)}</b></p>${+data.cupon||+data.puntos||+data.descuento?`<p class="okt">Ahorraste con ${[+data.descuento?'descuento por monto':'',+data.cupon?'tu cupón':'',+data.puntos?nf(data.puntos)+' puntos':''].filter(Boolean).join(' + ')} 🎉</p>`:''}${fijoOk?`<p class="okt">🔁 Listo: lo repetimos solo los ${h._fd.sort().map(d=>['lunes','martes','miércoles','jueves','viernes','sábados','domingos'][d-1]).join(' y ')}.</p>`:''}<p>Te avisamos cuando esté confirmado. ¡Gracias por tu compra!</p>${C.mp||C.pago?`<details style="margin:12px 0;text-align:left"><summary>¿Querés pagarlo ya?</summary>${bloquePago(C,data.total)}</details>`:''}<button class="sec" id="otro">Hacer otro pedido</button></div>`;
       $('#otro').onclick=()=>{filtro='';marca='';pintar()};
       $('#m .msg').insertAdjacentHTML('beforeend','<div class="rec"><p>📌 ¿Querés que te recordemos el próximo pedido?</p><div class="recb"><button class="sec" data-rec="7">En 7 días</button><button class="sec" data-rec="15">En 15 días</button><button class="sec" data-rec="30">En 30 días</button></div></div>');
       $$('#m [data-rec]').forEach(b=>b.onclick=async()=>{const{data:rd,error:re}=await sb.rpc('recordarme',{p_token:token,p_dias:+b.dataset.rec});if(re)return toast(/recordarme/.test(re.message)?'Esta opción todavía no está disponible.':re.message);$('#m .rec').innerHTML='<p class="okt">✓ Listo: te escribimos el '+String(rd.fecha).split('-').reverse().join('/')+' con tu pedido de siempre.</p>'});
@@ -1087,6 +1098,25 @@ function ficha(id){const p0=prod(id);if(!p0)return;if(p0.combo)return zoom(p0);
     h.querySelectorAll('[data-fo]').forEach(c=>c.onclick=()=>ficha(c.dataset.fo))};
   h.onclick=e=>{if(e.target===h)cerrar()};draw()}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#l [data-fi]');if(t&&!e.target.closest('button'))ficha(t.dataset.fi)});
+/* ======= Modificar / cancelar el pedido, "si falta algo" ======= */
+let EDIT=null;try{EDIT=JSON.parse(localStorage.getItem('edit_'+token)||'null')}catch(e){}
+function editSet(v){EDIT=v;try{v?localStorage.setItem('edit_'+token,JSON.stringify(v)):localStorage.removeItem('edit_'+token)}catch(e){}}
+const SF=[['reemplazar','🔄 Mandame uno parecido'],['no','❌ No lo mandes'],['llamar','📞 Avisame antes']];
+const SFT={reemplazar:'mandar uno parecido',no:'no mandarlo',llamar:'avisarle antes'};
+const sfLeer=()=>{try{const v=localStorage.getItem('si_falta');if(SFT[v])return v}catch(e){}return 'reemplazar'};
+const notaLimpia=t=>String(t||'').split(/\s*·\s*/).map(x=>x.trim()).filter(x=>x&&!/^(✏️ Modificó el pedido N° \d+|Si falta algo:.*|Reemplazado por el cliente.*|❌ Cancelado por el cliente)$/.test(x)).join(' · ');
+function notaFinal(h){const n=String(h._nota||'').trim(),sf=SFT[h._sf||sfLeer()];return ['Si falta algo: '+sf,n].filter(Boolean).join(' · ').slice(0,500)}
+async function modificarPedido(n){const{data,error}=await sb.rpc('items_pedido_cliente',{p_token:token,p_numero:n});
+  if(error){if(!/items_pedido_cliente/.test(error.message))return toast(error.message);
+    if(!confirm('Vamos a pasar tu pedido N° '+n+' al carrito para que lo corrijas. Cuando termines, tocá Enviar pedido de nuevo. ¿Seguimos?'))return;   // versión anterior
+    const r=await sb.rpc('corregir_pedido_cliente',{p_token:token,p_numero:n});if(r.error)return toast(r.error.message);
+    car={};for(const x of r.data.items||[])if(prod(x.id))car[x.id]=+x.q;guardar();irTab('pedido');barra();return toast('Listo: tu pedido está en el carrito. Cambiá lo que quieras y envialo de nuevo.')}
+  editSet({n,prev:{...car},nota:notaLimpia(data.nota)});car={};let falta=0;for(const x of data.items||[]){if(prod(x.id))car[x.id]=+x.q;else falta++}
+  guardar();irTab('pedido');barra();window.scrollTo(0,0);toast(`Tu pedido N° ${n} está en el carrito. Cambiá lo que quieras y tocá Guardar cambios.`+(falta?` (${falta} producto${falta>1?'s ya no están':' ya no está'} en el catálogo)`:''))}
+async function cancelarPedido(n){if(!confirm('¿Seguro que querés cancelar el pedido N° '+n+'?'))return;
+  const{error}=await sb.rpc('cancelar_pedido_cliente',{p_token:token,p_numero:n});
+  if(error)return toast(/cancelar_pedido_cliente/.test(error.message)?'Esta opción todavía no está activada: escribinos por WhatsApp.':error.message);
+  if(EDIT&&EDIT.n==n){car=EDIT.prev||{};editSet(null);guardar();barra()}toast('Listo: cancelamos el pedido N° '+n+'.');miCuenta()}
 iniciar();
 </script>
 </body>
