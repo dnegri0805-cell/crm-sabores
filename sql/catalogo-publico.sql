@@ -32,3 +32,19 @@ revoke execute on function catalogo_publico() from public;
 grant execute on function catalogo_publico() to anon, authenticated;
 
 select 'catalogo publico listo' as resultado;
+
+-- Si ya existe la versión nueva de las funciones, borra la vieja para que no se confundan
+do $$
+begin
+  -- Enviar pedido desde el catálogo del cliente
+  if exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+              where n.nspname = 'public' and p.proname = 'crear_pedido_cliente' and p.pronargs = 5) then
+    drop function if exists public.crear_pedido_cliente(text, jsonb, text);
+  end if;
+  -- Catálogo público
+  if exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+              where n.nspname = 'public' and p.proname = 'catalogo_publico' and p.pronargs = 2) then
+    drop function if exists public.catalogo_publico();
+    drop function if exists public.catalogo_publico(text);
+  end if;
+end $$;
