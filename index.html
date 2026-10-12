@@ -23,6 +23,8 @@ header nav a{padding:7px 14px;border-radius:6px;cursor:pointer;color:#cfd4e2}
 header nav a.on{background:var(--m);color:#fff}
 header span a{cursor:pointer;text-decoration:underline;margin-left:8px}
 header>b{display:flex;align-items:center;gap:10px}
+.hback{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;flex:none;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;font-size:26px;line-height:1;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}.hback:active{background:rgba(255,255,255,.3)}.hback[hidden]{display:none}
+
 .hlogo{height:76px;max-width:240px;object-fit:contain;margin:-4px 0}
 @media(max-width:640px){.hlogo{height:68px;max-width:220px}.hn{display:none}}
 .login .llogo{display:block;max-height:150px;max-width:300px;margin:0 auto 10px;object-fit:contain}
@@ -217,7 +219,7 @@ body{zoom:var(--z,1)}html.oscuro{filter:invert(.92) hue-rotate(180deg);backgroun
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-12.51';
+const VERSION='2026-10-12.52';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -257,7 +259,7 @@ async function init(){
   shell();huellaArranque();programarManana();llegueArranque();
 }
 function shell(){
-  app.innerHTML=`<header><b>${MARCA.logo?`<img class="hlogo" src="${MARCA.logo}" alt="Sabores de mi País"><span class="hn">Sabores de mi País</span>`:'Sabores de mi País'}</b><nav>${['inicio','pedidos','ventas','reparto','clientes','cobranza','caja','compras','stock','precios','reportes','contable','manual'].filter(t=>!['precios','caja','contable'].includes(t)||S.perfil.rol=='dueno').filter(t=>t=='inicio'||t==S.tab||!(S.menuT?.oc||[]).includes(t)).map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${t=='manual'?'📖 Manual':t[0].toUpperCase()+t.slice(1)}</a>`).join('')}</nav><span><a class="hbt" onclick="buscarTodo()" title="Buscar (Ctrl+K)">🔎</a><a class="hbt" onclick="ayuda()" title="Ayuda de esta pantalla (?)">❓</a><a class="hbt" onclick="vistaCfg()" title="Letra, colores y avisos">Aa</a>${esc(S.perfil.nombre)} (${S.perfil.rol}) <small style="opacity:.6">v${VERSION}</small><a onclick="out()">Salir</a></span></header><main id="v"></main>`;
+  app.innerHTML=`<header><b><a id="hback" class="hback" onclick="volver()" title="Volver a la pantalla anterior" aria-label="Volver" hidden>←</a>${MARCA.logo?`<img class="hlogo" src="${MARCA.logo}" alt="Sabores de mi País"><span class="hn">Sabores de mi País</span>`:'Sabores de mi País'}</b><nav>${['inicio','pedidos','ventas','reparto','clientes','cobranza','caja','compras','stock','precios','reportes','contable','manual'].filter(t=>!['precios','caja','contable'].includes(t)||S.perfil.rol=='dueno').filter(t=>t=='inicio'||t==S.tab||!(S.menuT?.oc||[]).includes(t)).map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${t=='manual'?'📖 Manual':t[0].toUpperCase()+t.slice(1)}</a>`).join('')}</nav><span><a class="hbt" onclick="buscarTodo()" title="Buscar (Ctrl+K)">🔎</a><a class="hbt" onclick="ayuda()" title="Ayuda de esta pantalla (?)">❓</a><a class="hbt" onclick="vistaCfg()" title="Letra, colores y avisos">Aa</a>${esc(S.perfil.nombre)} (${S.perfil.rol}) <small style="opacity:.6">v${VERSION}</small><a onclick="out()">Salir</a></span></header><main id="v"></main>`;
   $$('nav a').forEach(a=>a.onclick=()=>{S.tab=a.dataset.t;shell()});
   if(S.menuT===undefined){S.menuT=null;cfgJ('menu_tabs',{oc:[]}).then(v=>{S.menuT=v;if((v.oc||[]).length)$$('nav a').forEach(a=>{if(a.dataset.t!='inicio'&&a.dataset.t!=S.tab&&v.oc.includes(a.dataset.t))a.remove()})})}
   if(S.dep===undefined){S.dep=null;cfgJ('impresora_deposito',{}).then(v=>S.dep=v)}
@@ -7935,6 +7937,52 @@ function ctContador(){
       est('Armando el archivo…');XLSX.writeFile(wb,'Contador Sabores '+m+'.xlsx',{compression:true});est('Listo: se descargó «Contador Sabores '+m+'.xlsx».')}
     catch(e){est('No se pudo armar el Excel: '+(e.message||e))}b.disabled=false};
 }
+
+
+/* ── Navegación: flecha «Volver» en el encabezado + botón atrás del celular ──
+   Cada vez que cambia la pantalla (sección o pestaña) se guarda en el historial,
+   así la flecha ← y el botón «atrás» de Android vuelven a la pantalla anterior.
+   Si hay una ventana abierta, «atrás» la cierra primero. */
+const NAVK=['tab','vs','sub','cs','ct'];
+const NAV={cur:null,restoring:false,init:false};
+const navSnap=()=>{const o={};NAVK.forEach(k=>o[k]=S[k]??null);return o};
+const navKey=o=>NAVK.map(k=>o[k]??'').join('|');
+const navD=()=>{const st=history.state;return st&&st.nav?st.d:-1};
+function navBtn(){const b=document.getElementById('hback');if(b)b.hidden=!(S.tab!='inicio'||navD()>0)}
+function navSync(){
+  if(!S.perfil||NAV.restoring||!document.getElementById('hback'))return;
+  const s=navSnap(),k=navKey(s);
+  try{
+    if(!NAV.init){NAV.init=true;NAV.cur=k;history.replaceState({root:1},'');history.pushState({nav:s,d:0},'')}
+    else if(k!==NAV.cur){NAV.cur=k;history.pushState({nav:s,d:navD()+1},'')}
+  }catch(e){}
+  navBtn();
+}
+function navIr(nav){
+  NAV.restoring=true;
+  try{NAVK.forEach(k=>S[k]=nav[k]??undefined);shell()}finally{NAV.restoring=false}
+  const s=navSnap();NAV.cur=navKey(s);
+  try{const d=navD();history.replaceState({nav:s,d:d<0?0:d},'')}catch(e){}
+  navBtn();scrollTo(0,0);
+}
+function cerrarModal(){const m=[...document.querySelectorAll('.modal')].pop();if(!m)return false;
+  m.remove();return true}
+function volver(){
+  if(cerrarModal())return;
+  if(navD()>0)return history.back();
+  if(S.tab!='inicio'){S.tab='inicio';shell()}
+}
+addEventListener('popstate',e=>{
+  if(!S.perfil||!NAV.init)return;
+  const st=e.state;
+  if(cerrarModal()){try{history.pushState({nav:navSnap(),d:(st&&st.nav?st.d:-1)+1},'')}catch(x){}return}
+  if(st&&st.nav)return navIr(st.nav);
+  /* llegó al principio del historial: primero vuelve a Inicio; un «atrás» más sale de la app */
+  if(S.tab!='inicio'){navIr({tab:'inicio'});try{history.pushState({nav:navSnap(),d:0},'')}catch(x){}navBtn()}
+});
+{const _shell=shell;shell=function(){_shell.apply(this,arguments);navSync()}}
+document.addEventListener('click',()=>setTimeout(navSync,0),true);
+document.addEventListener('change',()=>setTimeout(navSync,0),true);
 
 init();
 </script>
