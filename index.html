@@ -7458,8 +7458,18 @@ async function vBuscarNegocios(){S.bnR=S.bnR||1;
     if(!c)try{const r=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=ar&q='+encodeURIComponent(z),{headers:{'Accept-Language':'es'}});c=(await r.json())[0]}catch(e){}
     if(!c){$('#bn_o').innerHTML='<p class="err">No encontré esa zona. Probá con barrio y ciudad, por ejemplo "Villa Urquiza, CABA".</p>';return}
     $('#bn_o').innerHTML='<p>Buscando negocios (puede tardar unos segundos)…</p>';const lat=+c.lat,lon=+c.lon,rad=Math.round(S.bnR*1000);
-    const q=`[out:json][timeout:40];(${T.map(t=>OSM_TIPOS.find(x=>x[0]==t)[3]).map(f=>`node${f}(around:${rad},${lat},${lon});way${f}(around:${rad},${lat},${lon});`).join('')});out center 500;`;
-    let J;try{const r=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:'data='+encodeURIComponent(q),headers:{'Content-Type':'application/x-www-form-urlencoded'}});J=await r.json()}catch(e){$('#bn_o').innerHTML='<p class="err">El servicio de mapas no respondió. Probá de nuevo en un minuto.</p>';return}
+    /* consulta liviana (nwr), en tandas de pocos tipos y con servidores de respaldo: el público a veces está saturado */
+    const SRV=['https://overpass-api.de/api/interpreter','https://overpass.private.coffee/api/interpreter','https://maps.mail.ru/osm/tools/overpass/api/interpreter','https://overpass.kumi.systems/api/interpreter'];
+    const consulta=async fs=>{const q=`[out:json][timeout:60];(${fs.map(f=>`nwr${f}(around:${rad},${lat},${lon});`).join('')});out center 600;`;
+      for(const u of SRV){try{const ct=new AbortController(),tm=setTimeout(()=>ct.abort(),45000);
+        const r=await fetch(u,{method:'POST',body:'data='+encodeURIComponent(q),headers:{'Content-Type':'application/x-www-form-urlencoded'},signal:ct.signal});clearTimeout(tm);
+        if(!r.ok)continue;const j=await r.json();if(j&&Array.isArray(j.elements))return j.elements}catch(e){}}return null};
+    const FS=T.map(t=>OSM_TIPOS.find(x=>x[0]==t)[3]),tam=rad>1500?3:6,tandas=[];for(let i=0;i<FS.length;i+=tam)tandas.push(FS.slice(i,i+tam));
+    const vistos=new Set(),EL=[];let fallo=0;
+    for(let i=0;i<tandas.length;i++){$('#bn_o').innerHTML=`<p>Buscando negocios… (${i+1} de ${tandas.length})</p>`;
+      const e=await consulta(tandas[i]);if(!e){fallo++;continue}for(const x of e){const k=x.type+x.id;if(!vistos.has(k)){vistos.add(k);EL.push(x)}}}
+    if(fallo==tandas.length){$('#bn_o').innerHTML=`<p class="err">El servicio de mapas no respondió (está saturado). Probá de nuevo en un rato${rad>1000?' o con un radio más chico (1 km)':''}.</p>`;return}
+    const J={elements:EL};if(fallo)toast('Algunos tipos de negocio no se pudieron buscar (el servicio de mapas está saturado). Probá de nuevo para completar.',1);
     const{data:pr}=await sb.from('prospectos').select('nombre,lat,lng');const ex=[...S.clientes.filter(x=>x.lat!=null).map(x=>({n:norm(x.razon_social),p:[+x.lat,+x.lng]})),...(pr||[]).map(x=>({n:norm(x.nombre),p:x.lat!=null?[+x.lat,+x.lng]:null}))];
     const L=(J.elements||[]).map(e=>{const t=e.tags||{},la=e.lat??e.center?.lat,lo=e.lon??e.center?.lon,tp=osmTipo(t,T);
       return{id:e.type+e.id,nombre:t.name||t.brand||'',tipo:tp?.[1]||t.shop||t.amenity||t.tourism||'',rubro:tp?.[2]||'Kiosco',dir:[t['addr:street'],t['addr:housenumber']].filter(Boolean).join(' ')||'',ciudad:t['addr:city']||'',tel:t.phone||t['contact:phone']||t['contact:whatsapp']||'',lat:la,lng:lo,d:distKm([lat,lon],[la,lo])}})
