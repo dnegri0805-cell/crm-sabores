@@ -136,18 +136,18 @@ input,textarea{border:2px solid #ece3d6;border-radius:14px}
 .grid{gap:12px}
 .card{border:0;border-radius:20px;padding:0 0 10px;gap:3px;box-shadow:var(--sombra);overflow:hidden;transition:transform .15s}
 .card>*:not(.ph):not(.rib){margin-left:10px;margin-right:10px}
-.card .ph{border-radius:0;background:radial-gradient(circle at 50% 60%,#fff 0%,color-mix(in srgb,var(--fc,#ccc) 22%,#fff) 75%);padding:10px 8px 4px;margin-bottom:6px}
-.card .ph img{mix-blend-mode:multiply;transition:transform .2s}
+.card .ph{border-radius:0;background:#fff;aspect-ratio:5/4;padding:8px 8px 2px;margin-bottom:4px;border-bottom:1px solid #f1ebe6}
+.card .ph img{transition:transform .2s}
 @media(hover:hover){.card:hover{transform:translateY(-3px)}.card:hover .ph img{transform:scale(1.05)}}
 .card.sel{box-shadow:0 0 0 3px var(--sol),var(--sombra)}
 .card .rib{top:10px;left:10px;background:var(--rojo);font-family:var(--fd);font-size:17px;padding:6px 10px;border-radius:12px 12px 12px 3px;transform:rotate(-6deg);box-shadow:0 4px 10px rgba(224,50,43,.4)}
 .card .rib.cerca{background:var(--sol);color:#5a3a00;box-shadow:0 4px 10px rgba(255,180,0,.45)}
-.card .cn{font-size:14.5px;font-weight:700;line-height:1.22}
+.card .cn{font-size:14.5px;font-weight:700;line-height:1.22;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.44em}
 .card .cm{font-size:10.5px;font-weight:700;color:var(--fc,var(--mu));letter-spacing:.06em}
-.card .cp{font-family:var(--fd);font-size:25px;letter-spacing:-.02em;color:var(--t);margin-top:4px}
+.card .cp{font-family:var(--fd);font-size:22px;letter-spacing:-.02em;color:var(--t);margin-top:4px}
 .card .cp s{font-family:'DM Sans',sans-serif;font-size:13px;color:var(--rojo)}
 .card .cb{font-size:12px}.card .cc{font-size:11.5px;color:#9a5a00;background:var(--sol2);border-radius:8px;padding:4px 7px;margin-top:3px}
-.card .cq{padding-top:8px}.card .cq button{height:42px;border-radius:999px}
+.card .cq{padding-top:6px}.card .cq button{height:40px;border-radius:999px}
 .card .cq .ag{background:var(--m);font-size:15px;box-shadow:0 4px 10px -4px var(--m)}.card .cq .ag::before{content:"+ "}
 .card .cq .bx{background:var(--sol2);color:#6b4a00;padding:0 11px}
 .card .cq .mn,.card .cq .ms{width:42px;background:var(--sol);color:#4a3000}.card .cq input{border-radius:999px;height:42px;font-weight:700;border-color:var(--sol)}
