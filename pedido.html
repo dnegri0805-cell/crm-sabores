@@ -135,6 +135,18 @@ input,textarea{border:2px solid #ece3d6;border-radius:14px}
 .fch{flex:none;display:flex;align-items:center;gap:6px;border:2px solid transparent;background:#fff;color:var(--t);border-radius:999px;padding:6px 14px 6px 6px;font-weight:600;font-size:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);white-space:nowrap;cursor:pointer;min-height:44px}
 .fch:first-child{padding-left:14px}.fch img{width:32px;height:32px;border-radius:50%;object-fit:cover}.fch b{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--crema);font-size:18px;font-weight:400}
 .fch.on{background:var(--m);color:#fff;border-color:var(--m)}.fch.on b{background:rgba(255,255,255,.2)}
+.card .ph{position:relative}.card .fab{position:absolute;z-index:3;bottom:8px;right:8px;min-width:46px;height:46px;border-radius:999px;border:0;background:var(--m);color:#fff;font-size:28px;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:0 12px;box-shadow:0 4px 12px -2px rgba(0,0,0,.35);cursor:pointer}
+.card .fv{right:auto;left:6px}.card .fab b{font-size:15px;font-weight:800}.card .fab.on{background:var(--sol);color:#3b2a00}
+.sto:empty{display:none}.sto{margin:14px 0 2px;background:#fff;border-radius:20px;padding:12px 12px 14px;box-shadow:var(--sombra)}
+.stoh{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 2px 10px}.stoh h2{margin:0;font-family:var(--fd);font-size:18px;white-space:nowrap;font-weight:800;color:var(--m)}
+.stoa{background:var(--sol);color:#3b2a00;border:0;border-radius:999px;padding:10px 16px;font-weight:800;min-height:44px}.stok{font-size:13px;font-weight:700;color:var(--ok)}
+.stol{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.stol::-webkit-scrollbar{display:none}
+.sti{flex:none;width:118px;display:flex;flex-direction:column;gap:4px;border:2px solid transparent;border-radius:14px;padding:6px;background:var(--crema)}.sti.sel{border-color:var(--m);background:#fff}
+.stf{position:relative;height:84px;border-radius:10px;background:#fff;display:grid;place-items:center;overflow:hidden;font-size:42px}.stf img{width:100%;height:100%;object-fit:contain}
+.stq{position:absolute;top:4px;left:4px;background:var(--m);color:#fff;font-size:12px;padding:2px 7px;border-radius:999px}
+.stn{font-size:12.5px;font-weight:600;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.4em}
+.stp{font-size:15px;font-weight:800}.stp small{font-weight:600;color:var(--mu)}
+.stb{display:flex;gap:6px}.stb button{flex:1;height:44px;border:0;border-radius:12px;background:var(--m);color:#fff;font-size:24px;font-weight:700;line-height:1}.stb button[data-tr]{background:#fff;color:var(--m);border:2px solid var(--m)}.sts{color:var(--er);font-weight:700}
 .rep{border:0;background:var(--sol2);color:#6b4a00;font-weight:700;border-radius:14px;padding:13px;display:flex;align-items:center;justify-content:center;gap:8px}
 .rep::before{content:"↻";font-size:18px}
 .sec-t{margin:26px 2px 12px;align-items:center}
@@ -650,12 +662,12 @@ function pintar(){
       return `<div class="rubs" role="group" aria-label="Rubros"><button class="rub ${rub?'':'on'}" data-rb=""><i>★</i><span>Todo</span></button>${R.map(([r,n])=>`<button class="rub ${rub==r?'on':''}" data-rb="${esc(r)}"><i>${RUB_ICO[r]||'📦'}</i><span>${esc(r=='Otros'?'Otros productos':r)}</span></button>`).join('')}</div>`+
         (FR.length>1?`<div class="fchips" role="group" aria-label="Familias"><button class="fch ${fam?'':'on'}" data-fm="">Todo ${esc(rub.toLowerCase())}</button>${FR.map(f=>{const ph=P.find(p=>famDe(p)==f&&p.img);return `<button class="fch ${fam==f?'on':''}" data-fm="${esc(f)}">${ph?`<img src="${esc(ph.img)}" alt="" loading="lazy">`:`<b aria-hidden="true">${famIco(f)}</b>`}${esc(cap(f))}</button>`}).join('')}</div>`:'')})()}
     ${marcas.length>1?`<select class="msel" id="mk" aria-label="Marca"><option value="">Todas las marcas</option>${marcas.map(m=>`<option ${marca==m?'selected':''}>${esc(m)}</option>`).join('')}</select>`:''}</div>
-    ${instHTML()}${morosoHTML()}${micomboHTML()}${premioHTML()}${ligaHTML()}${acuerdoHTML()}${nivelHTML()}${entregaHTML()}${creditoHTML()}
+    <div class="sto" id="sto"></div>${instHTML()}${morosoHTML()}${micomboHTML()}${premioHTML()}${ligaHTML()}${acuerdoHTML()}${nivelHTML()}${entregaHTML()}${creditoHTML()}
     ${C.aumento&&C.aumento.fecha?`<div class="aum">⚠️ <b>${esc(C.aumento.texto||'Aumentan los precios')}</b> a partir del ${new Date(C.aumento.fecha+'T12:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'numeric'})}. ¡Comprá antes con los precios de hoy!<br><small data-ca="${esc(C.aumento.fecha)}">…</small></div>`:''}
     ${PUB?'<button class="sec rep" id="alta">🏪 ¿Tenés un negocio? Quiero ser cliente</button>':''}${PUB&&OPI.length?`<div class="opi"><h3>⭐ Lo que dicen nuestros clientes</h3><div class="opl">${OPI.map(o=>`<div class="op"><div class="es">${'★'.repeat(+o.p||5)}</div><p>“${esc(o.t)}”</p><small>${esc(o.n)}${o.r?' · '+esc(o.r):''}</small></div>`).join('')}</div></div>`:''}
     ${PUB&&C.ref_nombre?`<div class="inv">🤝 Te invitó <b>${esc(C.ref_nombre)}</b>. Hacé tu primer pedido y los dos reciben un regalo en puntos.</div>`:''}
     ${!PUB&&((C.sugerido||[]).length||(C.habituales||[]).length)?`<button class="sgb" id="arm" style="background:#f3ecff;border-color:#6d28d9;color:#4c1d95">🪄 Armame un pedido de $ …</button>`:''}
-    ${(C.sugerido||[]).length?`<button class="sgb" id="sgb">⭐ Cargar mi pedido sugerido (${C.sugerido.length} productos que siempre llevás)</button>`:''}
+    ${(C.sugerido||[]).length&&!siempreIds().length?`<button class="sgb" id="sgb">⭐ Cargar mi pedido sugerido (${C.sugerido.length} productos que siempre llevás)</button>`:''}
     ${!PUB&&((C.habituales||[]).length||(C.favs||[]).length)?`<button class="sgb" id="rap" style="background:#eef4ff;border-color:#1f5fa8;color:#1e3a8a">⚡ Pedido rápido: tus ${(C.habituales||[]).length||(C.favs||[]).length} productos de siempre en una lista</button>`:''}
     ${(C.ultimo||[]).length?`<button class="sec rep" id="rep">Repetir mi último pedido (${C.ultimo.length} productos)</button>`:''}
     <div class="lista" id="l"></div>`;
@@ -691,7 +703,7 @@ function lista(){
     (L.length>V.length?`<button class="sec" id="mas" style="width:100%">Ver más productos (${L.length-V.length})</button>`:'')+
     (L.length?'':'<p class="mas">No encontramos productos con esa búsqueda.</p><button class="sec rep" data-sug="1">🗳️ ¿No lo tenemos? Pedinos que lo traigamos</button>')+(hayFotos&&L.length<=V.length?'<p class="mas" style="font-size:11px">Algunas fotos: Open Food Facts (CC BY-SA)</p>':'');
   $$('#l [data-z]').forEach(i=>i.onclick=()=>ficha(i.dataset.z));
-  $$('#l [data-s]').forEach(b=>b.onclick=()=>cambiar(b.dataset.s,1));
+  $$('#l [data-s]').forEach(b=>b.onclick=e=>{e.stopPropagation();cambiar(b.dataset.s,1)});
   $$('#l [data-r]').forEach(b=>b.onclick=()=>cambiar(b.dataset.r,-1));
   $$('#l [data-bb]').forEach(b=>b.onclick=()=>cambiar(b.dataset.bb,prod(b.dataset.bb).b));
   $$('#l [data-av]').forEach(b=>b.onclick=()=>avisame(b.dataset.av,b));
@@ -904,7 +916,8 @@ function altDe(p){const f=famDe(p),pr=+p.p||0;let best=null,bs=-1;for(const x of
 function altHTML(p){const a=altDe(p);return a?`<div class="alt">No hay ahora. ¿Te sirve <b>${esc(a.d)}</b> a ${$m(puP(a,1))}? <button data-alt="${a.id}">Agregar</button></div>`:''}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-alt]');if(!b)return;e.stopPropagation();cambiar(b.dataset.alt,1);toast('Agregado: '+(prod(b.dataset.alt)?.d||''))},true);
 function tarjeta(p){const q=car[p.id]||0,r=promoP(p,q),rc=r?null:promoP(p,q,true),pu=puP(p,q);
-  return `<div class="card ${q?'sel':''}" style="--fc:${colorDe(famDe(p))}">${p.img?`<div class="ph" data-z="${p.id}"><img src="${esc(p.img)}" alt="" loading="lazy">${FVB(p)}</div>`:`<div class="ph ini" ${p.combo?'':`data-fi="${p.id}"`} style="background:${colorDe(p.m||famDe(p))}1a;color:${colorDe(p.m||famDe(p))}"><span class="ico0" aria-hidden="true">${p.combo?'🎁':famIco(famDe(p))}</span>${FVB(p)}</div>`}
+  const fab=p.ss&&!q?'':`<button class="fab ${q?'on':''}" data-s="${p.id}" aria-label="Sumar ${esc(p.d)}">${q?`<b>${nf(q)}${esKgP(p.id)?' kg':''}</b>`:''}+</button>`;
+  return `<div class="card ${q?'sel':''}" style="--fc:${colorDe(famDe(p))}">${p.img?`<div class="ph" data-z="${p.id}"><img src="${esc(p.img)}" alt="" loading="lazy">${FVB(p)}${fab}</div>`:`<div class="ph ini" ${p.combo?'':`data-fi="${p.id}"`} style="background:${colorDe(p.m||famDe(p))}1a;color:${colorDe(p.m||famDe(p))}"><span class="ico0" aria-hidden="true">${p.combo?'🎁':famIco(famDe(p))}</span>${FVB(p)}${fab}</div>`}
     ${p.ss?'<span class="rib ss">Sin stock</span>':p.pac?'<span class="rib pac">Tu precio</span>':r&&!/^🛒/.test(r.n||'')?`<span class="rib ${/^⚡/.test(r.n||'')?'rl':''}">${r.bon?esc(String(r.n).replace('Bonificación ','')):(/^⚡/.test(r.n||'')?'⚡ ':'')+'−'+nf(r.pct)+' %'}</span>`:rc?`<span class="rib cerca">${rc.bon?esc(String(rc.n).replace('Bonificación ','')):'−'+nf(rc.pct)+' %'}</span>`:''}
     ${p.combo?`<span class="rib">−${nf(p.pct)} %</span>`:''}${EST.cupos&&EST.cupos[(r||rc||{}).n]!=null?'<span class="nuevo ult">🔥 QUEDAN '+EST.cupos[(r||rc||{}).n]+'</span>':/^Últimas/.test((r||rc||{}).n||'')?'<span class="nuevo ult">ÚLTIMAS UNIDADES</span>':etiquetaHTML(p)}
     <div class="cn" ${p.combo?'':`data-fi="${p.id}"`}>${p.combo?'🎁 ':''}${esc(p.d)}</div>${p.ss&&!q?altHTML(p):''}${pesoHTML(p,pu)}${socialHTML(p)}${avisoHTML(p,r||rc)}<div class="cm">${p.combo?'':esc(p.m||'')}${p.b>1?' · '+esc(p.tb)+' × '+p.b:''}</div>${p.sb?`<div class="sbt">📦 Solo por ${esc(String(p.tb||'caja').toLowerCase())} cerrada</div>`:''}${p.combo&&p.nuevo?'<div class="kitn">🎁 Solo para tu primer pedido</div>':''}${p.combo?`<div class="cdet">${esc(p.det)}</div>`:''}
@@ -941,7 +954,7 @@ function grilla(L,ws){const busca=ws.length||marca;let html='',n=0;
   if(hayFotos)html+='<p class="mas" style="font-size:11px">Algunas fotos: Open Food Facts (CC BY-SA)</p>';
   $('#l').innerHTML=html;bannerAcc();
   $$('#l [data-z]').forEach(i=>i.onclick=()=>ficha(i.dataset.z));
-  $$('#l [data-s]').forEach(b=>b.onclick=()=>cambiar(b.dataset.s,1));
+  $$('#l [data-s]').forEach(b=>b.onclick=e=>{e.stopPropagation();cambiar(b.dataset.s,1)});
   $$('#l [data-r]').forEach(b=>b.onclick=()=>cambiar(b.dataset.r,-1));
   $$('#l [data-bb]').forEach(b=>b.onclick=()=>cambiar(b.dataset.bb,prod(b.dataset.bb).b));
   $$('#l [data-i]').forEach(e=>e.onchange=()=>{const v=sbQ(e.dataset.i,Math.max(0,Math.round(+e.value||0)));v?car[e.dataset.i]=v:delete car[e.dataset.i];guardar();setTimeout(lista);barra()});
@@ -953,7 +966,7 @@ function grilla(L,ws){const busca=ws.length||marca;let html='',n=0;
   $$('#l [data-rb]').forEach(b=>b.onclick=()=>reservarPrev(b.dataset.rb));
   $$('#l [data-mas2]').forEach(b=>b.onclick=()=>{lim+=60;lista()})}
 function cambiar(id,d){d=Math.abs(d)<paso(id)?Math.sign(d)*paso(id):d;const q=(car[id]||0)+d;q>0?car[id]=q:delete car[id];guardar();lista();barra()}
-function barra(){const n=Object.keys(car).length;$('#bar').hidden=!n;if(!n)return;
+function barra(){siempreTop();const n=Object.keys(car).length;$('#bar').hidden=!n;if(!n)return;
   $('#bn').textContent=n+(n==1?' producto':' productos');$('#bt').textContent=$m(totalFinal());$('#bpg').innerHTML=progresoHTML(totalCar())+entBar()}
 $('#bv').onclick=revisar;
 function revisar(){
@@ -1044,10 +1057,23 @@ function etiquetaHTML(p){if(p.combo)return '';const id=String(p.id);
   if(p.nv)return '<span class="nuevo">🆕 NUEVO</span>';
   if(topIds().slice(0,10).includes(id))return '<span class="nuevo top">🔥 MÁS VENDIDO</span>';return ''}
 /* Fila de arriba: lo que el cliente siempre pide (o lo más pedido, si es nuevo) */
-function siempreHTML(){if(!PUB&&token){const L=(C.habituales||[]).map(x=>prod(String(x&&x.id||x))).filter(p=>p&&!p.combo).slice(0,12);
-    if(L.length>=3)return `<div class="sec-t"><h2>🔁 Lo que siempre pedís</h2><small>tocá Agregar y listo</small></div><div class="ofertas">${L.map(tarjeta).join('')}</div>`}
+function siempreHTML(){if(siempreIds().length)return '';
   const L=topIds().map(id=>prod(id)).filter(p=>p&&!p.combo&&!p.ss).slice(0,12);
   return L.length>=3?`<div class="sec-t"><h2>🔥 Los más pedidos</h2><small>lo que más llevan nuestros clientes</small></div><div class="ofertas">${L.map(tarjeta).join('')}</div>`:''}
+/* "Pedí lo de siempre": fila compacta arriba de todo, con + y − sin abrir nada */
+function siempreIds(){if(PUB||!token||!C)return[];const ids=[];const add=id=>{id=String(id&&id.id||id);const p=prod(id);if(p&&!p.combo&&!ids.includes(id))ids.push(id)};
+  (C.sugerido||[]).forEach(x=>add(x.id));(C.habituales||[]).forEach(add);if(ids.length<4)(C.favs||[]).forEach(add);if(ids.length<4)(C.ultimo||[]).forEach(x=>add(x.id));return ids.slice(0,12)}
+function siempreTop(){const box=$('#sto');if(!box)return;const ids=siempreIds();if(!ids.length){box.innerHTML='';return}
+  const enCar=ids.filter(id=>car[id]).length;
+  box.innerHTML=`<div class="stoh"><h2>🔁 Pedí lo de siempre</h2>${enCar<ids.length?`<button class="stoa" id="stoa">Cargar todo</button>`:'<span class="stok">✓ Todo en el pedido</span>'}</div>
+    <div class="stol">${ids.map(id=>{const p=prod(id),q=car[id]||0,ss=p.ss;return `<div class="sti ${q?'sel':''}">
+      <div class="stf">${p.img?`<img src="${esc(p.img)}" alt="" loading="lazy">`:`<span aria-hidden="true">${famIco(famDe(p))}</span>`}${q?`<b class="stq">${nf(q)}${esKgP(id)?' kg':''}</b>`:''}</div>
+      <div class="stn">${esc(p.d)}</div><div class="stp">${$m(puP(p,q||1))}${esKgP(id)?'<small>/kg</small>':''}</div>
+      <div class="stb">${ss?'<small class="sts">Sin stock</small>':q?`<button data-tr="${id}" aria-label="Restar ${esc(p.d)}">−</button><button data-ts="${id}" aria-label="Sumar ${esc(p.d)}">+</button>`:`<button class="one" data-ts="${id}" aria-label="Agregar ${esc(p.d)}">+</button>`}</div></div>`}).join('')}</div>`;
+  box.querySelectorAll('[data-ts]').forEach(b=>b.onclick=()=>cambiar(b.dataset.ts,1));
+  box.querySelectorAll('[data-tr]').forEach(b=>b.onclick=()=>cambiar(b.dataset.tr,-1));
+  const a=box.querySelector('#stoa');if(a)a.onclick=()=>{let n=0;const S=new Map((C.sugerido||[]).map(x=>[String(x.id),Math.max(1,Math.round(+x.q||1))]));
+    for(const id of ids){const p=prod(id);if(!p||p.ss||car[id])continue;car[id]=S.get(id)||paso(id)||1;n++}guardar();lista();barra();toast(n?n+' productos agregados. Revisá las cantidades.':'Ya tenés todo en el pedido.')}}
 /* ¿Te olvidaste de algo? Lo que siempre lleva y no está en el carrito */
 function olvidados(){if(PUB||!token||!C)return[];const M=new Map();for(const x of C.sugerido||[])M.set(String(x.id),Math.max(1,Math.round(+x.q||1)));
   for(const x of (C.habituales||[]).slice(0,15)){const id=String(x&&x.id||x);if(!M.has(id))M.set(id,0)}
