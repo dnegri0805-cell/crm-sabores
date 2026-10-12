@@ -210,7 +210,7 @@ body{zoom:var(--z,1)}html.oscuro{filter:invert(.92) hue-rotate(180deg);backgroun
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-11.38';
+const VERSION='2026-10-11.39';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -792,27 +792,37 @@ async function editarBanner(){
   $('#bn_g').onclick=async()=>{leer();$('#bn_g').disabled=true;const{error}=await sb.from('config_app').upsert({clave:'banner_portada',valor:JSON.stringify(b)});$('#bn_g').disabled=false;
     if(error)return toast('No se pudo guardar: '+error.message,1);m.remove();toast('Banner guardado. Si tus clientes no lo ven, falta correr banner.sql en Supabase.')}}
 
+/* Dirección completa de clientes (barrio, localidad, provincia y CP) */
+const PROVINCIAS=['CABA','Buenos Aires','Catamarca','Chaco','Chubut','Córdoba','Corrientes','Entre Ríos','Formosa','Jujuy','La Pampa','La Rioja','Mendoza','Misiones','Neuquén','Río Negro','Salta','San Juan','San Luis','Santa Cruz','Santa Fe','Santiago del Estero','Tierra del Fuego','Tucumán'];
+const BARRIOS_CABA=['Agronomía','Almagro','Balvanera','Barracas','Belgrano','Boedo','Caballito','Chacarita','Coghlan','Colegiales','Constitución','Flores','Floresta','La Boca','La Paternal','Liniers','Mataderos','Monte Castro','Montserrat','Nueva Pompeya','Núñez','Palermo','Parque Avellaneda','Parque Chacabuco','Parque Chas','Parque Patricios','Puerto Madero','Recoleta','Retiro','Saavedra','San Cristóbal','San Nicolás','San Telmo','Vélez Sarsfield','Versalles','Villa Crespo','Villa del Parque','Villa Devoto','Villa General Mitre','Villa Lugano','Villa Luro','Villa Ortúzar','Villa Pueyrredón','Villa Real','Villa Riachuelo','Villa Santa Rita','Villa Soldati','Villa Urquiza'];
+const dirOk=()=>S.clientes.length?('codigo_postal' in S.clientes[0]):true;
+const dirCompleta=c=>{if(!c)return '';const L=[c.domicilio,c.barrio];if(c.ciudad&&c.ciudad!=c.barrio)L.push(c.ciudad);if(c.provincia)L.push(c.provincia);if(c.codigo_postal)L.push('CP '+c.codigo_postal);return L.filter(Boolean).join(', ')};
+const dirCampos=(p,c={})=>`<input id="${p}_ba" placeholder="Barrio" value="${esc(c.barrio||'')}" list="dl_barrios"><input id="${p}_ci" placeholder="Localidad / Ciudad" value="${esc(c.ciudad||'')}"><select id="${p}_pr" aria-label="Provincia">${PROVINCIAS.map(x=>`<option ${x==(c.provincia||'CABA')?'selected':''}>${x}</option>`).join('')}</select><input id="${p}_cp" placeholder="Código postal" value="${esc(c.codigo_postal||'')}" maxlength="8">`+
+  `<datalist id="dl_barrios">${BARRIOS_CABA.map(b=>`<option value="${b}">`).join('')}</datalist>`;
+const dirLeer=p=>({barrio:$('#'+p+'_ba').value.trim()||null,ciudad:$('#'+p+'_ci').value.trim()||null,provincia:$('#'+p+'_pr').value||null,codigo_postal:$('#'+p+'_cp').value.trim().toUpperCase()||null});
+const dirFalta=e=>/barrio|codigo_postal|provincia|ciudad/.test(e?.message||'')?'Falta correr clientes-direccion.sql en Supabase (te lo avisa el Inicio).':e?.message;
+
 /* ---------- Clientes ---------- */
 function vClientes(){
   S.cs=S.cs||'lista';
   const subs=`<div class="sub">${[['lista','Clientes'],['agenda','Agenda de visitas'],['mapa','Mapa'],['dormidos','Dormidos'],['prospectos','Prospectos'],['fijos','Pedidos fijos']].map(([k,t])=>`<button class="${S.cs==k?'':'alt'}" data-cs2="${k}">${t}</button>`).join('')}</div>`;
   if(S.cs!='lista'){$('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Clientes</h2><button class="alt" onclick="revisionDatos()">🧹 Revisión de datos</button><button class="alt" onclick="llegueToggle()">📍 ${llegueOn()?'Aviso al llegar: activo':'Avisarme al llegar'}</button></div>${subs}<div id="cs">Cargando…</div>`;$$('[data-cs2]').forEach(b=>b.onclick=()=>{S.cs=b.dataset.cs2;vClientes()});
     return ({agenda:vAgenda,prospectos:vProspectos,fijos:vFijos,dormidos:vDormidos,mapa:vMapa})[S.cs]()}
-  $('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Clientes</h2><button class="alt" onclick="revisionDatos()">🧹 Revisión de datos</button><button class="alt" onclick="llegueToggle()">📍 ${llegueOn()?'Aviso al llegar: activo':'Avisarme al llegar'}</button></div>${subs}<div class="box"><div class="g"><input id="c_n" placeholder="Razón social *"><input id="c_c" placeholder="CUIT"><input id="c_t" placeholder="Teléfono"><input id="c_d" placeholder="Domicilio">
+  $('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Clientes</h2><button class="alt" onclick="revisionDatos()">🧹 Revisión de datos</button><button class="alt" onclick="llegueToggle()">📍 ${llegueOn()?'Aviso al llegar: activo':'Avisarme al llegar'}</button></div>${subs}<div class="box"><div class="g"><input id="c_n" placeholder="Razón social *"><input id="c_c" placeholder="CUIT"><input id="c_t" placeholder="Teléfono"><input id="c_d" placeholder="Domicilio (calle y número)">${dirCampos('c')}
   <select id="c_i"><option value="responsable_inscripto">Responsable Inscripto</option><option value="monotributo">Monotributo</option><option value="consumidor_final">Consumidor final</option><option value="exento">Exento</option></select>
   <select id="c_l"><option>mayorista</option><option>minorista</option><option>especial</option></select>
   <input id="c_p" type="number" min="0" placeholder="Días de pago (0 = contado)"></div><button id="c_g">Guardar cliente</button></div>
   <input id="q" placeholder="Buscar por nombre o CUIT · tocá un cliente para ver su ficha"><table id="ct"></table>`;
   const draw=()=>{const q=$('#q').value.toLowerCase();
     $('#ct').innerHTML='<tr><th>Cliente</th><th>CUIT</th><th>Lista</th><th>Pago</th><th>Teléfono</th></tr>'+
-    S.clientes.filter(c=>coincide(c.razon_social+' '+(c.cuit||''),q)).map(c=>`<tr class="clic" data-fc="${c.id}"><td><a class="lnk">${esc(c.razon_social)}</a></td><td>${esc(c.cuit)}</td><td>${c.lista}</td><td>${c.condicion_pago_dias?c.condicion_pago_dias+' días':'Contado'}</td><td>${esc(c.telefono)}</td></tr>`).join('')};
+    S.clientes.filter(c=>coincide(c.razon_social+' '+(c.cuit||''),q)).map(c=>`<tr class="clic" data-fc="${c.id}"><td><a class="lnk">${esc(c.razon_social)}</a>${c.barrio||c.ciudad?`<br><small>${esc(c.barrio||c.ciudad)}</small>`:''}</td><td>${esc(c.cuit)}</td><td>${c.lista}</td><td>${c.condicion_pago_dias?c.condicion_pago_dias+' días':'Contado'}</td><td>${esc(c.telefono)}</td></tr>`).join('')};
   $$('[data-cs2]').forEach(b=>b.onclick=()=>{S.cs=b.dataset.cs2;vClientes()});
   const bind=()=>$$('#ct [data-fc]').forEach(r=>r.onclick=()=>fichaCliente(S.clientes.find(c=>c.id==r.dataset.fc)));
   $('#q').oninput=()=>{draw();bind()};draw();bind();
   $('#c_g').onclick=async()=>{const n=$('#c_n').value.trim();if(!n)return toast('Falta la razón social.',1);
     const{data,error}=await sb.from('clientes').insert({razon_social:n,cuit:$('#c_c').value.trim()||null,telefono:$('#c_t').value.trim()||null,domicilio:$('#c_d').value.trim()||null,
-      condicion_iva:$('#c_i').value,lista:$('#c_l').value,condicion_pago_dias:+$('#c_p').value||0,vendedor_id:S.perfil.id}).select().single();
-    if(error)return toast(error.message,1);
+      condicion_iva:$('#c_i').value,lista:$('#c_l').value,condicion_pago_dias:+$('#c_p').value||0,vendedor_id:S.perfil.id,...(dirOk()?dirLeer('c'):{})}).select().single();
+    if(error)return toast(dirFalta(error),1);
     S.clientes.push(data);S.clientes.sort((a,b)=>a.razon_social.localeCompare(b.razon_social));toast('Cliente guardado.');vClientes()};
 }
 
@@ -1262,7 +1272,7 @@ async function fichaCliente(c){
   const IVA={responsable_inscripto:'Responsable Inscripto',monotributo:'Monotributo',consumidor_final:'Consumidor final',exento:'Exento'};
   $('#v').innerHTML=`<p><a class="lnk" id="fc_vol">← Volver a Clientes</a></p>
   <div class="fc-head"><div><h2>${esc(c.razon_social)}</h2><small>${c.cuit?'CUIT '+esc(c.cuit)+' · ':''}${IVA[c.condicion_iva]||esc(c.condicion_iva||'')} ${c.rubro?' · '+esc(c.rubro):''} · Lista ${esc(c.lista)} · ${c.condicion_pago_dias?c.condicion_pago_dias+' días':'Contado'}${+c.limite_credito>0?' · Límite '+$m(c.limite_credito):''}</small>
-    <div><small>${c.telefono?'Tel. '+esc(c.telefono):'Sin teléfono'}${c.domicilio?' · '+esc(c.domicilio):''}</small></div></div>
+    <div><small>${c.telefono?'Tel. '+esc(c.telefono):'Sin teléfono'}${dirCompleta(c)?' · '+esc(dirCompleta(c)):''}</small></div></div>
     <div class="fc-acc"><button id="fc_np">Nuevo pedido</button><button class="alt" id="fc_rp">🔁 Repetir último</button><button class="alt" id="fc_co">Registrar cobro</button><button class="alt" id="fc_ec">📄 Estado de cuenta</button><button class="alt" id="fc_lp">Lista de precios</button><button class="alt" id="fc_ed">Editar datos</button><button class="alt" id="fc_fj">Pedido fijo</button><button class="alt" id="fc_gl">📞 Guion de llamada</button><button class="alt" id="fc_ng">🧮 Negociar</button><button class="alt" id="fc_gon">📸 Góndola</button><button class="alt" id="fc_doc">📂 Documentos</button><button class="alt" id="fc_vac">${vacBtn(c)}</button><button class="alt" id="fc_hr">${horarioTxt(c)||'🕐 Horario de recepción'}</button>${'cuenta_clave' in c?`<button class="alt" id="fc_kc">${c.cuenta_clave?'👑 Es cuenta clave':'☆ Cuenta clave'}</button><button class="alt" id="fc_pd">${c.perdido_en?'🚩 Perdido ('+esc(c.perdido_con||'')+')':'🚩 Se fue a la competencia'}</button>`:''}</div></div>
   <div id="fc_nt"></div>
   <div class="box link-ped"><div class="bh"><h3>Pedidos online</h3></div>
@@ -1271,7 +1281,7 @@ async function fichaCliente(c){
     :'<p class="err"><small>Todavía no está activado. Corré pedidos-online.sql en Supabase.</small></p>'}</div>
   <div id="fc_edit" hidden class="box"><div class="g">
     <label class="f">Razón social<input id="e_n" value="${esc(c.razon_social)}"></label><label class="f">CUIT<input id="e_c" value="${esc(c.cuit)}"></label>
-    <label class="f">Teléfono<input id="e_t" value="${esc(c.telefono)}"></label><label class="f">Domicilio<input id="e_d" value="${esc(c.domicilio)}"></label>
+    <label class="f">Teléfono<input id="e_t" value="${esc(c.telefono)}"></label><label class="f">Domicilio (calle y número)<input id="e_d" value="${esc(c.domicilio)}"></label>${'codigo_postal' in c?`<div class="f" style="grid-column:1/-1"><span>Barrio · Localidad · Provincia · CP</span><div class="g">${dirCampos('e',c)}</div></div>`:''}
     <label class="f">Condición IVA<select id="e_i">${Object.entries(IVA).map(([k,t])=>`<option value="${k}" ${k==c.condicion_iva?'selected':''}>${t}</option>`).join('')}</select></label>
     <label class="f">Lista<select id="e_l">${['mayorista','minorista','especial'].map(l=>`<option ${l==c.lista?'selected':''}>${l}</option>`).join('')}</select></label>
     <label class="f">Días de pago<input id="e_p" type="number" min="0" value="${c.condicion_pago_dias||0}"></label>
@@ -1315,7 +1325,7 @@ async function fichaCliente(c){
   $('#fc_ed').onclick=()=>{$('#fc_edit').hidden=false;bindDias()};$('#fc_fj').onclick=()=>editarFijo(c);$('#e_x').onclick=()=>{$('#fc_edit').hidden=true};
   $('#e_g').onclick=async()=>{const n=$('#e_n').value.trim();if(!n)return toast('Falta la razón social.',1);
     const cambios={razon_social:n,cuit:$('#e_c').value.trim()||null,telefono:$('#e_t').value.trim()||null,domicilio:$('#e_d').value.trim()||null,
-      condicion_iva:$('#e_i').value,lista:$('#e_l').value,condicion_pago_dias:+$('#e_p').value||0};
+      condicion_iva:$('#e_i').value,lista:$('#e_l').value,condicion_pago_dias:+$('#e_p').value||0,...('codigo_postal' in c?dirLeer('e'):{})};
     if('dias_visita' in c)cambios.dias_visita=leerDias('ecd');if($('#e_rf'))cambios.referido_por=$('#e_rf').value||null;if($('#e_ru'))cambios.rubro=$('#e_ru').value.trim()||null;if($('#e_cd'))cambios.cliente_desde=$('#e_cd').value||null;if($('#e_cu'))cambios.cumpleanos=$('#e_cu').value||null;cambios.limite_credito=+$('#e_lc').value||0;
     const{error}=await sb.from('clientes').update(cambios).eq('id',c.id);if(error)return toast(error.message,1);
     Object.assign(c,cambios);toast('Datos guardados.');fichaCliente(c)};
@@ -1592,7 +1602,7 @@ function ticketDoc(titulo,cuerpo,Wp,auto=true){const W=Wp||tkW()||80,A=W-6,fs=W<
   ${auto?'<script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script>':''}</body></html>`}
 const tkCab=(tit,num,fecha)=>`<div class="c h">SABORES DE MI PAÍS</div>${S.telEmp?`<div class="c sm">WhatsApp ${esc(S.telEmp)}</div>`:''}<div class="sep"></div><div class="r b"><span>${tit}</span><span>N° ${num}</span></div><div class="sm">${esc(fecha)}</div>`;
 
-function tkPedidoCuerpo(o,it,c,f,tot){return tkCab('Nota de pedido',o.numero,f)+`<div class="sep"></div><div class="b">${esc(c.razon_social||'')}</div>${c.domicilio?`<div class="sm">${esc(c.domicilio)}</div>`:''}<div class="sep"></div>`+
+function tkPedidoCuerpo(o,it,c,f,tot){return tkCab('Nota de pedido',o.numero,f)+`<div class="sep"></div><div class="b">${esc(c.razon_social||'')}</div>${dirCompleta(c)?`<div class="sm">${esc(dirCompleta(c))}</div>`:''}<div class="sep"></div>`+
     it.map(i=>`<div class="it"><div>${esc(i.d)}</div><div class="r sm"><span>${i.qt} × ${i.puT||$m(i.pu)}</span><span>${$m(i.st)}</span></div>${i.pr?`<div class="sm">Promo: ${esc(i.pr)}</div>`:''}</div>`).join('')+
     `<div class="sep"></div><div class="r g"><span>TOTAL</span><span>${$m(o.total||tot)}</span></div>${it.some(i=>i.kg)?'<div class="sm">Fiambres y quesos: se cobra el peso real.</div>':''}<div class="firma sm">Recibí conforme</div><div class="c sm" style="margin-top:3mm">¡Gracias por tu compra!</div>`}
 function tkReciboCuerpo(x,c,d){return tkCab('Recibo',x.numero,fd(x.fecha))+`<div class="sep"></div><div>Recibimos de:</div><div class="b">${esc(c.razon_social||'')}</div><div class="sep"></div><div class="r g"><span>${$m(x.importe)}</span></div><div class="sm">${esc(x.medio||'')}</div>`+
@@ -1667,7 +1677,7 @@ async function pedidoPDF0(o){
   w.document.open();w.document.write(`<html><head><meta charset="utf-8"><title>Pedido ${o.numero} - ${esc(c.razon_social)}</title><style>body{font:14px system-ui,Segoe UI,sans-serif;margin:32px;color:#1c2333}h1{color:${MARCA.c};margin:0}.top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid ${MARCA.c};padding-bottom:12px}table{width:100%;border-collapse:collapse;margin:16px 0}th,td{border-bottom:1px solid #ccc;padding:6px;text-align:left}.n{text-align:right;white-space:nowrap}.tot td{font-weight:700;font-size:16px;border-bottom:0}.ayuda{background:#f6e9ec;padding:10px;border-radius:6px}@media print{.ayuda{display:none}}</style></head><body>
   <p class="ayuda">Para guardarlo en PDF: en la ventana de impresión elegí <b>Guardar como PDF</b> como destino.</p>
   <div class="top"><div>${logoImg()}<h1>Sabores de mi País</h1><div>Nota de pedido</div></div><div class="n"><b>Pedido N° ${o.numero}</b><br>${f}</div></div>
-  <p><b>Cliente:</b> ${esc(c.razon_social)}${c.cuit?'<br><b>CUIT:</b> '+esc(c.cuit):''}${c.domicilio?'<br><b>Domicilio:</b> '+esc(c.domicilio):''}</p>
+  <p><b>Cliente:</b> ${esc(c.razon_social)}${c.cuit?'<br><b>CUIT:</b> '+esc(c.cuit):''}${dirCompleta(c)?'<br><b>Domicilio:</b> '+esc(dirCompleta(c)):''}</p>
   <table><tr><th>Producto</th><th class="n">Cant.</th><th class="n">Precio</th><th class="n">Subtotal</th></tr>${it.map(i=>`<tr><td>${esc(i.d)}${i.pr?'<br><small style="color:#1d7a46">Promo: '+esc(i.pr)+'</small>':''}</td><td class="n">${i.qt}</td><td class="n">${i.puT||$m(i.pu)}</td><td class="n">${$m(i.st)}</td></tr>`).join('')}
   <tr class="tot"><td colspan="3" class="n">Total</td><td class="n">${$m(o.total||tot)}</td></tr></table>${it.some(i=>i.kg)?'<p style="font-size:12px;color:#555">⚖️ Fiambres y quesos: precio por kilo, pieza entera, se cobra el peso real.</p>':''}${qb}<style>${QRB_CSS}</style>
   <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close();
@@ -1797,7 +1807,7 @@ function resumenPDF(g){const c=g.c,w=window.open('','_blank');if(!w)return toast
   w.document.write(`<html><head><meta charset="utf-8"><title>Resumen de cuenta - ${esc(c.razon_social)}</title><style>body{font:14px system-ui,Segoe UI,sans-serif;margin:32px;color:#1c2333;max-width:760px}h1{color:${MARCA.c};margin:0}.top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid ${MARCA.c};padding-bottom:12px}table{width:100%;border-collapse:collapse;margin:16px 0}th,td{border-bottom:1px solid #ccc;padding:6px;text-align:left}.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}.v{color:#b3261e;font-weight:600}.tot td{font-weight:700;font-size:16px;border-bottom:0}.pago{background:#f3f4f7;padding:10px 12px;border-radius:6px;white-space:pre-line}.ayuda{background:#f6e9ec;padding:10px;border-radius:6px}@media print{.ayuda{display:none}}</style></head><body>
   <p class="ayuda">Para guardarlo en PDF: en la ventana de impresión elegí <b>Guardar como PDF</b> como destino.</p>
   <div class="top"><div>${logoImg()}<h1>Sabores de mi País</h1><div>Resumen de cuenta</div></div><div class="n">Al ${new Date().toLocaleDateString('es-AR')}</div></div>
-  <p><b>Cliente:</b> ${esc(c.razon_social)}${c.cuit?'<br><b>CUIT:</b> '+esc(c.cuit):''}${c.domicilio?'<br><b>Domicilio:</b> '+esc(c.domicilio):''}</p>
+  <p><b>Cliente:</b> ${esc(c.razon_social)}${c.cuit?'<br><b>CUIT:</b> '+esc(c.cuit):''}${dirCompleta(c)?'<br><b>Domicilio:</b> '+esc(dirCompleta(c)):''}</p>
   <table><tr><th>Factura</th><th>Vencimiento</th><th>Estado</th><th class="n">Pendiente</th></tr>
   ${g.F.map(f=>`<tr><td>${f.tipo} N° ${f.numero}</td><td>${fd(f.vencimiento)}</td><td class="${f.dias_mora>0?'v':''}">${f.dias_mora>0?'Vencida hace '+f.dias_mora+' días':'A vencer'}</td><td class="n">${$m(f.pendiente)}</td></tr>`).join('')}
   <tr class="tot"><td colspan="3" class="n">Total adeudado</td><td class="n">${$m(g.t)}</td></tr>${g.v&&g.v<g.t?`<tr><td colspan="3" class="n v">Vencido</td><td class="n v">${$m(g.v)}</td></tr>`:''}${recargoG(g.F,g.id)>0?`<tr><td colspan="3" class="n v">Recargo por mora (${nf(S.recargo.pct)} % mensual)</td><td class="n v">${$m(recargoG(g.F,g.id))}</td></tr>`:''}</table>
@@ -1829,7 +1839,7 @@ async function reciboPDF0(x,c){if(!x||!c)return;const w=window.open('','_blank')
   w.document.open();w.document.write(`<html><head><meta charset="utf-8"><title>Recibo ${x.numero} - ${esc(c.razon_social)}</title><style>body{font:14px system-ui,Segoe UI,sans-serif;margin:32px;color:#1c2333;max-width:720px}h1{color:${MARCA.c};margin:0}.top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid ${MARCA.c};padding-bottom:12px}table{width:100%;border-collapse:collapse;margin:16px 0}th,td{border-bottom:1px solid #ccc;padding:6px;text-align:left}.n{text-align:right;white-space:nowrap}.imp{font-size:22px;font-weight:700;margin:16px 0}.saldo{background:#f3f4f7;padding:10px 12px;border-radius:6px}.firma{margin-top:56px;border-top:1px solid #1c2333;width:240px;padding-top:4px;text-align:center}.ayuda{background:#f6e9ec;padding:10px;border-radius:6px}@media print{.ayuda{display:none}}</style></head><body>
   <p class="ayuda">Para guardarlo en PDF: en la ventana de impresión elegí <b>Guardar como PDF</b> como destino.</p>
   <div class="top"><div>${logoImg()}<h1>Sabores de mi País</h1><div>Recibo de cobro</div></div><div class="n"><b>Recibo N° ${x.numero}</b><br>${fd(x.fecha)}</div></div>
-  <p><b>Recibimos de:</b> ${esc(c.razon_social)}${c.cuit?'<br><b>CUIT:</b> '+esc(c.cuit):''}${c.domicilio?'<br><b>Domicilio:</b> '+esc(c.domicilio):''}</p>
+  <p><b>Recibimos de:</b> ${esc(c.razon_social)}${c.cuit?'<br><b>CUIT:</b> '+esc(c.cuit):''}${dirCompleta(c)?'<br><b>Domicilio:</b> '+esc(dirCompleta(c)):''}</p>
   <p class="imp">${$m(x.importe)} <small style="font-size:14px;font-weight:400">· ${esc(x.medio)}</small></p>
   ${d.fac.length?`<table><tr><th>Aplicado a</th><th class="n">Importe</th></tr>${d.fac.map(f=>`<tr><td>${esc(f.t)}</td><td class="n">${$m(f.imp)}</td></tr>`).join('')}${d.cuenta?`<tr><td>A cuenta</td><td class="n">${$m(d.cuenta)}</td></tr>`:''}</table>`:''}
   ${d.saldo!=null?`<p class="saldo">${d.saldo>0.005?'Saldo pendiente de la cuenta: <b>'+$m(d.saldo)+'</b>':d.saldo<-0.005?'Saldo a favor del cliente: <b>'+$m(-d.saldo)+'</b>':'<b>La cuenta queda al día.</b>'}</p>`:''}
@@ -2696,7 +2706,7 @@ function ncPDF(nc,c){const w=window.open('','_blank');if(!w)return toast('Permit
   w.document.write(`<html><head><meta charset="utf-8"><title>Nota de crédito ${nc.numero} - ${esc(c.razon_social||'')}</title><style>body{font:14px system-ui,Segoe UI,sans-serif;margin:32px;color:#1c2333;max-width:760px}h1{color:${MARCA.c};margin:0}.top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid ${MARCA.c};padding-bottom:12px}table{width:100%;border-collapse:collapse;margin:16px 0}th,td{border-bottom:1px solid #ccc;padding:6px;text-align:left}.n{text-align:right;white-space:nowrap}.tot td{font-weight:700;font-size:16px;border-bottom:0}.ayuda{background:#f6e9ec;padding:10px;border-radius:6px}@media print{.ayuda{display:none}}</style></head><body>
   <p class="ayuda">Para guardarlo en PDF: en la ventana de impresión elegí <b>Guardar como PDF</b> como destino.</p>
   <div class="top"><div>${logoImg()}<h1>Sabores de mi País</h1><div>Nota de crédito X · Documento no válido como factura</div></div><div class="n"><b>N° 0001-${String(nc.numero).padStart(8,'0')}</b><br>${fd(nc.fecha)}<br>Pedido N° ${nc.pedido}</div></div>
-  <p><b>Cliente:</b> ${esc(c.razon_social||'')}${c.cuit?'<br><b>CUIT:</b> '+esc(c.cuit):''}${c.domicilio?'<br><b>Domicilio:</b> '+esc(c.domicilio):''}<br><b>Motivo:</b> ${esc(nc.motivo||'')}</p>
+  <p><b>Cliente:</b> ${esc(c.razon_social||'')}${c.cuit?'<br><b>CUIT:</b> '+esc(c.cuit):''}${dirCompleta(c)?'<br><b>Domicilio:</b> '+esc(dirCompleta(c)):''}<br><b>Motivo:</b> ${esc(nc.motivo||'')}</p>
   <table><tr><th>Producto</th><th class="n">Cant.</th><th class="n">Precio</th><th class="n">Subtotal</th></tr>${nc.items.map(i=>`<tr><td>${esc(nomProd(i.id))}</td><td class="n">${nf(i.q)}</td><td class="n">${$m(i.pu)}</td><td class="n">${$m(i.q*i.pu)}</td></tr>`).join('')}
   <tr class="tot"><td colspan="3" class="n">Total de la nota de crédito</td><td class="n">${$m(nc.total)}</td></tr></table>
   <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close()}
@@ -3477,7 +3487,7 @@ function presupuestoPDF(p){const w=window.open('','_blank');if(!w)return toast('
   w.document.write(`<html><head><meta charset="utf-8"><title>Presupuesto ${p.numero} - ${esc(c.razon_social||'')}</title><style>body{font:14px system-ui,Segoe UI,sans-serif;margin:32px;color:#1c2333;max-width:760px}h1{color:${MARCA.c};margin:0}.top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid ${MARCA.c};padding-bottom:12px}table{width:100%;border-collapse:collapse;margin:16px 0}th,td{border-bottom:1px solid #ccc;padding:6px;text-align:left}.n{text-align:right;white-space:nowrap}.tot td{font-weight:700;font-size:16px;border-bottom:0}small{color:#667}.ayuda{background:#f6e9ec;padding:10px;border-radius:6px}@media print{.ayuda{display:none}}</style></head><body>
   <p class="ayuda">Para guardarlo en PDF: en la ventana de impresión elegí <b>Guardar como PDF</b> como destino.</p>
   <div class="top"><div>${logoImg()}<h1>Sabores de mi País</h1><div>Presupuesto${S.telEmp?' · WhatsApp '+esc(S.telEmp):''}</div></div><div class="n"><b>Presupuesto N° ${p.numero}</b><br>${fd(diaLocal(p.creado_en))}${p.vence?'<br>Válido hasta '+fd(p.vence):''}</div></div>
-  <p><b>Para:</b> ${esc(c.razon_social||'')}${c.cuit?'<br><b>CUIT:</b> '+esc(c.cuit):''}${c.domicilio?'<br><b>Domicilio:</b> '+esc(c.domicilio):''}</p>
+  <p><b>Para:</b> ${esc(c.razon_social||'')}${c.cuit?'<br><b>CUIT:</b> '+esc(c.cuit):''}${dirCompleta(c)?'<br><b>Domicilio:</b> '+esc(dirCompleta(c)):''}</p>
   <table><tr><th>Producto</th><th class="n">Cant.</th><th class="n">Precio</th><th class="n">Subtotal</th></tr>${(p.items||[]).map(i=>`<tr><td>${esc(nomProd(i.id))}${i.promo?'<br><small>'+esc(i.promo)+'</small>':''}</td><td class="n">${nf(i.q)}${enBultos(i.id,i.q)?'<br><small>'+enBultos(i.id,i.q)+'</small>':''}</td><td class="n">${$m(i.pu)}</td><td class="n">${$m(i.q*i.pu)}</td></tr>`).join('')}
   <tr class="tot"><td colspan="3" class="n">Total</td><td class="n">${$m(p.total)}</td></tr></table>${p.nota?'<p><b>Nota:</b> '+esc(p.nota)+'</p>':''}
   <p><small>Precios sujetos a disponibilidad de stock. Aceptalo desde el link que te mandamos o respondiendo por WhatsApp.</small></p>
@@ -5871,7 +5881,7 @@ async function resumenDia(){const box=$('#resd');if(!box||S.perfil.rol!='dueno')
 
 /* ======================= CUIDAR LA PLATA Y EL NEGOCIO (tanda 15) ======================= */
 const SQL_NEG='<p><small>Para usar esto, corré <b>negocio.sql</b> en Supabase.</small></p>';
-const zonaC=c=>cap1(String(c?.zona||c?.ciudad||'Sin zona').trim().replace(/\s*\(.*\)$/,''))||'Sin zona';
+const zonaC=c=>cap1(String(c?.zona||c?.barrio||c?.ciudad||'Sin zona').trim().replace(/\s*\(.*\)$/,''))||'Sin zona';
 async function cfgJ(k,def){try{const{data}=await sb.from('config_app').select('valor').eq('clave',k).maybeSingle();return{...def,...JSON.parse(data?.valor||'{}')}}catch(e){return{...def}}}
 const guardaCfgJ=(k,v)=>sb.from('config_app').upsert({clave:k,valor:JSON.stringify(v)});
 const rd=(n,m)=>Math.round(n/m)*m;
@@ -6431,7 +6441,7 @@ window.addEventListener('online',()=>setTimeout(sincronizarOff,1500));
 /* ======================= ORDEN, VELOCIDAD Y COMODIDAD (tanda 19) ======================= */
 const RAW_SQL='https://raw.githubusercontent.com/dnegri0805-cell/crm-sabores/main/sql/',SUPA_SQL='https://supabase.com/dashboard/project/ggfqdkgqtpnkvxoykoty/sql/new';
 /* 1. Chequeo del sistema: qué SQL falta correr */
-const SQL_CHK=[['impresion.sql','cola_impresion','id'],['control.sql','vencimientos','id'],['ventas-auto.sql','envios_auto','id'],['ventas-auto2.sql','envios_auto','variante'],['ventas-auto3.sql','clientes','cumpleanos'],['ventas-estrategia.sql','acuerdos','id'],['ventas-instagram.sql','prospectos','instagram'],
+const SQL_CHK=[['clientes-direccion.sql','clientes','codigo_postal'],['impresion.sql','cola_impresion','id'],['control.sql','vencimientos','id'],['ventas-auto.sql','envios_auto','id'],['ventas-auto2.sql','envios_auto','variante'],['ventas-auto3.sql','clientes','cumpleanos'],['ventas-estrategia.sql','acuerdos','id'],['ventas-instagram.sql','prospectos','instagram'],
   ['ventas-mas2.sql','alertas_oferta','id'],['ventas-peso.sql','pedido_items','peso_real'],['operacion.sql','costos_proveedor','producto_id'],['negocio.sql','mermas','id'],['solo.sql','pedidos','auto_aprobado'],['entregas.sql','pedidos','entrega'],['cobrar.sql','notas_cliente','id'],['vivo.sql','reparto_vivo','id'],['practico.sql','fraccionados','id'],['cuentas.sql','promesas_pago','id'],['visitas.sql','repartos_dia','id'],['avisos.sql','comprobantes_cliente','id']];
 async function sqlFaltantes(){const R=await Promise.all(SQL_CHK.map(([f,t,c])=>sb.from(t).select(c).limit(1).then(({error})=>error&&/does not exist|Could not find|schema cache|no existe/i.test(error.message)?f:null,()=>null)));return R.filter(Boolean)}
 async function copiarSQL(f,b){try{const t=await(await fetch(RAW_SQL+f+'?nc='+Date.now())).text();await navigator.clipboard.writeText(t);if(b){b.textContent='✓ Copiado';b.classList.add('hecho')}toast('SQL copiado. Ahora pegalo en Supabase (Ctrl + V) y tocá Run.')}catch(e){window.open(RAW_SQL+f,'_blank');toast('Se abrió el SQL: copialo con Ctrl + A y Ctrl + C.')}}
