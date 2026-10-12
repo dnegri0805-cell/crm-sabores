@@ -209,6 +209,7 @@ body{zoom:var(--z,1)}html.oscuro{filter:invert(.92) hue-rotate(180deg);backgroun
 .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin:8px 0}.cal i{font-style:normal;font-size:12px;text-align:center;color:#6b7280}.cd{border:1px solid #dcdfe5;border-radius:8px;min-height:58px;padding:4px;font-size:12px;cursor:pointer;display:flex;flex-direction:column;gap:1px;overflow:hidden}.cd span{font-weight:700;color:var(--m)}.cd small{font-size:10px}.cd.cs{background:#f1f2f5;color:#9aa1b1}.cd.ch{border:2px solid var(--m)}.cd.cx{background:#fff4d6}
 .gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-top:10px}.gal figure{margin:0}.gal img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;background:#eee}.gal figcaption{font-size:12px;margin-top:2px}
 .vot-res{display:flex;gap:8px}
+.btn-ver{display:inline-flex;align-items:center;justify-content:center;background:var(--m);color:#fff!important;text-decoration:none;border-radius:8px;padding:10px 16px;font-weight:600}
 </style>
 </head>
 <body>
@@ -216,7 +217,7 @@ body{zoom:var(--z,1)}html.oscuro{filter:invert(.92) hue-rotate(180deg);backgroun
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-12.45';
+const VERSION='2026-10-12.46';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -1285,7 +1286,7 @@ async function fichaCliente(c){
   <div id="fc_nt"></div>
   <div class="box link-ped" id="fc_lp"><div class="bh"><h3>Pedidos online</h3></div>
     ${c.token_pedidos?`<p><small>Con este link ${esc(c.razon_social)} ve su catálogo con los precios de su lista y te manda pedidos, que llegan como <b>Por aprobar</b>.</small></p>
-    <input readonly id="lk_u" value="${linkPedidos(c)}"><div class="fc-acc"><button class="alt wa" id="lk_w">Mandar por WhatsApp</button><button class="alt wa" id="lk_cu">Mandar link de su cuenta</button><button class="alt" id="lk_c">Copiar link</button><button class="alt" id="lk_n">Generar link nuevo</button></div>`
+    <input readonly id="lk_u" value="${linkPedidos(c)}"><div class="fc-acc"><a class="btn-ver" href="${linkPedidos(c)}" target="_blank" rel="noopener">👀 Ver como lo ve el cliente</a><button class="alt wa" id="lk_w">Mandar por WhatsApp</button><button class="alt wa" id="lk_cu">Mandar link de su cuenta</button><button class="alt" id="lk_c">Copiar link</button><button class="alt" id="lk_n">Generar link nuevo</button></div>`
     :'<p class="err"><small>Todavía no está activado. Corré pedidos-online.sql en Supabase.</small></p>'}</div>
   <div id="fc_edit" hidden class="box"><div class="g">
     <label class="f">Razón social<input id="e_n" value="${esc(c.razon_social)}"></label><label class="f">CUIT<input id="e_c" value="${esc(c.cuit)}"></label>
