@@ -94,6 +94,8 @@ const tok=t=>sinT(t).replace(/(\d),(\d)/g,'$1.$2').replace(/(\d)(grs?|kgs?|g|ml|
 function sim(a,b){const A=new Set(tok(a)),B=new Set(tok(b));if(!A.size||!B.size)return 0;let k=0;for(const w of A)if(B.has(w))k++;return 2*k/(A.size+B.size)}
 const cod=c=>String(c??'').trim().replace(/^0+/,'');
 const money=v=>'$ '+(+v).toLocaleString('es-AR',{minimumFractionDigits:Number.isInteger(+v)?0:2,maximumFractionDigits:2});
+/* Supabase devuelve como máximo 1000 filas por consulta: trae todo de a 1000 */
+async function todo(armar){let out=[],i=0;for(;;){const{data,error}=await armar().range(i,i+999);if(error)return{data:out,error};out=out.concat(data);if(data.length<1000)return{data:out,error:null};i+=1000}}
 let CAT=[],PROD=[],orden='r';
 const ABIERTOS=new Set(); /* rubros desplegados (arrancan todos cerrados) */
 
@@ -103,8 +105,8 @@ async function cargar(){
   const{data:{session}}=await sb.auth.getSession();
   if(session){
     const[pp,pr]=await Promise.all([
-      sb.from('precios_productos').select('producto_id,codigo,descripcion,familia,precio_mayorista,precio_minorista,precio_especial,costo'),
-      sb.from('productos').select('*')]);
+      todo(()=>sb.from('precios_productos').select('producto_id,codigo,descripcion,familia,precio_mayorista,precio_minorista,precio_especial,costo').order('producto_id')),
+      todo(()=>sb.from('productos').select('*').order('id'))]);
     if(pp.error){$('#aviso').innerHTML=`<div class="msg">No pude leer tus precios: ${esc(pp.error.message)}</div>`}
     const X={};for(const p of pr.data||[])X[p.id]=p;
     PROD=(pp.data||[]).filter(p=>X[p.producto_id]?.activo!==false).map(p=>({...p,cf:X[p.producto_id]?.codigo_fabricante,pw:!!X[p.producto_id]?.por_peso,foto:X[p.producto_id]?.foto||''}));
