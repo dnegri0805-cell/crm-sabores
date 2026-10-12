@@ -6,6 +6,7 @@ const FAMILIAS=[
  ['Lácteos',['Manteca','Crema de leche','Leches','Yogures','Postres, flanes y gelatinas','Dulce de leche']],
  ['Almacén',['Maní y snacks','Snacks y untables','Semillas','Tostadas, galletas y crackers','Conservas de pescado','Paté y picadillo','Conservas de frutas','Tomate y salsas de tomate','Conservas de verduras y legumbres','Aceites y grasas','Vinagres, aceto y jugo de limón','Mayonesa','Aderezos y salsas','Arroz','Harinas, polenta y rebozadores','Sal','Especias y condimentos','Yerba mate','Café, cacao y endulzantes']],
  ['Dulces',['Mermeladas','Dulces de batata y membrillo','Repostería, miel y salsas dulces']],
+ ['Heladería y panadería',['Coberturas y baños de chocolate','Chips, crocantes y decoración','Frutos secos','Frutas para sembrar','Pastas y variegatos','Dulce de leche familiar y heladero','Salsas para helado','Insumos para elaborar','Cucuruchos y capelinas','Descartables y envases']],
  ['Congelados',['Congelados']],
  ['Higiene personal',['Higiene personal']]];
 const FAM_ORDEN={},FAM_GRUPO={};(()=>{let i=0;for(const[g,fs]of FAMILIAS)for(const f of fs){FAM_ORDEN[f.toUpperCase()]=i++;FAM_GRUPO[f.toUpperCase()]=g}})();
@@ -16,6 +17,16 @@ function famCmp(a,b){const A=String(a||''),B=String(b||'');if(A=='Otros'&&B!='Ot
 const famGrupo=f=>FAM_GRUPO[String(f||'').toUpperCase()]||'';
 /* Reglas por descripción, para los productos que no están en el catálogo (el orden importa) */
 const FAM_REGLAS=[
+ /* Heladería y panadería (van primero para que no caigan en Lácteos o Almacén) */
+ ['Coberturas y baños de chocolate',/^cobertura|^bano (de moldeo|granizado|semiamargo)|^manteca de cacao/],
+ ['Frutas para sembrar',/para sembrar|^frutilla (tamizada|pulpa|en trozos|entera|iqf)|^pulpa de frutilla|^frutos del bosque|^cereza entera/],
+ ['Pastas y variegatos',/^pasta de (anana|banana|cereza|coco|frutilla|melon|vainilla|marroc)|^pasta de mani para elaborar|^variegato/],
+ ['Dulce de leche familiar y heladero',/^dulce de leche heladero|^dulce de leche familiar (la salamandra|cassanello|el rosquinense)/],
+ ['Salsas para helado',/^salsa de (caramelo|chocolate|dulce de leche|frutilla) eureka/],
+ ['Cucuruchos y capelinas',/^cucurucho|^capelina/],
+ ['Descartables y envases',/^termico|^cucharitas? (palita|sundae)|^cuchara (palita|sundae)|^balde con tapa|^vaso de pasta|^servilleta/],
+ ['Insumos para elaborar',/^colorante|^maltodextrina|^cerelose|^acido citrico|^agente de batido|^estabilizante|^leche en polvo (entera|descremada) regina|^almidon de maiz|^vino marsala/],
+ ['Chips, crocantes y decoración',/^chip |^microgalletitas|^lentejas de chocolate|banada en chocolate|^chocolate (blanco en trocitos|marroc)|^boton relleno/],
  ['Mermeladas',/mermelada|^dulce (light )?de (frutilla|frutos|durazno|arandanos)|dulce light de batata/],
  ['Dulces de batata y membrillo',/^dulce de (batata|membrillo)|^postre de dulce de leche|\bbatata\b|\bmembrillo\b/],
  ['Repostería, miel y salsas dulces',/esencia de vainilla|^salsa de (frutilla|chocolate|caramelo)|\bmiel\b/],

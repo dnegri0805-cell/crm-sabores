@@ -275,6 +275,8 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 - **Stock → 🌡️ Temperatura:** anotás la temperatura de cada cámara; si está fuera de rango (lo configurás, por defecto 0 a 5 °C) queda en rojo y aparece en Inicio. **Planilla del mes** para imprimir ante una inspección.
 - **Stock:** existencias, movimientos y vencimientos. Los quesos y fiambres se ven **en kilos**; con **Solo quesos y fiambres** ves cuántos kilos tenés y cuánta plata al costo. En **📋 Conteo por partes → ⚖️ Quesos y fiambres** contás con el celular escribiendo los pesos de las etiquetas (**3,5 + 3,6**) o escaneando (te pide el peso de cada pieza).
 - **Precios:** costos y listas mayorista/minorista; los cambios se reflejan al instante en los catálogos.
+- **Margen adicional por familia** (en Precios, debajo de *Margen de cada lista*): puntos que se suman o restan al margen de la lista solo para una familia (ej.: mayorista 25 % y *Frutos secos* +5 → 30 %). Las familias se ven agrupadas (Fiambres, Quesos, Heladería y panadería…). Requiere **margen-familia.sql**.
+- **Rubro Heladería y panadería:** los productos de JEMA'S se cargan con **heladeria.sql**, ya ordenados en sus familias (coberturas, frutas para sembrar, pastas, dulce de leche heladero, descartables…). Se venden por kilo.
 - **Reportes:** ventas por cliente, por producto y por marca, por período (este mes, mes anterior, este año).
 - **Contable:** Resultados · Rentabilidad · IVA · Retenciones · Cheques · Bancos · Flujo de caja · Valor del stock · Para el contador (exportaciones).
 

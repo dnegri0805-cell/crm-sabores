@@ -881,6 +881,9 @@ async function vPrecios(){
     <p><small>El precio de venta se calcula solo: <b>costo ÷ (1 − margen)</b>. Con 30 %, un producto que te cuesta $ 700 se vende a $ 1.000 y te deja $ 300.</small></p>
     <div class="g" id="pr_l">Cargando…</div><button id="pr_lg">Guardar márgenes</button>
     <div class="g" style="margin-top:12px"><label class="f">Avisarme cuando un producto deje menos de (%) de ganancia<input type="number" id="pr_mm" min="0" max="89" step="1" value="${S.margenMin??15}"></label></div></div>
+  <div class="box"><div class="bh"><h3>Margen adicional por familia</h3></div>
+    <p><small>Puntos que se suman (o restan, con −) al margen de cada lista, solo para esa familia. Ej.: mayorista 25 % y <b>Frutos secos +5</b> → los frutos secos salen con 30 %. Vacío = usa el margen de la lista.</small></p>
+    <div id="pr_mf">Cargando…</div><button id="pr_mfg">Guardar márgenes por familia</button></div>
   <div class="box"><div class="bh"><h3>Productos</h3><div class="fc-acc"><button class="alt" onclick="window.open('catalogo.html','_blank')">📒 Catálogo con precios</button><button class="alt" id="pr_ofam">🗂️ Ordenar por familias</button><button class="alt" id="pr_fcat">🖼️ Fotos del catálogo</button><button class="alt" id="pr_fjl">🥜 Fotos Maní JL</button><button class="alt" id="pr_fot">🔎 Fotos automáticas</button><button class="alt" id="pr_et">🏷️ Imprimir etiquetas del filtro</button></div></div>
     <div class="g"><div class="conscan"><input id="pr_q" placeholder="Buscar por nombre o código" autocomplete="off">${btnScan('pr_sc')}</div>
       <select id="pr_pv"><option value="">Todos los proveedores</option></select>
@@ -899,17 +902,39 @@ SDMP-01279	8.900</pre>
     <button class="alt" id="pr_rev">Revisar</button><div id="pr_res"></div></details>`;
   $('#pr_lp').onclick=()=>abrirListaPrecios(null);
   vPromos();
-  const[cl,pv,hi]=await Promise.all([sb.from('config_listas').select('*'),sb.from('proveedores').select('id,razon_social').order('razon_social'),
-    sb.from('historial_costos').select('producto_id,costo_anterior,costo_nuevo,fecha').order('fecha',{ascending:false}).limit(3000)]);
+  const[cl,pv,hi,mfa]=await Promise.all([sb.from('config_listas').select('*'),sb.from('proveedores').select('id,razon_social').order('razon_social'),
+    sb.from('historial_costos').select('producto_id,costo_anterior,costo_nuevo,fecha').order('fecha',{ascending:false}).limit(3000),
+    sb.from('margenes_familia').select('familia,ajuste_pct')]);
   await cargarStock();
   /* márgenes */
   const L={};for(const r of cl.data||[])L[r.lista]=+r.margen_pct;
   const LIS=['mayorista','minorista','especial'];
+  const MF={};for(const r of mfa.data||[])MF[String(r.familia).toUpperCase()]=+r.ajuste_pct;
+  const mgEf=(l,f)=>L[l]==null?null:Math.min(89,Math.max(0,L[l]+(MF[String(f||'').toUpperCase()]||0)));
+  const pintarMF=()=>{if(mfa.error){$('#pr_mf').innerHTML='<p class="err">Para usar márgenes por familia corré <b>margen-familia.sql</b> en Supabase.</p>';$('#pr_mfg').hidden=true;return}
+    const cnt={};for(const p of S.productos){const f=(p.familia||'').trim();if(f)cnt[f]=(cnt[f]||0)+1}
+    const G={};for(const f of Object.keys(cnt).sort(famCmp))(G[famGrupo(f)||'Otras familias']=G[famGrupo(f)||'Otras familias']||[]).push(f);
+    const ord=[...FAMILIAS.map(x=>x[0]),'Otras familias'].filter(g=>G[g]);
+    $('#pr_mf').innerHTML=ord.map(g=>{const con=G[g].filter(f=>MF[f.toUpperCase()]).length;
+      return `<details class="mfg"><summary><b>${esc(g)}</b> <small>· ${G[g].length} ${G[g].length==1?'familia':'familias'}${con?` · <span class="badge">${con} con ajuste</span>`:''}</small></summary>
+      <div class="tw"><table><tr><th>Familia</th><th class="n">Ajuste (puntos)</th><th class="n">Mayorista</th><th class="n">Minorista</th><th class="n">Especial</th></tr>
+      ${G[g].map(f=>{const a=MF[f.toUpperCase()];return `<tr><td>${esc(f)} <small>(${cnt[f]})</small></td>
+        <td class="n"><input type="number" step="0.5" min="-50" max="50" data-mf="${esc(f)}" value="${a||''}" placeholder="0" style="max-width:90px"></td>
+        ${LIS.map(l=>`<td class="n" data-mfl="${l}">${mgEf(l,f)!=null?pctf(mgEf(l,f)):'—'}</td>`).join('')}</tr>`}).join('')}</table></div></details>`}).join('')||'<p>Todavía no hay productos con familia.</p>';
+    $$('[data-mf]').forEach(e=>e.oninput=()=>{const f=e.dataset.mf,a=+e.value||0;
+      e.closest('tr').querySelectorAll('[data-mfl]').forEach(td=>{const l=td.dataset.mfl;td.textContent=L[l]==null?'—':pctf(Math.min(89,Math.max(0,L[l]+a)))})})};
+  pintarMF();
+  $('#pr_mfg').onclick=async()=>{const ch=[...$$('[data-mf]')].filter(e=>(+e.value||0)!==(MF[e.dataset.mf.toUpperCase()]||0));if(!ch.length)return toast('No cambiaste ningún margen por familia.',1);
+    for(const e of ch){const v=+e.value||0;if(v<-50||v>50)return toast('El ajuste tiene que estar entre -50 y +50 puntos.',1)}
+    $('#pr_mfg').disabled=true;
+    for(const e of ch){const v=+e.value||0;const{error}=await sb.rpc('fijar_margen_familia',{p_familia:e.dataset.mf,p_ajuste:v});if(error){$('#pr_mfg').disabled=false;return toast(error.message,1)}
+      if(v)MF[e.dataset.mf.toUpperCase()]=v;else delete MF[e.dataset.mf.toUpperCase()]}
+    $('#pr_mfg').disabled=false;await recargarProductos();pintarMF();draw();toast('Márgenes por familia guardados. Los precios ya están actualizados.')};
   $('#pr_l').innerHTML=cl.error?'<p class="err">No se pudieron leer los márgenes: '+esc(cl.error.message)+'. Corré precios.sql en Supabase.</p>':
     LIS.map(l=>`<label class="f">Lista ${l} (%)<input type="number" step="0.5" min="0" max="89" data-li="${l}" value="${L[l]??''}"></label>`).join('');
   $('#pr_lg').onclick=async()=>{const ch=[...$$('[data-li]')].filter(e=>+e.value!==L[e.dataset.li]);if(!ch.length)return toast('No cambiaste ningún margen.',1);
     for(const e of ch){const{error}=await sb.rpc('fijar_margen_lista',{p_lista:e.dataset.li,p_margen:+e.value});if(error)return toast(error.message,1);L[e.dataset.li]=+e.value}
-    await recargarProductos();draw();toast('Márgenes guardados. Los precios ya están actualizados.')};
+    await recargarProductos();pintarMF();draw();toast('Márgenes guardados. Los precios ya están actualizados.')};
   /* filtros */
   const ult={};for(const h of hi.data||[])if(!ult[h.producto_id])ult[h.producto_id]=h;
   const uniq=k=>[...new Set(S.productos.map(p=>p[k]).filter(Boolean))].sort();
@@ -919,17 +944,17 @@ SDMP-01279	8.900</pre>
   const nuevo={};let sel=[];
   const filtrar=()=>{const q=$('#pr_q').value.toLowerCase().trim(),v=$('#pr_pv').value,m=$('#pr_ma').value,f=$('#pr_fa').value;
     const sf=$('#pr_sf').checked;return S.productos.filter(p=>(!q||coincide(txtProd(p),q))&&(!v||S.min[p.producto_id]?.pv==v)&&(!m||p.marca==m)&&(!f||p.familia==f)&&(!sf||!S.min[p.producto_id]?.foto))};
-  const precio=(c,l)=>L[l]!=null&&c>0?Math.round(c/(1-L[l]/100)*100)/100:null;
+  const precio=(c,l,f)=>{const m=mgEf(l,f);return m!=null&&c>0?Math.round(c/(1-m/100)*100)/100:null};
   const upd=()=>{const n=Object.keys(nuevo).length;$('#pr_n').textContent=n?n+(n==1?' costo cambiado sin guardar':' costos cambiados sin guardar'):''};
   const draw=()=>{sel=filtrar();$('#pr_cnt').textContent=sel.length+(sel.length==1?' producto':' productos');
     const V=sel.slice(0,150);
     $('#pr_t').innerHTML='<tr><th>Foto</th><th>Producto</th><th class="n">Costo</th><th class="n">Mayorista</th><th class="n">Minorista</th><th class="n">Especial</th><th class="n">Ganás (may.)</th><th>Bulto</th><th>Último cambio</th></tr>'+
-      V.map(p=>{const id=p.producto_id,c=nuevo[id]??+p.costo/(ppz(id)||1),pm=precio(c,'mayorista'),u=ult[id];
+      V.map(p=>{const id=p.producto_id,c=nuevo[id]??+p.costo/(ppz(id)||1),pm=precio(c,'mayorista',p.familia),u=ult[id];
         return `<tr${nuevo[id]!=null?' class="cambio"':''}><td class="fto">${S.min[id]?.foto?`<img src="${esc(S.min[id].foto)}" alt="" data-ft="${id}" loading="lazy">`:`<button class="alt" data-ft="${id}" aria-label="Cargar foto">📷</button>`}</td><td>${esc(p.descripcion)} <small>${esc(p.codigo)}</small>${ppz(id)&&pm!=null?`<br><span class="badge">⚖️ precios por kg · pieza ≈ ${nf(ppz(id))} kg → ${$m(pm*ppz(id))}</span>`:''}</td>
         <td class="n"><input type="number" step="0.01" min="0" class="cs" data-id="${id}" value="${nuevo[id]??''}" placeholder="${p.costo!=null?nf(+p.costo/(ppz(id)||1)):'—'}"></td>
-        <td class="n">${pm!=null?$m(pm):'—'}</td><td class="n">${precio(c,'minorista')!=null?$m(precio(c,'minorista')):'—'}</td><td class="n">${precio(c,'especial')!=null?$m(precio(c,'especial')):'—'}</td>
+        <td class="n">${pm!=null?$m(pm):'—'}</td><td class="n">${precio(c,'minorista',p.familia)!=null?$m(precio(c,'minorista',p.familia)):'—'}</td><td class="n">${precio(c,'especial',p.familia)!=null?$m(precio(c,'especial',p.familia)):'—'}</td>
         <td class="n">${pm!=null?$m(pm-c):'—'}</td>
-        <td style="white-space:nowrap"><select class="tb" data-id="${id}" aria-label="Tipo de bulto">${['Caja','Pack','Bolsa','Fardo','Display'].map(t=>`<option ${(S.min[id]?.tb||'Caja')==t?'selected':''}>${t}</option>`).join('')}</select> × <input type="number" min="1" step="1" class="ub" data-id="${id}" value="${S.min[id]?.b||1}" aria-label="Unidades por bulto"></td>
+        <td style="white-space:nowrap"><select class="tb" data-id="${id}" aria-label="Tipo de bulto">${['Caja','Pack','Bolsa','Fardo','Display','Balde','Cuñete','Lata','Bidón','Paquete'].map(t=>`<option ${(S.min[id]?.tb||'Caja')==t?'selected':''}>${t}</option>`).join('')}</select> × <input type="number" min="1" step="1" class="ub" data-id="${id}" value="${S.min[id]?.b||1}" aria-label="Unidades por bulto"></td>
         <td><small>${u?fd(u.fecha)+' · '+(u.costo_anterior>0?(u.costo_nuevo>=u.costo_anterior?'+':'')+pctf((u.costo_nuevo/u.costo_anterior-1)*100):'nuevo'):'—'}</small></td></tr>`}).join('')+
       (sel.length>V.length?`<tr><td colspan="9"><small>Se muestran 150 de ${sel.length}. El aumento por porcentaje se aplica a los ${sel.length}.</small></td></tr>`:'')+
       (sel.length?'':'<tr><td colspan="9"><small>No hay productos con ese filtro.</small></td></tr>');
@@ -2913,6 +2938,7 @@ async function ordenarFamilias(){
   const R=[],sin=[];
   for(const p of S.productos){const cat=catPorCodigo(p.codigo,p.descripcion)||catPorCodigo(S.min[p.producto_id]?.cf,p.descripcion);
     const nueva=cat?.fa||famPorDescripcion(p.descripcion),act=(p.familia||'').trim();
+    if(!cat&&famGrupo(act)=='Heladería y panadería')continue; /* los del rubro heladería ya vienen con su familia */
     if(!nueva){sin.push(p);continue}
     if(nueva.toUpperCase()==act.toUpperCase())continue;
     R.push({p,act,nueva,por:cat?'código':'nombre',ok:true})}
