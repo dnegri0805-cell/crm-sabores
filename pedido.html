@@ -274,7 +274,7 @@ input,textarea{border:2px solid #ece3d6;border-radius:14px}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-12.32';
+const VERSION='2026-10-12.33';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -509,7 +509,8 @@ function irTab(t){$$('[data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.
 function zoom(p){if(!p?.img)return;const z=document.createElement('div');z.className='zoom';z.innerHTML=`<div><img src="${esc(p.img)}" alt="${esc(p.d)}"><p>${esc(p.d)} · ${$m(p.p)}</p></div>`;z.onclick=()=>z.remove();document.body.appendChild(z)}
 const telLimpio=t=>{let d=String(t||'').replace(/\D/g,'');if(!d)return '';if(d.startsWith('54'))d=d.slice(2);if(d.startsWith('9'))d=d.slice(1);if(d.startsWith('0'))d=d.slice(1);return d.length>=10?'549'+d:''};
 const fdc=d=>d?new Date(String(d).length==10?d+'T12:00':d).toLocaleDateString('es-AR'):'';
-function bloquePago(x,monto){const tel=telLimpio(x.tel);
+function aliasMP(v){const m=String(v||'').trim().match(/^(?:https?:\/\/)?([a-z0-9-]+(?:\.[a-z0-9-]+){2,})\/?$/i);return m&&!/mercadopago|mpago|mercadolibre|\.(com|ar|net|org|la|io)$/i.test(m[1])?m[1].toLowerCase():''}
+function bloquePago(x,monto){const tel=telLimpio(x.tel);{const al=aliasMP(x.mp);if(al){x={...x,mp:'',pago:String(x.pago||'').toLowerCase().includes(al)?x.pago:((x.pago||'')+'\nAlias: '+al).trim()}}}
   return (x.mp?`<a class="mp" href="${esc(x.mp)}" target="_blank" rel="noopener">Pagar con Mercado Pago</a>`:'')+
     (x.pago?`<div class="datos"><b>Datos para transferir</b>\n${esc(x.pago)}</div>`:'')+
     (tel?`<a class="sec" style="display:block;text-align:center;margin-top:10px;text-decoration:none" target="_blank" rel="noopener" href="https://wa.me/${tel}?text=${encodeURIComponent('Hola! Soy '+(C?.cliente||'')+'. Les aviso que pagué'+(monto?' '+$m(monto):'')+'. Les mando el comprobante.')}">Avisar que pagué (WhatsApp)</a>`:'')}
