@@ -137,6 +137,13 @@ input,textarea{border:2px solid #ece3d6;border-radius:14px}
 .fch.on{background:var(--m);color:#fff;border-color:var(--m)}.fch.on b{background:rgba(255,255,255,.2)}
 .card .ph{position:relative}.card .fab{position:absolute;z-index:3;bottom:8px;right:8px;min-width:46px;height:46px;border-radius:999px;border:0;background:var(--m);color:#fff;font-size:28px;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:0 12px;box-shadow:0 4px 12px -2px rgba(0,0,0,.35);cursor:pointer}
 .card .fv{right:auto;left:6px}.card .fab b{font-size:15px;font-weight:800}.card .fab.on{background:var(--sol);color:#3b2a00}
+.tbar{display:flex;gap:8px;margin-top:10px}.tsel{flex:1;display:flex;align-items:center;gap:6px;background:#fff;border-radius:14px;padding:4px 4px 4px 12px;box-shadow:0 1px 4px rgba(0,0,0,.08);min-width:0}
+.tsel span{font-size:13px;font-weight:700;color:var(--m);white-space:nowrap}.tsel select{flex:1;min-width:0;border:0;background:transparent;font:inherit;font-size:14px;font-weight:600;padding:10px 4px;color:var(--t)}
+body.foco .busca{position:static}
+body.foco .sto,body.foco .sgb,body.foco #rep,body.foco #alta,body.foco .opi,body.foco .inv{display:none}
+.rtit{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;background:var(--crema);padding:10px 2px;margin-top:8px;border-bottom:2px solid var(--m)}
+.rtit button{width:44px;height:44px;border-radius:50%;border:0;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.1);font-size:22px;color:var(--m)}.rtit b{font-family:var(--fd);font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:.02em;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rtit small{color:var(--mu);font-weight:600;white-space:nowrap}
+.p .pr small.kg,.card small.kg{color:var(--mu)}
 .sto:empty{display:none}.sto{margin:14px 0 2px;background:#fff;border-radius:20px;padding:12px 12px 14px;box-shadow:var(--sombra)}
 .stoh{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 2px 10px}.stoh h2{margin:0;font-family:var(--fd);font-size:18px;white-space:nowrap;font-weight:800;color:var(--m)}
 .stoa{background:var(--sol);color:#3b2a00;border:0;border-radius:999px;padding:10px 16px;font-weight:800;min-height:44px}.stok{font-size:13px;font-weight:700;color:var(--ok)}
@@ -523,7 +530,7 @@ function instHTML(){if(PUB||!token)return '';let no=false;try{no=localStorage.ge
   if(no||matchMedia('(display-mode: standalone)').matches||navigator.standalone)return '';const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
   return `<div class="inst" id="inst" ${instEv||ios?'':'hidden'}><img src="icon-192.png" alt=""><div><b>Tené tu catálogo como app</b><br><small>${ios?'Tocá Compartir ⬆️ y "Agregar a inicio"':'Queda el ícono en tu celular para pedir en un toque'}</small></div>${ios?'':'<button id="instb">Instalar</button>'}<a id="instx" aria-label="Cerrar">✕</a></div>`}
 const btnAv=p=>(C.avisos||[]).includes(p.id)?'<button class="av ok" disabled>✓ Te avisamos cuando llegue</button>':`<button class="av" data-av="${p.id}">🔔 Avisame cuando llegue</button>`;
-let hayFotos=false,fam='',rub='',vista=(()=>{try{return localStorage.getItem('vista_cat')||'grilla'}catch(e){return 'grilla'}})();
+let hayFotos=false,fam='',rub='',orden='',vista=(()=>{try{return localStorage.getItem('vista_cat')||'grilla'}catch(e){return 'grilla'}})();
 const cap=t=>{if(typeof FAM_ORDEN!='undefined'&&FAM_ORDEN[String(t||'').toUpperCase()]!=null)return String(t);t=String(t||'').toLowerCase();return t.charAt(0).toUpperCase()+t.slice(1)};
 const famDe=p=>p.fx||(p.f||'').trim()||'Otros';
 /* Al cargar: familia estándar (si la del producto no es del catálogo, se deduce por el nombre) y nombres en MAYÚSCULAS abreviados más legibles */
@@ -668,7 +675,8 @@ function pintar(){
       const FR=rub?fams.filter(f=>((typeof famGrupo=='function'&&famGrupo(f))||'Otros')==rub):[];
       return `<div class="rubs" role="group" aria-label="Rubros"><button class="rub ${rub?'':'on'}" data-rb=""><i>★</i><span>Todo</span></button>${R.map(([r,n])=>`<button class="rub ${rub==r?'on':''}" data-rb="${esc(r)}"><i>${RUB_ICO[r]||'📦'}</i><span>${esc(r=='Otros'?'Otros productos':r)}</span></button>`).join('')}</div>`+
         (FR.length>1?`<div class="fchips" role="group" aria-label="Familias"><button class="fch ${fam?'':'on'}" data-fm="">Todo ${esc(rub.toLowerCase())}</button>${FR.map(f=>{const ph=P.find(p=>famDe(p)==f&&p.img);return `<button class="fch ${fam==f?'on':''}" data-fm="${esc(f)}">${ph?`<img src="${esc(ph.img)}" alt="" loading="lazy">`:`<b aria-hidden="true">${famIco(f)}</b>`}${esc(cap(f))}</button>`}).join('')}</div>`:'')})()}
-    ${marcas.length>1?`<select class="msel" id="mk" aria-label="Marca"><option value="">Todas las marcas</option>${marcas.map(m=>`<option ${marca==m?'selected':''}>${esc(m)}</option>`).join('')}</select>`:''}</div>
+    <div class="tbar"><label class="tsel"><span>⇅ Ordenar</span><select id="ord" aria-label="Ordenar por"><option value="">Destacados</option><option value="pa" ${orden=='pa'?'selected':''}>Menor precio</option><option value="pd" ${orden=='pd'?'selected':''}>Mayor precio</option><option value="kg" ${orden=='kg'?'selected':''}>Menor precio por kilo</option><option value="az" ${orden=='az'?'selected':''}>A–Z</option></select></label>
+    ${marcas.length>1?`<label class="tsel"><span>☰ Marca</span><select id="mk" aria-label="Marca"><option value="">Todas</option>${marcas.map(m=>`<option ${marca==m?'selected':''}>${esc(m)}</option>`).join('')}</select></label>`:''}</div></div>
     <div class="sto" id="sto"></div>${instHTML()}${morosoHTML()}${micomboHTML()}${premioHTML()}${ligaHTML()}${acuerdoHTML()}${nivelHTML()}${entregaHTML()}${creditoHTML()}
     ${C.aumento&&C.aumento.fecha?`<div class="aum">⚠️ <b>${esc(C.aumento.texto||'Aumentan los precios')}</b> a partir del ${new Date(C.aumento.fecha+'T12:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'numeric'})}. ¡Comprá antes con los precios de hoy!<br><small data-ca="${esc(C.aumento.fecha)}">…</small></div>`:''}
     ${PUB?'<button class="sec rep" id="alta">🏪 ¿Tenés un negocio? Quiero ser cliente</button>':''}${PUB&&OPI.length?`<div class="opi"><h3>⭐ Lo que dicen nuestros clientes</h3><div class="opl">${OPI.map(o=>`<div class="op"><div class="es">${'★'.repeat(+o.p||5)}</div><p>“${esc(o.t)}”</p><small>${esc(o.n)}${o.r?' · '+esc(o.r):''}</small></div>`).join('')}</div></div>`:''}
@@ -682,7 +690,7 @@ function pintar(){
   $('#edx')&&($('#edx').onclick=()=>{if(!confirm('¿Descartás los cambios? El pedido N° '+EDIT.n+' queda como estaba.'))return;const n=EDIT.n;car=EDIT.prev||{};editSet(null);guardar();pintar();toast('Listo: el pedido N° '+n+' quedó como estaba.')});
   $('#q').oninput=e=>{filtro=e.target.value;lim=60;lista();sugQ()};$('#q').onfocus=sugQ;
   $('#q').onblur=()=>setTimeout(()=>{const d=$('#sgq');if(d)d.hidden=true;recGuardar(filtro)},200);$('#q').onkeydown=e=>{if(e.key=='Enter'){recGuardar(filtro);e.target.blur()}};
-  $('#mk')&&($('#mk').onchange=e=>{marca=e.target.value;lim=60;lista()});
+  $('#mk')&&($('#mk').onchange=e=>{marca=e.target.value;lim=60;lista()});$('#ord').onchange=e=>{orden=e.target.value;lim=60;lista()};
   $$('[data-fm]').forEach(b=>b.onclick=()=>{fam=b.dataset.fm;if(fam)regVista(fam);lim=60;$$('[data-fm]').forEach(x=>x.classList.toggle('on',x.dataset.fm==fam));lista()});
   $$('[data-rb]').forEach(b=>b.onclick=()=>{rub=b.dataset.rb;fam='';lim=60;pintar();const e=document.querySelector('.rubs');if(e)window.scrollTo({top:Math.max(0,e.getBoundingClientRect().top+window.scrollY-8),behavior:'smooth'})});
   $('#vt').onclick=()=>{vista=vista=='grilla'?'lista':'grilla';try{localStorage.setItem('vista_cat',vista)}catch(e){}pintar()};
@@ -693,6 +701,7 @@ function pintar(){
   $('#alta')&&($('#alta').onclick=altaCliente);$('#rap')&&($('#rap').onclick=()=>{rapido=true;lista();window.scrollTo({top:0,behavior:'smooth'})});$('#scb').onclick=escanearCat;$('#sgp')&&($('#sgp').onclick=()=>sugerirProducto(''));
   $('#arm')&&($('#arm').onclick=armarPorMonto);
   $('#sgb')&&($('#sgb').onclick=()=>{const n=cargarSugerido(false);lista();barra();toast(n?n+' productos agregados. Revisá las cantidades.':'Esos productos ya no están disponibles.')});
+  document.body.classList.toggle('foco',!!rub);
   {const o=document.querySelector('.rub.on');if(o&&rub)o.scrollIntoView({inline:'center',block:'nearest'})}
   lista();barra();
 }
@@ -703,9 +712,12 @@ function lista(){
   let L=base.filter(p=>ws.every(w=>norm(p.d+' '+(p.m||'')+' '+(p.f||'')+' '+p.c).includes(w))),parec=false;
   if(ws.length&&L.length<5){const fw=ws.map(fon).filter(Boolean),ya=new Set(L),F=fw.length?base.filter(p=>!ya.has(p)&&fw.every(w=>palabraOk(w,fx(p)))):[];if(F.length){parec=!L.length;L=L.concat(F)}}
   if(ws.length&&!L.length&&filtro.trim().length>=3)anotarBusqueda(filtro);
+  if(orden){const pk=p=>{if(esKgP(p.id))return puP(p,1);const k=kgDe(p);return k&&k.k>0?puP(p,1)/k.k:Infinity};
+    L=L.slice().sort(orden=='pa'?(a,b)=>puP(a,1)-puP(b,1):orden=='pd'?(a,b)=>puP(b,1)-puP(a,1):orden=='kg'?(a,b)=>pk(a)-pk(b):(a,b)=>a.d.localeCompare(b.d,'es'))}
+  {const t=$('#rtit');if(t)t.remove();if(rub&&!ws.length){const n=base.length;$('#l').insertAdjacentHTML('beforebegin',`<div class="rtit" id="rtit"><button id="rtb" aria-label="Volver a todo">←</button><b>${RUB_ICO[rub]||''} ${esc(fam?cap(fam):rub)}</b><small>${n} ${n==1?'producto':'productos'}</small></div>`);$('#rtb').onclick=()=>{if(fam){fam='';lista();$$('[data-fm]').forEach(x=>x.classList.toggle('on',!x.dataset.fm))}else{rub='';pintar()}}}}
   if(vista=='grilla'){grilla(L,ws);return parecHint(parec)}
   const V=L.slice(0,lim);
-  $('#l').innerHTML=V.map(p=>{const q=car[p.id]||0;return `<div class="p ${q?'sel':''}"><div class="d">${p.img?`<img class="ft" src="${esc(p.img)}" alt="" loading="lazy" data-z="${p.id}">`:(hayFotos?`<span class="ft0" aria-hidden="true">${famIco(famDe(p))}</span>`:'')}<div class="tx"><b>${token&&!PUB?`<button class="fv ${esFav(p.id)?'on':''}" data-fv="${p.id}" aria-label="Favorito">★</button>`:''}${esc(p.d)}</b><small>${p.m?`<span class="marca">${esc(p.m)}</span>`:''}${p.b>1?`<span class="bulto">${esc(p.tb)} × ${p.b}</span>`:''}${esc(p.c)}</small></div></div><div class="pr">${(()=>{const r=promoP(p,q),rc=r?null:promoP(p,q,true);return (r?`<s>${$m(p.p)}</s> ${$m(puP(p,q))}`:$m(p.p))+(p.b>1?`<small>${esc(p.tb)}: ${$m((rc&&rc.mt=='bulto'?Math.round(p.p*(1-rc.pct/100)*100)/100:puP(p,q))*p.b)}</small>`:'')+(r?`<span class="promo">−${nf(r.pct)} %</span>`:rc?`<span class="promo cerca">−${nf(rc.pct)} % ${esc(condP(rc,p))}</span>`:'')})()}</div>
+  $('#l').innerHTML=V.map(p=>{const q=car[p.id]||0;return `<div class="p ${q?'sel':''}"><div class="d">${p.img?`<img class="ft" src="${esc(p.img)}" alt="" loading="lazy" data-z="${p.id}">`:(hayFotos?`<span class="ft0" aria-hidden="true">${famIco(famDe(p))}</span>`:'')}<div class="tx"><b>${token&&!PUB?`<button class="fv ${esFav(p.id)?'on':''}" data-fv="${p.id}" aria-label="Favorito">★</button>`:''}${esc(p.d)}</b><small>${p.m?`<span class="marca">${esc(p.m)}</span>`:''}${p.b>1?`<span class="bulto">${esc(p.tb)} × ${p.b}</span>`:''}${esc(p.c)}</small></div></div><div class="pr">${(()=>{const r=promoP(p,q),rc=r?null:promoP(p,q,true);return (r?`<s>${$m(p.p)}</s> ${$m(puP(p,q))}`:$m(p.p))+kgHTML(p,puP(p,q||1))+(p.b>1?`<small>${esc(p.tb)}: ${$m((rc&&rc.mt=='bulto'?Math.round(p.p*(1-rc.pct/100)*100)/100:puP(p,q))*p.b)}</small>`:'')+(r?`<span class="promo">−${nf(r.pct)} %</span>`:rc?`<span class="promo cerca">−${nf(rc.pct)} % ${esc(condP(rc,p))}</span>`:'')})()}</div>
     <div class="q">${p.ss&&!q?'<small class="eq">Sin stock por ahora</small>'+btnAv(p):''}${p.ss&&!q?'':`${q&&enB(p,q)?`<small class="eq">= ${enB(p,q)}</small>`:''}${q?`<button data-r="${p.id}" aria-label="Restar">−</button><input type="number" inputmode="numeric" min="0" value="${q}" data-i="${p.id}" aria-label="Cantidad"><button data-s="${p.id}" aria-label="Sumar">+</button>`:`<button class="add${p.b>1?' sec2':''}" data-s="${p.id}">Agregar 1</button>`}${p.b>1?`<button class="add" data-bb="${p.id}">+ ${esc(p.tb)} (${p.b})</button>`:''}`}</div></div>`}).join('')+
     (L.length>V.length?`<button class="sec" id="mas" style="width:100%">Ver más productos (${L.length-V.length})</button>`:'')+
     (L.length?'':'<p class="mas">No encontramos productos con esa búsqueda.</p><button class="sec rep" data-sug="1">🗳️ ¿No lo tenemos? Pedinos que lo traigamos</button>')+(hayFotos&&L.length<=V.length?'<p class="mas" style="font-size:11px">Algunas fotos: Open Food Facts (CC BY-SA)</p>':'');
@@ -952,8 +964,9 @@ function grilla(L,ws){const busca=ws.length||marca;let html='',n=0;
     if(CB.length)html+=`<div class="sec-t"><h2>🎁 Combos</h2><small>${CB.length} ${CB.length==1?'combo':'combos'} con descuento</small></div><div class="ofertas">${CB.map(tarjeta).join('')}</div>`;
     const NV=P.filter(p=>p.nv);if(NV.length)html+=`<div class="sec-t"><h2>✨ Novedades</h2><small>${NV.length} ${NV.length==1?'producto':'productos'}</small></div><div class="ofertas">${NV.map(tarjeta).join('')}</div>`;
     if(C.escalas?.length)html+=`<div class="escb">💲 <b>Más comprás, más ahorrás:</b> ${C.escalas.slice().sort((a,b)=>a.desde-b.desde).map(e=>nf(e.pct)+' % desde '+$m(e.desde)).join(' · ')}${C.envio?' · 🚚 envío gratis desde '+$m(C.envio):''}</div>`}
+  if(orden&&L.length){const V=L.slice(0,lim);html+=`<div class="grid" style="margin-top:12px">${V.map(tarjeta).join('')}</div>`+(V.length<L.length?`<button class="sec" data-mas2="1" style="width:100%;margin-top:8px">Ver más (${L.length-V.length})</button>`:'');n=lim}
   const G={};for(const p of L)(G[famDe(p)]=G[famDe(p)]||[]).push(p);
-  for(const f of familias()){const X=G[f];if(!X||n>=lim)continue;const V=X.slice(0,lim-n);n+=V.length;
+  for(const f of (orden?[]:familias())){const X=G[f];if(!X||n>=lim)continue;const V=X.slice(0,lim-n);n+=V.length;
     html+=`<div class="sec-t" style="--fc:${colorDe(f)}"><h2>${esc(cap(f))}</h2><small>${X.length} ${X.length==1?'producto':'productos'}</small></div><div class="grid">${V.map(tarjeta).join('')}</div>`;
     if(V.length<X.length)html+=`<button class="sec" data-mas2="1" style="width:100%;margin-top:8px">Ver más de ${esc(cap(f))} (${X.length-V.length})</button>`}
   if(!L.length)html+=`<p class="mas">No encontramos productos con esa búsqueda.</p><button class="sec rep" data-sug="1">🗳️ ¿No lo tenemos? Pedinos que lo traigamos</button>`;
