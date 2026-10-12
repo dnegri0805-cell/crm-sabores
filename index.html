@@ -3121,12 +3121,12 @@ function fotosJL(){
 const linkPublico=()=>new URL('pedido.html?ver=catalogo',location.href.split('#')[0].split('?')[0]).href;
 async function cajaVender(){const box=$('#pr_vd');if(!box)return;
   const{data}=await sb.from('config_app').select('valor').eq('clave','catalogo_publico').maybeSingle();const v=data?.valor||'';
-  box.innerHTML=`<div class="bh"><h3>📣 Para salir a vender</h3><button id="pv_fo">Armar folleto de ofertas</button></div>
-    <p><small>Folletos con fotos y precios de oferta por familia, listos para WhatsApp, estados o Instagram. Y un catálogo público para que cualquiera vea tus productos y te pida por WhatsApp.</small></p>
+  box.innerHTML=`<div class="bh"><h3>📣 Para salir a vender</h3><span class="fc-acc" style="margin:0"><button id="pv_fo">Armar folleto de ofertas</button><button class="alt" id="pv_fb">Folleto bilingüe 中文</button></span></div>
+    <p><small>Folletos con fotos y precios de oferta por familia, listos para WhatsApp, estados o Instagram. Un folleto bilingüe español–chino para supermercados, con tus precios. Y un catálogo público para que cualquiera vea tus productos y te pida por WhatsApp.</small></p>
     <div class="g"><label class="f">Catálogo público (para clientes nuevos)<select id="pv_cl"><option value="">Desactivado</option>${['minorista','mayorista','especial'].map(l=>`<option value="${l}" ${v==l?'selected':''}>Activado con precios ${nomL(l)}</option>`).join('')}</select></label></div>
     ${v?`<input readonly value="${linkPublico()}" id="pv_lk"><div class="fc-acc"><button class="alt" id="pv_cp">Copiar link</button><button class="alt wa" id="pv_wa">Compartir por WhatsApp</button><a class="lnk" href="${linkPublico()}" target="_blank" rel="noopener">Ver cómo se ve</a></div>
       ${S.telEmp?'':'<p class="err"><small>Cargá tu WhatsApp en Cobranza (Tu WhatsApp) para que te lleguen los pedidos del catálogo.</small></p>'}`:''}`;
-  $('#pv_fo').onclick=()=>folletoOfertas();
+  $('#pv_fo').onclick=()=>folletoOfertas();$('#pv_fb').onclick=()=>folletoBilingue();
   $('#pv_cl').onchange=async e=>{const{error}=await sb.from('config_app').upsert({clave:'catalogo_publico',valor:e.target.value});if(error)return toast(error.message,1);toast(e.target.value?'Catálogo público activado.':'Catálogo público desactivado.');cajaVender()};
   $('#pv_cp')&&($('#pv_cp').onclick=async()=>{try{await navigator.clipboard.writeText(linkPublico())}catch(e){$('#pv_lk').select();document.execCommand('copy')}toast('Link copiado.')});
   $('#pv_wa')&&($('#pv_wa').onclick=()=>window.open('https://wa.me/?text='+encodeURIComponent('¡Hola! 👋 Te comparto el catálogo de *Sabores de mi País*: mirá los productos, las ofertas y hacé tu pedido por WhatsApp 👇\n'+linkPublico()),'_blank'));
@@ -3172,6 +3172,108 @@ async function dibujarFolleto(items,o){const F=FMT[o.fmt],cv=document.createElem
     if(['mayorista','minorista','especial'].includes(cp?.valor)){const q=await qrURL(urlBase('ver=catalogo'),240);if(q){const im=new Image();await new Promise(r=>{im.onload=r;im.onerror=r;im.src=q});
       const z=pie-28;c.fillStyle='#fff';c.fillRect(F.w-m-z-8,F.h-pie+10,z+16,z+8);c.drawImage(im,F.w-m-z,F.h-pie+14,z,z)}}}catch(e){}
   return cv}
+/* ======================= FOLLETO BILINGÜE (español / chino) PARA SUPERMERCADOS ======================= */
+/* Nombre en chino simplificado según la descripción (el orden importa: lo más específico primero). Se puede corregir a mano en el armado. */
+const ZH_PROD=[[/jamon crudo|\bcrudo\b/,'生火腿'],[/jamon/,'熟火腿'],[/paleta/,'猪肩火腿'],[/pata de cerdo|\bpata\b/,'猪腿火腿'],[/mortadela/,'意式肉肠'],[/salam|salamin/,'萨拉米香肠'],[/bondiola/,'腌猪颈肉'],[/lomo/,'猪里脊'],[/panceta/,'培根'],[/pastron/,'烟熏牛肉'],[/leverwurst/,'肝肠'],[/salchich/,'香肠'],[/queso de cerdo/,'猪头肉冻'],
+ [/cremoso/,'软质奶酪'],[/mozzarella|muzzarella|muzarella/,'马苏里拉奶酪'],[/reggianito|parmesano|sardo|duro/,'硬质奶酪'],[/pategras|gouda|holanda|danbo|tybo|maquina|barra/,'切片奶酪'],[/provolone|provoleta/,'波萝伏洛奶酪'],[/azul|roquefort/,'蓝纹奶酪'],[/rallado/,'奶酪碎'],[/por ?salut|port ?salut/,'波特萨卢奶酪'],[/fontina/,'芳提娜奶酪'],[/cheddar/,'切达奶酪'],[/ricota/,'乳清奶酪'],[/queso crema|untable/,'奶油奶酪'],
+ [/manteca de man/,'花生酱'],[/manteca/,'黄油'],[/crema de leche|\bcrema\b/,'鲜奶油'],[/dulce de leche/,'牛奶焦糖酱'],[/yerba/,'马黛茶'],[/\bman[ií]\b/,'花生'],[/aceite/,'食用油'],[/queso/,'奶酪'],[/fiambre/,'冷切肉']];
+const zhProd=d=>{const n=norm(d);const r=ZH_PROD.find(([re])=>re.test(n));return r?r[1]:''};
+const FB_DEF=[/jamon cocido/,/paleta/,/mortadela/,/salam/,/cremoso/,/mozzarella|muzzarella/];
+const FB_FONT='"Noto Sans SC","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Source Han Sans SC",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif';
+function fbPrecio(p,l){const id=p.producto_id,v=+p['precio_'+l]||0;
+  if(esKg(id))return{p:v,u:'x kg',uz:'每公斤'};
+  if(ppz(id))return{p:v,u:'la pieza',uz:'每块',kg:'≈ '+nf(ppz(id))+' kg · '+$m(v/ppz(id))+' x kg'};
+  return{p:v,u:'c/u',uz:'每件'}}
+async function folletoBilingue(){
+  const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  const l0=['mayorista','minorista','especial'].includes(S.fbL)?S.fbL:'mayorista';
+  const cands=l=>S.productos.filter(p=>+p['precio_'+l]>0);
+  let sel=[];/* [{id,zh}] */
+  const elegirDef=l=>{const C=cands(l).filter(p=>['Fiambres','Quesos'].includes(famGrupo(p.familia))||esPeso(p.producto_id));const out=[];
+    for(const re of FB_DEF){const p=C.filter(p=>re.test(norm(p.descripcion))&&!out.some(x=>x.id==p.producto_id)).sort((a,b)=>esPeso(b.producto_id)-esPeso(a.producto_id))[0];if(p)out.push({id:p.producto_id,zh:zhProd(p.descripcion)})}
+    return out};
+  sel=(S.fbSel||[]).filter(x=>S.productos.some(p=>p.producto_id==x.id));if(!sel.length)sel=elegirDef(l0);
+  m.innerHTML=`<div class="mc fo"><div class="bh"><h3>Folleto bilingüe para supermercados</h3><button class="alt" id="fb_x">Cerrar</button></div>
+    <p><small>Español y chino simplificado (中文), con tus precios reales. Elegí hasta 8 productos: lo ideal son 4 a 6 donde estés fuerte en precio. El nombre en chino sale solo; si alguno queda vacío o lo querés cambiar, escribilo vos.</small></p>
+    <div class="g"><label class="f">Precios de la lista<select id="fb_l">${['mayorista','minorista','especial'].map(l=>`<option value="${l}" ${l==l0?'selected':''}>${nomL(l)}</option>`).join('')}</select></label>
+      <label class="f">Pago al recibir<input id="fb_pg" maxlength="40" value="${esc(S.fbPg??'Efectivo o transferencia')}" placeholder="Ej.: Efectivo o transferencia"></label></div>
+    <label class="chk"><input type="checkbox" id="fb_mu" ${S.fbMu===false?'':'checked'}> Ofrecer muestra sin cargo (免费试吃样品)</label>
+    ${S.telEmp?'':'<p class="err"><small>Cargá tu WhatsApp en Cobranza (Tu WhatsApp) para que salga en el folleto.</small></p>'}
+    <div class="conscan"><input id="fb_q" placeholder="Agregar producto (nombre o código)" autocomplete="off"></div><div id="fb_r"></div>
+    <div id="fb_lst"></div>
+    <div class="fc-acc"><button id="fb_a4">📄 Folleto A4 para imprimir</button><button class="alt" id="fb_wa">🖼️ Imagen para WhatsApp</button><a class="lnk" id="fb_def">Volver a los sugeridos</a></div>
+    <div id="fb_out"></div></div>`;
+  const L=()=>$('#fb_l').value,guardar=()=>{S.fbSel=sel;S.fbL=L();S.fbPg=$('#fb_pg').value.trim();S.fbMu=$('#fb_mu').checked};
+  const pintar=()=>{const l=L();
+    $('#fb_lst').innerHTML=sel.length?`<div class="tw"><table><tr><th>Producto</th><th>中文</th><th class="n">Precio</th><th></th></tr>${sel.map((x,i)=>{const p=S.productos.find(p=>p.producto_id==x.id),pr=fbPrecio(p,l);
+      return `<tr><td>${esc(p.descripcion)}</td><td><input data-fz="${i}" value="${esc(x.zh)}" maxlength="12" placeholder="nombre en chino" style="max-width:150px;margin:0"></td><td class="n">${pr.p>0?$m(pr.p)+' <small>'+pr.u+'</small>':'<span class="err">sin precio</span>'}</td><td><a class="lnk" data-fq="${i}" aria-label="Quitar">✕</a></td></tr>`}).join('')}</table></div><p><small>${sel.length} de 8 productos.</small></p>`
+      :'<p><small>Todavía no elegiste productos. Buscalos arriba.</small></p>';
+    $$('#fb_lst [data-fz]').forEach(i=>i.oninput=()=>{sel[+i.dataset.fz].zh=i.value.trim();guardar()});
+    $$('#fb_lst [data-fq]').forEach(a=>a.onclick=()=>{sel.splice(+a.dataset.fq,1);guardar();pintar()})};
+  $('#fb_x').onclick=()=>m.remove();
+  $('#fb_l').onchange=()=>{guardar();pintar()};$('#fb_pg').oninput=guardar;$('#fb_mu').onchange=guardar;
+  $('#fb_def').onclick=()=>{sel=elegirDef(L());guardar();pintar()};
+  buscador('#fb_q','#fb_r',p=>{if(sel.some(x=>x.id==p.producto_id))return toast('Ya está en el folleto.',1);if(sel.length>=8)return toast('Máximo 8 productos: quitá alguno primero.',1);
+    sel.push({id:p.producto_id,zh:zhProd(p.descripcion)});guardar();pintar()});
+  pintar();
+  const items=()=>{const l=L();return sel.map(x=>{const p=S.productos.find(p=>p.producto_id==x.id);return{d:p.descripcion,zh:x.zh,...fbPrecio(p,l)}}).filter(x=>x.p>0)};
+  const benef=()=>[['Te lo llevamos al local','送货到店','Lunes a sábado · 周一至周六'],['Pedí hasta las 20 h','晚上8点前下单','Llega al día siguiente · 次日送达'],['Pagás al recibir','货到付款',$('#fb_pg').value.trim()],['Precio mayorista','批发价','Con IVA incluido · 含税']];
+  $('#fb_a4').onclick=()=>{const I=items();if(!I.length)return toast('Elegí al menos un producto con precio.',1);guardar();
+    const w=window.open('','_blank');if(!w)return toast('Permití las ventanas emergentes para generar el folleto.',1);
+    const C=MARCA.c,hoy=new Date().toLocaleDateString('es-AR',{day:'numeric',month:'long',year:'numeric'});
+    w.document.write(`<html lang="es"><head><meta charset="utf-8"><title>Folleto supermercados ${new Date().toLocaleDateString('es-AR')}</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@500;700;900&display=swap">
+    <style>@page{size:A4;margin:0}*{box-sizing:border-box}body{margin:0;font-family:${FB_FONT};color:#26191d;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .pg{width:210mm;height:296mm;display:flex;flex-direction:column;background:#fbf8f6;overflow:hidden}
+    .cab{background:${C};color:#fff;padding:6mm 10mm;display:flex;align-items:center;gap:5mm}.cab img{width:20mm;height:20mm;object-fit:contain;background:#fff;border-radius:3mm;padding:1mm}
+    .cab .n{font-size:26px;font-weight:900;line-height:1.1}.cab .z{font-size:18px;font-weight:700;letter-spacing:.08em}.cab .d{margin-left:auto;text-align:right;font-size:14px;font-weight:600}
+    .hero{padding:8mm 10mm 5mm}.hero h1{margin:0;font-size:50px;line-height:1.02;color:${C};font-weight:900}.hero .z{font-size:36px;font-weight:900;margin-top:1mm}.hero p{margin:2mm 0 0;font-size:17px;font-weight:600;color:#5c4b50}
+    .ben{padding:0 10mm;display:grid;grid-template-columns:1fr 1fr;gap:3mm}.b{background:#fff;border:2px solid #eadfdc;border-radius:4mm;padding:3mm 4mm;display:flex;gap:3.5mm;align-items:center}
+    .b .k{width:12mm;height:12mm;flex:none;border-radius:50%;background:#f5c542;display:grid;place-items:center;font-weight:900;font-size:20px}.b .t{font-weight:800;font-size:18px;line-height:1.15}.b .zt{font-weight:700;font-size:17px;color:${C}}.b .s{font-size:12.5px;color:#5c4b50}
+    .pr{padding:6mm 10mm 0}.ph{display:flex;justify-content:space-between;align-items:baseline;border-bottom:3px solid ${C};padding-bottom:1.5mm;font-size:22px;font-weight:900;color:${C}}.ph small{font-size:12px;color:#5c4b50;font-weight:600}
+    .gr{display:grid;grid-template-columns:1fr 1fr;column-gap:7mm}.it{display:flex;justify-content:space-between;align-items:flex-end;gap:3mm;padding:${I.length>6?3:4.2}mm 0;border-bottom:1px dashed #d9ccc8}
+    .it .e{font-weight:800;font-size:${I.length>6?16.5:18.5}px;line-height:1.15}.it .zz{font-size:15px;color:#5c4b50;font-weight:500}.it .v{text-align:right;white-space:nowrap}.it .v b{font-size:${I.length>6?21:24}px;color:${C};font-weight:900}.it .v span{display:block;font-size:11.5px;color:#5c4b50}
+    .mu{margin:5mm 10mm 0;background:#f5c542;border-radius:4mm;padding:4mm 6mm;display:flex;justify-content:space-between;font-size:22px;font-weight:900}
+    .pie{margin-top:auto;background:${C};color:#fff;padding:5mm 10mm;display:flex;align-items:center;gap:5mm}.pie .a{font-size:17px;font-weight:600}.pie .t{font-size:36px;font-weight:900;letter-spacing:.02em}.pie .v{margin-left:auto;font-size:11px;text-align:right;opacity:.9}
+    .ayuda{font:14px system-ui;background:#f6e9ec;padding:10px;margin:10px}@media print{.ayuda{display:none}}</style></head><body>
+    <p class="ayuda">Para guardarlo en PDF elegí <b>Guardar como PDF</b>. En "Más opciones" activá <b>Gráficos de fondo</b> para que salgan los colores.</p>
+    <div class="pg"><div class="cab">${MARCA.logo?`<img src="${MARCA.logo}" alt="">`:''}<div><div class="n">Sabores de mi País</div><div class="z">食品批发配送</div></div><div class="d">Distribuidora<br>de alimentos</div></div>
+    <div class="hero"><h1>Fiambres y quesos<br>por pieza</h1><div class="z">整块冷切肉和奶酪</div><p>Para tu fiambrería, a precio mayorista · 为您的熟食柜台提供批发价</p></div>
+    <div class="ben">${benef().map((b,i)=>`<div class="b"><div class="k">${i+1}</div><div><div class="t">${esc(b[0])}</div><div class="zt">${b[1]}</div>${b[2]?`<div class="s">${esc(b[2])}</div>`:''}</div></div>`).join('')}</div>
+    <div class="pr"><div class="ph"><span>Precios · 价格</span><small>Con IVA · 含税 · al ${hoy}</small></div>
+      <div class="gr">${I.map(x=>`<div class="it"><div><div class="e">${esc(x.d)}</div>${x.zh?`<div class="zz">${esc(x.zh)}</div>`:''}</div><div class="v"><b>${$m(x.p)}</b><span>${x.u} · ${x.uz}${x.kg?'<br>'+esc(x.kg):''}</span></div></div>`).join('')}</div></div>
+    ${$('#fb_mu').checked?'<div class="mu"><span>Pedí una muestra sin cargo</span><span>免费试吃样品</span></div>':''}
+    <div class="pie"><div><div class="a">Pedí por WhatsApp · 通过WhatsApp订货</div><div class="t">${esc(S.telEmp||'Sabores de mi País')}</div></div><div class="v">Precios sujetos a<br>modificación sin aviso</div></div></div>
+    <script>document.fonts&&document.fonts.ready.then(()=>setTimeout(()=>window.print(),400))<\/script></body></html>`);w.document.close()};
+  $('#fb_wa').onclick=async()=>{const I=items();if(!I.length)return toast('Elegí al menos un producto con precio.',1);guardar();
+    $('#fb_wa').disabled=true;$('#fb_out').innerHTML='<p>Armando la imagen…</p>';
+    try{await cargarFuenteSC()}catch(e){}
+    const W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;const c=cv.getContext('2d'),M=60,F=FB_FONT;
+    c.fillStyle=MARCA.c;c.fillRect(0,0,W,H);
+    const logo=await cargarImg(MARCA.logo);let tx=M;if(logo){c.fillStyle='#fff';rrect(c,M,M,120,120,20);c.fill();const k=Math.min(108/logo.width,108/logo.height);c.drawImage(logo,M+60-logo.width*k/2,M+60-logo.height*k/2,logo.width*k,logo.height*k);tx=M+148}
+    c.fillStyle='#fff';c.textBaseline='alphabetic';c.font=`900 46px ${F}`;c.fillText('Sabores de mi País',tx,M+58);c.font=`700 32px ${F}`;c.fillText('食品批发配送',tx,M+104);
+    let y=M+230;c.font=`900 84px ${F}`;c.fillText('Fiambres y quesos',M,y);y+=86;c.fillText('por pieza',M,y);y+=78;c.fillStyle='#f5c542';c.font=`900 62px ${F}`;c.fillText('整块冷切肉和奶酪',M,y);
+    // tarjeta de precios
+    const fy=H-M-150;y+=40;const n=I.length,rh=Math.min(96,Math.floor((fy-y-150)/Math.max(n,1))),cardH=rh*n+40;c.fillStyle='#fff';rrect(c,M,y,W-2*M,cardH,26);c.fill();
+    I.forEach((x,i)=>{const Y=y+20+i*rh;if(i){c.strokeStyle='#e4dcd9';c.lineWidth=2;c.beginPath();c.moveTo(M+30,Y);c.lineTo(W-M-30,Y);c.stroke()}
+      c.font=`900 ${Math.round(rh*.42)}px ${F}`;const pw=c.measureText($m(x.p)).width;c.fillStyle='#26191d';c.font=`800 ${Math.round(rh*.36)}px ${F}`;c.fillText(lineas(c,x.d,W-2*M-90-pw,1)[0],M+30,Y+rh*.45);
+      if(x.zh){c.fillStyle='#5c4b50';c.font=`700 ${Math.round(rh*.3)}px ${F}`;c.fillText(x.zh,M+30,Y+rh*.84)}
+      c.textAlign='right';c.fillStyle=MARCA.c;c.font=`900 ${Math.round(rh*.42)}px ${F}`;c.fillText($m(x.p),W-M-30,Y+rh*.5);c.fillStyle='#5c4b50';c.font=`600 ${Math.round(rh*.24)}px ${F}`;c.fillText(x.u+' · '+x.uz,W-M-30,Y+rh*.84);c.textAlign='left'});
+    y=cardH+y+(fy-cardH-y-96)/2+34;
+    c.fillStyle='#fff';c.font=`700 34px ${F}`;c.fillText('✔ Te lo llevamos al local · 送货到店',M,y);c.fillText('✔ Pagás al recibir · 货到付款',M,y+48);
+    c.fillStyle='#f5c542';rrect(c,M,fy,W-2*M,150,26);c.fill();c.fillStyle='#26191d';
+    c.font=`700 30px ${F}`;c.fillText($('#fb_mu').checked?'Pedí una muestra sin cargo · 免费试吃样品':'Pedí por WhatsApp · 通过WhatsApp订货',M+30,fy+50);
+    let ts=58;const tt='WhatsApp '+(S.telEmp||'');c.font=`900 ${ts}px ${F}`;while(c.measureText(tt).width>W-2*M-60&&ts>30){ts-=2;c.font=`900 ${ts}px ${F}`}c.fillText(S.telEmp?tt:'Sabores de mi País',M+30,fy+118);
+    const b=await new Promise(ok=>cv.toBlob(ok,'image/jpeg',.92)),u=URL.createObjectURL(b),nom='Folleto supermercados.jpg';
+    $('#fb_wa').disabled=false;
+    $('#fb_out').innerHTML=`<div class="fo-out"><div><img src="${u}" alt="Folleto bilingüe"></div></div><div class="fc-acc">${navigator.canShare?'<button id="fb_sh">Compartir por WhatsApp</button>':''}<a class="lnk" download="${nom}" href="${u}">Descargar</a></div>`;
+    $('#fb_sh')&&($('#fb_sh').onclick=async()=>{const f=new File([b],nom,{type:'image/jpeg'});try{if(navigator.canShare({files:[f]}))await navigator.share({files:[f],text:'¡Hola! Soy de *Sabores de mi País* 👋 您好!我们是食品批发商。Fiambres y quesos por pieza a precio mayorista · 整块冷切肉和奶酪,批发价。'})}catch(e){}})};
+}
+/* La fuente china para la imagen: Android suele traerla; si no, la bajo de Google Fonts antes de dibujar */
+async function cargarFuenteSC(){if(document.fonts&&document.fonts.check('900 40px "Noto Sans SC"','中'))return;
+  if(!document.getElementById('f_sc')){const k=document.createElement('link');k.id='f_sc';k.rel='stylesheet';k.href='https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@500;700;900&display=swap';document.head.appendChild(k)}
+  await Promise.race([Promise.all(['500','700','900'].map(w=>document.fonts.load(w+' 40px "Noto Sans SC"','中文'))),new Promise(r=>setTimeout(r,4000))])}
+
 async function folletoOfertas(){
   const fams=[...new Set(S.productos.map(p=>(p.familia||'').trim()).filter(Boolean))].sort(famCmp);
   const m=document.createElement('div');m.className='modal';document.body.appendChild(m);let sel=[],man=new Set(),quit=new Set();
