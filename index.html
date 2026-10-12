@@ -217,7 +217,7 @@ body{zoom:var(--z,1)}html.oscuro{filter:invert(.92) hue-rotate(180deg);backgroun
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-12.46';
+const VERSION='2026-10-12.47';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -302,9 +302,40 @@ async function cargarStock(){
   S.stockOk=!st.error;S.stock={};S.inv=false;
   for(const r of st.data||[]){S.stock[r.producto_id]={f:+r.fisico||0,r:+r.reservado||0,d:r.disponible!=null?+r.disponible:(+r.fisico||0)-(+r.reservado||0)};if(+r.fisico)S.inv=true}
   S.min={};S.bultoOk=(mi.data||[]).some(r=>'unidades_bulto' in r);for(const r of mi.data||[])S.min[r.id]={pw:!!r.por_peso,pk:r.peso_pieza!=null?+r.peso_pieza:null,pp:r.por_peso&&+r.peso_pieza>0?+r.peso_pieza:0,m:+r.stock_minimo||0,a:r.activo!==false,pv:r.proveedor_id,b:Math.max(1,+r.unidades_bulto||1),tb:r.tipo_bulto||'Caja',iva:r.alicuota_iva!=null?+r.alicuota_iva:21,foto:r.foto||'',uc:r.ultimo_conteo||null,cf:r.codigo_fabricante||'',nv:!!r.nuevo_hasta&&r.nuevo_hasta>=diaLocal(new Date()),nvh:r.nuevo_hasta||null,pvp:r.pvp!=null?+r.pvp:null,sb:!!r.solo_bulto};
-  await fotosCatFallback();
+  await fotosCatFallback();actualizarFotosCat();
 }
 /* Productos sin foto guardada: usan la del catálogo (por código) para mostrarse, sin guardarla */
+/* ---------- Ordenar direcciones: separa barrio, localidad, provincia y CP que quedaron escritos en la calle ---------- */
+function partirDir(c){const nz=t=>String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/\s+/g,' ').trim().replace(/\.$/,'');
+  const orig=String(c.domicilio||'').trim();if(!orig)return null;let cp='';
+  let t=orig.replace(/\(?\s*\b(?:c\.?\s?p\.?|cod(?:igo)?\.?\s*postal)\s*:?\s*([a-z]?\d{4}[a-z]{0,3})\b\s*\)?/gi,(m,x)=>{cp=cp||x.toUpperCase();return ' '}).replace(/\(?\b([A-Z]\d{4}[A-Z]{3})\b\)?/g,(m,x)=>{cp=cp||x.toUpperCase();return ' '});
+  const parts=t.split(/\s*[,;]\s*|\s+-\s+/).map(x=>x.replace(/[()]/g,' ').replace(/\s+/g,' ').trim()).filter(Boolean);if(parts.length<2&&!cp)return null;
+  const calle=parts.shift().replace(/[\s,.-]+$/,''),esCABA=n=>/^(ciudad autonoma de buenos aires|ciudad de buenos aires|caba|c\.?a\.?b\.?a|capital federal|cap\.? fed(eral)?)$/.test(n);
+  const N=parts.map(nz),caba=N.some(n=>esCABA(n)||BARRIOS_CABA.some(b=>nz(b)==n)),o={barrio:c.barrio||'',ciudad:c.ciudad||'',provincia:c.provincia||'',codigo_postal:c.codigo_postal||''};let prov='';
+  parts.forEach((x,i)=>{const n=N[i];if(esCABA(n))return;if(/^[a-z]?\d{4}[a-z]{0,3}$/i.test(x)){cp=cp||x.toUpperCase();return}
+    const b=BARRIOS_CABA.find(y=>nz(y)==n);if(b){if(!o.barrio)o.barrio=b;return}
+    const pr=PROVINCIAS.find(y=>nz(y)==n)||(/^(provincia de |pcia\.? de |pcia\.? |prov\.? de )?buenos aires$/.test(n)?'Buenos Aires':'');if(pr){if(prov&&!o.ciudad)o.ciudad=prov;prov=pr;return}
+    const tc=x.toLowerCase().replace(/(^|\s)\S/g,m=>m.toUpperCase());if(caba){if(!o.barrio)o.barrio=tc}else if(!o.ciudad)o.ciudad=tc});
+  if(caba){if(!o.provincia||o.provincia=='Buenos Aires')o.provincia='CABA';if(o.ciudad&&esCABA(nz(o.ciudad)))o.ciudad=''}else if(prov&&!o.provincia)o.provincia=prov;
+  if(cp&&!o.codigo_postal)o.codigo_postal=cp;
+  const nuevo={domicilio:calle||orig,barrio:o.barrio||null,ciudad:o.ciudad||null,provincia:o.provincia||null,codigo_postal:o.codigo_postal||null};
+  const cambia=nuevo.domicilio!=orig||['barrio','ciudad','provincia','codigo_postal'].some(k=>(nuevo[k]||'')!=(c[k]||''));return cambia?nuevo:null}
+async function ordenarDirecciones(){if(!dirOk())return toast('Falta correr clientes-direccion.sql en Supabase (te lo avisa el Inicio).',1);
+  const L=S.clientes.map(c=>({c,n:partirDir(c)})).filter(x=>x.n);const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  const fila=(o)=>[o.domicilio,o.barrio,o.ciudad,o.provincia,o.codigo_postal?'CP '+o.codigo_postal:''].filter(Boolean).map(esc).join(' · ');
+  m.innerHTML=`<div class="mc"><div class="bh"><h3>🏠 Ordenar direcciones</h3><button class="alt" id="od_x">Cerrar</button></div>
+    ${L.length?`<p><small>Encontré <b>${L.length}</b> ${L.length==1?'cliente':'clientes'} con el barrio, la provincia o el código postal escritos junto a la calle. Así quedarían (se completan solo los datos vacíos, no se pisa nada que ya hayas cargado):</small></p>
+    <div class="tw" style="max-height:55vh;overflow:auto"><table><tr><th></th><th>Cliente</th><th>Antes</th><th>Después</th></tr>${L.map((x,i)=>`<tr><td><input type="checkbox" data-od="${i}" checked style="width:auto"></td><td>${esc(x.c.razon_social)}</td><td><small>${esc(x.c.domicilio)}${[x.c.barrio,x.c.ciudad,x.c.provincia,x.c.codigo_postal].some(Boolean)?'<br><span style="color:#888">'+esc([x.c.barrio,x.c.ciudad,x.c.provincia,x.c.codigo_postal].filter(Boolean).join(' · '))+'</span>':''}</small></td><td><small><b>${fila(x.n)}</b></small></td></tr>`).join('')}</table></div>
+    <p><button id="od_ok">Ordenar las direcciones marcadas</button></p><p id="od_e"></p>`:'<p>✅ Todas las direcciones ya están ordenadas: no encontré barrios, provincias ni códigos postales mezclados con la calle.</p>'}</div>`;
+  m.querySelector('#od_x').onclick=()=>m.remove();const ok=m.querySelector('#od_ok');if(!ok)return;
+  ok.onclick=async()=>{const sel=[...m.querySelectorAll('[data-od]')].filter(x=>x.checked).map(x=>L[+x.dataset.od]);if(!sel.length)return toast('Marcá al menos un cliente.',1);ok.disabled=true;let k=0,mal=0;
+    for(const x of sel){k++;m.querySelector('#od_e').textContent=`Guardando ${k} de ${sel.length}…`;const{error}=await sb.from('clientes').update(x.n).eq('id',x.c.id);if(error){mal++;continue}Object.assign(x.c,x.n)}
+    m.remove();toast(`Listo: ${sel.length-mal} direcciones ordenadas.`+(mal?` ${mal} no se pudieron guardar.`:''),!!mal);if(S.tab=='clientes')vClientes()}}
+/* Fotos del catálogo ya guardadas: apuntarlas a la versión limpia (sin precios ni carteles del PDF). Una sola vez. */
+async function actualizarFotosCat(){try{if(S.perfil?.rol!='dueno')return;const V='2026-10-12';const{data:fv}=await sb.from('config_app').select('valor').eq('clave','fotos_cat_ver').maybeSingle();if(fv?.valor==V)return;await catalogoFotos();let n=0;
+  for(const p of S.productos){const x=S.min[p.producto_id];if(!x||x.fc||!/\/cat-\d+\.webp/.test(x.foto||''))continue;const k=catPorCodigo(p.codigo,p.descripcion)||catPorCodigo(x.cf,p.descripcion);if(!k)continue;
+    const url=new URL(k.img,location.href).href;const{error}=await sb.rpc('fijar_foto',{p_producto:p.producto_id,p_url:url});if(!error){x.foto=url;n++}}
+  await sb.from('config_app').upsert({clave:'fotos_cat_ver',valor:V});if(n)toast(`Actualicé ${n} fotos del catálogo a la versión limpia (sin precios ni carteles).`)}catch(e){}}
 async function fotosCatFallback(){try{await catalogoFotos();for(const p of S.productos){const x=S.min[p.producto_id];if(!x||x.foto)continue;const k=catPorCodigo(p.codigo,p.descripcion)||catPorCodigo(x.cf,p.descripcion);if(k){x.foto=new URL(k.img,location.href).href;x.fc=true}}}catch(e){}}
 const stk=id=>S.stock[id]||{f:0,r:0,d:0};
 const nf=n=>Number(n||0).toLocaleString('es-AR',{maximumFractionDigits:2});
@@ -815,9 +846,9 @@ const dirFalta=e=>/barrio|codigo_postal|provincia|ciudad/.test(e?.message||'')?'
 function vClientes(){
   S.cs=S.cs||'lista';
   const subs=`<div class="sub">${[['lista','Clientes'],['agenda','Agenda de visitas'],['mapa','Mapa'],['dormidos','Dormidos'],['prospectos','Prospectos'],['fijos','Pedidos fijos']].map(([k,t])=>`<button class="${S.cs==k?'':'alt'}" data-cs2="${k}">${t}</button>`).join('')}</div>`;
-  if(S.cs!='lista'){$('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Clientes</h2><button class="alt" onclick="revisionDatos()">🧹 Revisión de datos</button><button class="alt" onclick="llegueToggle()">📍 ${llegueOn()?'Aviso al llegar: activo':'Avisarme al llegar'}</button></div>${subs}<div id="cs">Cargando…</div>`;$$('[data-cs2]').forEach(b=>b.onclick=()=>{S.cs=b.dataset.cs2;vClientes()});
+  if(S.cs!='lista'){$('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Clientes</h2><button class="alt" onclick="revisionDatos()">🧹 Revisión de datos</button><button class="alt" onclick="ordenarDirecciones()">🏠 Ordenar direcciones</button><button class="alt" onclick="llegueToggle()">📍 ${llegueOn()?'Aviso al llegar: activo':'Avisarme al llegar'}</button></div>${subs}<div id="cs">Cargando…</div>`;$$('[data-cs2]').forEach(b=>b.onclick=()=>{S.cs=b.dataset.cs2;vClientes()});
     return ({agenda:vAgenda,prospectos:vProspectos,fijos:vFijos,dormidos:vDormidos,mapa:vMapa})[S.cs]()}
-  $('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Clientes</h2><button class="alt" onclick="revisionDatos()">🧹 Revisión de datos</button><button class="alt" onclick="llegueToggle()">📍 ${llegueOn()?'Aviso al llegar: activo':'Avisarme al llegar'}</button></div>${subs}<div class="box"><div class="g"><input id="c_n" placeholder="Razón social *"><input id="c_c" placeholder="CUIT"><input id="c_t" placeholder="Teléfono"><input id="c_d" placeholder="Domicilio (calle y número)">${dirCampos('c')}
+  $('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Clientes</h2><button class="alt" onclick="revisionDatos()">🧹 Revisión de datos</button><button class="alt" onclick="ordenarDirecciones()">🏠 Ordenar direcciones</button><button class="alt" onclick="llegueToggle()">📍 ${llegueOn()?'Aviso al llegar: activo':'Avisarme al llegar'}</button></div>${subs}<div class="box"><div class="g"><input id="c_n" placeholder="Razón social *"><input id="c_c" placeholder="CUIT"><input id="c_t" placeholder="Teléfono"><input id="c_d" placeholder="Domicilio (calle y número)">${dirCampos('c')}
   <select id="c_i"><option value="responsable_inscripto">Responsable Inscripto</option><option value="monotributo">Monotributo</option><option value="consumidor_final">Consumidor final</option><option value="exento">Exento</option></select>
   <select id="c_l"><option>mayorista</option><option>minorista</option><option>especial</option></select>
   <input id="c_p" type="number" min="0" placeholder="Días de pago (0 = contado)"></div><button id="c_g">Guardar cliente</button></div>
