@@ -2332,7 +2332,7 @@ async function vAgenda(){
 const EST_PR={nuevo:'Nuevo',contactado:'Contactado',visitado:'Visitado',interesado:'Interesado',no_interesado:'No le interesa',cliente:'Ya es cliente'};
 async function vProspectos(){
   S.prF=S.prF||'activos';
-  const{data,error}=await sb.from('prospectos').select('*').order('creado_en',{ascending:false});
+  const{data,error}=await todo(()=>sb.from('prospectos').select('*').order('creado_en',{ascending:false}));
   if(error){$('#cs').innerHTML='<div class="aviso">Falta correr <b>mejoras-clientes.sql</b> en Supabase. ('+esc(error.message)+')</div>';return}
   const hoy=diaLocal(new Date());
   const SCp=await cargarPuntajes().catch(()=>null),scP=x=>SCp?SCp(x):0;
@@ -3628,7 +3628,7 @@ async function vCantidad(){const due=S.perfil.rol=='dueno';await cargarPromos();
 
 /* ---------- Cupones ---------- */
 async function vCupones(){const due=S.perfil.rol=='dueno';
-  const[cu,us]=await Promise.all([sb.from('cupones').select('*').order('creado_en',{ascending:false}),sb.from('cupones_usos').select('codigo')]);
+  const[cu,us]=await Promise.all([sb.from('cupones').select('*').order('creado_en',{ascending:false}),todo(()=>sb.from('cupones_usos').select('codigo'))]);
   if(cu.error){$('#vs').innerHTML=SQL_FID;return}
   const n={};for(const u of us.data||[])n[u.codigo]=(n[u.codigo]||0)+1;const hoy=diaLocal(new Date());
   const est=c=>!c.activo?['Pausado','b-cancelado']:c.hasta&&c.hasta<hoy?['Vencido','b-cancelado']:c.usos_max&&(n[c.codigo]||0)>=c.usos_max?['Agotado','b-cancelado']:['Activo','b-entregado'];
@@ -3808,7 +3808,7 @@ function colaSugeridos(L){const m=document.createElement('div');m.className='mod
 
 /* ---------- 2. Carritos sin enviar ---------- */
 async function vCarritos(){
-  const{data,error}=await sb.from('carritos').select('*').order('actualizado_en',{ascending:false});
+  const{data,error}=await todo(()=>sb.from('carritos').select('*').order('actualizado_en',{ascending:false}));
   if(error){$('#vs').innerHTML=SQL_MAS;return}
   const L=data.filter(x=>Date.now()-new Date(x.actualizado_en)>3600e3&&+x.total>0),cli=id=>S.clientes.find(c=>c.id==id)||{razon_social:'Cliente'};
   $('#vs').innerHTML=`<div class="kp"><div class="box ${L.filter(x=>!x.contactado_en).length?'alerta':'ok'}"><span class="lab">Sin enviar</span><span class="num">${L.length}</span><span class="det">armaron el carrito y no lo mandaron</span></div>
@@ -4132,7 +4132,7 @@ async function vNoCompra(){S.ncD=S.ncD||60;
 /* ---------- 8. Prospectos cerca del recorrido (agenda) ---------- */
 const distKm=(a,b)=>{const R=6371,dLa=(b[0]-a[0])*Math.PI/180,dLo=(b[1]-a[1])*Math.PI/180,x=Math.sin(dLa/2)**2+Math.cos(a[0]*Math.PI/180)*Math.cos(b[0]*Math.PI/180)*Math.sin(dLo/2)**2;return 2*R*Math.asin(Math.sqrt(x))};
 async function cercaRecorrido(del){const box=$('#ag_cerca');if(!box)return;const P=del.filter(c=>c.lat!=null&&c.lng!=null).map(c=>[+c.lat,+c.lng]);if(!P.length){box.innerHTML='';return}
-  const{data,error}=await sb.from('prospectos').select('*').not('lat','is',null).not('estado','in','(cliente,no_interesado)');if(error||!data?.length){box.innerHTML='';return}
+  const{data,error}=await todo(()=>sb.from('prospectos').select('*').not('lat','is',null).not('estado','in','(cliente,no_interesado)'));if(error||!data?.length){box.innerHTML='';return}
   const L=data.map(x=>({x,d:Math.min(...P.map(p=>distKm(p,[+x.lat,+x.lng])))})).filter(z=>z.d<=1.5).sort((a,b)=>a.d-b.d);
   box.innerHTML=L.length?`<div class="box toca-i"><h3>🎯 Prospectos de paso en este recorrido (${L.length})</h3><p><small>Negocios que todavía no te compran, a menos de 1,5 km de tus clientes de este día. Aprovechá y pasá.</small></p>
     <table>${L.slice(0,15).map(z=>`<tr><td><b>${esc(z.x.nombre)}</b>${z.x.rubro?' <small>· '+esc(z.x.rubro)+'</small>':''}<br><small>${esc(z.x.domicilio||'')}</small></td><td class="n"><small>${z.d<1?Math.round(z.d*1000)+' m':nf(Math.round(z.d*10)/10)+' km'}</small></td>
@@ -4313,7 +4313,7 @@ async function vInvitar(){S.invF=S.invF||'pend';$('#vs').innerHTML='<p>Cargando�
 async function vMiraron(){S.miD=S.miD||3;
   const desde=new Date(Date.now()-S.miD*864e5).toISOString();
   const[vi,pe,ca]=await Promise.all([sb.from('vistas_catalogo').select('*').gte('fecha',desde).order('ultima',{ascending:false}).limit(500),
-    sb.from('pedidos').select('cliente_id,creado_en').gte('creado_en',desde).neq('estado','cancelado'),sb.from('carritos').select('cliente_id,total,items')]);
+    sb.from('pedidos').select('cliente_id,creado_en').gte('creado_en',desde).neq('estado','cancelado'),todo(()=>sb.from('carritos').select('cliente_id,total,items'))]);
   if(vi.error){$('#vs').innerHTML=SQL_FIE;return}
   const G={};for(const v of vi.data){const g=G[v.cliente_id]=G[v.cliente_id]||{n:0,u:v.ultima,f:new Set()};g.n+=v.veces;if(v.ultima>g.u)g.u=v.ultima;(v.fams||[]).forEach(x=>g.f.add(x))}
   const pidio=id=>(pe.data||[]).some(o=>o.cliente_id==id&&o.creado_en>=new Date(new Date(G[id].u).getTime()-36e5*2).toISOString()),car=id=>(ca.data||[]).find(x=>x.cliente_id==id);
@@ -4570,7 +4570,7 @@ async function vPotencial(){
 /* ---------- 10. Ventas por zona ---------- */
 async function vZonas(){S.zoD=S.zoD||90;
   const d0=new Date(Date.now()-S.zoD*864e5).toISOString(),d00=new Date(Date.now()-2*S.zoD*864e5).toISOString();
-  const[pe,pr]=await Promise.all([todo(()=>sb.from('pedidos').select('cliente_id,total,creado_en').neq('estado','cancelado').gte('creado_en',d00).order('numero')),sb.from('prospectos').select('ciudad,zona,domicilio,estado').not('estado','in','(cliente,no_interesado)')]);
+  const[pe,pr]=await Promise.all([todo(()=>sb.from('pedidos').select('cliente_id,total,creado_en').neq('estado','cancelado').gte('creado_en',d00).order('numero')),todo(()=>sb.from('prospectos').select('ciudad,zona,domicilio,estado').not('estado','in','(cliente,no_interesado)'))]);
   const zona=c=>cap1(String(c.zona||c.ciudad||'Sin zona').trim().replace(/\s*\(.*\)$/,''))||'Sin zona',Z={};
   const zz=k=>Z[k]=Z[k]||{v:0,a:0,cl:new Set(),tot:0,pr:0};
   for(const c of S.clientes)zz(zona(c)).tot++;
@@ -5030,7 +5030,7 @@ function rafaga(L){const m=document.createElement('div');m.className='modal';doc
 
 /* Resultados: cuántos compraron después del mensaje */
 async function resultadosAuto(box){if(!box)return;const d30=new Date(Date.now()-30*864e5).toISOString();
-  let[ev,H,cu]=await Promise.all([todo(()=>sb.from('envios_auto').select('*').gte('enviado_en',d30).order('id')),histAuto(),sb.from('cupones_usos').select('codigo').gte('fecha',d30)]);
+  let[ev,H,cu]=await Promise.all([todo(()=>sb.from('envios_auto').select('*').gte('enviado_en',d30).order('id')),histAuto(),todo(()=>sb.from('cupones_usos').select('codigo').gte('fecha',d30))]);
   if(ev.error||!ev.data.length){box.innerHTML='';return}const usados=new Set((cu.data||[]).map(x=>String(x.codigo).toUpperCase())),{data:pr}=await sb.from('prospectos').select('id,estado').in('id',[...new Set(ev.data.filter(x=>x.prospecto_id).map(x=>x.prospecto_id))].slice(0,500));
   const G={};for(const e of ev.data){const g=G[e.tipo]=G[e.tipo]||{n:0,c:0,v:0,cu:0,cuU:0};g.n++;
     if(e.cliente_id){const P=H.P.filter(o=>o.cliente_id==e.cliente_id&&o.creado_en>e.enviado_en&&new Date(o.creado_en)-new Date(e.enviado_en)<7*864e5);if(P.length){g.c++;g.v+=P.reduce((a,o)=>a+ +o.total,0)}}
@@ -5138,8 +5138,8 @@ async function vNuevos90(){const[A,H,ev]=await Promise.all([cfgAuto(),histAuto()
 const TIPOS_QR=[['volante','Volante'],['cartel','Cartel en un local'],['vendedor','Vendedor'],['zona','Zona'],['redes','Redes sociales'],['otro','Otro']];
 const linkQR=x=>urlBase('ver=catalogo&qr='+encodeURIComponent(x.codigo)+(x.rubro?'&rubro='+encodeURIComponent(x.rubro):''));
 async function vQR(){const due=S.perfil.rol=='dueno';
-  const[cq,vi,pr,pp,ve,H]=await Promise.all([sb.from('campanias_qr').select('*').order('creado_en',{ascending:false}),sb.from('qr_visitas').select('*'),sb.from('prospectos').select('campania,estado').not('campania','is',null),
-    sb.from('presupuestos').select('campania,total').not('campania','is',null),sb.rpc('vendedores'),histAuto()]);
+  const[cq,vi,pr,pp,ve,H]=await Promise.all([sb.from('campanias_qr').select('*').order('creado_en',{ascending:false}),todo(()=>sb.from('qr_visitas').select('*')),todo(()=>sb.from('prospectos').select('campania,estado').not('campania','is',null)),
+    todo(()=>sb.from('presupuestos').select('campania,total').not('campania','is',null)),sb.rpc('vendedores'),histAuto()]);
   if(cq.error){$('#vs').innerHTML=SQL_AUT;return}const V=ve.data||[],rubros=[...new Set(S.clientes.map(c=>c.rubro).filter(Boolean))].sort();
   const st=k=>{const cl=S.clientes.filter(c=>c.campania==k);return{vis:(vi.data||[]).filter(x=>x.codigo==k).reduce((a,x)=>a+x.n,0),alt:(pr.data||[]).filter(x=>x.campania==k).length,ped:(pp.data||[]).filter(x=>x.campania==k).length,cli:cl.length,venta:cl.reduce((a,c)=>a+(H.C[c.id]?.t||0),0)}};
   $('#vs').innerHTML=`<div class="box"><h3>🔳 QR por campaña y vendedor</h3><p><small>Cada volante, cartel, vendedor o zona lleva su propio QR al catálogo público. Así sabés cuántos lo escanearon, cuántos pidieron ser clientes, cuántos hicieron pedido y cuánto compraron.</small></p>
@@ -5274,7 +5274,7 @@ function importarProspectos(fin){const m=document.createElement('div');m.classNa
     <textarea id="ip_t" rows="8" style="width:100%" placeholder="Kiosco Lalo	1155551111	Cabildo 2100&#10;Almacén Rosa, 11 4444 2222"></textarea>
     <div class="g"><label class="f">Rubro de todos (opcional)<input id="ip_r" placeholder="Ej.: Kiosco"></label><label class="f">Zona (opcional)<input id="ip_z" placeholder="Ej.: Belgrano"></label></div>
     <div id="ip_p"></div><button id="ip_g" disabled>Cargar prospectos</button></div>`;
-  const ex=async()=>{const{data}=await sb.from('prospectos').select('telefono');return new Set([...(data||[]).map(x=>String(x.telefono||'').replace(/\D/g,'').slice(-8)),...S.clientes.map(c=>String(c.telefono||'').replace(/\D/g,'').slice(-8))].filter(t=>t.length==8))};
+  const ex=async()=>{const{data}=await todo(()=>sb.from('prospectos').select('telefono'));return new Set([...(data||[]).map(x=>String(x.telefono||'').replace(/\D/g,'').slice(-8)),...S.clientes.map(c=>String(c.telefono||'').replace(/\D/g,'').slice(-8))].filter(t=>t.length==8))};
   let EX=null;const prev=async()=>{EX=EX||await ex();L=[];
     for(const ln of $('#ip_t').value.split(/\n/).map(s=>s.trim()).filter(Boolean)){const m2=ln.match(/(\+?\d[\d\s\-().]{7,}\d)/);if(!m2)continue;const tel=m2[1].trim(),dig=tel.replace(/\D/g,'');if(dig.length<8)continue;
       const parts=ln.replace(m2[1],'\t').split(/\t|;|,|\|/).map(s=>s.trim()).filter(Boolean),nombre=(parts[0]||'').slice(0,80),dir=parts.slice(1).join(', ').slice(0,120);if(nombre.length<2)continue;
@@ -5314,7 +5314,7 @@ async function metasBox(){const box=$('#ca_metas');if(!box)return;const R=await 
 /* Zonas sin cubrir */
 async function vCobertura(){const C=S.clientes.filter(c=>c.lat!=null&&c.lng!=null);
   if(C.length<3){$('#vs').innerHTML='<div class="box"><h3>🧭 Zonas sin cubrir</h3><p><small>Para esto hacen falta al menos 3 clientes ubicados en el mapa. Ubicalos en <b>Clientes → Mapa</b> (botón "Ubicar por su domicilio").</small></p></div>';return}
-  const{data:pr}=await sb.from('prospectos').select('id,nombre,lat,lng,estado').not('lat','is',null);const P=(pr||[]).filter(x=>!['cliente','no_interesado'].includes(x.estado));
+  const{data:pr}=await todo(()=>sb.from('prospectos').select('id,nombre,lat,lng,estado').not('lat','is',null));const P=(pr||[]).filter(x=>!['cliente','no_interesado'].includes(x.estado));
   const dLa=.011,dLo=.013,key=(la,lo)=>Math.floor(la/dLa)+':'+Math.floor(lo/dLo),G={};
   for(const c of C){const k=key(+c.lat,+c.lng);(G[k]=G[k]||{c:[],p:0}).c.push(c)}const PG={};for(const x of P){const k=key(+x.lat,+x.lng);PG[k]=(PG[k]||0)+1}
   const cand={};for(const k of Object.keys(G)){const[i,j]=k.split(':').map(Number);for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){if(!a&&!b)continue;const n=(i+a)+':'+(j+b);if(G[n])continue;const z=cand[n]=cand[n]||{k:n,v:0,near:[]};z.v+=G[k].c.length;z.near.push(...G[k].c)}}
@@ -7574,7 +7574,7 @@ async function vBuscarNegocios(){S.bnR=S.bnR||1;
       const e=await consulta(tandas[i]);if(!e){fallo++;continue}for(const x of e){const k=x.type+x.id;if(!vistos.has(k)){vistos.add(k);EL.push(x)}}}
     if(fallo==tandas.length){$('#bn_o').innerHTML=`<p class="err">El servicio de mapas no respondió (está saturado). Probá de nuevo en un rato${rad>1000?' o con un radio más chico (1 km)':''}.</p>`;return}
     const J={elements:EL};if(fallo)toast('Algunos tipos de negocio no se pudieron buscar (el servicio de mapas está saturado). Probá de nuevo para completar.',1);
-    const{data:pr}=await sb.from('prospectos').select('nombre,lat,lng');const ex=[...S.clientes.filter(x=>x.lat!=null).map(x=>({n:norm(x.razon_social),p:[+x.lat,+x.lng]})),...(pr||[]).map(x=>({n:norm(x.nombre),p:x.lat!=null?[+x.lat,+x.lng]:null}))];
+    const{data:pr}=await todo(()=>sb.from('prospectos').select('nombre,lat,lng'));const ex=[...S.clientes.filter(x=>x.lat!=null).map(x=>({n:norm(x.razon_social),p:[+x.lat,+x.lng]})),...(pr||[]).map(x=>({n:norm(x.nombre),p:x.lat!=null?[+x.lat,+x.lng]:null}))];
     const L=(J.elements||[]).map(e=>{const t=e.tags||{},la=e.lat??e.center?.lat,lo=e.lon??e.center?.lon,tp=osmTipo(t,T);
       return{id:e.type+e.id,nombre:t.name||t.brand||'',tipo:tp?.[1]||t.shop||t.amenity||t.tourism||'',rubro:tp?.[2]||'Kiosco',dir:[t['addr:street'],t['addr:housenumber']].filter(Boolean).join(' ')||'',ciudad:t['addr:city']||'',tel:t.phone||t['contact:phone']||t['contact:whatsapp']||'',lat:la,lng:lo,d:distKm([lat,lon],[la,lo])}})
       .filter(x=>x.nombre&&x.lat&&(!S.bnTel||x.tel)).filter(x=>!ex.some(y=>y.n==norm(x.nombre)||(y.p&&distKm(y.p,[x.lat,x.lng])<.03))).sort((a,b)=>a.d-b.d);
