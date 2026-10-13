@@ -219,7 +219,7 @@ body{zoom:var(--z,1)}html.oscuro{filter:invert(.92) hue-rotate(180deg);backgroun
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-12.52';
+const VERSION='2026-10-13.1';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -939,7 +939,7 @@ SDMP-01279	8.900</pre>
     await recargarProductos();pintarMF();draw();toast('Márgenes guardados. Los precios ya están actualizados.')};
   /* filtros */
   const ult={};for(const h of hi.data||[])if(!ult[h.producto_id])ult[h.producto_id]=h;
-  const uniq=k=>[...new Set(S.productos.map(p=>p[k]).filter(Boolean))].sort();
+  const act=p=>S.min[p.producto_id]?.a!==false;const uniq=k=>[...new Set(S.productos.filter(act).map(p=>p[k]).filter(Boolean))].sort();
   $('#pr_pv').innerHTML+=(pv.data||[]).map(p=>`<option value="${p.id}">${esc(p.razon_social)}</option>`).join('');
   $('#pr_ma').innerHTML+=uniq('marca').map(x=>`<option>${esc(x)}</option>`).join('');
   $('#pr_fa').innerHTML+=uniq('familia').sort(famCmp).map(x=>`<option>${esc(x)}</option>`).join('');
@@ -1054,7 +1054,7 @@ function catalogoPDF(l,L,c,nomLista){const w=window.open('','_blank');if(!w)retu
 function abrirListaPrecios(c){
   catalogoFotos();
   const LIS={mayorista:'Mayorista',minorista:'Minorista',especial:'Gastronomía'};
-  const uniq=k=>[...new Set(S.productos.map(p=>p[k]).filter(Boolean))].sort();
+  const act=p=>S.min[p.producto_id]?.a!==false;const uniq=k=>[...new Set(S.productos.filter(act).map(p=>p[k]).filter(Boolean))].sort();
   const m=document.createElement('div');m.className='modal';
   m.innerHTML=`<div class="mc" role="dialog" aria-label="Lista de precios"><div class="bh"><h3>Lista de precios${c?' · '+esc(c.razon_social):''}</h3><button class="alt" id="lp_x">Cerrar</button></div>
     <div class="g">
@@ -1071,7 +1071,7 @@ function abrirListaPrecios(c){
   document.body.appendChild(m);
   const cerrar=()=>m.remove();$('#lp_x').onclick=cerrar;m.onclick=e=>{if(e.target===m)cerrar()};
   const sel=()=>{const l=$('#lp_l').value,mk=$('#lp_m').value,fa=$('#lp_f').value,q=$('#lp_q').value;
-    return{l,L:S.productos.filter(p=>Number(p['precio_'+l])>0&&(!mk||p.marca==mk)&&(!fa||p.familia==fa)&&(!q||coincide(txtProd(p),q)))
+    return{l,L:S.productos.filter(p=>act(p)&&Number(p['precio_'+l])>0&&(!mk||p.marca==mk)&&(!fa||p.familia==fa)&&(!q||coincide(txtProd(p),q)))
       .map(p=>({id:p.producto_id,c:p.codigo,d:p.descripcion,m:p.marca||'Otros',fa:(p.familia||'').trim()||'Otros',p:Number(p['precio_'+l]),f:S.min[p.producto_id]?.foto||''})).sort((a,b)=>a.m.localeCompare(b.m)||a.d.localeCompare(b.d))}};
   const grupos=L=>{const g={};for(const x of L)(g[x.m]=g[x.m]||[]).push(x);return Object.entries(g)};
   const hoy=()=>new Date().toLocaleDateString('es-AR');
@@ -2571,7 +2571,7 @@ function importadorLista(){const box=$('#pr_imp');if(!box)return;
 const eanOk=c=>{c=String(c||'').trim();if(!/^\d{13}$/.test(c))return false;const d=[...c].map(Number);return(10-(d.slice(0,12).reduce((a,x,i)=>a+x*(i%2?3:1),0)%10))%10==d[12]};
 async function etiquetas(ids){
   const m=document.createElement('div');m.className='modal';let L=(ids||[]).slice();
-  const uniq=k=>[...new Set(S.productos.map(p=>p[k]).filter(Boolean))].sort();
+  const act=p=>S.min[p.producto_id]?.a!==false;const uniq=k=>[...new Set(S.productos.filter(act).map(p=>p[k]).filter(Boolean))].sort();
   m.innerHTML=`<div class="mc"><div class="bh"><h3>Etiquetas de precio</h3><button class="alt" id="et_x">Cerrar</button></div>
     <div class="g"><label class="f">Agregar por marca<select id="et_m"><option value="">Elegí…</option>${uniq('marca').map(x=>`<option>${esc(x)}</option>`).join('')}</select></label>
       <label class="f">Agregar los que cambiaron de precio<select id="et_h"><option value="">Elegí…</option><option value="7">En los últimos 7 días</option><option value="15">En los últimos 15 días</option><option value="30">En los últimos 30 días</option></select></label></div>
