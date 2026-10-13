@@ -1,6 +1,6 @@
 -- UNIFICAR PROVEEDORES (2ª parte) — CRM Sabores de mi País
 -- 1) "Mayoristas 18-Ago / Productos Nuevos" y "Mayoristas 18-Ago / SANCOR" → DISTRIBUIDORA CCP
--- 2) "JL SA" → "Maní JL S.A."
+-- 2) "Maní JL S.A." → "JL SA" (queda JL SA)
 -- Mueve productos, órdenes, facturas, pagos y costos al proveedor que queda y borra el repetido.
 -- Usa la función _unificar_proveedores() de unificar-proveedores.sql (ya ejecutado).
 -- Se puede correr más de una vez.
@@ -20,18 +20,18 @@ begin
     raise notice 'A DISTRIBUIDORA CCP: % → %', nombres, res;
   end if;
 
-  -- 2) JL SA → Maní JL S.A.
+  -- 2) Maní JL S.A. → JL SA
   d := null; o := null;
   select id into d from proveedores
-   where razon_social ~* '^\s*man[ií]\s+jl\b'
+   where razon_social ~* '^\s*jl\s*s\.?\s*a\.?\s*$'
    order by activo desc nulls last limit 1;
   if d is not null then
     update proveedores set activo = true where id = d;
     select array_agg(id), string_agg(razon_social, ' · ') into o, nombres from proveedores
-     where id <> d and razon_social ~* '^\s*jl\s*s\.?\s*a\.?\s*$';
+     where id <> d and razon_social ~* '^\s*man.{1,3}jl';
     if o is not null then
       res := _unificar_proveedores(d, o);
-      raise notice 'A Maní JL S.A.: % → %', nombres, res;
+      raise notice 'A JL SA: % → %', nombres, res;
     end if;
   end if;
 end $$;
