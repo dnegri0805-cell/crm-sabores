@@ -904,7 +904,7 @@ SDMP-01279	8.900</pre>
     <button class="alt" id="pr_rev">Revisar</button><div id="pr_res"></div></details>`;
   $('#pr_lp').onclick=()=>abrirListaPrecios(null);
   vPromos();
-  const[cl,pv,hi,mfa]=await Promise.all([sb.from('config_listas').select('*'),sb.from('proveedores').select('id,razon_social').order('razon_social'),
+  const[cl,pv,hi,mfa]=await Promise.all([sb.from('config_listas').select('*'),sb.from('proveedores').select('id,razon_social').eq('activo',true).order('razon_social'),
     sb.from('historial_costos').select('producto_id,costo_anterior,costo_nuevo,fecha').order('fecha',{ascending:false}).limit(3000),
     sb.from('margenes_familia').select('familia,ajuste_pct')]);
   await cargarStock();
@@ -2049,6 +2049,25 @@ async function vCompras(){
   ({costos:cHistCostos,mejor:cMejorProv,ordenes:cOrdenes,sugerencia:cSugerencia,proveedores:cProveedores,cuenta:cCuenta})[S.sub]();
 }
 
+/* Unificar proveedores repetidos (el mismo proveedor cargado con varios nombres) */
+function unificarProv(){const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  m.innerHTML=`<div class="mc"><div class="bh"><h3>🔗 Unificar proveedores</h3><button class="alt" id="un_x">Cerrar</button></div>
+    <p><small>Si cargaste el mismo proveedor con varios nombres, elegí con cuál se queda y marcá los repetidos. Todo lo de los repetidos (productos, órdenes de compra, facturas, pagos y costos) pasa al que se queda, y los repetidos se borran.</small></p>
+    <label class="f">Se queda<select id="un_d"><option value="">Elegí el proveedor…</option>${S.prov.map(p=>`<option value="${p.id}">${esc(p.razon_social)}</option>`).join('')}</select></label>
+    <p style="margin:10px 0 4px"><b>Pasan a ese y se borran:</b></p><div id="un_l"></div>
+    <div class="fc-acc"><button id="un_g">Unificar</button></div><p id="un_e"></p></div>`;
+  const q=x=>m.querySelector(x);q('#un_x').onclick=()=>m.remove();
+  const lst=()=>{const d=q('#un_d').value;q('#un_l').innerHTML=S.prov.filter(p=>p.id!=d).map(p=>`<label class="chk"><input type="checkbox" data-un="${p.id}" style="width:auto;margin:0 8px 0 0">${esc(p.razon_social)}</label>`).join('')};
+  q('#un_d').onchange=lst;lst();
+  q('#un_g').onclick=async()=>{const d=q('#un_d').value,O=[...m.querySelectorAll('[data-un]:checked')].map(c=>c.dataset.un);
+    if(!d)return toast('Elegí con qué proveedor se queda.',1);if(!O.length)return toast('Marcá al menos un proveedor repetido.',1);
+    const nd=S.prov.find(p=>p.id==d).razon_social,no=O.map(id=>S.prov.find(p=>p.id==id).razon_social);
+    if(!confirm(`¿Pasar todo de ${no.join(', ')} a ${nd} y borrar ${O.length==1?'ese proveedor':'esos proveedores'}? No se puede deshacer.`))return;
+    q('#un_g').disabled=true;const{data,error}=await sb.rpc('unificar_proveedores',{p_destino:d,p_origenes:O});q('#un_g').disabled=false;
+    if(error){q('#un_e').innerHTML=/unificar_proveedores/.test(error.message)?'<span class="err">Falta correr <b>unificar-proveedores.sql</b> en Supabase.</span>':'<span class="err">'+esc(error.message)+'</span>';return}
+    const mv=data?.movidos||{},tx=Object.entries(mv).map(([t,n])=>n+' en '+t.replace(/_/g,' ')).join(', ');
+    m.remove();toast(`Listo: ${no.length} unificado${no.length==1?'':'s'} en ${nd}.${tx?' Se pasaron '+tx+'.':''}`);vCompras()}}
+
 /* Sugerencia de compra */
 async function cSugerencia(){
   S.provMin=await cfgJ('prov_minimos',{});S.sg=S.sg||{dias:30,cob:15,bul:true,pv:''};const g=S.sg;
@@ -2188,12 +2207,13 @@ async function imprimirOC(o){
 
 /* Proveedores */
 async function cProveedores(){
-  $('#cv').innerHTML=`<div class="box"><b>Nuevo proveedor</b><div class="g" style="margin-top:8px"><input id="v_n" placeholder="Razón social *"><input id="v_c" placeholder="CUIT"><input id="v_t" placeholder="Teléfono"><input id="v_e" type="email" placeholder="Email"><input id="v_d" placeholder="Domicilio">
+  $('#cv').innerHTML=`${S.perfil.rol=='dueno'&&S.prov.length>1?'<div class="fc-acc" style="margin-bottom:8px"><button class="alt" id="v_un">🔗 Unificar proveedores repetidos</button></div>':''}<div class="box"><b>Nuevo proveedor</b><div class="g" style="margin-top:8px"><input id="v_n" placeholder="Razón social *"><input id="v_c" placeholder="CUIT"><input id="v_t" placeholder="Teléfono"><input id="v_e" type="email" placeholder="Email"><input id="v_d" placeholder="Domicilio">
   <select id="v_i"><option value="responsable_inscripto">Responsable Inscripto</option><option value="monotributo">Monotributo</option><option value="exento">Exento</option></select>
   <input id="v_p" type="number" min="0" placeholder="Días de pago (ej. 30)"></div><button id="v_g">Guardar proveedor</button></div><table id="vt"></table>`;
   const{data:s}=await sb.from('v_saldo_proveedores').select('*');
   const sal=id=>s?.find(x=>x.proveedor_id==id)?.saldo||0;
   $('#vt').innerHTML='<tr><th>Proveedor</th><th>CUIT</th><th>Pago</th><th>Teléfono</th><th>Le debés</th></tr>'+S.prov.map(p=>`<tr><td>${esc(p.razon_social)}</td><td>${esc(p.cuit)}</td><td>${p.dias_pago?p.dias_pago+' días':'Contado'}</td><td>${esc(p.telefono)}</td><td><b>${$m(sal(p.id))}</b></td></tr>`).join('');
+  $('#v_un')&&($('#v_un').onclick=unificarProv);
   $('#v_g').onclick=async()=>{const n=$('#v_n').value.trim();if(!n)return toast('Falta la razón social.',1);
     const{error}=await sb.from('proveedores').insert({razon_social:n,cuit:$('#v_c').value.trim()||null,telefono:$('#v_t').value.trim()||null,email:$('#v_e').value.trim()||null,
       domicilio:$('#v_d').value.trim()||null,condicion_iva:$('#v_i').value,dias_pago:$('#v_p').value===''?30:+$('#v_p').value});
@@ -2491,7 +2511,7 @@ function importadorLista(){const box=$('#pr_imp');if(!box)return;
   <div class="g"><label class="f">Proveedor (ayuda a encontrar por nombre)<select id="il_pv"><option value="">Cualquiera</option></select></label>
     <label class="f">Archivo (Excel, PDF o CSV)<input type="file" id="il_f" accept=".xlsx,.xls,.ods,.csv,.txt,.pdf"></label></div>
   <textarea id="il_t" rows="5" placeholder="…o pegá acá las filas copiadas de la planilla"></textarea><button class="alt" id="il_leer">Leer lista</button><div id="il_r"></div>`;
-  sb.from('proveedores').select('id,razon_social').order('razon_social').then(({data})=>{$('#il_pv').innerHTML+=(data||[]).map(p=>`<option value="${p.id}">${esc(p.razon_social)}</option>`).join('')});
+  sb.from('proveedores').select('id,razon_social').eq('activo',true).order('razon_social').then(({data})=>{$('#il_pv').innerHTML+=(data||[]).map(p=>`<option value="${p.id}">${esc(p.razon_social)}</option>`).join('')});
   let rows=[];
   $('#il_leer').onclick=async()=>{const f=$('#il_f').files[0],t=$('#il_t').value.trim();if(!f&&!t)return toast('Elegí un archivo o pegá las filas.',1);
     $('#il_r').innerHTML='<p>Leyendo la lista…</p>';try{rows=f?await leerArchivoLista(f):partirTexto(t)}catch(e){$('#il_r').innerHTML='<p class="err">No se pudo leer el archivo: '+esc(e.message||e)+'</p>';return}
