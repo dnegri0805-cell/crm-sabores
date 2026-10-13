@@ -6750,17 +6750,26 @@ const TAB_NOM={pedidos:'Pedidos',ventas:'Ventas',reparto:'Reparto',clientes:'Cli
 async function menuTabsCfg(){if(S.menuT==null)S.menuT=await cfgJ('menu_tabs',{oc:[]});const oc=new Set(S.menuT.oc||[]),m=document.createElement('div');m.className='modal';document.body.appendChild(m);
   const tabs=Object.keys(TAB_NOM).filter(t=>!['precios','caja','contable'].includes(t)||S.perfil.rol=='dueno');
   m.innerHTML=`<div class="mc"><div class="bh"><h3>☰ Qué se ve en el menú</h3><button class="alt" id="mt_x">Cerrar</button></div>
-    <p><small>Destildá las pestañas que no usás. No se borra nada: podés volver a mostrarlas cuando quieras, y se guarda para la PC y el celular.</small></p>
+    <div class="aviso" style="margin:0 0 10px"><b>✨ Menú simple recomendado</b><br><small>Deja lo del día a día: pedidos, reparto, cobranza, clientes y prospectos, las ofertas y la difusión principales, Instagram, compras, stock, caja y contable. Oculta Reportes, los análisis avanzados y las promociones que casi no se usan. No se borra nada: lo oculto se sigue encontrando con el buscador de Ventas.</small><br><button id="mt_s" style="margin-top:8px">Usar el menú simple</button></div>
+    <p><small>O elegí vos: destildá las pestañas que no usás. No se borra nada: podés volver a mostrarlas cuando quieras, y se guarda para la PC y el celular.</small></p>
     <label class="chk"><input type="checkbox" checked disabled style="width:auto;margin:0 8px 0 0">Inicio (siempre)</label>
     ${tabs.map(t=>`<label class="chk"><input type="checkbox" data-mt="${t}" ${oc.has(t)?'':'checked'} style="width:auto;margin:0 8px 0 0">${TAB_NOM[t]}</label>`).join('')}
     <p style="margin-top:12px"><small>Adentro de <b>Ventas</b> hay muchas pantallas (promociones, cupones, vendedores y comisiones, sorteos…). Esas se eligen aparte:</small><br><button class="alt" id="mt_v">⚙️ Elegir las pantallas de Ventas</button></p>
     <div class="fc-acc"><button id="mt_g">Guardar</button><a class="lnk" id="mt_r">Mostrar todo</a></div></div>`;
   const q=s=>m.querySelector(s);q('#mt_x').onclick=()=>m.remove();
   const sv=async v=>{const{error}=await guardaCfgJ('menu_tabs',v);if(error)return toast(error.message,1);S.menuT=v;m.remove();shell();toast('Menú guardado.')};
-  q('#mt_g').onclick=()=>sv({oc:[...m.querySelectorAll('[data-mt]')].filter(c=>!c.checked).map(c=>c.dataset.mt)});q('#mt_r').onclick=()=>sv({oc:[]});
+  q('#mt_g').onclick=()=>sv({oc:[...m.querySelectorAll('[data-mt]')].filter(c=>!c.checked).map(c=>c.dataset.mt)});
+  q('#mt_s').onclick=async()=>{const{error}=await guardaCfgJ('menu_ventas',MENU_SIMPLE_VENTAS);if(error)return toast(error.message,1);S.menuV=MENU_SIMPLE_VENTAS;await sv({oc:['reportes']});toast('Listo: menú simple. Para volver a ver todo: ☰ → Mostrar todo.')};q('#mt_r').onclick=async()=>{await guardaCfgJ('menu_ventas',{oc:[],fav:[]});S.menuV={oc:[],fav:[]};sv({oc:[]})};
   q('#mt_v').onclick=()=>{m.remove();if(!S.GRfull){S.tab='ventas';shell();setTimeout(()=>S.GRfull&&menuVentasCfg(),600)}else menuVentasCfg()}}
 
 /* 3. Menú de Ventas a tu medida */
+/* Menú simple: lo que se usa todos los días (lo demás queda oculto, se encuentra con el buscador de Ventas) */
+const MENU_SIMPLE_VENTAS={fav:['cola','toca','embudo','difusion'],oc:['plansem','auto',
+  'clave','ataque','nuevos90','bienvenida','encuestas','faq','votacion','comodatos',
+  'cobertura',
+  'cupo','personal','preventa','acuerdos','micombo','checkout','empujar','online','quincenal','niveles','pvp','bultos',
+  'novsem','tarjeta','fechas','qr','puntos','liga','sorteo',
+  'semana','anual','rentkg','zonasrep','captacion','pronostico','tablero','rentcli','simulador','abc','potencial','competencia','nocompra','perdidas','buscan','marcas','zonas','horarios','proveedores']};
 function menuAplicar(GR){S.GRfull=GR;const MV=S.menuV||{oc:[],fav:[]};if(S.menuV===undefined){S.menuV=null;cfgJ('menu_ventas',{oc:[],fav:[]}).then(v=>{S.menuV=v;if(S.tab=='ventas'&&((v.oc||[]).length||(v.fav||[]).length))vVentas()})}
   let G=GR.map(([g,L])=>[g,L.filter(([k])=>!(MV.oc||[]).includes(k)||k==S.vs)]).filter(([g,L])=>L.length);const all=GR.flatMap(([g,L])=>L);
   if((MV.fav||[]).length)G.unshift(['⭐ Favoritas',MV.fav.map(k=>all.find(x=>x[0]==k)).filter(Boolean)]);return G}
