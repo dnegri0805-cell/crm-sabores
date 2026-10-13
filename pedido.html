@@ -686,7 +686,7 @@ async function presupuesto(){document.title='Presupuesto · Sabores de mi País'
     if(error){a.disabled=false;a.textContent='✓ Aceptar presupuesto';return toast(error.message)}
     $('#m').innerHTML=`<div class="msg"><div class="ok">✓</div><h2>¡Presupuesto aceptado!</h2><p>${data.pedido?'Lo pasamos a <b>pedido N° '+data.pedido+'</b>. ':''}Te contactamos para coordinar la entrega. ¡Gracias!</p></div>`;window.scrollTo(0,0)}}
 function pintar(){
-  const marcas=[...new Set(P.map(p=>p.m).filter(Boolean))].sort(),fams=familias();
+  const enVista=P.filter(p=>(!rub||rubDe(p)==rub)&&(!fam||famDe(p)==fam)),marcas=[...new Set(enVista.map(p=>p.m).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es')),fams=familias();if(marca&&!marcas.includes(marca))marca='';
   $('#m').innerHTML=`<div class="busca"><div class="vbar"><input id="q" type="search" placeholder="Buscar producto (ej.: maní 85, crocante pizza)" value="${esc(filtro)}" autocomplete="off" aria-label="Buscar producto"><button class="vbtn" id="scb" aria-label="Escanear código de barras" title="Escanear el código de un producto">📷</button><button class="vbtn" id="vt" aria-label="${vista=='grilla'?'Ver como lista':'Ver con fotos'}" title="${vista=='grilla'?'Ver como lista':'Ver con fotos'}">${vista=='grilla'?'☰':'▦'}</button></div>
     <div class="sgq" id="sgq" hidden></div>${(()=>{const R=rubros();if(R.length<2)return fams.length>1?`<div class="fchips"><button class="fch ${fam?'':'on'}" data-fm="">Todo</button>${fams.map(f=>`<button class="fch ${fam==f?'on':''}" data-fm="${esc(f)}">${famIco(f)} ${esc(cap(f))}</button>`).join('')}</div>`:'';
       const FR=rub?fams.filter(f=>((typeof famGrupo=='function'&&famGrupo(f))||'Otros')==rub):[];
@@ -708,8 +708,8 @@ function pintar(){
   $('#q').oninput=e=>{filtro=e.target.value;lim=60;lista();sugQ()};$('#q').onfocus=sugQ;
   $('#q').onblur=()=>setTimeout(()=>{const d=$('#sgq');if(d)d.hidden=true;recGuardar(filtro)},200);$('#q').onkeydown=e=>{if(e.key=='Enter'){recGuardar(filtro);e.target.blur()}};
   $('#mk')&&($('#mk').onchange=e=>{marca=e.target.value;lim=60;lista()});$('#ord').onchange=e=>{orden=e.target.value;lim=60;lista()};
-  $$('[data-fm]').forEach(b=>b.onclick=()=>{fam=b.dataset.fm;if(fam)regVista(fam);lim=60;$$('[data-fm]').forEach(x=>x.classList.toggle('on',x.dataset.fm==fam));lista()});
-  $$('[data-rb]').forEach(b=>b.onclick=()=>{rub=b.dataset.rb;fam='';lim=60;pintar();const e=document.querySelector('.rubs');if(e)window.scrollTo({top:Math.max(0,e.getBoundingClientRect().top+window.scrollY-8),behavior:'smooth'})});
+  $$('[data-fm]').forEach(b=>b.onclick=()=>{fam=b.dataset.fm;if(fam)regVista(fam);lim=60;const y=window.scrollY;pintar();window.scrollTo(0,y)});
+  $$('[data-rb]').forEach(b=>b.onclick=()=>{rub=b.dataset.rb;fam='';marca='';lim=60;pintar();const e=document.querySelector('.rubs');if(e)window.scrollTo({top:Math.max(0,e.getBoundingClientRect().top+window.scrollY-8),behavior:'smooth'})});
   $('#vt').onclick=()=>{vista=vista=='grilla'?'lista':'grilla';try{localStorage.setItem('vista_cat',vista)}catch(e){}pintar()};
   $('#rep')&&($('#rep').onclick=()=>{let n=0;for(const u of C.ultimo){if(prod(u.id)){car[u.id]=(car[u.id]||0)+Math.max(1,Math.round(u.q));n++}}guardar();lista();barra();toast(n?n+' productos agregados de tu último pedido.':'Esos productos ya no están disponibles.')});
   $('#instb')&&($('#instb').onclick=async()=>{if(!instEv)return;instEv.prompt();try{await instEv.userChoice}catch(e){}instEv=null;$('#inst')?.remove()});
@@ -722,6 +722,7 @@ function pintar(){
   {const o=document.querySelector('.rub.on');if(o&&rub)o.scrollIntoView({inline:'center',block:'nearest'})}
   lista();barra();
 }
+document.addEventListener('click',e=>{if(e.target.closest('[data-sinm]')){marca='';lim=60;pintar()}});
 function lista(){
   if(rapido&&!PUB)return listaRapida();
   const ws=norm(filtro).split(/\s+/).filter(Boolean);
@@ -737,7 +738,7 @@ function lista(){
   $('#l').innerHTML=V.map(p=>{const q=car[p.id]||0;return `<div class="p ${q?'sel':''}"><div class="d">${p.img?`<img class="ft" src="${esc(p.img)}" alt="" loading="lazy" data-z="${p.id}">`:(hayFotos?`<span class="ft0" aria-hidden="true">${famIco(famDe(p))}</span>`:'')}<div class="tx"><b>${token&&!PUB?`<button class="fv ${esFav(p.id)?'on':''}" data-fv="${p.id}" aria-label="Favorito">★</button>`:''}${esc(p.d)}</b><small>${p.m?`<span class="marca">${esc(p.m)}</span>`:''}${p.b>1?`<span class="bulto">${esc(p.tb)} × ${p.b}</span>`:''}${esc(p.c)}</small></div></div><div class="pr">${(()=>{const r=promoP(p,q),rc=r?null:promoP(p,q,true);const pu1=puP(p,q||1);return (r?`<s>${$m(p.p)}</s> ${$m(puP(p,q))}`:$m(p.p))+(esKgP(p.id)?'<span class="xkg"> /kg</span>':'')+kgHTML(p,pu1)+(presKg(p)?`<small class="pres">${presKg(p).t} ${nf(presKg(p).k)} kg ≈ <b>${$m(pu1*presKg(p).k)}</b></small>`:esKgP(p.id)?'<small>precio por kilo</small>':'')+(p.b>1?`<small>${esc(p.tb)}: ${$m((rc&&rc.mt=='bulto'?Math.round(p.p*(1-rc.pct/100)*100)/100:puP(p,q))*p.b)}</small>`:'')+(r?`<span class="promo">−${nf(r.pct)} %</span>`:rc?`<span class="promo cerca">−${nf(rc.pct)} % ${esc(condP(rc,p))}</span>`:'')})()}</div>
     <div class="q">${p.ss&&!q?'<small class="eq">Sin stock por ahora</small>'+btnAv(p):''}${p.ss&&!q?'':`${q&&enB(p,q)?`<small class="eq">= ${enB(p,q)}</small>`:''}${q?`<button data-r="${p.id}" aria-label="Restar">−</button><input type="number" inputmode="numeric" min="0" value="${q}" data-i="${p.id}" aria-label="Cantidad"><button data-s="${p.id}" aria-label="Sumar">+</button>`:`<button class="add${p.b>1?' sec2':''}" data-s="${p.id}">${presKg(p)?'Agregar '+nf(presKg(p).k)+' kg':esKgP(p.id)?'Agregar 1 kg':'Agregar 1'}</button>`}${p.b>1?`<button class="add" data-bb="${p.id}">+ ${esc(p.tb)} (${p.b})</button>`:''}`}</div></div>`}).join('')+
     (L.length>V.length?`<button class="sec" id="mas" style="width:100%">Ver más productos (${L.length-V.length})</button>`:'')+
-    (L.length?'':'<p class="mas">No encontramos productos con esa búsqueda.</p><button class="sec rep" data-sug="1">🗳️ ¿No lo tenemos? Pedinos que lo traigamos</button>')+(hayFotos&&L.length<=V.length?'<p class="mas" style="font-size:11px">Algunas fotos: Open Food Facts (CC BY-SA)</p>':'');
+    (L.length?'':(marca?`<p class="mas">No hay productos de <b>${esc(marca)}</b> con este filtro.</p><button class="sec rep" data-sinm="1">Ver todas las marcas</button>`:'<p class="mas">No encontramos productos con esa búsqueda.</p><button class="sec rep" data-sug="1">🗳️ ¿No lo tenemos? Pedinos que lo traigamos</button>'))+(hayFotos&&L.length<=V.length?'<p class="mas" style="font-size:11px">Algunas fotos: Open Food Facts (CC BY-SA)</p>':'');
   $$('#l [data-z]').forEach(i=>i.onclick=()=>ficha(i.dataset.z));
   $$('#l [data-s]').forEach(b=>b.onclick=e=>{e.stopPropagation();cambiar(b.dataset.s,1)});
   $$('#l [data-r]').forEach(b=>b.onclick=()=>cambiar(b.dataset.r,-1));
@@ -986,7 +987,8 @@ function grilla(L,ws){const busca=ws.length||marca;let html='',n=0;
   for(const f of (orden?[]:familias())){const X=G[f];if(!X||n>=lim)continue;const V=X.slice(0,lim-n);n+=V.length;
     html+=`<div class="sec-t" style="--fc:${colorDe(f)}"><h2>${esc(cap(f))}</h2><small>${X.length} ${X.length==1?'producto':'productos'}</small></div><div class="grid">${V.map(tarjeta).join('')}</div>`;
     if(V.length<X.length)html+=`<button class="sec" data-mas2="1" style="width:100%;margin-top:8px">Ver más de ${esc(cap(f))} (${X.length-V.length})</button>`}
-  if(!L.length)html+=`<p class="mas">No encontramos productos con esa búsqueda.</p><button class="sec rep" data-sug="1">🗳️ ¿No lo tenemos? Pedinos que lo traigamos</button>`;
+  if(!L.length&&marca)html+=`<p class="mas">No hay productos de <b>${esc(marca)}</b> con este filtro.</p><button class="sec rep" data-sinm="1">Ver todas las marcas</button>`;
+  else if(!L.length)html+=`<p class="mas">No encontramos productos con esa búsqueda.</p><button class="sec rep" data-sug="1">🗳️ ¿No lo tenemos? Pedinos que lo traigamos</button>`;
   else if(!busca&&!fam&&!rub)html+='<button class="sec rep" data-sug="1" style="margin-top:18px">🗳️ ¿Qué producto querés que traigamos?</button>';
   if(hayFotos)html+='<p class="mas" style="font-size:11px">Algunas fotos: Open Food Facts (CC BY-SA)</p>';
   $('#l').innerHTML=html;bannerAcc();
