@@ -3196,7 +3196,7 @@ async function dibujarFolleto(items,o){const F=FMT[o.fmt],cv=document.createElem
       c.font=`700 ${fE}px ${FONT}`;let ef=fE;while([...E,...C].some(t=>c.measureText(t).width>tw)&&ef>16){ef--;c.font=`700 ${ef}px ${FONT}`}
       let y=Y+(ch-alto())/2;c.fillStyle='#1c2333';c.font=`700 ${fN}px ${FONT}`;for(const l of NL){y+=fN*1.05;c.fillText(l,tx,y);y+=fN*.15}
       if(x.ant){c.fillStyle='#8a90a0';c.font=`500 ${fE}px ${FONT}`;const t=$m(x.ant);y+=fE+6;c.fillText(t,tx,y);const w=c.measureText(t).width;c.strokeStyle='#8a90a0';c.lineWidth=3;c.beginPath();c.moveTo(tx-2,y-fE*.35);c.lineTo(tx+w+2,y-fE*.35);c.stroke()}
-      c.fillStyle=x.pct?'#d62828':MARCA.c;c.font=`900 ${fP}px ${FONT}`;y+=fP*1.02;c.fillText($m(x.p),tx,y);
+      c.fillStyle=x.pct?'#d62828':MARCA.c;c.font=`900 ${fP}px ${FONT}`;y+=fP*1.02;c.fillText($m(x.p),tx,y);if(x.cu){const w=c.measureText($m(x.p)).width;c.font=`700 ${Math.round(fP*.42)}px ${FONT}`;c.fillText(' c/u',tx+w,y)}
       c.font=`700 ${ef}px ${FONT}`;for(const t of C){y+=fE*1.3;c.fillStyle='#1d7a46';c.fillText(t,tx,y)}
       E.forEach((t,k)=>{y+=fE*1.3;c.fillStyle=/^Pallet/.test(t)?MARCA.c:'#4a5163';c.font=`${/^Pallet/.test(t)?800:600} ${ef}px ${FONT}`;c.fillText(t,tx,y)})});
   }else{
@@ -3213,7 +3213,7 @@ async function dibujarFolleto(items,o){const F=FMT[o.fmt],cv=document.createElem
     if(x.pct){const r=big?80:60;c.fillStyle='#d62828';c.beginPath();c.arc(X+cw-r+8,Y+r-8,r,0,7);c.fill();c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';c.font=`900 ${big?52:38}px ${FONT}`;c.fillText('-'+nf(x.pct)+'%',X+cw-r+8,Y+r-8);c.textAlign='left';c.textBaseline='alphabetic'}
     let y=Y+pad+ih+fN+8;c.fillStyle='#1c2333';c.font=`700 ${fN}px ${FONT}`;const NL=lineas(c,x.d,iw,2);for(const l of NL){c.fillText(l,X+pad,y);y+=lhN}if(NL.length<2)y+=lhN;
     if(x.ant){c.fillStyle='#8a90a0';c.font=`500 ${big?34:28}px ${FONT}`;const t=$m(x.ant);y+=6;c.fillText(t,X+pad,y);const tw=c.measureText(t).width;c.strokeStyle='#8a90a0';c.lineWidth=3;c.beginPath();c.moveTo(X+pad-2,y-10);c.lineTo(X+pad+tw+2,y-10);c.stroke();y+=8}
-    c.fillStyle=x.pct?'#d62828':MARCA.c;let pf=fP;c.font=`900 ${pf}px ${FONT}`;const pt=$m(x.p);while(c.measureText(pt).width>iw&&pf>36){pf-=3;c.font=`900 ${pf}px ${FONT}`}y+=pf*.95;c.fillText(pt,X+pad,y);
+    c.fillStyle=x.pct?'#d62828':MARCA.c;let pf=fP;c.font=`900 ${pf}px ${FONT}`;const pt=$m(x.p);while(c.measureText(pt+(x.cu?' c/':'')).width>iw&&pf>36){pf-=3;c.font=`900 ${pf}px ${FONT}`}y+=pf*.95;c.fillText(pt,X+pad,y);if(x.cu){const w=c.measureText(pt).width;c.font=`700 ${Math.round(pf*.42)}px ${FONT}`;c.fillText(' c/u',X+pad+w,y)}
     if(x.cond||(x.bulto&&!nE)){c.fillStyle=x.cond?'#1d7a46':'#6a7184';c.font=`700 ${big?30:24}px ${FONT}`;y+=big?40:32;c.fillText(lineas(c,x.cond||x.bulto,iw,1)[0],X+pad,y)}
     if(nE){let ef=big?30:24;c.font=`700 ${ef}px ${FONT}`;while(x.esc.some(t=>c.measureText(t).width>iw)&&ef>15){ef--;c.font=`700 ${ef}px ${FONT}`}
       x.esc.forEach((t,k)=>{y+=k?(big?38:31):(big?40:32);c.fillStyle=k==x.esc.length-1&&/^Pallet/.test(t)?MARCA.c:'#6a7184';c.fillText(t,X+pad,y)})}});
@@ -3344,7 +3344,7 @@ async function folletoOfertas(){
   $('#fo_x').onclick=()=>m.remove();
   const famSet=()=>new Set([...$$('#fo_fd [data-ff]')].filter(i=>i.checked).map(i=>i.dataset.ff));
   const famTxt=()=>{const F=[...famSet()];$('#fo_fs').textContent=!F.length?'Todas las ofertas':F.length==1?F[0]:F.length+' familias: '+F.join(', ')};
-  const cand=()=>{const l=$('#fo_l').value,F=famSet();const base=S.productos.filter(p=>+p['precio_'+l]>0&&(!F.size||F.has((p.familia||'').trim())));
+  const cand=()=>{const l=$('#fo_l').value,F=famSet();const base=S.productos.filter(p=>+p['precio_'+l]>0&&S.min[p.producto_id]?.a!==false&&(!F.size||F.has((p.familia||'').trim())));
     let A=base.filter(p=>promoCerca(p.producto_id,l));if(!A.length)A=base.filter(p=>S.min[p.producto_id]?.foto).slice(0,24);
     const ids=new Set(A.map(p=>p.producto_id));for(const id of man)ids.add(id);
     return [...ids].map(id=>S.productos.find(p=>p.producto_id==id)).filter(p=>p&&+p['precio_'+l]>0).sort((a,b)=>(!!S.min[b.producto_id]?.foto)-(!!S.min[a.producto_id]?.foto)||a.descripcion.localeCompare(b.descripcion))};
@@ -3360,7 +3360,7 @@ async function folletoOfertas(){
   $('#fo_g').onclick=async()=>{if(!sel.length)return toast('Elegí al menos un producto.',1);const l=$('#fo_l').value,fmt=$('#fo_t').value,F=FMT[fmt],fs=[...famSet()],f=fs.length==1?fs[0]:'';
     $('#fo_g').disabled=true;$('#fo_out').innerHTML='<p>Armando…</p>';
     const items=sel.map(p=>{const r=promoCerca(p.producto_id,l),base=+p['precio_'+l],b=bul(p.producto_id);const pr=r?Math.round(base*(1-r.descuento_pct/100)*100)/100:base;
-      return{d:p.descripcion,img:S.min[p.producto_id]?.foto||'',p:pr,ant:r?base:null,pct:r?+r.descuento_pct:0,cond:r&&condPromo(r)?condPromo(r):'',bulto:b?b.t+' × '+b.n+': '+$m(pr*b.n):'',esc:escFolleto(p.producto_id,pr)}});
+      return{d:p.descripcion,img:S.min[p.producto_id]?.foto||'',p:pr,ant:r?base:null,pct:r?+r.descuento_pct:0,cond:r&&condPromo(r)?condPromo(r):'',bulto:b?b.t+' × '+b.n+': '+$m(pr*b.n):'',esc:escFolleto(p.producto_id,pr),cu:!!b&&!esPeso(p.producto_id)}});
     if($('#fo_cb')?.checked)items.unshift(...S.combos.map(c=>{const v=comboPrecio(c,l);return{d:'🎁 '+c.nombre,img:S.min[(c.items||[]).find(x=>S.min[x.id]?.foto)?.id]?.foto||'',p:v.p,ant:v.s,pct:+c.descuento_pct,cond:comboTxt(c)}}));
     const filas=items.some(x=>x.esc),porPag=filas?(fmt=='historia'?4:3):F.n;
     const pags=[];for(let i=0;i<items.length;i+=porPag)pags.push(items.slice(i,i+porPag));
@@ -4534,7 +4534,7 @@ const escFolleto=(id,pr)=>{const x=S.min[id];if(!x||!(x.b>1)||!(x.ud>1||x.bp>0))
   if(x.ud>1&&x.ud<x.b)L.push('Display × '+x.ud+': '+$m(pr*x.ud));L.push(x.tb+' × '+x.b+': '+$m(pr*x.b));
   if(x.bp>0)L.push('Pallet × '+x.bp+' '+String(x.tb||'caja').toLowerCase()+(x.bp==1?'':'s')+': '+$m(Math.round(pr*x.b*x.bp*100)/100));return L};
 const itemFolleto=(p,l)=>{const r=promoCerca(p.producto_id,l),base=+p['precio_'+l],b=bul(p.producto_id),pr=r?Math.round(base*(1-r.descuento_pct/100)*100)/100:base;
-  return{d:p.descripcion,img:S.min[p.producto_id]?.foto||'',p:pr,ant:r?base:null,pct:r?+r.descuento_pct:0,cond:r&&condPromo(r)?condPromo(r):'',bulto:b?b.t+' × '+b.n+': '+$m(pr*b.n):'',esc:escFolleto(p.producto_id,pr)}};
+  return{d:p.descripcion,img:S.min[p.producto_id]?.foto||'',p:pr,ant:r?base:null,pct:r?+r.descuento_pct:0,cond:r&&condPromo(r)?condPromo(r):'',bulto:b?b.t+' × '+b.n+': '+$m(pr*b.n):'',esc:escFolleto(p.producto_id,pr),cu:!!b&&!esPeso(p.producto_id)}};
 
 /* ---------- 5. Reclamos ---------- */
 async function vReclamos(){S.garantia=await cfgJ('garantia',{activa:false,pct:10,dias:30});
