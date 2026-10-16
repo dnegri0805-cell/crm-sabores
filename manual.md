@@ -101,6 +101,16 @@ Se venden **por pieza entera** y se cobran **por el peso real**.
 - **Compras:** la *Sugerencia de compra* muestra cuántas piezas pedir, los **kilos aproximados** y el costo por kilo. La orden de compra impresa sale con piezas, kilos aproximados y costo por kilo. Al **recibir** podés anotar los **kilos que llegaron** (ej.: 3,4 + 3,7); el costo queda siempre por kilo.
 - **Por vencer:** en **Ventas → 🏷️ Ofertas → 📦 Liquidar stock**, cada fiambre o queso por vencer muestra los kilos y tiene **📲 Avisar**: arma la ráfaga para los clientes que lo compran, con el precio por kilo y la fecha.
 
+## 3 ter. Ventas · 🚀 Rápido (difundir una oferta)
+
+Es lo primero que ves al entrar a **Ventas** (y el botón grande **📈 Ventas** del Inicio va directo acá). Todo en 3 pasos:
+
+1. **¿Qué ofrecés?** Lo que ya está en oferta, una o varias **familias**, o **productos sueltos**. Si todavía no tiene descuento, abrí **🏷️ Ponerle descuento ahora**: elegís el % y cuánto dura (solo hoy ⚡, 3 días, esta semana, 15 días o hasta que la saques).
+2. **¿Para quién?** Todos, almacenes, gastronomía (precios de la lista gastronomía), heladerías y panaderías, **supermercados chinos** (arma el folleto bilingüe 中文) o público.
+3. **¿Cómo lo mandás?** **Folleto** (imagen para WhatsApp o Instagram), **Estado** de WhatsApp (formato vertical), **Mensaje** a tus clientes (la campaña ya llega armada para ese grupo) o el **Catálogo** con su link.
+
+Abajo: accesos grandes a **Cola del día, Les toca comprar, Carritos y Presupuestos**, y la lista de **ofertas activas** con botón para terminarlas. Las demás pantallas siguen en sus pestañas; Ofertas y Difundir ahora están juntas en **🏷️ Ofertas y difusión**.
+
 ## 4. Ventas · Recuperar y cerrar
 
 **Dónde:** menú *Ventas* (abre en *Cola del día*). Con **⚙️** (al lado del título) ocultás las pantallas que no usás y marcás tus **⭐ favoritas**, que quedan en su propia solapa. Arriba hay solapas: **⚡ Hoy** (Cola, Plan de ataque, Plan del día, Automatizaciones) · **🤝 Clientes** · **🧲 Prospectos** · **🏷️ Ofertas** · **📣 Difundir** · **📸 Instagram** · **📊 Analizar**. Al tocar una solapa aparecen sus pantallas. Con **🔎 Buscar pantalla…** escribís, por ejemplo, "cupo" y la encontrás aunque esté en otra solapa. Casi todas tienen botón de **WhatsApp con el mensaje ya armado**.
