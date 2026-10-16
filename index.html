@@ -28,6 +28,11 @@ header>span{display:flex;align-items:center;gap:2px}
 .umenu .umc{position:absolute;right:0;top:42px;background:#fff;color:#1c2333;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:12px;display:grid;gap:6px;min-width:190px;z-index:30}.umenu .umc small{color:#6a7184}
 .mas{position:relative}.mas summary{list-style:none;cursor:pointer;background:#fff;color:var(--m);border:1px solid var(--m);border-radius:6px;padding:5px 10px;font-size:13px}.mas summary::-webkit-details-marker{display:none}
 .mas .masc{position:absolute;right:0;top:36px;background:#fff;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:8px;display:grid;gap:6px;min-width:230px;z-index:15}.mas .masc button{text-align:left}
+.mmas{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}.mmas button{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 6px;font-weight:700;border-radius:12px}.mmas button span{font-size:26px;line-height:1}
+.ppal{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 12px}.ppal button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:16px 6px;font-size:15px;font-weight:700;border-radius:14px;min-height:96px}.ppal button span{font-size:30px;line-height:1}.ppal button small{font-weight:400;font-size:12px;opacity:.85}
+.atsec{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}.atsec button{padding:6px 12px;font-size:13px}
+details.plg{margin:0 0 12px}details.plg>summary{cursor:pointer;font-weight:700;color:var(--m);padding:10px 12px;background:#fff;border:1px solid #e3e6ee;border-radius:10px;list-style:none}details.plg>summary::-webkit-details-marker{display:none}details.plg[open]>summary{margin-bottom:10px}
+@media(max-width:640px){.ppal{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .cab{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}.cab h2{margin:0}.cab .acc{display:flex;gap:8px;align-items:center}.cab h2 small{font-size:14px;font-weight:400;color:#6a7184}
 .hback{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;flex:none;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;font-size:26px;line-height:1;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}.hback:active{background:rgba(255,255,255,.3)}.hback[hidden]{display:none}
 
@@ -269,8 +274,8 @@ async function init(){
   shell();huellaArranque();programarManana();llegueArranque();
 }
 function shell(){
-  app.innerHTML=`<header><b><a id="hback" class="hback" onclick="volver()" title="Volver a la pantalla anterior" aria-label="Volver" hidden>←</a>${MARCA.logo?`<img class="hlogo" src="${MARCA.logo}" alt="Sabores de mi País"><span class="hn">Sabores de mi País</span>`:'Sabores de mi País'}</b><nav>${['inicio','pedidos','ventas','reparto','clientes','cobranza','caja','compras','stock','precios','reportes','contable','manual'].filter(t=>!['precios','caja','contable'].includes(t)||S.perfil.rol=='dueno').filter(t=>t=='inicio'||t==S.tab||!(S.menuT?.oc||[]).includes(t)).map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${t=='manual'?'📖 Manual':t[0].toUpperCase()+t.slice(1)}</a>`).join('')}</nav><span><a class="hbt" onclick="buscarTodo()" title="Buscar (Ctrl+K)">🔎</a><a class="hbt" onclick="ayuda()" title="Ayuda de esta pantalla (?)">❓</a><a class="hbt" onclick="vistaCfg()" title="Letra, colores y avisos">Aa</a><details class="umenu"><summary title="${esc(S.perfil.nombre)}" aria-label="Mi usuario">${esc((S.perfil.nombre||'?').trim().charAt(0).toUpperCase())}</summary><div class="umc"><b>${esc(S.perfil.nombre)}</b><small>${S.perfil.rol=='dueno'?'Dueño':esc(S.perfil.rol)} · versión ${VERSION}</small><button class="alt" onclick="out()">Salir</button></div></details></span></header><main id="v"></main>`;
-  $$('nav a').forEach(a=>a.onclick=()=>{S.tab=a.dataset.t;shell()});
+  app.innerHTML=`<header><b><a id="hback" class="hback" onclick="volver()" title="Volver a la pantalla anterior" aria-label="Volver" hidden>←</a>${MARCA.logo?`<img class="hlogo" src="${MARCA.logo}" alt="Sabores de mi País"><span class="hn">Sabores de mi País</span>`:'Sabores de mi País'}</b><nav>${tabsMenu().pri.map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${nomTab(t)}</a>`).join('')}${tabsMenu().sec.length?`<a data-mas="1" class="${tabsMenu().sec.includes(S.tab)?'on':''}">${tabsMenu().sec.includes(S.tab)?nomTab(S.tab)+' ▾':'Más ▾'}</a>`:''}</nav><span><a class="hbt" onclick="buscarTodo()" title="Buscar (Ctrl+K)">🔎</a><a class="hbt" onclick="ayuda()" title="Ayuda de esta pantalla (?)">❓</a><a class="hbt" onclick="vistaCfg()" title="Letra, colores y avisos">Aa</a><details class="umenu"><summary title="${esc(S.perfil.nombre)}" aria-label="Mi usuario">${esc((S.perfil.nombre||'?').trim().charAt(0).toUpperCase())}</summary><div class="umc"><b>${esc(S.perfil.nombre)}</b><small>${S.perfil.rol=='dueno'?'Dueño':esc(S.perfil.rol)} · versión ${VERSION}</small><button class="alt" onclick="out()">Salir</button></div></details></span></header><main id="v"></main>`;
+  $$('nav a[data-t]').forEach(a=>a.onclick=()=>{S.tab=a.dataset.t;shell()});$$('nav a[data-mas]').forEach(a=>a.onclick=menuMas);
   if(S.menuT===undefined){S.menuT=null;cfgJ('menu_tabs',{oc:[]}).then(v=>{S.menuT=v;if((v.oc||[]).length)$$('nav a').forEach(a=>{if(a.dataset.t!='inicio'&&a.dataset.t!=S.tab&&v.oc.includes(a.dataset.t))a.remove()})})}
   if(S.dep===undefined){S.dep=null;cfgJ('impresora_deposito',{}).then(v=>S.dep=v)}
   ({impresora:vImpresora,inicio:vInicio,pedidos:vPedidos,ventas:vVentas,reparto:vReparto,caja:vCaja,contable:vContable,clientes:vClientes,cobranza:vCobranza,compras:vCompras,stock:vStock,precios:vPrecios,reportes:vReportes,manual:vManual})[S.tab]();
@@ -454,7 +459,7 @@ async function vInicio(){
   let modo='dia';try{modo=localStorage.getItem('inicio_vista')||'dia'}catch(e){}const dia=modo=='dia';
   $('#v').innerHTML=`<div class="bh" style="flex-wrap:wrap;gap:8px"><h2 style="margin:0">Hoy, ${hoyD.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}</h2>
     <div class="sub" style="margin:0"><button class="${dia?'':'alt'}" data-iv="dia">☀️ Mi día</button><button class="${dia?'alt':''}" data-iv="completa">📋 Todo</button><button class="alt" onclick="menuTabsCfg()" title="Elegir qué pestañas se ven">☰ Menú</button></div></div>
-  ${dia?`<p style="margin:4px 0 10px"><small>Solo lo de hoy. Para ver todos los avisos y herramientas tocá <b>📋 Todo</b>.</small></p><div id="bk"></div><div id="chk"></div>${atajosHTML()}<div id="midia"></div><div id="tari"></div><div id="alm"></div>`:`
+  ${dia?`${principalesHTML()}<div id="bk"></div><div id="chk"></div><details class="plg"><summary>🗓️ Mi día, tareas y avisos</summary><div id="midia"></div><div id="tari"></div><div id="alm"></div></details>`:`
   <div id="bk"></div><div id="chk"></div><div id="cmpi"></div><div id="cami"></div><div id="equi"></div><div id="doci"></div>${atajosHTML()}<div id="midia"></div><div id="mani"></div><div id="resd"></div><div id="tari"></div>
   <div class="herr" id="herr"></div>
   <div id="alm"></div>
@@ -469,10 +474,12 @@ async function vInicio(){
   </div>
   <div class="dos">
     <div class="box"><h3>Pedidos por aprobar</h3><div id="t1">Cargando…</div></div>
-    <div class="box"><h3>Facturas vencidas de clientes</h3><div id="t2">Cargando…</div></div>
     <div class="box"><h3>Pagos a proveedores (próximos 7 días)</h3><div id="t3">Cargando…</div></div>
+  </div>
+  ${dia?'<details class="plg"><summary>📋 Facturas vencidas y productos para reponer</summary>':''}<div class="dos">
+    <div class="box"><h3>Facturas vencidas de clientes</h3><div id="t2">Cargando…</div></div>
     <div class="box"><h3>Productos para reponer</h3><div id="t4">Cargando…</div></div>
-  </div>`;
+  </div>${dia?'</details>':''}`;
   const kp=(id,num,det,cls)=>{const b=$('#'+id);b.querySelector('.num').textContent=num;b.querySelector('.det').textContent=det||'';if(cls)b.classList.add(cls)};
   const fallo=(id,e)=>kp(id,'—','No se pudo leer: '+e.message);
   $$('[data-iv]').forEach(b=>b.onclick=()=>{try{localStorage.setItem('inicio_vista',b.dataset.iv)}catch(e){}vInicio()});
@@ -871,7 +878,7 @@ function vClientes(){
   $$('[data-cs2]').forEach(b=>b.onclick=()=>{S.cs=b.dataset.cs2;vClientes()});
   const bind=()=>$$('#ct [data-fc]').forEach(r=>r.onclick=()=>fichaCliente(S.clientes.find(c=>c.id==r.dataset.fc)));
   $('#q').oninput=()=>{draw();bind()};draw();bind();
-  enlazarCab();
+  enlazarCab();if(S.abrirNuevo){S.abrirNuevo=0;nuevoCliente()}
 }
 /* Encabezado de Clientes: título, botón para crear y el resto de las herramientas en "Más" */
 function cabClientes(){const n=S.clientes.filter(c=>c.activo!==false).length;
@@ -6458,8 +6465,22 @@ async function cierreDia(d){d=d||diaLocal(new Date());const ini=new Date(tsAR(d)
   m.querySelector('#cd_cj').onclick=()=>{m.remove();S.cjD=d;S.tab='caja';shell()}}
 
 /* ======================= TRABAJAR MENOS SIENDO UNO SOLO (tanda 16) ======================= */
+/* Menú de arriba: lo que más usás a la vista y el resto en "Más" */
+const TAB_PRI=['inicio','pedidos','clientes','compras','ventas'];
+const TAB_ICO={inicio:'🏠',pedidos:'🛒',clientes:'👤',compras:'📦',ventas:'📈',reparto:'🚚',cobranza:'💵',caja:'🧾',stock:'📊',precios:'🏷️',reportes:'📑',contable:'📚',manual:'📖'};
+const nomTab=t=>t=='manual'?'📖 Manual':t[0].toUpperCase()+t.slice(1);
+function tabsMenu(){const T=['inicio','pedidos','clientes','compras','ventas','reparto','cobranza','caja','stock','precios','reportes','contable','manual'].filter(t=>!['precios','caja','contable'].includes(t)||S.perfil.rol=='dueno').filter(t=>t=='inicio'||t==S.tab||!(S.menuT?.oc||[]).includes(t));
+  return{pri:T.filter(t=>TAB_PRI.includes(t)),sec:T.filter(t=>!TAB_PRI.includes(t))}}
+function menuMas(){const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  m.innerHTML=`<div class="mc"><div class="bh"><h3>Más secciones</h3><button class="alt" id="mm_x">Cerrar</button></div>
+  <div class="mmas">${tabsMenu().sec.map(t=>`<button class="${S.tab==t?'':'alt'}" data-mt="${t}"><span>${TAB_ICO[t]||'•'}</span>${t=='manual'?'Manual':t[0].toUpperCase()+t.slice(1)}</button>`).join('')}</div></div>`;
+  m.onclick=e=>{if(e.target==m)m.remove()};m.querySelector('#mm_x').onclick=()=>m.remove();
+  m.querySelectorAll('[data-mt]').forEach(b=>b.onclick=()=>{m.remove();S.tab=b.dataset.mt;shell()})}
 const irA=(tab,extra)=>{Object.assign(S,extra||{});S.tab=tab;shell()};
 /* 6. Botones grandes (celular) */
+/* Inicio: los 4 accesos de todos los días, grandes, y el resto chico */
+const principalesHTML=()=>`<div class="ppal"><button onclick="irA('pedidos')"><span>🛒</span>Nuevo pedido</button><button class="alt" onclick="irA('clientes',{cs:'lista',abrirNuevo:1})"><span>👤</span>Nuevo cliente</button><button class="alt" onclick="irA('compras',{sub:'ordenes'})"><span>📦</span>Compras</button><button class="alt" onclick="irA('ventas')"><span>📈</span>Ventas</button></div>
+  <div class="atsec">${[['📥 Por aprobar',"irA('pedidos',{pf:'pendiente'})"],['🧺 Armar',"hojaArmado()"],['🚚 Reparto',"irA('reparto')"],['💵 Cobrar',"irA('cobranza')"],['⚡ Cola del día',"irA('ventas',{vs:'cola'})"]].map(([t,f])=>`<button class="alt" onclick="${f}">${t}</button>`).join('')}</div>`;
 const atajosHTML=()=>`<div class="atajos">${[['🛒','Nuevo pedido',"irA('pedidos')"],['⚡','Cola del día',"irA('ventas',{vs:'cola'})"],['📥','Por aprobar',"irA('pedidos',{pf:'pendiente'})"],['🧺','Armar',"hojaArmado()"],['🚚','Reparto',"irA('reparto')"],['💵','Cobrar',"irA('cobranza')"]].map(([i,t,f])=>`<button class="at" onclick="${f}"><span>${i}</span>${t}</button>`).join('')}</div>`;
 
 /* 1. Mi día: todo lo de hoy en una lista */
