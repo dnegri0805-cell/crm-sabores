@@ -23,6 +23,12 @@ header nav a{padding:7px 14px;border-radius:6px;cursor:pointer;color:#cfd4e2}
 header nav a.on{background:var(--m);color:#fff}
 header span a{cursor:pointer;text-decoration:underline;margin-left:8px}
 header>b{display:flex;align-items:center;gap:10px}
+header>span{display:flex;align-items:center;gap:2px}
+.umenu{position:relative;margin-left:8px}.umenu summary{list-style:none;cursor:pointer;width:34px;height:34px;border-radius:50%;background:var(--m);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}.umenu summary::-webkit-details-marker{display:none}
+.umenu .umc{position:absolute;right:0;top:42px;background:#fff;color:#1c2333;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:12px;display:grid;gap:6px;min-width:190px;z-index:30}.umenu .umc small{color:#6a7184}
+.mas{position:relative}.mas summary{list-style:none;cursor:pointer;background:#fff;color:var(--m);border:1px solid var(--m);border-radius:6px;padding:5px 10px;font-size:13px}.mas summary::-webkit-details-marker{display:none}
+.mas .masc{position:absolute;right:0;top:36px;background:#fff;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:8px;display:grid;gap:6px;min-width:230px;z-index:15}.mas .masc button{text-align:left}
+.cab{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}.cab h2{margin:0}.cab .acc{display:flex;gap:8px;align-items:center}.cab h2 small{font-size:14px;font-weight:400;color:#6a7184}
 .hback{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;flex:none;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;font-size:26px;line-height:1;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}.hback:active{background:rgba(255,255,255,.3)}.hback[hidden]{display:none}
 
 .hlogo{height:76px;max-width:240px;object-fit:contain;margin:-4px 0}
@@ -263,7 +269,7 @@ async function init(){
   shell();huellaArranque();programarManana();llegueArranque();
 }
 function shell(){
-  app.innerHTML=`<header><b><a id="hback" class="hback" onclick="volver()" title="Volver a la pantalla anterior" aria-label="Volver" hidden>←</a>${MARCA.logo?`<img class="hlogo" src="${MARCA.logo}" alt="Sabores de mi País"><span class="hn">Sabores de mi País</span>`:'Sabores de mi País'}</b><nav>${['inicio','pedidos','ventas','reparto','clientes','cobranza','caja','compras','stock','precios','reportes','contable','manual'].filter(t=>!['precios','caja','contable'].includes(t)||S.perfil.rol=='dueno').filter(t=>t=='inicio'||t==S.tab||!(S.menuT?.oc||[]).includes(t)).map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${t=='manual'?'📖 Manual':t[0].toUpperCase()+t.slice(1)}</a>`).join('')}</nav><span><a class="hbt" onclick="buscarTodo()" title="Buscar (Ctrl+K)">🔎</a><a class="hbt" onclick="ayuda()" title="Ayuda de esta pantalla (?)">❓</a><a class="hbt" onclick="vistaCfg()" title="Letra, colores y avisos">Aa</a>${esc(S.perfil.nombre)} (${S.perfil.rol}) <small style="opacity:.6">v${VERSION}</small><a onclick="out()">Salir</a></span></header><main id="v"></main>`;
+  app.innerHTML=`<header><b><a id="hback" class="hback" onclick="volver()" title="Volver a la pantalla anterior" aria-label="Volver" hidden>←</a>${MARCA.logo?`<img class="hlogo" src="${MARCA.logo}" alt="Sabores de mi País"><span class="hn">Sabores de mi País</span>`:'Sabores de mi País'}</b><nav>${['inicio','pedidos','ventas','reparto','clientes','cobranza','caja','compras','stock','precios','reportes','contable','manual'].filter(t=>!['precios','caja','contable'].includes(t)||S.perfil.rol=='dueno').filter(t=>t=='inicio'||t==S.tab||!(S.menuT?.oc||[]).includes(t)).map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${t=='manual'?'📖 Manual':t[0].toUpperCase()+t.slice(1)}</a>`).join('')}</nav><span><a class="hbt" onclick="buscarTodo()" title="Buscar (Ctrl+K)">🔎</a><a class="hbt" onclick="ayuda()" title="Ayuda de esta pantalla (?)">❓</a><a class="hbt" onclick="vistaCfg()" title="Letra, colores y avisos">Aa</a><details class="umenu"><summary title="${esc(S.perfil.nombre)}" aria-label="Mi usuario">${esc((S.perfil.nombre||'?').trim().charAt(0).toUpperCase())}</summary><div class="umc"><b>${esc(S.perfil.nombre)}</b><small>${S.perfil.rol=='dueno'?'Dueño':esc(S.perfil.rol)} · versión ${VERSION}</small><button class="alt" onclick="out()">Salir</button></div></details></span></header><main id="v"></main>`;
   $$('nav a').forEach(a=>a.onclick=()=>{S.tab=a.dataset.t;shell()});
   if(S.menuT===undefined){S.menuT=null;cfgJ('menu_tabs',{oc:[]}).then(v=>{S.menuT=v;if((v.oc||[]).length)$$('nav a').forEach(a=>{if(a.dataset.t!='inicio'&&a.dataset.t!=S.tab&&v.oc.includes(a.dataset.t))a.remove()})})}
   if(S.dep===undefined){S.dep=null;cfgJ('impresora_deposito',{}).then(v=>S.dep=v)}
@@ -856,25 +862,35 @@ const dirFalta=e=>/barrio|codigo_postal|provincia|ciudad/.test(e?.message||'')?'
 function vClientes(){
   S.cs=S.cs||'lista';
   const subs=`<div class="sub">${[['lista','Clientes'],['agenda','Agenda de visitas'],['mapa','Mapa'],['dormidos','Dormidos'],['prospectos','Prospectos'],['fijos','Pedidos fijos']].map(([k,t])=>`<button class="${S.cs==k?'':'alt'}" data-cs2="${k}">${t}</button>`).join('')}</div>`;
-  if(S.cs!='lista'){$('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Clientes</h2><button class="alt" onclick="revisionDatos()">🧹 Revisión de datos</button><button class="alt" onclick="ordenarDirecciones()">🏠 Ordenar direcciones</button><button class="alt" onclick="llegueToggle()">📍 ${llegueOn()?'Aviso al llegar: activo':'Avisarme al llegar'}</button></div>${subs}<div id="cs">Cargando…</div>`;$$('[data-cs2]').forEach(b=>b.onclick=()=>{S.cs=b.dataset.cs2;vClientes()});
+  if(S.cs!='lista'){$('#v').innerHTML=`${cabClientes()}${subs}<div id="cs">Cargando…</div>`;$$('[data-cs2]').forEach(b=>b.onclick=()=>{S.cs=b.dataset.cs2;vClientes()});enlazarCab();
     return ({agenda:vAgenda,prospectos:vProspectos,fijos:vFijos,dormidos:vDormidos,mapa:vMapa})[S.cs]()}
-  $('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Clientes</h2><button class="alt" onclick="revisionDatos()">🧹 Revisión de datos</button><button class="alt" onclick="ordenarDirecciones()">🏠 Ordenar direcciones</button><button class="alt" onclick="llegueToggle()">📍 ${llegueOn()?'Aviso al llegar: activo':'Avisarme al llegar'}</button></div>${subs}<div class="box"><div class="g"><input id="c_n" placeholder="Razón social *"><input id="c_c" placeholder="CUIT"><input id="c_t" placeholder="Teléfono"><input id="c_d" placeholder="Domicilio (calle y número)">${dirCampos('c')}
-  <select id="c_i"><option value="responsable_inscripto">Responsable Inscripto</option><option value="monotributo">Monotributo</option><option value="consumidor_final">Consumidor final</option><option value="exento">Exento</option></select>
-  <select id="c_l"><option>mayorista</option><option>minorista</option><option value="especial">gastronomía</option></select>
-  <input id="c_p" type="number" min="0" placeholder="Días de pago (0 = contado)"></div><button id="c_g">Guardar cliente</button></div>
-  <input id="q" placeholder="Buscar por nombre o CUIT · tocá un cliente para ver su ficha"><table id="ct"></table>`;
+  $('#v').innerHTML=`${cabClientes()}${subs}<input id="q" placeholder="Buscar por nombre o CUIT · tocá un cliente para ver su ficha"><table id="ct"></table>`;
   const draw=()=>{const q=$('#q').value.toLowerCase();
     $('#ct').innerHTML='<tr><th>Cliente</th><th>CUIT</th><th>Lista</th><th>Pago</th><th>Teléfono</th></tr>'+
     S.clientes.filter(c=>coincide(c.razon_social+' '+(c.cuit||''),q)).map(c=>`<tr class="clic" data-fc="${c.id}"><td><a class="lnk">${esc(c.razon_social)}</a>${c.barrio||c.ciudad?`<br><small>${esc(c.barrio||c.ciudad)}</small>`:''}</td><td>${esc(c.cuit)}</td><td>${c.lista}</td><td>${c.condicion_pago_dias?c.condicion_pago_dias+' días':'Contado'}</td><td>${esc(c.telefono)}</td></tr>`).join('')};
   $$('[data-cs2]').forEach(b=>b.onclick=()=>{S.cs=b.dataset.cs2;vClientes()});
   const bind=()=>$$('#ct [data-fc]').forEach(r=>r.onclick=()=>fichaCliente(S.clientes.find(c=>c.id==r.dataset.fc)));
   $('#q').oninput=()=>{draw();bind()};draw();bind();
-  $('#c_g').onclick=async()=>{const n=$('#c_n').value.trim();if(!n)return toast('Falta la razón social.',1);
+  enlazarCab();
+}
+/* Encabezado de Clientes: título, botón para crear y el resto de las herramientas en "Más" */
+function cabClientes(){const n=S.clientes.filter(c=>c.activo!==false).length;
+  return `<div class="cab"><h2>Clientes <small>${n} ${n==1?'cargado':'cargados'}</small></h2><div class="acc"><button id="c_new">+ Nuevo cliente</button>
+    <details class="mas"><summary>Más ▾</summary><div class="masc"><button class="alt" onclick="revisionDatos()">🧹 Revisión de datos</button><button class="alt" onclick="ordenarDirecciones()">🏠 Ordenar direcciones</button><button class="alt" onclick="llegueToggle()">📍 ${llegueOn()?'Aviso al llegar: activo':'Avisarme al llegar'}</button></div></details></div></div>`}
+function enlazarCab(){$('#c_new')&&($('#c_new').onclick=nuevoCliente);
+  document.querySelectorAll('details.mas,details.umenu').forEach(d=>d.querySelectorAll('.masc button,.umc button').forEach(b=>b.addEventListener('click',()=>d.open=false)))}
+function nuevoCliente(){const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  m.innerHTML=`<div class="mc"><div class="bh"><h3>Nuevo cliente</h3><button class="alt" id="c_x">Cancelar</button></div>
+  <div class="g"><input id="c_n" placeholder="Razón social *"><input id="c_c" placeholder="CUIT"><input id="c_t" placeholder="Teléfono"><input id="c_d" placeholder="Domicilio (calle y número)">${dirCampos('c')}
+  <select id="c_i"><option value="responsable_inscripto">Responsable Inscripto</option><option value="monotributo">Monotributo</option><option value="consumidor_final">Consumidor final</option><option value="exento">Exento</option></select>
+  <select id="c_l"><option>mayorista</option><option>minorista</option><option value="especial">gastronomía</option></select>
+  <input id="c_p" type="number" min="0" placeholder="Días de pago (0 = contado)"></div><button id="c_g">Guardar cliente</button></div>`;
+  m.onclick=e=>{if(e.target==m)m.remove()};$('#c_x').onclick=()=>m.remove();setTimeout(()=>$('#c_n')?.focus(),50);
+  $('#c_g').onclick=async()=>{const n=$('#c_n').value.trim();if(!n)return toast('Falta la razón social.',1);$('#c_g').disabled=true;
     const{data,error}=await sb.from('clientes').insert({razon_social:n,cuit:$('#c_c').value.trim()||null,telefono:$('#c_t').value.trim()||null,domicilio:$('#c_d').value.trim()||null,
       condicion_iva:$('#c_i').value,lista:$('#c_l').value,condicion_pago_dias:+$('#c_p').value||0,vendedor_id:S.perfil.id,...(dirOk()?dirLeer('c'):{})}).select().single();
-    if(error)return toast(dirFalta(error),1);
-    S.clientes.push(data);S.clientes.sort((a,b)=>a.razon_social.localeCompare(b.razon_social));toast('Cliente guardado.');vClientes()};
-}
+    if(error){$('#c_g').disabled=false;return toast(dirFalta(error),1)}
+    m.remove();S.clientes.push(data);S.clientes.sort((a,b)=>a.razon_social.localeCompare(b.razon_social));toast('Cliente guardado.');S.cs='lista';vClientes()}}
 
 /* ---------- Precios y márgenes ---------- */
 async function recargarProductos(){const{data,error}=await todo(()=>sb.from('precios_productos').select(PROD_COLS).order('descripcion').order('producto_id'));if(!error)S.productos=data}
@@ -2219,17 +2235,24 @@ async function imprimirOC(o){
 
 /* Proveedores */
 async function cProveedores(){
-  $('#cv').innerHTML=`${S.perfil.rol=='dueno'&&S.prov.length>1?'<div class="fc-acc" style="margin-bottom:8px"><button class="alt" id="v_un">🔗 Unificar proveedores repetidos</button></div>':''}<div class="box"><b>Nuevo proveedor</b><div class="g" style="margin-top:8px"><input id="v_n" placeholder="Razón social *"><input id="v_c" placeholder="CUIT"><input id="v_t" placeholder="Teléfono"><input id="v_e" type="email" placeholder="Email"><input id="v_d" placeholder="Domicilio">
-  <select id="v_i"><option value="responsable_inscripto">Responsable Inscripto</option><option value="monotributo">Monotributo</option><option value="exento">Exento</option></select>
-  <input id="v_p" type="number" min="0" placeholder="Días de pago (ej. 30)"></div><button id="v_g">Guardar proveedor</button></div><table id="vt"></table>`;
+  $('#cv').innerHTML=`<div class="cab"><h2 style="font-size:20px">Proveedores <small>${S.prov.length} ${S.prov.length==1?'cargado':'cargados'}</small></h2><div class="acc"><button id="v_new">+ Nuevo proveedor</button>${S.perfil.rol=='dueno'&&S.prov.length>1?'<details class="mas"><summary>Más ▾</summary><div class="masc"><button class="alt" id="v_un">🔗 Unificar proveedores repetidos</button></div></details>':''}</div></div>
+  <input id="v_q" placeholder="Buscar proveedor por nombre o CUIT"><table id="vt"></table>`;
   const{data:s}=await sb.from('v_saldo_proveedores').select('*');
   const sal=id=>s?.find(x=>x.proveedor_id==id)?.saldo||0;
-  $('#vt').innerHTML='<tr><th>Proveedor</th><th>CUIT</th><th>Pago</th><th>Teléfono</th><th>Le debés</th></tr>'+S.prov.map(p=>`<tr><td>${esc(p.razon_social)}</td><td>${esc(p.cuit)}</td><td>${p.dias_pago?p.dias_pago+' días':'Contado'}</td><td>${esc(p.telefono)}</td><td><b>${$m(sal(p.id))}</b></td></tr>`).join('');
-  $('#v_un')&&($('#v_un').onclick=unificarProv);
-  $('#v_g').onclick=async()=>{const n=$('#v_n').value.trim();if(!n)return toast('Falta la razón social.',1);
-    const{error}=await sb.from('proveedores').insert({razon_social:n,cuit:$('#v_c').value.trim()||null,telefono:$('#v_t').value.trim()||null,email:$('#v_e').value.trim()||null,
-      domicilio:$('#v_d').value.trim()||null,condicion_iva:$('#v_i').value,dias_pago:$('#v_p').value===''?30:+$('#v_p').value});
-    if(error)return toast(error.message,1);toast('Proveedor guardado.');vCompras()};
+  const drawV=()=>{const q=($('#v_q').value||'').toLowerCase();
+    $('#vt').innerHTML='<tr><th>Proveedor</th><th>CUIT</th><th>Pago</th><th>Teléfono</th><th>Le debés</th></tr>'+S.prov.filter(p=>coincide(p.razon_social+' '+(p.cuit||''),q)).map(p=>`<tr><td>${esc(p.razon_social)}</td><td>${esc(p.cuit)}</td><td>${p.dias_pago?p.dias_pago+' días':'Contado'}</td><td>${esc(p.telefono)}</td><td><b>${$m(sal(p.id))}</b></td></tr>`).join('')};
+  $('#v_q').oninput=drawV;drawV();
+  $('#v_un')&&($('#v_un').onclick=unificarProv);enlazarCab();
+  $('#v_new').onclick=()=>{const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+    m.innerHTML=`<div class="mc"><div class="bh"><h3>Nuevo proveedor</h3><button class="alt" id="v_x">Cancelar</button></div>
+    <div class="g"><input id="v_n" placeholder="Razón social *"><input id="v_c" placeholder="CUIT"><input id="v_t" placeholder="Teléfono"><input id="v_e" type="email" placeholder="Email"><input id="v_d" placeholder="Domicilio">
+    <select id="v_i"><option value="responsable_inscripto">Responsable Inscripto</option><option value="monotributo">Monotributo</option><option value="exento">Exento</option></select>
+    <input id="v_p" type="number" min="0" placeholder="Días de pago (ej. 30)"></div><button id="v_g">Guardar proveedor</button></div>`;
+    m.onclick=e=>{if(e.target==m)m.remove()};$('#v_x').onclick=()=>m.remove();setTimeout(()=>$('#v_n')?.focus(),50);
+    $('#v_g').onclick=async()=>{const n=$('#v_n').value.trim();if(!n)return toast('Falta la razón social.',1);$('#v_g').disabled=true;
+      const{error}=await sb.from('proveedores').insert({razon_social:n,cuit:$('#v_c').value.trim()||null,telefono:$('#v_t').value.trim()||null,email:$('#v_e').value.trim()||null,
+        domicilio:$('#v_d').value.trim()||null,condicion_iva:$('#v_i').value,dias_pago:$('#v_p').value===''?30:+$('#v_p').value});
+      if(error){$('#v_g').disabled=false;return toast(error.message,1)}m.remove();toast('Proveedor guardado.');vCompras()}};
 }
 
 /* Facturas de proveedor y pagos */
