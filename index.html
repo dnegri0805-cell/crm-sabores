@@ -3181,6 +3181,25 @@ async function dibujarFolleto(items,o){const F=FMT[o.fmt],cv=document.createElem
   c.fillText(tit,tx,cab/2+fs*.15);
   c.fillStyle='#ffd54a';c.font=`800 ${Math.round(fs*.48)}px ${FONT}`;c.fillText(lineas(c,o.sub||'',F.w-tx-m,1)[0]||'',tx,cab/2+fs*.15+fs*.62);
   if(o.vig){c.fillStyle='rgba(255,255,255,.85)';let vf=30;c.font=`500 ${vf}px ${FONT}`;while(c.measureText(o.vig).width>F.w-tx-m&&vf>18){vf--;c.font=`500 ${vf}px ${FONT}`}c.fillText(lineas(c,o.vig,F.w-tx-m,1)[0],tx,cab-34)}
+  // filas: foto a la izquierda y precios a la derecha (para productos con precio por display/bulto/pallet)
+  if(o.filas){const n=items.length,gap=24,top0=cab+30,bot0=F.h-pie-26,cw=F.w-2*m,ch=Math.min((bot0-top0-(n-1)*gap)/n,420),top=top0+((bot0-top0)-(n*ch+(n-1)*gap))/2;
+    const imgs=await Promise.all(items.map(x=>cargarImg(x.img)));
+    items.forEach((x,i)=>{const X=m,Y=top+i*(ch+gap),pad=20,is=ch-pad*2,tx=X+pad+is+28,tw=cw-(tx-X)-pad;
+      c.save();c.shadowColor='rgba(0,0,0,.12)';c.shadowBlur=18;c.shadowOffsetY=6;c.fillStyle='#fff';rrect(c,X,Y,cw,ch,28);c.fill();c.restore();
+      const im=imgs[i];if(im){const k=Math.min(is/im.width,is/im.height);c.drawImage(im,X+pad+(is-im.width*k)/2,Y+pad+(is-im.height*k)/2,im.width*k,im.height*k)}
+      else{c.fillStyle=MARCA.c+'1f';rrect(c,X+pad,Y+pad,is,is,20);c.fill();c.fillStyle=MARCA.c;c.font=`900 ${Math.round(is*.5)}px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.fillText((x.d||'?')[0],X+pad+is/2,Y+pad+is/2);c.textAlign='left';c.textBaseline='alphabetic'}
+      if(x.pct){const r=52;c.fillStyle='#d62828';c.beginPath();c.arc(X+cw-r-14,Y+r+14,r,0,7);c.fill();c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';c.font=`900 34px ${FONT}`;c.fillText('-'+nf(x.pct)+'%',X+cw-r-14,Y+r+14);c.textAlign='left';c.textBaseline='alphabetic'}
+      const E=(x.esc||(x.bulto?[x.bulto]:[])).slice(),C=x.cond?[x.cond]:[];
+      // tamaños que entran en el alto de la tarjeta
+      let fN=36,fP=72,fE=30;const alto=()=>fN*1.2*NL.length+(x.ant?fE+6:0)+fP*1.05+(C.length+E.length)*fE*1.3;let NL;
+      for(;;){c.font=`700 ${fN}px ${FONT}`;NL=lineas(c,x.d,tw-(x.pct?110:0),2);if(alto()<=ch-pad*2||fN<=22)break;fN-=2;fP-=4;fE=Math.max(20,fE-1)}
+      c.font=`700 ${fE}px ${FONT}`;let ef=fE;while([...E,...C].some(t=>c.measureText(t).width>tw)&&ef>16){ef--;c.font=`700 ${ef}px ${FONT}`}
+      let y=Y+(ch-alto())/2;c.fillStyle='#1c2333';c.font=`700 ${fN}px ${FONT}`;for(const l of NL){y+=fN*1.05;c.fillText(l,tx,y);y+=fN*.15}
+      if(x.ant){c.fillStyle='#8a90a0';c.font=`500 ${fE}px ${FONT}`;const t=$m(x.ant);y+=fE+6;c.fillText(t,tx,y);const w=c.measureText(t).width;c.strokeStyle='#8a90a0';c.lineWidth=3;c.beginPath();c.moveTo(tx-2,y-fE*.35);c.lineTo(tx+w+2,y-fE*.35);c.stroke()}
+      c.fillStyle=x.pct?'#d62828':MARCA.c;c.font=`900 ${fP}px ${FONT}`;y+=fP*1.02;c.fillText($m(x.p),tx,y);
+      c.font=`700 ${ef}px ${FONT}`;for(const t of C){y+=fE*1.3;c.fillStyle='#1d7a46';c.fillText(t,tx,y)}
+      E.forEach((t,k)=>{y+=fE*1.3;c.fillStyle=/^Pallet/.test(t)?MARCA.c:'#4a5163';c.font=`${/^Pallet/.test(t)?800:600} ${ef}px ${FONT}`;c.fillText(t,tx,y)})});
+  }else{
   // grilla (las tarjetas se adaptan a la cantidad de productos)
   const n=items.length,cols=n==1?1:F.col,rows=Math.ceil(n/cols),gap=28,top0=cab+36,bot0=F.h-pie-30,cw=(F.w-2*m-(cols-1)*gap)/cols;
   const ch=Math.min((bot0-top0-(rows-1)*gap)/rows,cols==1?900:720),top=top0+((bot0-top0)-(rows*ch+(rows-1)*gap))/2;
@@ -3198,6 +3217,7 @@ async function dibujarFolleto(items,o){const F=FMT[o.fmt],cv=document.createElem
     if(x.cond||(x.bulto&&!nE)){c.fillStyle=x.cond?'#1d7a46':'#6a7184';c.font=`700 ${big?30:24}px ${FONT}`;y+=big?40:32;c.fillText(lineas(c,x.cond||x.bulto,iw,1)[0],X+pad,y)}
     if(nE){let ef=big?30:24;c.font=`700 ${ef}px ${FONT}`;while(x.esc.some(t=>c.measureText(t).width>iw)&&ef>15){ef--;c.font=`700 ${ef}px ${FONT}`}
       x.esc.forEach((t,k)=>{y+=k?(big?38:31):(big?40:32);c.fillStyle=k==x.esc.length-1&&/^Pallet/.test(t)?MARCA.c:'#6a7184';c.fillText(t,X+pad,y)})}});
+  }
   // pie
   c.fillStyle=MARCA.c;c.fillRect(0,F.h-pie,F.w,pie);c.fillStyle='#fff';c.textAlign='center';
   c.font=`800 46px ${FONT}`;c.fillText(S.telEmp?'Pedí por WhatsApp  '+S.telEmp:'Sabores de mi País',F.w/2,F.h-pie+66);
@@ -3329,7 +3349,7 @@ async function folletoOfertas(){
     const ids=new Set(A.map(p=>p.producto_id));for(const id of man)ids.add(id);
     return [...ids].map(id=>S.productos.find(p=>p.producto_id==id)).filter(p=>p&&+p['precio_'+l]>0).sort((a,b)=>(!!S.min[b.producto_id]?.foto)-(!!S.min[a.producto_id]?.foto)||a.descripcion.localeCompare(b.descripcion))};
   const lst=()=>{const C=cand(),l=$('#fo_l').value;sel=C.filter(p=>!quit.has(p.producto_id));
-    $('#fo_lst').innerHTML=C.length?`<p><small>${C.some(p=>promoCerca(p.producto_id,l))?'Productos en oferta':'No hay promociones activas en lo que elegiste: muestro productos destacados con foto (sin descuento). Creá una promoción en Precios para mostrar precio tachado.'} · ${sel.length} elegidos → ${Math.ceil(sel.length/FMT[$('#fo_t').value].n)||0} ${Math.ceil(sel.length/FMT[$('#fo_t').value].n)==1?'imagen':'imágenes'}</small></p>
+    $('#fo_lst').innerHTML=C.length?`<p><small>${C.some(p=>promoCerca(p.producto_id,l))?'Productos en oferta':'No hay promociones activas en lo que elegiste: muestro productos destacados con foto (sin descuento). Creá una promoción en Precios para mostrar precio tachado.'} · ${sel.length} elegidos → ${Math.ceil(sel.length/(sel.some(p=>{const x=S.min[p.producto_id];return x&&x.b>1&&(x.ud>1||x.bp>0)})?($('#fo_t').value=='historia'?4:3):FMT[$('#fo_t').value].n))||0} ${Math.ceil(sel.length/(sel.some(p=>{const x=S.min[p.producto_id];return x&&x.b>1&&(x.ud>1||x.bp>0)})?($('#fo_t').value=='historia'?4:3):FMT[$('#fo_t').value].n))==1?'imagen':'imágenes'}</small></p>
       <div class="fo-l">${C.map(p=>{const r=promoCerca(p.producto_id,l);return`<label><input type="checkbox" data-fo="${p.producto_id}" ${quit.has(p.producto_id)?'':'checked'}> ${S.min[p.producto_id]?.foto?'📷':'<span class="sinf">sin foto</span>'} ${esc(p.descripcion)} ${r?`<b class="promo">−${nf(r.descuento_pct)} %</b>`:''}</label>`}).join('')}</div>`
       :'<p><small>No hay productos para mostrar con ese filtro.</small></p>';
     $$('#fo_lst [data-fo]').forEach(i=>i.onchange=()=>{i.checked?quit.delete(i.dataset.fo):quit.add(i.dataset.fo);lst()})};
@@ -3342,8 +3362,9 @@ async function folletoOfertas(){
     const items=sel.map(p=>{const r=promoCerca(p.producto_id,l),base=+p['precio_'+l],b=bul(p.producto_id);const pr=r?Math.round(base*(1-r.descuento_pct/100)*100)/100:base;
       return{d:p.descripcion,img:S.min[p.producto_id]?.foto||'',p:pr,ant:r?base:null,pct:r?+r.descuento_pct:0,cond:r&&condPromo(r)?condPromo(r):'',bulto:b?b.t+' × '+b.n+': '+$m(pr*b.n):'',esc:escFolleto(p.producto_id,pr)}});
     if($('#fo_cb')?.checked)items.unshift(...S.combos.map(c=>{const v=comboPrecio(c,l);return{d:'🎁 '+c.nombre,img:S.min[(c.items||[]).find(x=>S.min[x.id]?.foto)?.id]?.foto||'',p:v.p,ant:v.s,pct:+c.descuento_pct,cond:comboTxt(c)}}));
-    const pags=[];for(let i=0;i<items.length;i+=F.n)pags.push(items.slice(i,i+F.n));
-    const cvs=[];for(const [k,pg] of pags.entries())cvs.push(await dibujarFolleto(pg,{fmt,lista:l,titulo:$('#fo_ti').value.trim().toUpperCase(),sub:f?cap1(f):'de la semana',vig:$('#fo_vg').value.trim(),pie:pags.length>1?(k+1)+'/'+pags.length:''}));
+    const filas=items.some(x=>x.esc),porPag=filas?(fmt=='historia'?4:3):F.n;
+    const pags=[];for(let i=0;i<items.length;i+=porPag)pags.push(items.slice(i,i+porPag));
+    const cvs=[];for(const [k,pg] of pags.entries())cvs.push(await dibujarFolleto(pg,{filas,fmt,lista:l,titulo:$('#fo_ti').value.trim().toUpperCase(),sub:f?cap1(f):'de la semana',vig:$('#fo_vg').value.trim(),pie:pags.length>1?(k+1)+'/'+pags.length:''}));
     const blobs=await Promise.all(cvs.map(cv=>new Promise(ok=>cv.toBlob(ok,'image/jpeg',.9))));
     const nom=k=>'Ofertas '+(f||'Sabores')+(pags.length>1?' '+(k+1):'')+'.jpg';
     $('#fo_out').innerHTML=`<p><b>${cvs.length} ${cvs.length==1?'imagen lista':'imágenes listas'}.</b> ${navigator.canShare?'Tocá Compartir para mandarlas por WhatsApp o subirlas a tu estado.':'Descargalas y mandalas por WhatsApp o subilas a Instagram.'}</p>
