@@ -301,7 +301,7 @@ body.foco .sto,body.foco .sgb,body.foco #rep,body.foco #alta,body.foco .opi,body
 .fic .fph .nuevo{top:10px;right:10px}.fic .fph .rib{position:absolute;top:10px;left:10px;background:var(--er);color:#fff;font-weight:800;padding:4px 10px;border-radius:10px}
 .fic .fmeta{font-size:12px;color:var(--mu);text-transform:uppercase;letter-spacing:.04em}.fic .fnm{margin:4px 0 6px;font-size:22px;line-height:1.2}
 .fic .fpr{display:flex;align-items:baseline;gap:8px;margin-bottom:4px}.fic .fpr b{font-family:var(--fd);font-size:30px}.fic .fpr s{color:var(--mu)}.fic .fpr small{color:var(--mu);font-size:14px}
-.fic .fln{font-size:14px;margin:4px 0}.fic .fln.cc{color:#9a5a00;background:var(--sol2,#fff4d1);border-radius:10px;padding:6px 10px}
+.esc{width:100%;border-collapse:collapse;font-size:11.5px;margin:4px 0 2px;color:var(--mu)}.esc td{padding:2px 0;border-top:1px dashed rgba(0,0,0,.1);line-height:1.25}.esc td+td{text-align:right;font-weight:700;color:inherit;white-space:nowrap;padding-left:6px}.esc tr:first-child td{border-top:0}.esc.big{font-size:14px;margin:8px 0}.esc.big td{padding:6px 0}.fic .fln{font-size:14px;margin:4px 0}.fic .fln.cc{color:#9a5a00;background:var(--sol2,#fff4d1);border-radius:10px;padding:6px 10px}
 .fic .fq{display:flex;gap:8px;align-items:center;margin:12px 0 4px;flex-wrap:wrap}.fic .fq .prim{flex:1;height:50px;border-radius:999px;font-size:16px}.fic .fq .sec{height:50px;border-radius:999px}
 .fic .fq .mn,.fic .fq .ms{width:50px;height:50px;border-radius:50%;font-size:24px;padding:0}.fic .fq input{width:80px;height:50px;text-align:center;font-size:18px;margin:0}
 .fic .fsub{font-size:14px;color:var(--ok);margin:4px 0}.fic .ffv{width:100%;margin:8px 0;border-radius:999px}.fic .fver{width:100%;height:50px;border-radius:999px;margin-top:12px;position:sticky;bottom:0}
@@ -394,6 +394,12 @@ function progresoHTML(t,full){const e=escala(t),nx=proxEsc(t),out=[];
   return out.join('')}
 const nf=n=>Number(n||0).toLocaleString('es-AR',{maximumFractionDigits:2});
 const pl=(t,n)=>{t=String(t||'Caja').toLowerCase();return n==1?t:(t.endsWith('s')?t:t+'s')};
+/* Precios por unidad, display, bulto y pallet (cuando el producto tiene display o pallet cargado) */
+function escHTML(p,pu,ub,cls){if(!(p.b>1)||!(p.ud>1||p.bp>0))return '';
+  const T=[['Unidad',pu]];if(p.ud>1&&p.ud<p.b)T.push(['Display × '+p.ud,ub*p.ud]);
+  T.push([p.tb+' × '+p.b+(p.ud>1&&p.ud<p.b&&p.b%p.ud==0?' ('+(p.b/p.ud)+' displays)':''),ub*p.b]);
+  if(p.bp>0)T.push(['Pallet × '+p.bp+' '+pl(p.tb,p.bp)+' ('+nf(p.bp*p.b)+' u.)',ub*p.b*p.bp]);
+  return `<table class="esc ${cls||''}">${T.map(([t,v])=>`<tr><td>${esc(t)}</td><td>${$m(v)}</td></tr>`).join('')}</table>`}
 function promoP(p,q,cerca){if(p.combo||p.pac)return null;let best=null;for(const r of (C?.promos||[])){const av=String(r.av||'').toUpperCase();
   if(r.a=='marca'&&String(p.m||'').toUpperCase()!==av)continue;if(r.a=='familia'&&String(p.f||'').toUpperCase()!==av)continue;if(r.a=='producto'&&String(p.id)!==String(r.av))continue;
   if(r.mt=='bulto'&&!(p.b>1))continue;if(!cerca){if(r.mt=='unidades'&&q<r.mu)continue;if(r.mt=='bulto'&&q<p.b)continue}
@@ -959,7 +965,7 @@ function tarjeta(p){const q=car[p.id]||0,r=promoP(p,q),rc=r?null:promoP(p,q,true
     ${p.combo?`<span class="rib">−${nf(p.pct)} %</span>`:''}${EST.cupos&&EST.cupos[(r||rc||{}).n]!=null?'<span class="nuevo ult">🔥 QUEDAN '+EST.cupos[(r||rc||{}).n]+'</span>':/^Últimas/.test((r||rc||{}).n||'')?'<span class="nuevo ult">ÚLTIMAS UNIDADES</span>':etiquetaHTML(p)}
     <div class="cn" ${p.combo?'':`data-fi="${p.id}"`}>${p.combo?'🎁 ':''}${esc(p.d)}</div>${p.ss&&!q?altHTML(p):''}${pesoHTML(p,pu)}${socialHTML(p)}${avisoHTML(p,r||rc)}<div class="cm">${p.combo?'':esc(p.m||'')}${p.b>1?' · '+esc(p.tb)+' × '+p.b:''}</div>${p.sb?`<div class="sbt">📦 Solo por ${esc(String(p.tb||'caja').toLowerCase())} cerrada</div>`:''}${p.combo&&p.nuevo?'<div class="kitn">🎁 Solo para tu primer pedido</div>':''}${p.combo?`<div class="cdet">${esc(p.det)}</div>`:''}
     <div class="cp">${r?`<s>${$m(p.p)}</s>`:p.combo?`<s>${$m(p.ant)}</s>`:''}${$m(pu)}${esKgP(p.id)?'<small> /kg</small>':''}${kgHTML(p,pu)}</div>${presHTML(p,pu)}
-    ${p.b>1?`<div class="cb">${esc(p.tb)}: ${$m((rc&&rc.mt=='bulto'?Math.round(p.p*(1-rc.pct/100)*100)/100:pu)*p.b)}</div>`:''}${pvpHTML(p,q)}${rc?`<div class="cc">${rc.bon?'🎁 '+esc(condP(rc,p)):'−'+nf(rc.pct)+' % '+esc(condP(rc,p))}</div>`:''}
+    ${(()=>{const ub=rc&&rc.mt=='bulto'?Math.round(p.p*(1-rc.pct/100)*100)/100:pu;return escHTML(p,pu,ub)||(p.b>1?`<div class="cb">${esc(p.tb)}: ${$m(ub*p.b)}</div>`:'')})()}${pvpHTML(p,q)}${rc?`<div class="cc">${rc.bon?'🎁 '+esc(condP(rc,p)):'−'+nf(rc.pct)+' % '+esc(condP(rc,p))}</div>`:''}
     <div class="cq">${p.ss&&!q?btnAv(p):q?`<button class="mn" data-r="${p.id}" aria-label="Restar">−</button><input type="number" inputmode="numeric" min="0" value="${q}" data-i="${p.id}" aria-label="Cantidad">${esKgP(p.id)?'<span class="kgu">kg</span>':''}<button class="ms" data-s="${p.id}" aria-label="Sumar">+</button>`
       :`<button class="ag" data-s="${p.id}">${presKg(p)?'Agregar '+nf(presKg(p).k)+' kg':'Agregar'}</button>${p.b>1?`<button class="bx" data-bb="${p.id}" aria-label="Agregar ${esc(p.tb)} de ${p.b}">+${p.b}</button>`:''}`}</div></div>`}
 
@@ -1167,7 +1173,7 @@ function ficha(id){const p0=prod(id);if(!p0)return;if(p0.combo)return zoom(p0);
       <div class="fmeta">${esc(cap(f))}${p.m?' · '+esc(p.m):''}${p.c?' · Cód. '+esc(p.c):''}</div>
       <h2 class="fnm">${esc(p.d)}</h2>
       <div class="fpr">${r?`<s>${$m(p.p)}</s>`:''}<b>${$m(pu)}</b>${kg?'<small> x kg</small>':''}</div>
-      ${pesoHTML(p,pu)}${kgHTML(p,pu)}${p.b>1?`<div class="fln">📦 ${esc(p.tb)} × ${p.b}: <b>${$m(pu*p.b)}</b></div>`:''}${p.sb?`<div class="fln">📦 Solo por ${esc(String(p.tb||'caja').toLowerCase())} cerrada</div>`:''}
+      ${pesoHTML(p,pu)}${kgHTML(p,pu)}${escHTML(p,pu,pu,'big')||(p.b>1?`<div class="fln">📦 ${esc(p.tb)} × ${p.b}: <b>${$m(pu*p.b)}</b></div>`:'')}${p.sb?`<div class="fln">📦 Solo por ${esc(String(p.tb||'caja').toLowerCase())} cerrada</div>`:''}
       ${rc?`<div class="fln cc">${rc.bon?'🎁 '+esc(condP(rc,p)):'🏷️ −'+nf(rc.pct)+' % '+esc(condP(rc,p))}</div>`:''}${pvpHTML(p,q)}${socialHTML(p)}
       ${p.ss&&!q?`<p class="eq">Sin stock por ahora</p>${btnAv(p)}${altHTML(p)}`:`<div class="fq">${q?`<button class="mn" data-fr="1" aria-label="Restar">−</button><input type="number" inputmode="numeric" min="0" value="${q}" data-fin3="1" aria-label="Cantidad">${kg?'<span class="kgu">kg</span>':''}<button class="ms" data-fs="1" aria-label="Sumar">+</button>`:`<button class="prim" data-fs="1">Agregar al pedido</button>`}${p.b>1?`<button class="sec" data-fb="1">+ ${esc(p.tb)} (${p.b})</button>`:''}</div>
       ${q?`<p class="fsub">En tu pedido: <b>${nf(q)}${kg?' kg':''}</b> · ${$m(pu*q)}</p>`:''}`}

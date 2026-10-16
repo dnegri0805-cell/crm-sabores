@@ -42,7 +42,7 @@ details.rb>.cont{padding-bottom:6px}
 h2{font-family:var(--disp);font-weight:600;font-size:19px;margin:26px 0 10px;display:flex;gap:10px;align-items:baseline}
 h2 small{font-family:var(--body);font-weight:400;color:var(--mut);font-size:13px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
-.it{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px;display:grid;grid-template-rows:auto auto 1fr auto;gap:6px;min-width:0}
+.it{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px;display:grid;grid-template-rows:auto auto 1fr auto auto;gap:6px;min-width:0}
 .ph{background:#fff;border-radius:6px;aspect-ratio:1;max-width:100%;overflow:hidden}
 .ph img{width:100%;height:100%;object-fit:contain;display:block}
 .ph.sin{display:grid;place-items:center;background:var(--accs);color:var(--acc);font-family:var(--disp);font-weight:800;font-size:clamp(28px,8vw,44px)}
@@ -53,6 +53,9 @@ h2 small{font-family:var(--body);font-weight:400;color:var(--mut);font-size:13px
 .pr b{font-family:var(--disp);font-weight:800;font-size:20px;color:var(--fg);font-variant-numeric:tabular-nums}
 .pr span{font-size:12px;color:var(--mut)}
 .pr.no b{font-family:var(--body);font-size:14px;font-weight:600;color:var(--mut)}
+.esc{width:100%;border-collapse:collapse;font-size:12px;color:var(--mut);font-variant-numeric:tabular-nums}
+.esc td{padding:3px 0;border-top:1px dashed var(--line);line-height:1.25}
+.esc td+td{text-align:right;font-weight:700;color:var(--fg);white-space:nowrap;padding-left:6px}
 .msg{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-top:16px}
 .msg a{color:var(--acc);font-weight:700}
 .empty{color:var(--mut);padding:30px 0}
@@ -109,12 +112,12 @@ async function cargar(){
       todo(()=>sb.from('productos').select('*').order('id'))]);
     if(pp.error){$('#aviso').innerHTML=`<div class="msg">No pude leer tus precios: ${esc(pp.error.message)}</div>`}
     const X={};for(const p of pr.data||[])X[p.id]=p;
-    PROD=(pp.data||[]).filter(p=>X[p.producto_id]?.activo!==false).map(p=>({...p,cf:X[p.producto_id]?.codigo_fabricante,pw:!!X[p.producto_id]?.por_peso,foto:X[p.producto_id]?.foto||''}));
+    PROD=(pp.data||[]).filter(p=>X[p.producto_id]?.activo!==false).map(p=>({...p,cf:X[p.producto_id]?.codigo_fabricante,pw:!!X[p.producto_id]?.por_peso,b:+X[p.producto_id]?.unidades_bulto||1,tb:X[p.producto_id]?.tipo_bulto||'Caja',ud:+X[p.producto_id]?.unidades_display||0,bp:+X[p.producto_id]?.bultos_pallet||0,foto:X[p.producto_id]?.foto||''}));
     $('#lista').hidden=false;
   }else{
     const{data,error}=await sb.rpc('catalogo_publico');
     if(error){$('#aviso').innerHTML=`<div class="msg">Para ver tus precios, primero <a href="./">entrá al CRM</a> con tu usuario y después volvé a abrir esta página.</div>`;$('#solo').checked=false}
-    else{PROD=(data.productos||[]).map(p=>({producto_id:p.id,codigo:p.c,descripcion:p.d,familia:p.f,precio_publico:p.p,pw:!!p.pw}));$('#lista').innerHTML='<option value="precio_publico">Precio</option>'}
+    else{PROD=(data.productos||[]).map(p=>({producto_id:p.id,codigo:p.c,descripcion:p.d,familia:p.f,precio_publico:p.p,pw:!!p.pw,b:+p.b||1,tb:p.tb||'Caja',ud:+p.ud||0,bp:+p.bp||0}));$('#lista').innerHTML='<option value="precio_publico">Precio</option>'}
   }
   cruzar();pintar();
 }
@@ -134,10 +137,17 @@ function cruzar(){
     const fa=(p.familia||'').trim(),f=F2G[fa]?fa:(famPorDescripcion(p.descripcion)||fa||'Otros');
     CAT.push({c:cod(p.codigo),d:p.descripcion,img:p.foto||'',f,g:F2G[f]||'Otros',n:/^\d+$/.test(cod(p.codigo))?parseInt(cod(p.codigo),10):Infinity,k:sinT(p.codigo+' '+p.descripcion+' '+f),p,propio:true})}
 }
+/* Precio por unidad, display, bulto y pallet debajo de la foto */
+const plu=(t,n)=>{t=String(t||'Caja').toLowerCase();return n==1?t:(t.endsWith('s')?t:t+'s')};
+function escala(p,v){if(!v||!p||!(p.b>1)||p.pw)return '';
+  const T=[];if(p.ud>1&&p.ud<p.b)T.push(['Display × '+p.ud,v*p.ud]);
+  T.push([p.tb+' × '+p.b+(p.ud>1&&p.ud<p.b&&p.b%p.ud==0?' ('+(p.b/p.ud)+' displays)':''),v*p.b]);
+  if(p.bp>0)T.push(['Pallet × '+p.bp+' '+plu(p.tb,p.bp)+' ('+(p.bp*p.b).toLocaleString('es-AR')+' u.)',v*p.b*p.bp]);
+  return `<table class="esc">${T.map(([t,m])=>`<tr><td>${esc(t)}</td><td>${money(Math.round(m*100)/100)}</td></tr>`).join('')}</table>`}
 const precio=x=>{const v=x.p&&+x.p[$('#lista').value];return v>0?v:null};
 function card(x){const v=precio(x);
   return `<article class="it">${x.img?`<div class="ph"><img loading="lazy" src="${esc(x.img)}" alt="${esc(x.d)}"></div>`:`<div class="ph sin" aria-hidden="true">${esc((x.d||'?').trim().charAt(0).toUpperCase())}</div>`}<span class="cod ${x.c?'':'no'}">${x.c?'Cód. '+esc(x.c):'Sin código'}</span><div class="d">${esc(x.d)}</div>`+
-    (v?`<div class="pr"><b>${money(v)}</b><span>${x.p.pw?'por kg':'por unidad'}</span></div>`:`<div class="pr no"><b>Consultar</b></div>`)+`</article>`}
+    (v?`<div class="pr"><b>${money(v)}</b><span>${x.p.pw?'por kg':'por unidad'}</span></div>`:`<div class="pr no"><b>Consultar</b></div>`)+escala(x.p,v)+`</article>`}
 function pintar(){
   const q=sinT($('#q').value).trim().split(/\s+/).filter(Boolean),fm=$('#fam').value,solo=$('#solo').checked;
   let L=CAT.filter(x=>(!fm||x.f==fm)&&(!solo||precio(x))&&q.every(w=>x.k.includes(w)));
