@@ -67,6 +67,10 @@ td.bajo,td .bajo{color:#7a5a00}
 .fa-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;max-height:55vh;overflow:auto}
 .fa-it{display:grid;gap:4px;border:2px solid var(--l);border-radius:10px;padding:8px;cursor:pointer;background:#fff;position:relative;font-size:13px}.fa-it.on{border-color:var(--ok)}
 .fa-it input{position:absolute;top:8px;left:8px;width:20px;height:20px;margin:0}.fa-it img{width:100%;aspect-ratio:1;object-fit:contain;background:#fff;border-radius:6px}.fa-it small{color:#6a7184}
+.fo-fam{display:block;font-size:13px;color:#6a7184}
+.fo-fam details{margin:2px 0 0;padding:0;border:1px solid #b9bfcc;border-radius:6px;background:#fff;box-shadow:none}
+.fo-fam summary{padding:9px;color:#1c2333;font-size:14px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fo-fam .fo-l{border:0;border-top:1px solid #e3e6ec;border-radius:0;color:#1c2333}
 .fo-l{max-height:34vh;overflow:auto;border:1px solid var(--l);border-radius:8px;padding:6px 10px;display:grid;gap:4px;font-size:14px}.fo-l label{display:flex;gap:6px;align-items:center}.fo-l input{width:auto;margin:0}.fo-l .sinf{font-size:11px;color:#b45309}
 .fo-out{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:10px 0}.fo-out img{width:100%;border-radius:8px;border:1px solid var(--l);display:block}
 .ag .vi.hecho-vi{opacity:.6}a.btnl{display:inline-flex;align-items:center;padding:6px 10px;border-radius:6px;border:1px solid var(--m);color:var(--m);text-decoration:none;font-size:13px}
@@ -219,7 +223,7 @@ body{zoom:var(--z,1)}html.oscuro{filter:invert(.92) hue-rotate(180deg);backgroun
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-13.1';
+const VERSION='2026-10-16.1';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -3299,7 +3303,7 @@ async function folletoOfertas(){
   const m=document.createElement('div');m.className='modal';document.body.appendChild(m);let sel=[],man=new Set(),quit=new Set();
   const hoy=new Date(),fin=new Date(hoy.getTime()+7*864e5);
   m.innerHTML=`<div class="mc fo"><div class="bh"><h3>📣 Folleto de ofertas</h3><button class="alt" id="fo_x">Cerrar</button></div>
-    <div class="g"><label class="f">Familia<select id="fo_f"><option value="">Todas las ofertas</option>${fams.map(f=>`<option>${esc(f)}</option>`).join('')}</select></label>
+    <div class="g"><div class="fo-fam">Familias (podés marcar varias)<details id="fo_fd"><summary id="fo_fs">Todas las ofertas</summary><div class="fo-l"><label><input type="checkbox" id="fo_fall" checked> <b>Todas las ofertas</b></label>${fams.map(f=>`<label><input type="checkbox" data-ff="${esc(f)}"> ${esc(f)}</label>`).join('')}</div></details></div>
       <label class="f">Precios de la lista<select id="fo_l"><option>minorista</option><option>mayorista</option><option value="especial">gastronomía</option></select></label>
       <label class="f">Formato<select id="fo_t">${Object.entries(FMT).map(([k,f])=>`<option value="${k}">${f.t} · ${f.n} productos</option>`).join('')}</select></label>
       <label class="f">Título<input id="fo_ti" value="OFERTAS" maxlength="22"></label>
@@ -3308,18 +3312,22 @@ async function folletoOfertas(){
     ${S.combos.length?'<label class="chk"><input type="checkbox" id="fo_cb" checked> Incluir los combos ('+S.combos.length+')</label>':''}
     <div id="fo_lst"></div><button id="fo_g">Armar folleto</button><div id="fo_out"></div></div>`;
   $('#fo_x').onclick=()=>m.remove();
-  const cand=()=>{const l=$('#fo_l').value,f=$('#fo_f').value;const base=S.productos.filter(p=>+p['precio_'+l]>0&&(!f||(p.familia||'').trim()==f));
+  const famSet=()=>new Set([...$$('#fo_fd [data-ff]')].filter(i=>i.checked).map(i=>i.dataset.ff));
+  const famTxt=()=>{const F=[...famSet()];$('#fo_fs').textContent=!F.length?'Todas las ofertas':F.length==1?F[0]:F.length+' familias: '+F.join(', ')};
+  const cand=()=>{const l=$('#fo_l').value,F=famSet();const base=S.productos.filter(p=>+p['precio_'+l]>0&&(!F.size||F.has((p.familia||'').trim())));
     let A=base.filter(p=>promoCerca(p.producto_id,l));if(!A.length)A=base.filter(p=>S.min[p.producto_id]?.foto).slice(0,24);
     const ids=new Set(A.map(p=>p.producto_id));for(const id of man)ids.add(id);
     return [...ids].map(id=>S.productos.find(p=>p.producto_id==id)).filter(p=>p&&+p['precio_'+l]>0).sort((a,b)=>(!!S.min[b.producto_id]?.foto)-(!!S.min[a.producto_id]?.foto)||a.descripcion.localeCompare(b.descripcion))};
   const lst=()=>{const C=cand(),l=$('#fo_l').value;sel=C.filter(p=>!quit.has(p.producto_id));
-    $('#fo_lst').innerHTML=C.length?`<p><small>${C.some(p=>promoCerca(p.producto_id,l))?'Productos en oferta':'No hay promociones activas en esta familia: muestro productos destacados con foto (sin descuento). Creá una promoción en Precios para mostrar precio tachado.'} · ${sel.length} elegidos → ${Math.ceil(sel.length/FMT[$('#fo_t').value].n)||0} ${Math.ceil(sel.length/FMT[$('#fo_t').value].n)==1?'imagen':'imágenes'}</small></p>
+    $('#fo_lst').innerHTML=C.length?`<p><small>${C.some(p=>promoCerca(p.producto_id,l))?'Productos en oferta':'No hay promociones activas en lo que elegiste: muestro productos destacados con foto (sin descuento). Creá una promoción en Precios para mostrar precio tachado.'} · ${sel.length} elegidos → ${Math.ceil(sel.length/FMT[$('#fo_t').value].n)||0} ${Math.ceil(sel.length/FMT[$('#fo_t').value].n)==1?'imagen':'imágenes'}</small></p>
       <div class="fo-l">${C.map(p=>{const r=promoCerca(p.producto_id,l);return`<label><input type="checkbox" data-fo="${p.producto_id}" ${quit.has(p.producto_id)?'':'checked'}> ${S.min[p.producto_id]?.foto?'📷':'<span class="sinf">sin foto</span>'} ${esc(p.descripcion)} ${r?`<b class="promo">−${nf(r.descuento_pct)} %</b>`:''}</label>`}).join('')}</div>`
       :'<p><small>No hay productos para mostrar con ese filtro.</small></p>';
     $$('#fo_lst [data-fo]').forEach(i=>i.onchange=()=>{i.checked?quit.delete(i.dataset.fo):quit.add(i.dataset.fo);lst()})};
-  ['#fo_f','#fo_l','#fo_t'].forEach(k=>$(k).onchange=()=>{quit.clear();lst()});lst();
+  ['#fo_l','#fo_t'].forEach(k=>$(k).onchange=()=>{quit.clear();lst()});
+  $$('#fo_fd [data-ff]').forEach(i=>i.onchange=()=>{$('#fo_fall').checked=!famSet().size;famTxt();quit.clear();lst()});
+  $('#fo_fall').onchange=()=>{if($('#fo_fall').checked){$$('#fo_fd [data-ff]').forEach(i=>i.checked=false)}else if(!famSet().size){$('#fo_fall').checked=true;return}famTxt();quit.clear();lst()};lst();
   buscador('#fo_q','#fo_r',p=>{man.add(p.producto_id);quit.delete(p.producto_id);lst()});$('#fo_sc').onclick=()=>escanear('Agregar al folleto',p=>{man.add(p.producto_id);lst();return '✔ '+p.descripcion});
-  $('#fo_g').onclick=async()=>{if(!sel.length)return toast('Elegí al menos un producto.',1);const l=$('#fo_l').value,fmt=$('#fo_t').value,F=FMT[fmt],f=$('#fo_f').value;
+  $('#fo_g').onclick=async()=>{if(!sel.length)return toast('Elegí al menos un producto.',1);const l=$('#fo_l').value,fmt=$('#fo_t').value,F=FMT[fmt],fs=[...famSet()],f=fs.length==1?fs[0]:'';
     $('#fo_g').disabled=true;$('#fo_out').innerHTML='<p>Armando…</p>';
     const items=sel.map(p=>{const r=promoCerca(p.producto_id,l),base=+p['precio_'+l],b=bul(p.producto_id);const pr=r?Math.round(base*(1-r.descuento_pct/100)*100)/100:base;
       return{d:p.descripcion,img:S.min[p.producto_id]?.foto||'',p:pr,ant:r?base:null,pct:r?+r.descuento_pct:0,cond:r&&condPromo(r)?condPromo(r):'',bulto:b?b.t+' × '+b.n+': '+$m(pr*b.n):''}});
