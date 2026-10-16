@@ -30,10 +30,10 @@ header>span{display:flex;align-items:center;gap:2px}
 .mas .masc{position:absolute;right:0;top:36px;background:#fff;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:8px;display:grid;gap:6px;min-width:230px;z-index:15}.mas .masc button{text-align:left}
 .pieini{margin:18px 0 8px;padding-top:12px;border-top:1px solid #e3e6ee;font-size:14px;color:#6a7184}.pieini #bk{margin-bottom:6px}
 .mmas{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}.mmas button{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 6px;font-weight:700;border-radius:12px}.mmas button span{font-size:26px;line-height:1}
-.ppal{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 12px}.ppal button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:16px 6px;font-size:15px;font-weight:700;border-radius:14px;min-height:96px}.ppal button span{font-size:30px;line-height:1}.ppal button small{font-weight:400;font-size:12px;opacity:.85}
+.ppal{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:0 0 12px}.ppal button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:16px 6px;font-size:15px;font-weight:700;border-radius:14px;min-height:96px}.ppal button span{font-size:30px;line-height:1}.ppal button small{font-weight:400;font-size:12px;opacity:.85}
 .atsec{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}.atsec button{padding:6px 12px;font-size:13px}
 details.plg{margin:0 0 12px}details.plg>summary{cursor:pointer;font-weight:700;color:var(--m);padding:10px 12px;background:#fff;border:1px solid #e3e6ee;border-radius:10px;list-style:none}details.plg>summary::-webkit-details-marker{display:none}details.plg[open]>summary{margin-bottom:10px}
-@media(max-width:640px){.ppal{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.ppal{grid-template-columns:repeat(2,minmax(0,1fr))}.ppal button:first-child{grid-column:1/-1;min-height:80px}}
 .cab{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}.cab h2{margin:0}.cab .acc{display:flex;gap:8px;align-items:center}.cab h2 small{font-size:14px;font-weight:400;color:#6a7184}
 .hback{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;flex:none;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;font-size:26px;line-height:1;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}.hback:active{background:rgba(255,255,255,.3)}.hback[hidden]{display:none}
 
@@ -2264,6 +2264,7 @@ async function cProveedores(){
       const{error}=await sb.from('proveedores').insert({razon_social:n,cuit:$('#v_c').value.trim()||null,telefono:$('#v_t').value.trim()||null,email:$('#v_e').value.trim()||null,
         domicilio:$('#v_d').value.trim()||null,condicion_iva:$('#v_i').value,dias_pago:$('#v_p').value===''?30:+$('#v_p').value});
       if(error){$('#v_g').disabled=false;return toast(error.message,1)}m.remove();toast('Proveedor guardado.');vCompras()}};
+  if(S.abrirNuevoProv){S.abrirNuevoProv=0;$('#v_new').click()}
 }
 
 /* Facturas de proveedor y pagos */
@@ -6483,7 +6484,7 @@ function menuMas(){const m=document.createElement('div');m.className='modal';doc
 const irA=(tab,extra)=>{Object.assign(S,extra||{});S.tab=tab;shell()};
 /* 6. Botones grandes (celular) */
 /* Inicio: los 4 accesos de todos los días, grandes, y el resto chico */
-const principalesHTML=(sec=true)=>`<div class="ppal"><button onclick="irA('pedidos')"><span>🛒</span>Nuevo pedido</button><button class="alt" onclick="irA('clientes',{cs:'lista',abrirNuevo:1})"><span>👤</span>Nuevo cliente</button><button class="alt" onclick="irA('compras',{sub:'ordenes'})"><span>📦</span>Compras</button><button class="alt" onclick="irA('ventas')"><span>📈</span>Ventas</button></div>
+const principalesHTML=(sec=true)=>`<div class="ppal"><button onclick="irA('pedidos')"><span>🛒</span>Nuevo pedido</button><button class="alt" onclick="irA('clientes',{cs:'lista',abrirNuevo:1})"><span>👤</span>Nuevo cliente</button><button class="alt" onclick="irA('compras',{sub:'proveedores',abrirNuevoProv:1})"><span>🏭</span>Nuevo proveedor</button><button class="alt" onclick="irA('compras',{sub:'ordenes'})"><span>📦</span>Compras</button><button class="alt" onclick="irA('ventas')"><span>📈</span>Ventas</button></div>
   ${sec?`<div class="atsec">${[['📥 Por aprobar',"irA('pedidos',{pf:'pendiente'})"],['🧺 Armar',"hojaArmado()"],['🚚 Reparto',"irA('reparto')"],['💵 Cobrar',"irA('cobranza')"],['⚡ Cola del día',"irA('ventas',{vs:'cola'})"]].map(([t,f])=>`<button class="alt" onclick="${f}">${t}</button>`).join('')}</div>`:''}`;
 const atajosHTML=()=>`<div class="atajos">${[['🛒','Nuevo pedido',"irA('pedidos')"],['⚡','Cola del día',"irA('ventas',{vs:'cola'})"],['📥','Por aprobar',"irA('pedidos',{pf:'pendiente'})"],['🧺','Armar',"hojaArmado()"],['🚚','Reparto',"irA('reparto')"],['💵','Cobrar',"irA('cobranza')"]].map(([i,t,f])=>`<button class="at" onclick="${f}"><span>${i}</span>${t}</button>`).join('')}</div>`;
 
