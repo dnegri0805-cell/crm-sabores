@@ -460,7 +460,7 @@ async function vInicio(){
   $('#v').innerHTML=`<div class="bh" style="flex-wrap:wrap;gap:8px"><h2 style="margin:0">Hoy, ${hoyD.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}</h2>
     <div class="sub" style="margin:0"><button class="${dia?'':'alt'}" data-iv="dia">☀️ Mi día</button><button class="${dia?'alt':''}" data-iv="completa">📋 Todo</button><button class="alt" onclick="menuTabsCfg()" title="Elegir qué pestañas se ven">☰ Menú</button></div></div>
   ${dia?`${principalesHTML()}<div id="bk"></div><div id="chk"></div><details class="plg"><summary>🗓️ Mi día, tareas y avisos</summary><div id="midia"></div><div id="tari"></div><div id="alm"></div></details>`:`
-  <div id="bk"></div><div id="chk"></div><div id="cmpi"></div><div id="cami"></div><div id="equi"></div><div id="doci"></div>${atajosHTML()}<div id="midia"></div><div id="mani"></div><div id="resd"></div><div id="tari"></div>
+  ${principalesHTML()}<div id="bk"></div><div id="chk"></div><div id="cmpi"></div><div id="cami"></div><div id="equi"></div><div id="doci"></div><div id="midia"></div><div id="mani"></div><div id="resd"></div><div id="tari"></div>
   <div class="herr" id="herr"></div>
   <div id="alm"></div>
   <div id="empi"></div><div id="metai"></div><div id="colai"></div><div id="plani"></div><div id="toca"></div><div id="fidel"></div><div id="masi"></div><div id="creci"></div><div id="servi"></div><div id="fieli"></div><div id="fechas"></div>
@@ -6849,7 +6849,7 @@ async function chequeoInicio(){const box=$('#chk');if(!box||S.perfil.rol!='dueno
   const[F,C]=await Promise.all([sqlFaltantes(),configPendiente()]),pend=C.filter(x=>!x[1]);if(!F.length&&(!pend.length||oc)){box.innerHTML='';return}
   box.innerHTML=`<div class="box ${F.length?'alerta':''}">${F.length?`<h3 style="margin:0 0 6px">🩺 Falta correr ${F.length==1?'1 archivo':F.length+' archivos'} en Supabase</h3><p><small>Sin esto, algunas pantallas no andan. Para cada uno: tocá <b>Copiar</b>, después <b>Abrir Supabase</b>, pegá (Ctrl + V) y tocá <b>Run</b>. Corrélos en este orden.</small></p>
     ${F.map(f=>`<div class="vi" style="align-items:center"><b style="flex:1">${esc(f)}</b><button class="alt" data-csq="${esc(f)}">📋 Copiar</button><a class="alt btnl" href="${SUPA_SQL}" target="_blank" rel="noopener">Abrir Supabase</a></div>`).join('')}<p><small>Cuando termines, recargá esta página.</small></p>`:''}
-    ${pend.length&&!oc?`<details ${F.length?'':'open'}><summary><b>⚙️ Configuración: ${C.length-pend.length} de ${C.length} lista</b></summary>${pend.map(([t,ok,f])=>`<div class="vi" style="align-items:center;padding:4px 0"><span style="flex:1">${t}</span><button class="alt" onclick="${f}">Ir</button></div>`).join('')}<p><a class="lnk" id="chk_oc">Ocultar hasta mañana</a></p></details>`:''}</div>`;
+    ${pend.length&&!oc?`<details class="plg"><summary>⚙️ Configuración del sistema: ${C.length-pend.length} de ${C.length} lista · tocá para ver</summary>${pend.map(([t,ok,f])=>`<div class="vi" style="align-items:center;padding:4px 0"><span style="flex:1">${t}</span><button class="alt" onclick="${f}">Ir</button></div>`).join('')}<p><a class="lnk" id="chk_oc">Ocultar hasta mañana</a></p></details>`:''}</div>`;
   $$('#chk [data-csq]').forEach(b=>b.onclick=()=>copiarSQL(b.dataset.csq,b));$('#chk_oc')&&($('#chk_oc').onclick=()=>{try{localStorage.setItem('chk_oc',diaLocal(new Date()))}catch(e){}chequeoInicio()})}
 
 /* Pestañas que se ven arriba (se guarda para todos tus equipos) */
