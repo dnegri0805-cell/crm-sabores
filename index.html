@@ -223,7 +223,7 @@ body{zoom:var(--z,1)}html.oscuro{filter:invert(.92) hue-rotate(180deg);backgroun
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-16.2';
+const VERSION='2026-10-16.3';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -706,7 +706,9 @@ function aplicarMarca(m=MARCA){const r=document.documentElement.style;r.setPrope
 function guardarMarcaLocal(){try{localStorage.setItem('marca',JSON.stringify(MARCA))}catch(e){}}
 async function cargarMarca(){const{data,error}=await sb.from('config_app').select('clave,valor').in('clave',['marca_color','marca_oscuro','marca_logo','link_mp','telefono_empresa','datos_pago','margen_minimo','credito_modo']);
   if(error||!data)return;const g=k=>data.find(x=>x.clave==k)?.valor;
-  S.linkMP=g('link_mp')||'';S.telEmp=g('telefono_empresa')||'';S.datosPago=g('datos_pago')??S.datosPago??'';{const a=aliasMP(S.linkMP);if(a){S.linkMP='';if(!String(S.datosPago||'').toLowerCase().includes(a))S.datosPago=((S.datosPago||'')+'\nAlias: '+a).trim()}};S.margenMin=g('margen_minimo')!=null?+g('margen_minimo'):15;S.creditoModo=g('credito_modo')||'avisar';
+  S.linkMP=g('link_mp')||'';S.telEmp=g('telefono_empresa')||'';S.datosPago=g('datos_pago')??S.datosPago??'';{const a=aliasMP(S.linkMP);if(a){S.linkMP='';if(!String(S.datosPago||'').toLowerCase().includes(a))S.datosPago=((S.datosPago||'')+'\nAlias: '+a).trim();
+    /* lo dejo guardado así, para que no se pierda ni aparezca como link roto en el catálogo */
+    sb.from('config_app').upsert([{clave:'datos_pago',valor:S.datosPago},{clave:'link_mp',valor:''}]).then(()=>{},()=>{})}};S.margenMin=g('margen_minimo')!=null?+g('margen_minimo'):15;S.creditoModo=g('credito_modo')||'avisar';
   const lg=data.find(x=>x.clave=='marca_logo');
   MARCA={c:g('marca_color')||MARCA_DEF.c,n:g('marca_oscuro')||MARCA_DEF.n,logo:lg?(lg.valor||''):LOGO_DEF};aplicarMarca();guardarMarcaLocal()}
 const logoImg=(h=110)=>MARCA.logo?`<img src="${MARCA.logo}" alt="" style="height:${h}px;max-width:${h*4}px;object-fit:contain;display:block;margin-bottom:6px">`:'';
@@ -1895,7 +1897,13 @@ async function morosos(){
     <div id="mo_l"></div>${sinAvisos?'<p><small class="err">Para registrar cuándo le avisaste a cada cliente, corré avisos-deuda.sql en Supabase.</small></p>':''}</div>`;
   $$('#mor [data-mf]').forEach(b=>b.onclick=()=>{S.morF=b.dataset.mf;morosos()});
   $('#mo_t').onchange=e=>S.morTono=e.target.value;
-  const cfg=(id,k,sk,msg)=>{$(id)&&($(id).onchange=async e=>{let v=e.target.value.trim();if(k=='link_mp'&&v&&!/^https?:\/\//.test(v)&&!aliasMP(v))v='https://'+v;if(k=='link_mp'&&aliasMP(v)){v=aliasMP(v);toast('Eso es un alias, no un link: lo guardé y en los comprobantes va a salir como "Alias: '+v+'".')}S[sk]=v;e.target.value=v;
+  const cfg=(id,k,sk,msg)=>{$(id)&&($(id).onchange=async e=>{let v=e.target.value.trim();if(k=='link_mp'&&v&&!/^https?:\/\//.test(v)&&!aliasMP(v))v='https://'+v;if(k=='link_mp'&&aliasMP(v)){const a=aliasMP(v);
+      /* Un alias no es un link: lo guardo en los datos para transferir (queda fijo) y dejo vacío el link */
+      if(!String(S.datosPago||'').toLowerCase().includes(a))S.datosPago=((S.datosPago||'')+'\nAlias: '+a).trim();
+      const r=await sb.from('config_app').upsert([{clave:'datos_pago',valor:S.datosPago},{clave:'link_mp',valor:''}]);
+      S.linkMP='';e.target.value='';$('#mo_d')&&($('#mo_d').value=S.datosPago);
+      return toast(r.error?r.error.message:'Eso es un alias, no un link. Lo guardé en "Datos para transferir" y ya queda fijo: sale como "Alias: '+a+'" en avisos y comprobantes.',!!r.error)}
+    S[sk]=v;e.target.value=v;
     const{error}=await sb.from('config_app').upsert({clave:k,valor:v});toast(error?error.message:msg,!!error)})};
   cfg('#mo_mp','link_mp','linkMP','Link de Mercado Pago guardado. Va en los avisos, pedidos y en la cuenta online.');
   cfg('#mo_tel','telefono_empresa','telEmp','WhatsApp guardado.');cfg('#mo_cr','credito_modo','creditoModo','Guardado. El límite de cada cliente se pone en su ficha (Editar datos).');
