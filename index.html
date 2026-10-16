@@ -28,6 +28,7 @@ header>span{display:flex;align-items:center;gap:2px}
 .umenu .umc{position:absolute;right:0;top:42px;background:#fff;color:#1c2333;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:12px;display:grid;gap:6px;min-width:190px;z-index:30}.umenu .umc small{color:#6a7184}
 .mas{position:relative}.mas summary{list-style:none;cursor:pointer;background:#fff;color:var(--m);border:1px solid var(--m);border-radius:6px;padding:5px 10px;font-size:13px}.mas summary::-webkit-details-marker{display:none}
 .mas .masc{position:absolute;right:0;top:36px;background:#fff;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:8px;display:grid;gap:6px;min-width:230px;z-index:15}.mas .masc button{text-align:left}
+.pieini{margin:18px 0 8px;padding-top:12px;border-top:1px solid #e3e6ee;font-size:14px;color:#6a7184}.pieini #bk{margin-bottom:6px}
 .mmas{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}.mmas button{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 6px;font-weight:700;border-radius:12px}.mmas button span{font-size:26px;line-height:1}
 .ppal{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 12px}.ppal button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:16px 6px;font-size:15px;font-weight:700;border-radius:14px;min-height:96px}.ppal button span{font-size:30px;line-height:1}.ppal button small{font-weight:400;font-size:12px;opacity:.85}
 .atsec{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}.atsec button{padding:6px 12px;font-size:13px}
@@ -456,10 +457,10 @@ async function vInicio(){
   if(esEstacion()&&!S.estVista){S.estVista=1;return irA('impresora')}S.estVista=1;
   const hoyD=new Date(),hoy=diaLocal(hoyD),mes=hoy.slice(0,7);
   const en7=new Date();en7.setDate(en7.getDate()+7);const lim7=diaLocal(en7);
-  let modo='dia';try{modo=localStorage.getItem('inicio_vista')||'dia'}catch(e){}const dia=modo=='dia';
+  const dia=S.inicioModo!='completa';
   $('#v').innerHTML=`<div class="bh" style="flex-wrap:wrap;gap:8px"><h2 style="margin:0">Hoy, ${hoyD.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}</h2>
-    <div class="sub" style="margin:0"><button class="${dia?'':'alt'}" data-iv="dia">☀️ Mi día</button><button class="${dia?'alt':''}" data-iv="completa">📋 Todo</button><button class="alt" onclick="menuTabsCfg()" title="Elegir qué pestañas se ven">☰ Menú</button></div></div>
-  ${dia?`${principalesHTML()}<div id="bk"></div><div id="chk"></div><details class="plg"><summary>🗓️ Mi día, tareas y avisos</summary><div id="midia"></div><div id="tari"></div><div id="alm"></div></details>`:`
+    ${dia?'':'<button class="alt" data-iv="dia">← Volver al inicio simple</button>'}</div>
+  ${dia?`${principalesHTML(false)}`:`
   ${principalesHTML()}<div id="bk"></div><div id="chk"></div><div id="cmpi"></div><div id="cami"></div><div id="equi"></div><div id="doci"></div><div id="midia"></div><div id="mani"></div><div id="resd"></div><div id="tari"></div>
   <div class="herr" id="herr"></div>
   <div id="alm"></div>
@@ -479,10 +480,13 @@ async function vInicio(){
   ${dia?'<details class="plg"><summary>📋 Facturas vencidas y productos para reponer</summary>':''}<div class="dos">
     <div class="box"><h3>Facturas vencidas de clientes</h3><div id="t2">Cargando…</div></div>
     <div class="box"><h3>Productos para reponer</h3><div id="t4">Cargando…</div></div>
-  </div>${dia?'</details>':''}`;
+  </div>${dia?`</details>
+  <details class="plg"><summary>🗓️ Tareas y avisos del día</summary><div id="midia"></div><div id="tari"></div><div id="alm"></div></details>
+  <div id="chk"></div>
+  <div class="pieini"><div id="bk"></div><a class="lnk" data-iv="completa">📋 Ver panel completo</a> · <a class="lnk" onclick="menuTabsCfg()">☰ Elegir pestañas del menú</a></div>`:''}`;
   const kp=(id,num,det,cls)=>{const b=$('#'+id);b.querySelector('.num').textContent=num;b.querySelector('.det').textContent=det||'';if(cls)b.classList.add(cls)};
   const fallo=(id,e)=>kp(id,'—','No se pudo leer: '+e.message);
-  $$('[data-iv]').forEach(b=>b.onclick=()=>{try{localStorage.setItem('inicio_vista',b.dataset.iv)}catch(e){}vInicio()});
+  $$('[data-iv]').forEach(b=>b.onclick=()=>{S.inicioModo=b.dataset.iv;vInicio();scrollTo(0,0)});
   if(S.perfil.rol=='dueno')cajaBackup();
   herramientas();generarFijos();alertasMargen();objetivoMes();tocaInicio();fidelInicio().catch(()=>{});masInicio().catch(()=>{});crecerInicio().catch(()=>{});fielesInicio().catch(()=>{});servInicio().catch(()=>{});planInicio().catch(()=>{});colaInicio().catch(()=>{});resumenDia().catch(()=>{});tareasInicio().catch(()=>{});chequeoInicio().catch(()=>{});camionetaInicio().catch(()=>{});cuentasInicio().catch(()=>{});equiposInicio().catch(()=>{});comprobantesInicio().catch(()=>{});mananaInicio().catch(()=>{});miDia().catch(()=>{});ocSemanal().catch(()=>{});aplicarAumentosProg().catch(()=>{});sincronizarOff().catch(()=>{});metasInicio().catch(()=>{});empujonBox($('#empi')).catch(()=>{});avisosEnVivo();fechasInicio();
   const cli=id=>esc(S.clientes.find(c=>c.id==id)?.razon_social||'Cliente');
@@ -6479,8 +6483,8 @@ function menuMas(){const m=document.createElement('div');m.className='modal';doc
 const irA=(tab,extra)=>{Object.assign(S,extra||{});S.tab=tab;shell()};
 /* 6. Botones grandes (celular) */
 /* Inicio: los 4 accesos de todos los días, grandes, y el resto chico */
-const principalesHTML=()=>`<div class="ppal"><button onclick="irA('pedidos')"><span>🛒</span>Nuevo pedido</button><button class="alt" onclick="irA('clientes',{cs:'lista',abrirNuevo:1})"><span>👤</span>Nuevo cliente</button><button class="alt" onclick="irA('compras',{sub:'ordenes'})"><span>📦</span>Compras</button><button class="alt" onclick="irA('ventas')"><span>📈</span>Ventas</button></div>
-  <div class="atsec">${[['📥 Por aprobar',"irA('pedidos',{pf:'pendiente'})"],['🧺 Armar',"hojaArmado()"],['🚚 Reparto',"irA('reparto')"],['💵 Cobrar',"irA('cobranza')"],['⚡ Cola del día',"irA('ventas',{vs:'cola'})"]].map(([t,f])=>`<button class="alt" onclick="${f}">${t}</button>`).join('')}</div>`;
+const principalesHTML=(sec=true)=>`<div class="ppal"><button onclick="irA('pedidos')"><span>🛒</span>Nuevo pedido</button><button class="alt" onclick="irA('clientes',{cs:'lista',abrirNuevo:1})"><span>👤</span>Nuevo cliente</button><button class="alt" onclick="irA('compras',{sub:'ordenes'})"><span>📦</span>Compras</button><button class="alt" onclick="irA('ventas')"><span>📈</span>Ventas</button></div>
+  ${sec?`<div class="atsec">${[['📥 Por aprobar',"irA('pedidos',{pf:'pendiente'})"],['🧺 Armar',"hojaArmado()"],['🚚 Reparto',"irA('reparto')"],['💵 Cobrar',"irA('cobranza')"],['⚡ Cola del día',"irA('ventas',{vs:'cola'})"]].map(([t,f])=>`<button class="alt" onclick="${f}">${t}</button>`).join('')}</div>`:''}`;
 const atajosHTML=()=>`<div class="atajos">${[['🛒','Nuevo pedido',"irA('pedidos')"],['⚡','Cola del día',"irA('ventas',{vs:'cola'})"],['📥','Por aprobar',"irA('pedidos',{pf:'pendiente'})"],['🧺','Armar',"hojaArmado()"],['🚚','Reparto',"irA('reparto')"],['💵','Cobrar',"irA('cobranza')"]].map(([i,t,f])=>`<button class="at" onclick="${f}"><span>${i}</span>${t}</button>`).join('')}</div>`;
 
 /* 1. Mi día: todo lo de hoy en una lista */
