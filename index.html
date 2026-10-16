@@ -307,7 +307,7 @@ async function cargarStock(){
     todo(()=>sb.from('productos').select('*').order('id'))]);
   S.stockOk=!st.error;S.stock={};S.inv=false;
   for(const r of st.data||[]){S.stock[r.producto_id]={f:+r.fisico||0,r:+r.reservado||0,d:r.disponible!=null?+r.disponible:(+r.fisico||0)-(+r.reservado||0)};if(+r.fisico)S.inv=true}
-  S.min={};S.bultoOk=(mi.data||[]).some(r=>'unidades_bulto' in r);for(const r of mi.data||[])S.min[r.id]={pw:!!r.por_peso,pk:r.peso_pieza!=null?+r.peso_pieza:null,pp:r.por_peso&&+r.peso_pieza>0?+r.peso_pieza:0,m:+r.stock_minimo||0,a:r.activo!==false,pv:r.proveedor_id,b:Math.max(1,+r.unidades_bulto||1),tb:r.tipo_bulto||'Caja',iva:r.alicuota_iva!=null?+r.alicuota_iva:21,foto:r.foto||'',uc:r.ultimo_conteo||null,cf:r.codigo_fabricante||'',nv:!!r.nuevo_hasta&&r.nuevo_hasta>=diaLocal(new Date()),nvh:r.nuevo_hasta||null,pvp:r.pvp!=null?+r.pvp:null,sb:!!r.solo_bulto};
+  S.min={};S.bultoOk=(mi.data||[]).some(r=>'unidades_bulto' in r);for(const r of mi.data||[])S.min[r.id]={pw:!!r.por_peso,pk:r.peso_pieza!=null?+r.peso_pieza:null,pp:r.por_peso&&+r.peso_pieza>0?+r.peso_pieza:0,m:+r.stock_minimo||0,a:r.activo!==false,pv:r.proveedor_id,b:Math.max(1,+r.unidades_bulto||1),tb:r.tipo_bulto||'Caja',iva:r.alicuota_iva!=null?+r.alicuota_iva:21,foto:r.foto||'',uc:r.ultimo_conteo||null,cf:r.codigo_fabricante||'',nv:!!r.nuevo_hasta&&r.nuevo_hasta>=diaLocal(new Date()),nvh:r.nuevo_hasta||null,pvp:r.pvp!=null?+r.pvp:null,sb:!!r.solo_bulto,ud:+r.unidades_display||0,bp:+r.bultos_pallet||0};
   await fotosCatFallback();actualizarFotosCat();
 }
 /* Productos sin foto guardada: usan la del catálogo (por código) para mostrarse, sin guardarla */
@@ -3187,7 +3187,7 @@ async function dibujarFolleto(items,o){const F=FMT[o.fmt],cv=document.createElem
   const imgs=await Promise.all(items.map(x=>cargarImg(x.img)));
   items.forEach((x,i)=>{const col=i%cols,row=Math.floor(i/cols),X=m+col*(cw+gap),Y=top+row*(ch+gap),pad=24,big=cw>600;
     c.save();c.shadowColor='rgba(0,0,0,.12)';c.shadowBlur=18;c.shadowOffsetY=6;c.fillStyle='#fff';rrect(c,X,Y,cw,ch,28);c.fill();c.restore();
-    const fN=big?44:30,lhN=fN*1.2,fP=big?96:62,txt=lhN*2+(x.ant?40:0)+fP+((x.cond||x.bulto)?36:0)+30;
+    const fN=big?44:30,lhN=fN*1.2,fP=big?96:62,nE=x.esc?x.esc.length:0,txt=lhN*2+(x.ant?40:0)+fP+((x.cond||x.bulto)&&!nE?36:0)+(x.cond&&nE?36:0)+nE*(big?38:31)+30;
     const ih=Math.max(80,ch-txt-pad*2),iw=cw-pad*2,im=imgs[i];
     if(im){const k=Math.min(iw/im.width,ih/im.height);c.drawImage(im,X+pad+(iw-im.width*k)/2,Y+pad+(ih-im.height*k)/2,im.width*k,im.height*k)}
     else{c.fillStyle=MARCA.c+'1f';rrect(c,X+pad,Y+pad,iw,ih,20);c.fill();c.fillStyle=MARCA.c;c.font=`900 ${Math.round(Math.min(ih,iw)*.55)}px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.fillText((x.d||'?')[0],X+cw/2,Y+pad+ih/2);c.textAlign='left';c.textBaseline='alphabetic'}
@@ -3195,7 +3195,9 @@ async function dibujarFolleto(items,o){const F=FMT[o.fmt],cv=document.createElem
     let y=Y+pad+ih+fN+8;c.fillStyle='#1c2333';c.font=`700 ${fN}px ${FONT}`;const NL=lineas(c,x.d,iw,2);for(const l of NL){c.fillText(l,X+pad,y);y+=lhN}if(NL.length<2)y+=lhN;
     if(x.ant){c.fillStyle='#8a90a0';c.font=`500 ${big?34:28}px ${FONT}`;const t=$m(x.ant);y+=6;c.fillText(t,X+pad,y);const tw=c.measureText(t).width;c.strokeStyle='#8a90a0';c.lineWidth=3;c.beginPath();c.moveTo(X+pad-2,y-10);c.lineTo(X+pad+tw+2,y-10);c.stroke();y+=8}
     c.fillStyle=x.pct?'#d62828':MARCA.c;let pf=fP;c.font=`900 ${pf}px ${FONT}`;const pt=$m(x.p);while(c.measureText(pt).width>iw&&pf>36){pf-=3;c.font=`900 ${pf}px ${FONT}`}y+=pf*.95;c.fillText(pt,X+pad,y);
-    if(x.cond||x.bulto){c.fillStyle=x.cond?'#1d7a46':'#6a7184';c.font=`700 ${big?30:24}px ${FONT}`;y+=big?40:32;c.fillText(lineas(c,x.cond||x.bulto,iw,1)[0],X+pad,y)}});
+    if(x.cond||(x.bulto&&!nE)){c.fillStyle=x.cond?'#1d7a46':'#6a7184';c.font=`700 ${big?30:24}px ${FONT}`;y+=big?40:32;c.fillText(lineas(c,x.cond||x.bulto,iw,1)[0],X+pad,y)}
+    if(nE){let ef=big?30:24;c.font=`700 ${ef}px ${FONT}`;while(x.esc.some(t=>c.measureText(t).width>iw)&&ef>15){ef--;c.font=`700 ${ef}px ${FONT}`}
+      x.esc.forEach((t,k)=>{y+=k?(big?38:31):(big?40:32);c.fillStyle=k==x.esc.length-1&&/^Pallet/.test(t)?MARCA.c:'#6a7184';c.fillText(t,X+pad,y)})}});
   // pie
   c.fillStyle=MARCA.c;c.fillRect(0,F.h-pie,F.w,pie);c.fillStyle='#fff';c.textAlign='center';
   c.font=`800 46px ${FONT}`;c.fillText(S.telEmp?'Pedí por WhatsApp  '+S.telEmp:'Sabores de mi País',F.w/2,F.h-pie+66);
@@ -3338,7 +3340,7 @@ async function folletoOfertas(){
   $('#fo_g').onclick=async()=>{if(!sel.length)return toast('Elegí al menos un producto.',1);const l=$('#fo_l').value,fmt=$('#fo_t').value,F=FMT[fmt],fs=[...famSet()],f=fs.length==1?fs[0]:'';
     $('#fo_g').disabled=true;$('#fo_out').innerHTML='<p>Armando…</p>';
     const items=sel.map(p=>{const r=promoCerca(p.producto_id,l),base=+p['precio_'+l],b=bul(p.producto_id);const pr=r?Math.round(base*(1-r.descuento_pct/100)*100)/100:base;
-      return{d:p.descripcion,img:S.min[p.producto_id]?.foto||'',p:pr,ant:r?base:null,pct:r?+r.descuento_pct:0,cond:r&&condPromo(r)?condPromo(r):'',bulto:b?b.t+' × '+b.n+': '+$m(pr*b.n):''}});
+      return{d:p.descripcion,img:S.min[p.producto_id]?.foto||'',p:pr,ant:r?base:null,pct:r?+r.descuento_pct:0,cond:r&&condPromo(r)?condPromo(r):'',bulto:b?b.t+' × '+b.n+': '+$m(pr*b.n):'',esc:escFolleto(p.producto_id,pr)}});
     if($('#fo_cb')?.checked)items.unshift(...S.combos.map(c=>{const v=comboPrecio(c,l);return{d:'🎁 '+c.nombre,img:S.min[(c.items||[]).find(x=>S.min[x.id]?.foto)?.id]?.foto||'',p:v.p,ant:v.s,pct:+c.descuento_pct,cond:comboTxt(c)}}));
     const pags=[];for(let i=0;i<items.length;i+=F.n)pags.push(items.slice(i,i+F.n));
     const cvs=[];for(const [k,pg] of pags.entries())cvs.push(await dibujarFolleto(pg,{fmt,lista:l,titulo:$('#fo_ti').value.trim().toUpperCase(),sub:f?cap1(f):'de la semana',vig:$('#fo_vg').value.trim(),pie:pags.length>1?(k+1)+'/'+pags.length:''}));
@@ -4506,8 +4508,12 @@ function mostrarImgs(box,cvs,nom,texto){Promise.all(cvs.map(cv=>new Promise(ok=>
     <div class="fc-acc">${navigator.canShare?'<button class="im_sh">Compartir</button>':''}<button class="alt im_dl">Descargar ${blobs.length>1?'todas':''}</button></div>`;
   const dl=()=>blobs.forEach((b,k)=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=nom(k);document.body.appendChild(a);a.click();a.remove()});
   $(box+' .im_dl').onclick=dl;const sh=$(box+' .im_sh');if(sh)sh.onclick=async()=>{const files=blobs.map((b,k)=>new File([b],nom(k),{type:'image/jpeg'}));try{if(navigator.canShare({files}))await navigator.share({files,text:texto||''});else dl()}catch(e){}}})}
+/* Precio por display, bulto y pallet para los folletos (solo si el producto tiene display o pallet cargado) */
+const escFolleto=(id,pr)=>{const x=S.min[id];if(!x||!(x.b>1)||!(x.ud>1||x.bp>0))return null;const L=[];
+  if(x.ud>1&&x.ud<x.b)L.push('Display × '+x.ud+': '+$m(pr*x.ud));L.push(x.tb+' × '+x.b+': '+$m(pr*x.b));
+  if(x.bp>0)L.push('Pallet × '+x.bp+' '+String(x.tb||'caja').toLowerCase()+(x.bp==1?'':'s')+': '+$m(Math.round(pr*x.b*x.bp*100)/100));return L};
 const itemFolleto=(p,l)=>{const r=promoCerca(p.producto_id,l),base=+p['precio_'+l],b=bul(p.producto_id),pr=r?Math.round(base*(1-r.descuento_pct/100)*100)/100:base;
-  return{d:p.descripcion,img:S.min[p.producto_id]?.foto||'',p:pr,ant:r?base:null,pct:r?+r.descuento_pct:0,cond:r&&condPromo(r)?condPromo(r):'',bulto:b?b.t+' × '+b.n+': '+$m(pr*b.n):''}};
+  return{d:p.descripcion,img:S.min[p.producto_id]?.foto||'',p:pr,ant:r?base:null,pct:r?+r.descuento_pct:0,cond:r&&condPromo(r)?condPromo(r):'',bulto:b?b.t+' × '+b.n+': '+$m(pr*b.n):'',esc:escFolleto(p.producto_id,pr)}};
 
 /* ---------- 5. Reclamos ---------- */
 async function vReclamos(){S.garantia=await cfgJ('garantia',{activa:false,pct:10,dias:30});
