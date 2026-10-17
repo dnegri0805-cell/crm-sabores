@@ -1,0 +1,18 @@
+[
+ {
+  "id": "panaderias",
+  "titulo": "Especial Panaderías",
+  "sub": "Ledevit, dulce de leche, membrillo, manteca, crema, miga y más",
+  "n": 16,
+  "fecha": "2026-10-17",
+  "rubro": "Panadería"
+ },
+ {
+  "id": "heladerias",
+  "titulo": "Temporada de Helados",
+  "sub": "Cucuruchos, salsas, dulce de leche heladero, pastas, frutas y coberturas",
+  "n": 5,
+  "fecha": "2026-10-17",
+  "rubro": "Heladería"
+ }
+]
