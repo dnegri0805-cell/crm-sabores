@@ -3258,14 +3258,13 @@ async function flArmar(f,prog){
   for(let k=0;k<P.length;k++){prog&&prog(k+1,P.length);const Q=P[k];
     const cv=await flPagina(f,k+1,P.length,async c=>{
       if(Q.t=='f'){let y=TOP;c.fillStyle=MARCA.c;rrect(c,40,y,W-80,96,18);c.fill();c.fillStyle='#fff';c.textBaseline='middle';c.font=`800 38px ${FONT}`;c.fillText(Q.pg.titulo.toUpperCase(),68,y+32);c.font=`400 24px ${FONT}`;c.fillStyle='rgba(240,225,229,1)';c.fillText(Q.pg.sub||'',68,y+72);y+=118;
-        const gap=22,cw=(W-80-gap)/2,ch=(BOT-y-2*gap)/3,imgs=await Promise.all(Q.L.map(x=>cargarImg(x.foto))),EX=Math.max(0,...Q.L.map(x=>(x.dets?x.dets.length:1)-1));
+        const gap=22,cw=(W-80-gap)/2,ch=(BOT-y-2*gap)/3,imgs=await Promise.all(Q.L.map(x=>cargarImg(x.foto))),EX=Math.max(0,...Q.L.map(x=>(x.dets?x.dets.length:1)-1+(x.cod?1:0)));
         Q.L.forEach((x,i)=>{const X=40+(i%2)*(cw+gap),Y=y+Math.floor(i/2)*(ch+gap),ph=ch-214-28*EX,pw=cw-48;
           c.fillStyle='#fff';rrect(c,X,Y,cw,ch,24);c.fill();c.strokeStyle=FL.LIN;c.lineWidth=2;c.stroke();
           const im=imgs[i];if(im){const k=Math.min(pw/im.width,ph/im.height);c.drawImage(im,X+24+(pw-im.width*k)/2,Y+18+(ph-im.height*k)/2,im.width*k,im.height*k)}
-          if(x.cod){const ct='Cód. '+x.cod;c.font=`800 24px ${FONT}`;const bw=c.measureText(ct).width+28;c.fillStyle=MARCA.c;rrect(c,X+14,Y+14,bw,40,12);c.fill();c.fillStyle='#fff';c.textBaseline='middle';c.fillText(ct,X+28,Y+35)}
           c.textBaseline='top';c.fillStyle=FL.TXT;c.font=`600 26px ${FONT}`;const NL=flLineas(c,x.n,cw-48,2);let ty=Y+18+ph+10;NL.forEach((l,j)=>c.fillText(l,X+24,ty+j*32));
           const py=ty+NL.length*32+52;c.textBaseline='alphabetic';c.fillStyle=MARCA.c;c.font=`800 44px ${FONT}`;const pt=flPes(x.p);c.fillText(pt,X+24,py);const pw2=c.measureText(pt).width;
-          c.fillStyle=FL.GRI;c.font=`600 24px ${FONT}`;c.fillText(x.suf,X+24+pw2+8,py);{const D=x.dets||(x.det?[x.det]:[]);c.font=`400 22px ${FONT}`;D.forEach((t,j)=>c.fillText(t,X+24,py+32+j*28))}})}
+          c.fillStyle=FL.GRI;c.font=`600 24px ${FONT}`;c.fillText(x.suf,X+24+pw2+8,py);{const D=x.dets||(x.det?[x.det]:[]);c.font=`400 22px ${FONT}`;D.forEach((t,j)=>c.fillText(t,X+24,py+32+j*28));if(x.cod){c.fillStyle=MARCA.c;c.font=`700 22px ${FONT}`;c.fillText('Cód. '+x.cod,X+24,py+32+D.length*28)}}})}
       else{let y=TOP;for(const r of Q.rows){
         if(r.sec){c.fillStyle=MARCA.c;rrect(c,40,y+14,W-80,70-22,14);c.fill();c.fillStyle='#fff';c.textBaseline='middle';c.font=`800 28px ${FONT}`;c.fillText(r.sec.toUpperCase(),64,y+14+24);y+=70;continue}
         c.fillStyle='#fff';rrect(c,40,y+4,W-80,80-8,14);c.fill();const pt=flPes(r.p);c.font=`800 38px ${FONT}`;const pw=c.measureText(pt).width;c.font=`600 22px ${FONT}`;const sw=c.measureText(r.suf).width;
