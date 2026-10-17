@@ -16,5 +16,23 @@
   "fecha": "2026-10-17",
   "rubro": "Heladería",
   "v": 2
+ },
+ {
+  "id": "fiambrerias",
+  "titulo": "Especial Fiambrerías",
+  "sub": "Jamón cocido y crudo, salames, mortadela, bondiola, lomo y quesos por kilo",
+  "n": 11,
+  "fecha": "2026-10-17",
+  "rubro": "Fiambrería",
+  "v": 1
+ },
+ {
+  "id": "supermercados",
+  "titulo": "Especial Supermercados",
+  "sub": "Aceites, arroz, yerba, conservas, aderezos, lácteos, desayuno e higiene",
+  "n": 11,
+  "fecha": "2026-10-17",
+  "rubro": "Supermercado",
+  "v": 1
  }
 ]
