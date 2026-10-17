@@ -6,7 +6,7 @@
   "n": 17,
   "fecha": "2026-10-17",
   "rubro": "Panadería",
-  "v": 3,
+  "v": 4,
   "t1": "ESPECIAL",
   "t2": "PANADERÍAS",
   "lema": "Todo para la cuadra y el mostrador",
@@ -575,7 +575,7 @@
   "n": 5,
   "fecha": "2026-10-17",
   "rubro": "Heladería",
-  "v": 2,
+  "v": 3,
   "t1": "TEMPORADA",
   "t2": "DE HELADOS",
   "lema": "Insumos para heladerías",
@@ -873,6 +873,17 @@
      }
     ]
    }
+  ],
+  "lista": "insumos para heladerías",
+  "intro": "Esta temporada tenemos:",
+  "msg": [
+   "🍨 Cucuruchos y capelinas",
+   "🍫 Salsas Eureka (caramelo, chocolate, dulce de leche, frutilla)",
+   "🥛 Dulce de leche heladero: Cassanello, El Rosquinense y Milkey",
+   "🍋 Pastas y variegatos Pehuenia",
+   "🍓 Frutas para sembrar Vanesa",
+   "🍫 Coberturas y baños CHI",
+   "✨ Chips, crocantes y decoración (Mantecol, Kinder, galletitas, almendras y más)"
   ]
  },
  {
@@ -882,7 +893,7 @@
   "n": 11,
   "fecha": "2026-10-17",
   "rubro": "Fiambrería",
-  "v": 1,
+  "v": 2,
   "t1": "ESPECIAL",
   "t2": "FIAMBRERÍAS",
   "lema": "Fiambres y quesos por kilo",
@@ -1230,7 +1241,7 @@
   "n": 14,
   "fecha": "2026-10-17",
   "rubro": "Supermercado",
-  "v": 2,
+  "v": 3,
   "t1": "ESPECIAL",
   "t2": "SUPERMERCADOS",
   "lema": "Almacén y lácteos por caja",
