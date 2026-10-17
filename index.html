@@ -3215,7 +3215,7 @@ async function flPagina(f,n,total,cuerpo,logo){const{W,H,CAB,PIE,FONT}=FL,cv=doc
   const g=c.createLinearGradient(0,0,0,CAB);g.addColorStop(0,MARCA.n);g.addColorStop(1,MARCA.c);c.fillStyle=g;c.fillRect(0,0,W,CAB);
   let tx=44;if(logo){const lh=230,lw=logo.width*lh/logo.height,ly=(CAB-lh)/2-4;c.save();c.shadowColor='rgba(0,0,0,.45)';c.shadowBlur=22;c.shadowOffsetY=6;c.drawImage(logo,30,ly,lw,lh);c.restore();tx=30+lw+24}
   c.textBaseline='top';c.fillStyle='#fff';c.font=`800 64px ${FONT}`;c.fillText(f.t1||'',tx,52);
-  let fs=64;c.font=`800 ${fs}px ${FONT}`;while(c.measureText(f.t2||'').width>W-tx-190&&fs>40){fs-=2;c.font=`800 ${fs}px ${FONT}`}c.fillText(f.t2||'',tx,122+(64-fs)/2);
+  let fs=64;c.font=`800 ${fs}px ${FONT}`;while(c.measureText(f.t2||'').width>W-tx-235&&fs>40){fs-=2;c.font=`800 ${fs}px ${FONT}`}c.fillText(f.t2||'',tx,122+(64-fs)/2);
   c.fillStyle=FL.AMA;c.font=`800 30px ${FONT}`;c.fillText(f.lema||'',tx,204);
   c.fillStyle='rgba(225,228,238,1)';c.font=`400 23px ${FONT}`;c.fillText('Precios mayoristas con IVA · '+flMes(),tx,250);
   c.font=`150px ${FONT}`;c.textAlign='center';c.fillText(f.icono||'',W-115,70);c.textAlign='right';c.font=`600 22px ${FONT}`;c.fillStyle='rgba(225,228,238,1)';c.fillText(n+'/'+total,W-44,CAB-50);c.textAlign='left';
