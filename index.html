@@ -3199,32 +3199,91 @@ function fotosJL(){
     if(typeof vPrecios=='function'&&$('#pr_q'))vPrecios()};
 }
 
-/* ======================= FOLLETOS LISTOS (imágenes armadas, guardadas en folletos/) ======================= */
+/* ======================= FOLLETOS LISTOS — se arman en el momento con los precios del CRM ======================= */
+const FL={W:1080,H:1920,CAB:330,PIE:250,AMA:'#ffd54a',CREMA:'#f8f2ea',TXT:'#1c2333',GRI:'#6a7184',LIN:'#e4dcd2',FONT:'system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif'};
+const flPes=n=>'$ '+Math.round(+n||0).toLocaleString('es-AR');
+const flMes=()=>{const s=new Date().toLocaleDateString('es-AR',{month:'long',year:'numeric'});return s.replace(' de ',' ')};
+/* datos vivos de un producto del folleto: precio mayorista con IVA, foto, cómo se vende */
+function flItem(x){const p=S.productos.find(q=>q.producto_id==x.id),m=S.min[x.id];if(!p||!m||m.a===false)return null;const pr=+p.precio_mayorista;if(!(pr>0))return null;
+  let suf='c/u',det='',v=pr;const b=bul(x.id);
+  if(esPeso(x.id)){const pz=ppz(x.id);if(pz){v=pr/pz;suf='/kg';det='Pieza ≈ '+nf(Math.round(pz*10)/10)+' kg · peso real'}else{suf='/kg';det=b?b.t+' '+b.n+' kg: '+flPes(pr*b.n):'Se cobra el peso real'}}
+  else if(b)det=b.t+' x '+b.n+': '+flPes(pr*b.n);
+  return{n:x.n||p.descripcion,p:v,suf,det,foto:m.foto||''}}
+function flLineas(c,t,maxW,maxL){const w=String(t).split(/\s+/),L=[];let cur='';for(const x of w){const tt=cur?cur+' '+x:x;if(c.measureText(tt).width<=maxW)cur=tt;else{if(cur)L.push(cur);cur=x}}if(cur)L.push(cur);return L.slice(0,maxL)}
+async function flPagina(f,n,total,cuerpo,logo){const{W,H,CAB,PIE,FONT}=FL,cv=document.createElement('canvas');cv.width=W;cv.height=H;const c=cv.getContext('2d');
+  c.fillStyle=FL.CREMA;c.fillRect(0,0,W,H);
+  const g=c.createLinearGradient(0,0,0,CAB);g.addColorStop(0,MARCA.n);g.addColorStop(1,MARCA.c);c.fillStyle=g;c.fillRect(0,0,W,CAB);
+  let tx=44;if(logo){const lh=230,lw=logo.width*lh/logo.height,ly=(CAB-lh)/2-4;c.save();c.shadowColor='rgba(0,0,0,.45)';c.shadowBlur=22;c.shadowOffsetY=6;c.drawImage(logo,30,ly,lw,lh);c.restore();tx=30+lw+24}
+  c.textBaseline='top';c.fillStyle='#fff';c.font=`800 64px ${FONT}`;c.fillText(f.t1||'',tx,52);
+  let fs=64;c.font=`800 ${fs}px ${FONT}`;while(c.measureText(f.t2||'').width>W-tx-190&&fs>40){fs-=2;c.font=`800 ${fs}px ${FONT}`}c.fillText(f.t2||'',tx,122+(64-fs)/2);
+  c.fillStyle=FL.AMA;c.font=`800 30px ${FONT}`;c.fillText(f.lema||'',tx,204);
+  c.fillStyle='rgba(225,228,238,1)';c.font=`400 23px ${FONT}`;c.fillText('Precios mayoristas con IVA · '+flMes(),tx,250);
+  c.font=`150px ${FONT}`;c.textAlign='center';c.fillText(f.icono||'',W-115,70);c.textAlign='right';c.font=`600 22px ${FONT}`;c.fillStyle='rgba(225,228,238,1)';c.fillText(n+'/'+total,W-44,CAB-50);c.textAlign='left';
+  await cuerpo(c);
+  // pie: envío + WhatsApp
+  const yb=H-PIE,env=S.vcfg?.envio,ce=S.vcfg?.costoEnvio;
+  if(env){c.fillStyle=FL.AMA;c.fillRect(0,yb,W,86);c.fillStyle=MARCA.n;c.textBaseline='middle';const msg='ENVÍO GRATIS desde '+flPes(env);c.font=`800 36px ${FONT}`;const mw=c.measureText(msg).width,bx=(W-(mw+100))/2;
+    c.font=`48px ${FONT}`;c.fillText('🚚',bx,yb+43);c.font=`800 36px ${FONT}`;c.fillText(msg,bx+100,yb+28);if(ce){c.font=`400 21px ${FONT}`;c.fillText('si el pedido es menor, el envío cuesta '+flPes(ce),bx+100,yb+62)}}
+  c.fillStyle=MARCA.c;c.fillRect(0,yb+(env?86:0),W,H);c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';
+  c.font=`800 44px ${FONT}`;c.fillText(S.telEmp?'Pedí por WhatsApp  '+S.telEmp:'Sabores de mi País',W/2,yb+140);
+  c.font=`400 23px ${FONT}`;c.fillStyle='rgba(240,225,229,1)';c.fillText('Sabores de mi País · Distribuidora de alimentos · Precios sujetos a cambio',W/2,yb+196);c.textAlign='left';
+  return cv}
+async function flArmar(f,prog){
+  const logo=await cargarImg(MARCA.logo||LOGO_DEF),{W,H,CAB,PIE,FONT}=FL,BOT=H-PIE-24,TOP=CAB+28,P=[];
+  for(const pg of f.paginas||[]){
+    if(pg.tipo=='fotos'){const L=(pg.items||[]).map(flItem).filter(Boolean);if(L.length)P.push({t:'f',pg,L})}
+    else if(pg.tipo=='lista'){const SEC=70,ROW=80;let cur=[],y=TOP,last=null;
+      for(const s of pg.secciones||[])for(const x of s.items){const it=flItem(x);if(!it)continue;let need=ROW+(s.t!==last?SEC:0);
+        if(y+need>BOT){P.push({t:'l',rows:cur});cur=[];y=TOP;last=null;need=ROW+SEC}
+        if(s.t!==last){cur.push({sec:s.t});y+=SEC;last=s.t}cur.push(it);y+=ROW}
+      if(cur.length)P.push({t:'l',rows:cur})}}
+  const out=[];
+  for(let k=0;k<P.length;k++){prog&&prog(k+1,P.length);const Q=P[k];
+    const cv=await flPagina(f,k+1,P.length,async c=>{
+      if(Q.t=='f'){let y=TOP;c.fillStyle=MARCA.c;rrect(c,40,y,W-80,96,18);c.fill();c.fillStyle='#fff';c.textBaseline='middle';c.font=`800 38px ${FONT}`;c.fillText(Q.pg.titulo.toUpperCase(),68,y+32);c.font=`400 24px ${FONT}`;c.fillStyle='rgba(240,225,229,1)';c.fillText(Q.pg.sub||'',68,y+72);y+=118;
+        const gap=22,cw=(W-80-gap)/2,ch=(BOT-y-2*gap)/3,imgs=await Promise.all(Q.L.map(x=>cargarImg(x.foto)));
+        Q.L.forEach((x,i)=>{const X=40+(i%2)*(cw+gap),Y=y+Math.floor(i/2)*(ch+gap),ph=ch-214,pw=cw-48;
+          c.fillStyle='#fff';rrect(c,X,Y,cw,ch,24);c.fill();c.strokeStyle=FL.LIN;c.lineWidth=2;c.stroke();
+          const im=imgs[i];if(im){const k=Math.min(pw/im.width,ph/im.height);c.drawImage(im,X+24+(pw-im.width*k)/2,Y+18+(ph-im.height*k)/2,im.width*k,im.height*k)}
+          c.textBaseline='top';c.fillStyle=FL.TXT;c.font=`600 26px ${FONT}`;const NL=flLineas(c,x.n,cw-48,2);let ty=Y+18+ph+10;NL.forEach((l,j)=>c.fillText(l,X+24,ty+j*32));
+          const py=ty+NL.length*32+52;c.textBaseline='alphabetic';c.fillStyle=MARCA.c;c.font=`800 44px ${FONT}`;const pt=flPes(x.p);c.fillText(pt,X+24,py);const pw2=c.measureText(pt).width;
+          c.fillStyle=FL.GRI;c.font=`600 24px ${FONT}`;c.fillText(x.suf,X+24+pw2+8,py);if(x.det){c.font=`400 22px ${FONT}`;c.fillText(x.det,X+24,py+32)}})}
+      else{let y=TOP;for(const r of Q.rows){
+        if(r.sec){c.fillStyle=MARCA.c;rrect(c,40,y+14,W-80,70-22,14);c.fill();c.fillStyle='#fff';c.textBaseline='middle';c.font=`800 28px ${FONT}`;c.fillText(r.sec.toUpperCase(),64,y+14+24);y+=70;continue}
+        c.fillStyle='#fff';rrect(c,40,y+4,W-80,80-8,14);c.fill();const pt=flPes(r.p);c.font=`800 38px ${FONT}`;const pw=c.measureText(pt).width;c.font=`600 22px ${FONT}`;const sw=c.measureText(r.suf).width;
+        let fs=30;c.font=`600 ${fs}px ${FONT}`;while(c.measureText(r.n).width>W-40-28-pw-sw-38-64&&fs>20){fs--;c.font=`600 ${fs}px ${FONT}`}
+        c.fillStyle=FL.TXT;c.textBaseline='middle';c.fillText(r.n,64,r.det?y+30:y+40);if(r.det){c.font=`400 23px ${FONT}`;c.fillStyle=FL.GRI;c.fillText(r.det,64,y+59)}
+        c.textAlign='right';c.font=`600 22px ${FONT}`;c.fillStyle=FL.GRI;c.fillText(r.suf,W-64,y+42);c.font=`800 38px ${FONT}`;c.fillStyle=MARCA.c;c.fillText(pt,W-64-sw-8,y+40);c.textAlign='left';y+=80}}},logo);
+    out.push(await new Promise(r=>cv.toBlob(r,'image/jpeg',.88)))}
+  return out}
 async function folletosListos(){
   const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
   m.innerHTML=`<div class="mc fl-mc"><div class="bh"><h3 style="margin:0">📂 Folletos listos para mandar</h3><button class="alt" id="fl_x">Cerrar</button></div><div id="fl_b">Cargando…</div></div>`;
   const cerrar=()=>m.remove();m.querySelector('#fl_x').onclick=cerrar;m.onclick=e=>{if(e.target===m)cerrar()};
   let L=[];try{const r=await fetch('folletos/folletos.json?v='+Date.now());L=await r.json()}catch(e){m.querySelector('#fl_b').innerHTML='<p class="err">No se pudieron cargar los folletos.</p>';return}
-  const url=(f,i)=>`folletos/${f.id}/${i}.jpg${f.v?'?v='+f.v:''}`;
-  const blobs=async f=>Promise.all(Array.from({length:f.n},(_,k)=>fetch(url(f,k+1)).then(r=>r.blob())));
+  if(!S.vcfg?.escalas)await cargarVentasCfg().catch(()=>{});
+  const cache={},est=t=>{const e=m.querySelector('#fl_est');if(e)e.innerHTML=t};
+  const tapa=f=>`folletos/${f.id}/1.jpg${f.v?'?v='+f.v:''}`;
   const nom=(f,i)=>`${f.titulo.replace(/\s+/g,'-')}-${i}.jpg`;
-  const bajar=async f=>{toast('Descargando '+f.n+' imágenes…');const B=await blobs(f);B.forEach((b,k)=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=nom(f,k+1);document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)})};
-  const compartir=async(f,idx)=>{try{const B=await blobs(f),I=idx?[idx]:B.map((_,k)=>k+1),files=I.map(i=>new File([B[i-1]],nom(f,i),{type:'image/jpeg'}));
+  const armar=async f=>{if(cache[f.id])return cache[f.id];const B=await flArmar(f,(k,n)=>est(`⏳ Armando con los precios de hoy… ${k} de ${n}`));cache[f.id]={B,U:B.map(b=>URL.createObjectURL(b))};est('');return cache[f.id]};
+  const bajar=async f=>{const{B}=await armar(f);toast('Descargando '+B.length+' imágenes…');B.forEach((b,k)=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=nom(f,k+1);document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)})};
+  const compartir=async(f,idx)=>{try{const{B}=await armar(f),I=idx?[idx]:B.map((_,k)=>k+1),files=I.map(i=>new File([B[i-1]],nom(f,i),{type:'image/jpeg'}));
     if(navigator.canShare&&navigator.canShare({files}))await navigator.share({files,text:f.titulo+' · Sabores de mi País'+(S.telEmp?' · Pedí por WhatsApp '+S.telEmp:'')});else bajar(f)}catch(e){}};
-  const lista=()=>{m.querySelector('#fl_b').innerHTML=`<p><small>Folletos con fotos y precios, listos para WhatsApp, estados o Instagram. Tocá uno para ver todas sus imágenes.</small></p>
-    <div class="fl-grid">${L.map((f,k)=>`<div class="fl-card" data-k="${k}"><img src="${url(f,1)}" alt="${esc(f.titulo)}" loading="lazy"><div class="fl-tx"><b>${esc(f.titulo)}</b><small>${esc(f.sub||'')}</small><small class="fl-n">${f.n} imágenes${f.fecha?' · '+fd(f.fecha):''}</small>
+  const lista=()=>{m.querySelector('#fl_b').innerHTML=`<p><small>Se arman en el momento con los <b>precios de hoy</b> del CRM: si cambiás un precio, el folleto ya sale actualizado. Si desactivás un producto o queda sin precio, no aparece.</small></p><p id="fl_est" class="sube"></p>
+    <div class="fl-grid">${L.map((f,k)=>`<div class="fl-card" data-k="${k}"><img src="${tapa(f)}" alt="${esc(f.titulo)}" loading="lazy"><div class="fl-tx"><b>${esc(f.titulo)}</b><small>${esc(f.sub||'')}</small><small class="fl-n">Precios al día · ${esc(flMes())}</small>
       <div class="fc-acc">${navigator.canShare?`<button data-sh="${k}">Compartir</button>`:''}<button class="alt" data-dl="${k}">Descargar</button><button class="alt" data-ver="${k}">Ver</button></div></div></div>`).join('')}</div>`;
     m.querySelectorAll('[data-sh]').forEach(b=>b.onclick=e=>{e.stopPropagation();compartir(L[b.dataset.sh])});
     m.querySelectorAll('[data-dl]').forEach(b=>b.onclick=e=>{e.stopPropagation();bajar(L[b.dataset.dl])});
     m.querySelectorAll('.fl-card').forEach(c=>c.onclick=()=>ver(L[c.dataset.k]))};
-  const ver=f=>{m.querySelector('#fl_b').innerHTML=`<div class="bh"><div><b>${esc(f.titulo)}</b><br><small>${f.n} imágenes · tocá una para verla grande</small></div><a class="lnk" id="fl_v">← Volver</a></div>
+  const ver=async f=>{m.querySelector('#fl_b').innerHTML=`<p id="fl_est" class="sube">⏳ Armando con los precios de hoy…</p>`;let R;try{R=await armar(f)}catch(e){m.querySelector('#fl_b').innerHTML='<p class="err">No se pudo armar el folleto: '+esc(e.message||e)+'</p>';return}
+    m.querySelector('#fl_b').innerHTML=`<div class="bh"><div><b>${esc(f.titulo)}</b><br><small>${R.U.length} imágenes · precios de hoy · tocá una para verla grande</small></div><a class="lnk" id="fl_v">← Volver</a></div>
     <div class="fc-acc">${navigator.canShare?'<button id="fl_sa">Compartir todas</button>':''}<button class="alt" id="fl_da">Descargar todas</button></div>
-    <div class="fl-th">${Array.from({length:f.n},(_,k)=>`<a data-i="${k+1}"><img src="${url(f,k+1)}" alt="${k+1}" loading="lazy"><span>${k+1}</span></a>`).join('')}</div>`;
+    <div class="fl-th">${R.U.map((u,k)=>`<a data-i="${k+1}"><img src="${u}" alt="${k+1}"><span>${k+1}</span></a>`).join('')}</div>`;
     m.querySelector('#fl_v').onclick=lista;m.querySelector('#fl_da').onclick=()=>bajar(f);const sa=m.querySelector('#fl_sa');if(sa)sa.onclick=()=>compartir(f);
     m.querySelectorAll('.fl-th a').forEach(a=>a.onclick=()=>grande(f,+a.dataset.i))};
-  const grande=(f,i)=>{const g=document.createElement('div');g.className='modal fl-big';document.body.appendChild(g);
-    g.innerHTML=`<div class="mc"><div class="bh"><b>${esc(f.titulo)} · ${i}/${f.n}</b><button class="alt" id="g_x">Cerrar</button></div><img src="${url(f,i)}" alt="" style="width:100%;border-radius:10px">
-      <div class="fc-acc">${i>1?'<button class="alt" id="g_p">← Anterior</button>':''}${i<f.n?'<button class="alt" id="g_n">Siguiente →</button>':''}${navigator.canShare?'<button id="g_s">Compartir esta</button>':''}<a class="lnk" download="${nom(f,i)}" href="${url(f,i)}">Descargar</a></div></div>`;
+  const grande=(f,i)=>{const U=cache[f.id].U,g=document.createElement('div');g.className='modal fl-big';document.body.appendChild(g);
+    g.innerHTML=`<div class="mc"><div class="bh"><b>${esc(f.titulo)} · ${i}/${U.length}</b><button class="alt" id="g_x">Cerrar</button></div><img src="${U[i-1]}" alt="" style="width:100%;border-radius:10px">
+      <div class="fc-acc">${i>1?'<button class="alt" id="g_p">← Anterior</button>':''}${i<U.length?'<button class="alt" id="g_n">Siguiente →</button>':''}${navigator.canShare?'<button id="g_s">Compartir esta</button>':''}<a class="lnk" download="${nom(f,i)}" href="${U[i-1]}">Descargar</a></div></div>`;
     g.onclick=e=>{if(e.target===g)g.remove()};g.querySelector('#g_x').onclick=()=>g.remove();
     const p=g.querySelector('#g_p'),n=g.querySelector('#g_n'),sh=g.querySelector('#g_s');if(p)p.onclick=()=>{g.remove();grande(f,i-1)};if(n)n.onclick=()=>{g.remove();grande(f,i+1)};if(sh)sh.onclick=()=>compartir(f,i)};
   lista()}

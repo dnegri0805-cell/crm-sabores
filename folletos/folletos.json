@@ -6,7 +6,556 @@
   "n": 16,
   "fecha": "2026-10-17",
   "rubro": "Panadería",
-  "v": 2
+  "v": 2,
+  "t1": "ESPECIAL",
+  "t2": "PANADERÍAS",
+  "lema": "Todo para la cuadra y el mostrador",
+  "icono": "🥖",
+  "paginas": [
+   {
+    "tipo": "fotos",
+    "titulo": "Dulce de leche",
+    "sub": "Repostero y panadero, para rellenar y decorar",
+    "items": [
+     {
+      "id": "8f24c8bf-2530-45ae-91f9-ec7d09d9d242",
+      "n": "Dulce de leche repostero Vacalin balde 10 kg"
+     },
+     {
+      "id": "5adb2f3c-db40-4d44-a6d7-9e82f9a7e76d",
+      "n": "Dulce de leche panadero Vacalin 10 kg"
+     },
+     {
+      "id": "23eb03d4-63ff-4164-8060-8301c11fdc7b",
+      "n": "Dulce de leche repostero Cremigal 25 kg"
+     },
+     {
+      "id": "ac45d006-1e45-4f8e-8503-fbb0678d5562",
+      "n": "Dulce de leche repostero Vacalin balde 4 kg"
+     },
+     {
+      "id": "a50dbcbd-0c18-440b-99da-83b746b5a31d",
+      "n": "Dulce de leche repostero Vacalin manga 1 kg"
+     },
+     {
+      "id": "9b1f30a9-5d49-4b6a-abe0-7f5bc1acf020",
+      "n": "Dulce de leche repostero Vacalin 1 kg"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Membrillo y batata",
+    "sub": "Para facturas, pastafrolas y tortas",
+    "items": [
+     {
+      "id": "2c2d8d28-c06f-4836-b4f7-8c3dedc34548",
+      "n": "Dulce de membrillo Esnaola cajón 5 kg"
+     },
+     {
+      "id": "b241db8b-7036-48e2-9aec-3fcc50bb98f2",
+      "n": "Dulce de membrillo Dulcor cajón 5 kg"
+     },
+     {
+      "id": "13f7bf0f-d36e-47d0-909f-3f7a9d562cda",
+      "n": "Dulce de membrillo Orieta cajón 5 kg"
+     },
+     {
+      "id": "125bc92a-44e7-40fa-bf07-f0668305effe",
+      "n": "Dulce de batata Esnaola cajón 5 kg"
+     },
+     {
+      "id": "3ff20aaa-655e-44ac-986b-8699646c9111",
+      "n": "Dulce de batata Orieta cajón 5 kg"
+     },
+     {
+      "id": "9ee9e9c3-57da-4f36-912f-2d2a7c9bc765",
+      "n": "Batata con chocolate Esnaola cajón 5 kg"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Manteca y crema",
+    "sub": "Formatos grandes para la cuadra",
+    "items": [
+     {
+      "id": "9a55a607-ad54-42a6-9053-bf72ae813f15",
+      "n": "Manteca Sancor caja 25 kg"
+     },
+     {
+      "id": "44a1b74f-b798-4dd7-9ff1-9c5e65a5c6a5",
+      "n": "Manteca Vacalin 5 kg"
+     },
+     {
+      "id": "b788967e-2b28-41dc-a627-451fc8057667",
+      "n": "Manteca San Gotardo pilón 5 kg"
+     },
+     {
+      "id": "4d42490b-6570-4678-b32a-649f7072bf81",
+      "n": "Manteca Tonadita 2,5 kg"
+     },
+     {
+      "id": "9781c763-673d-4cf0-bbed-cbfee936a055",
+      "n": "Crema de leche Sancor 44 % sachet 10 L"
+     },
+     {
+      "id": "db6b9bd1-6692-4189-b446-6ff3fb3ec143",
+      "n": "Crema de leche Manfrey 44 % bidón 9,5 L"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Repostería y frutas",
+    "sub": "Para tartas, budines y pastelería",
+    "items": [
+     {
+      "id": "ed8e07c1-aac5-48bb-aeb2-fa56917d06d6",
+      "n": "Duraznos en mitades La Banda 850 g"
+     },
+     {
+      "id": "9a5ce1ca-eed3-47bb-a774-3bb684734303",
+      "n": "Ananá en rodajas La Banda 850 g"
+     },
+     {
+      "id": "300c43a3-e530-43e0-9b40-e8e70188ba0e",
+      "n": "Higos en almíbar Cuesta del Portezuelo 450 g"
+     },
+     {
+      "id": "d81ae459-7046-4723-9418-7461584fc1f8",
+      "n": "Cayote en almíbar Cuesta del Portezuelo 450 g"
+     },
+     {
+      "id": "e1177750-89f3-49a4-b317-eba6d30f4f19",
+      "n": "Esencia de vainilla Tahití 250 ml"
+     },
+     {
+      "id": "082666b7-f957-40b0-a331-bd35395826b6",
+      "n": "Alimento a base de miel Flor de Campo 1 kg"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Sándwiches de miga",
+    "sub": "Fiambres y quesos por kilo, pieza entera",
+    "items": [
+     {
+      "id": "04098ba4-4af2-4c74-854f-85b362b70bef",
+      "n": "Jamón cocido Mediterráneo"
+     },
+     {
+      "id": "e34fc367-4f62-4df7-bb58-9ba5945a44e0",
+      "n": "Fiambre de cerdo Grassetto (azul)"
+     },
+     {
+      "id": "a2bcc7e5-78fb-4b90-82ee-730168dcc5cb",
+      "n": "Jamón cocido La Casona"
+     },
+     {
+      "id": "70967af1-e70e-4f7d-8f3a-781fb4e2668e",
+      "n": "Queso danbo sándwich La Tarantela"
+     },
+     {
+      "id": "95a355ab-9554-4761-95bc-fe03e23007c6",
+      "n": "Queso tybo Cremigal"
+     },
+     {
+      "id": "d289eb0e-875e-4f6c-ab77-c4ac3af32474",
+      "n": "Queso danbo Las Tres Niñas"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Ledevit · Rellenos y París",
+    "sub": "Cremas listas para batir y cubretortas",
+    "items": [
+     {
+      "id": "753b4c40-61f2-44a4-9982-2c4195219140",
+      "n": "Relleno y cobertura chantilly bidón 4,7 L"
+     },
+     {
+      "id": "753b4c40-61f2-44a4-9982-2c4195219140",
+      "n": "Relleno y cobertura vainilla bidón 4,7 L"
+     },
+     {
+      "id": "753b4c40-61f2-44a4-9982-2c4195219140",
+      "n": "Relleno y cobertura frutilla bidón 4,7 L"
+     },
+     {
+      "id": "b10d9aca-de76-4770-93e7-d496746457cc",
+      "n": "Relleno y cobertura chocolate bidón 4,5 L"
+     },
+     {
+      "id": "1cc8c833-c9fc-45f6-b6d8-28ab4b8d6889",
+      "n": "Relleno y cobertura sachet 5 L"
+     },
+     {
+      "id": "d0767609-d3f0-4bf6-b87f-8682b8f1bad0",
+      "n": "Cubretortas París balde 4 kg"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Ledevit · Premezclas",
+    "sub": "Pastelera, merengue, chantilly y brownie",
+    "items": [
+     {
+      "id": "182112d9-290b-4ade-ad60-f471d8973052",
+      "n": "Crema pastelera en frío 4 kg"
+     },
+     {
+      "id": "220568f6-933e-4321-bbaa-3c87f956c25a",
+      "n": "Crema pastelera 1 kg"
+     },
+     {
+      "id": "fc0689ce-7c17-43e2-b52a-c25ad0d7727a",
+      "n": "Merengue 4 kg"
+     },
+     {
+      "id": "d67117a4-5853-4975-9274-3d1af061eae2",
+      "n": "Merengue 1 kg"
+     },
+     {
+      "id": "a9553215-5524-4746-ade9-ba5a250da48c",
+      "n": "Chantilly 1 kg"
+     },
+     {
+      "id": "b55fa884-5e26-44e3-beb9-b794e152cc38",
+      "n": "Brownie 4 kg (sin gluten)"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Ledevit · Mousse, postres y doradura",
+    "sub": "Para tortas, postres y panificados",
+    "items": [
+     {
+      "id": "a67fd5eb-bc35-4ac1-b791-3f6f2d712fb3",
+      "n": "Mousse de chocolate 1 kg"
+     },
+     {
+      "id": "abdc4a8f-8f4f-47a7-86dc-36062f04d7a8",
+      "n": "Mousse de frutilla 1 kg"
+     },
+     {
+      "id": "565f9e79-5d4c-4cf5-bf4d-395364cdb4a1",
+      "n": "Cheesecake 900 g"
+     },
+     {
+      "id": "329d73f6-0286-4e9b-9303-65c39d145f15",
+      "n": "Crema Lemon 1 kg"
+     },
+     {
+      "id": "a0594ae4-66f8-4836-a93d-4fa3a0572994",
+      "n": "Doradura abrillantador 750 g"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Ledevit · Brillos y geles",
+    "sub": "Destello y gel de brillo",
+    "items": [
+     {
+      "id": "1942d18c-3419-45c9-bf66-e5df53270f0e",
+      "n": "Destello neutro balde 4,4 kg"
+     },
+     {
+      "id": "bb76e683-8c7a-4ef6-b1e1-f83c568ccca1",
+      "n": "Destello frutilla balde 4,4 kg"
+     },
+     {
+      "id": "46e1189c-c1cf-408a-87eb-ac9b3297994e",
+      "n": "Destello Plus balde 4,4 kg"
+     },
+     {
+      "id": "e49f9c5a-dd4f-426a-91ca-e786c17b9719",
+      "n": "Gel de brillo en frío neutro 4,4 kg"
+     },
+     {
+      "id": "e4d9544c-598f-4e1e-a68b-b691f0814d5e",
+      "n": "Gel de brillo en frío frutilla 4,4 kg"
+     },
+     {
+      "id": "57e6e0cc-031e-401b-9ec0-9a007f6be7e9",
+      "n": "Gel de brillo en caliente balde 10 kg"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Ledevit · Rellenos 1 kg",
+    "sub": "Cremas listas para batir",
+    "items": [
+     {
+      "id": "a1ee93be-05ad-497d-956e-d4b2128e6c94",
+      "n": "Relleno y cobertura chantilly 1 kg"
+     },
+     {
+      "id": "a1ee93be-05ad-497d-956e-d4b2128e6c94",
+      "n": "Relleno y cobertura vainilla 1 kg"
+     },
+     {
+      "id": "a1ee93be-05ad-497d-956e-d4b2128e6c94",
+      "n": "Relleno y cobertura frutilla 1 kg"
+     },
+     {
+      "id": "5db9a4ad-f05e-4210-8ae5-894c373c5cd4",
+      "n": "Relleno y cobertura chocolate 1 kg"
+     },
+     {
+      "id": "d7e3e1c7-86d9-464c-a46d-58654507eb18",
+      "n": "Crema Cithara Suave 1 kg"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Ledevit · Rellenos 500 g",
+    "sub": "Cremas listas para batir",
+    "items": [
+     {
+      "id": "91fdeacd-4f88-4a8c-a9f0-c3913d0950d3",
+      "n": "Relleno y cobertura chantilly 500 g"
+     },
+     {
+      "id": "91fdeacd-4f88-4a8c-a9f0-c3913d0950d3",
+      "n": "Relleno y cobertura vainilla 500 g"
+     },
+     {
+      "id": "91fdeacd-4f88-4a8c-a9f0-c3913d0950d3",
+      "n": "Relleno y cobertura frutilla 500 g"
+     },
+     {
+      "id": "281c7255-ee1a-46a1-a705-3d17aba41d27",
+      "n": "Relleno y cobertura chocolate 500 g"
+     },
+     {
+      "id": "46c94bed-0b2d-4733-8d35-6d331b87eddc",
+      "n": "Crema base no láctea 500 g"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Ledevit · Premezclas 250 g",
+    "sub": "Para el mostrador y la pastelería chica",
+    "items": [
+     {
+      "id": "7d72cf5c-c4a0-420a-93cb-9c2cae81f512",
+      "n": "Crema pastelera 250 g"
+     },
+     {
+      "id": "0c253b2b-5363-4218-93d3-6a67c0986d90",
+      "n": "Merengue 250 g"
+     },
+     {
+      "id": "4c05aa4d-c5a2-413b-912c-88da3dfa8019",
+      "n": "Crema chantilly 250 g"
+     },
+     {
+      "id": "85780e44-044b-47e4-8f85-effaead9968b",
+      "n": "Crema Lemon 250 g"
+     },
+     {
+      "id": "c69ae28d-41c8-4462-a3ed-a181a614e0de",
+      "n": "Mousse de chocolate 250 g"
+     },
+     {
+      "id": "44ae635e-3e86-44e7-b5bb-49d3f2ec5b91",
+      "n": "Mousse de frutilla 250 g"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Ledevit · Horneables sin gluten",
+    "sub": "Premezclas libres de gluten",
+    "items": [
+     {
+      "id": "5efff05f-0e13-489e-8b00-63d030844941",
+      "n": "Brownie 470 g"
+     },
+     {
+      "id": "71f6828d-b080-4fc7-9057-0cff19868bc5",
+      "n": "Tapitas de alfajor 250 g"
+     },
+     {
+      "id": "a0ccb375-f47f-4c93-9b78-0a9f4fa1252c",
+      "n": "Budín sabor chocolate 500 g"
+     },
+     {
+      "id": "d6bc5dcf-d60f-401e-8f5b-dafb9c5bca37",
+      "n": "Budín sabor vainilla 500 g"
+     },
+     {
+      "id": "af117bec-51de-4519-a9af-10e52e0fffcd",
+      "n": "Cupcakes sabor chocolate 500 g"
+     },
+     {
+      "id": "58812d2f-7b83-442d-be6d-2230f9e71435",
+      "n": "Cupcakes sabor vainilla 500 g"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Ledevit · Postres y potes",
+    "sub": "Cheesecake, macarons, París y Destello",
+    "items": [
+     {
+      "id": "b0a67998-6014-4006-b856-fa95e6dcd439",
+      "n": "Cheesecake 300 g"
+     },
+     {
+      "id": "03f961f3-77c5-44ba-958c-5566ca6fca6a",
+      "n": "Macarons 250 g"
+     },
+     {
+      "id": "0cc2a87d-951a-478e-8afd-b8a4687e5ddc",
+      "n": "Cubretortas París pote 280 g"
+     },
+     {
+      "id": "50ebeaac-43a4-46c4-ab06-f86595068905",
+      "n": "Destello neutro pote 310 g"
+     },
+     {
+      "id": "cd06facd-bbd5-40dd-b2cf-61faef073c78",
+      "n": "Destello frutilla pote 310 g"
+     }
+    ]
+   },
+   {
+    "tipo": "lista",
+    "secciones": [
+     {
+      "t": "Leche en polvo",
+      "items": [
+       {
+        "id": "8fc33963-39a0-4e62-a860-2813bf298da3",
+        "n": "Leche en polvo entera Regina 25 kg"
+       },
+       {
+        "id": "46ef61af-22d2-4230-9c0a-35638112fcd6",
+        "n": "Leche en polvo descremada Regina 25 kg"
+       },
+       {
+        "id": "9b010001-51ca-4efe-b53c-f8350fd188a5",
+        "n": "Leche en polvo entera Vacalin bolsa 25 kg"
+       },
+       {
+        "id": "5fbbeeac-68b2-4212-815b-069431e6e583",
+        "n": "Leche en polvo Sancor bolsa 25 kg"
+       }
+      ]
+     },
+     {
+      "t": "Azúcar, almidón y aditivos",
+      "items": [
+       {
+        "id": "223b1f3f-e86d-44ae-b0a1-50f4755a91e2",
+        "n": "Azúcar común 50 kg"
+       },
+       {
+        "id": "c2419984-676b-4132-89bd-7717e2e557c2",
+        "n": "Azúcar común 25 kg"
+       },
+       {
+        "id": "4b98cd73-493e-4d4a-8d25-9b4024e3a3e2",
+        "n": "Azúcar común 10 x 1 kg"
+       },
+       {
+        "id": "a1774a55-b3cd-4924-8549-7ce7bf6799c8",
+        "n": "Almidón de maíz Ingredion 25 kg"
+       },
+       {
+        "id": "4601b836-a6db-4eab-b9fc-83f666f09a5b",
+        "n": "Agente de batido Adiquick 25 kg"
+       },
+       {
+        "id": "36173282-41bb-4427-8b55-4aa46f2d3a3a",
+        "n": "Estabilizante para cremas Nutriwip 20 kg"
+       },
+       {
+        "id": "f5711890-fbf4-4c42-b0a4-8ea61635a62b",
+        "n": "Grasa de cerdo"
+       }
+      ]
+     },
+     {
+      "t": "Frutos secos",
+      "items": [
+       {
+        "id": "b9cae0f1-e946-4809-94d8-6556db52796c",
+        "n": "Almendra Nonpareil 27/30 10 kg"
+       },
+       {
+        "id": "be9c1e48-d6d7-4bc7-85a7-e2416d2e73a6",
+        "n": "Almendra Guara N° 2 10 kg"
+       },
+       {
+        "id": "3f1efc93-ab22-4cde-8df0-c80f3cc318af",
+        "n": "Nuez mariposa extra light 10 kg"
+       },
+       {
+        "id": "2c9ee4a8-2bb2-40c4-b954-dec00622866b",
+        "n": "Nuez Chandler cuartillo light 10 kg"
+       },
+       {
+        "id": "9daeeb38-e1e3-4dda-b59f-be1ebbabb6d4",
+        "n": "Castaña de cajú W4 22,68 kg"
+       },
+       {
+        "id": "054f0c92-027c-417b-aebf-15b7a11620ff",
+        "n": "Pasa de uva sultanina 10 kg"
+       }
+      ]
+     },
+     {
+      "t": "Chips y coberturas",
+      "items": [
+       {
+        "id": "5801aad8-b5f1-43c2-a157-6400fa022d81",
+        "n": "Chip semiamargo CHI 7 kg"
+       },
+       {
+        "id": "915b7818-9aa7-42e0-b047-7bd03036f70e",
+        "n": "Chip blanco CHI 5 kg"
+       },
+       {
+        "id": "dfa4dbda-8ef3-4f0c-a51a-0bc94073eeed",
+        "n": "Cobertura semiamarga CHI 20 kg"
+       },
+       {
+        "id": "33268c39-75e2-4a4a-bf4d-1cb057558331",
+        "n": "Cobertura con leche CHI 20 kg"
+       },
+       {
+        "id": "146b3884-d02c-4f70-8ecd-4227909d8196",
+        "n": "Cobertura blanca CHI 20 kg"
+       },
+       {
+        "id": "289fa731-d097-4286-b090-e4779723f784",
+        "n": "Baño de moldeo con leche CHI 20 kg"
+       },
+       {
+        "id": "ce786d4f-3025-4576-933c-fa0dbe605a81",
+        "n": "Cacao Gerkens 25 kg"
+       },
+       {
+        "id": "352745f2-b4ef-48cb-942b-aed0f0eeaaed",
+        "n": "Lentejas de chocolate CHI 7 kg"
+       }
+      ]
+     }
+    ]
+   }
+  ]
  },
  {
   "id": "heladerias",
@@ -15,7 +564,305 @@
   "n": 5,
   "fecha": "2026-10-17",
   "rubro": "Heladería",
-  "v": 2
+  "v": 2,
+  "t1": "TEMPORADA",
+  "t2": "DE HELADOS",
+  "lema": "Insumos para heladerías",
+  "icono": "🍦",
+  "paginas": [
+   {
+    "tipo": "lista",
+    "secciones": [
+     {
+      "t": "Cucuruchos y capelinas",
+      "items": [
+       {
+        "id": "08b8729c-6102-4581-aa25-44d57ad57ac8",
+        "n": "Capelina caja x 100"
+       },
+       {
+        "id": "ea47a661-d769-4d68-9fdb-846befbaa575",
+        "n": "Cucurucho caja x 200"
+       },
+       {
+        "id": "62309bb5-b5e0-4e32-898a-ddcdf0171b9f",
+        "n": "Cucurucho grande caja x 180"
+       },
+       {
+        "id": "b9349191-8df7-4ae5-a2b7-7eb535dd2b33",
+        "n": "Cucurucho x 3 caja x 150"
+       }
+      ]
+     },
+     {
+      "t": "Salsas para helado",
+      "items": [
+       {
+        "id": "0986b389-3983-4125-92ef-be449b97b6e5",
+        "n": "Salsa de caramelo Eureka"
+       },
+       {
+        "id": "d10e6714-9b02-4836-98bb-17f3d1a3ae93",
+        "n": "Salsa de chocolate Eureka"
+       },
+       {
+        "id": "afd7e033-26dd-4f02-91d6-09b4d701f642",
+        "n": "Salsa de dulce de leche Eureka"
+       },
+       {
+        "id": "b2f26be4-81da-46cd-8c97-8c9b4ec01a12",
+        "n": "Salsa de frutilla Eureka"
+       }
+      ]
+     },
+     {
+      "t": "Dulce de leche heladero y familiar",
+      "items": [
+       {
+        "id": "1f587f8a-f6be-4b01-b96e-641df0e9c685",
+        "n": "Dulce de leche heladero Cassanello 12 kg"
+       },
+       {
+        "id": "45ed4b86-cdb7-4ecd-b11b-a65874e8272b",
+        "n": "Dulce de leche heladero Cassanello 25 kg"
+       },
+       {
+        "id": "dd7fe854-53ff-4a05-8ad9-245ea25aead0",
+        "n": "Dulce de leche heladero El Rosquinense 25 kg"
+       },
+       {
+        "id": "0b28f2c3-9d89-4de9-8ddb-80253f6ce6cc",
+        "n": "Dulce de leche heladero Milkey 25 kg"
+       },
+       {
+        "id": "9f86bd8d-6b7b-4ee1-9793-b0d553e245be",
+        "n": "Dulce de leche familiar Cassanello 12 kg"
+       },
+       {
+        "id": "e2821a58-e4a4-4c5b-87bd-4a58a266138b",
+        "n": "Dulce de leche familiar El Rosquinense 10 kg"
+       },
+       {
+        "id": "15c1647a-89c4-42c9-983f-30ed4a2a7182",
+        "n": "Dulce de leche familiar La Salamandra 10 kg"
+       }
+      ]
+     },
+     {
+      "t": "Pastas y variegatos",
+      "items": [
+       {
+        "id": "007ff73a-8445-4b1f-a209-f5b0380a595b",
+        "n": "Limón 50 g/l Pehuenia 5 kg"
+       },
+       {
+        "id": "93843fc0-5484-4853-9c94-98f1a79d3923",
+        "n": "Pasta de ananá Pehuenia 5 kg"
+       },
+       {
+        "id": "3f0e871c-911f-46a3-87d5-fd51e381b7fc",
+        "n": "Pasta de banana Pehuenia 5 kg"
+       },
+       {
+        "id": "921143f2-35a3-495e-8905-7ac60a51e143",
+        "n": "Pasta de cereza Pehuenia 5 kg"
+       },
+       {
+        "id": "2449b603-2dc1-4b77-b0a2-33032b0bcd34",
+        "n": "Pasta de coco Pehuenia 5 kg"
+       },
+       {
+        "id": "c3dc42ba-095e-4262-9285-2ed3dbe551a7",
+        "n": "Pasta de frutilla Pehuenia 5 kg"
+       },
+       {
+        "id": "e206d52e-09a3-464f-86d5-7043473626d8",
+        "n": "Pasta de maní para elaborar 10 kg"
+       },
+       {
+        "id": "720f05ef-4ca7-42f2-8d60-38207ef57cb7",
+        "n": "Pasta de maní Pehuenia 10 kg"
+       },
+       {
+        "id": "622fbf4b-b38b-4c52-b8a2-44b3b5b2f434",
+        "n": "Pasta de marroc Pehuenia 4 kg"
+       },
+       {
+        "id": "971e0cb6-d558-4176-97f6-54b3be30a8b0",
+        "n": "Pasta de melón Pehuenia 5 kg"
+       },
+       {
+        "id": "e5cbbc52-d745-4124-9e6d-c2dad359e8f9",
+        "n": "Pasta de vainilla al huevo Pehuenia 5 kg"
+       },
+       {
+        "id": "9625b82d-4db9-45a6-b86e-324fd62ac32e",
+        "n": "Variegato de maracuyá con semillas Pehuenia 12 kg"
+       }
+      ]
+     },
+     {
+      "t": "Frutas para sembrar",
+      "items": [
+       {
+        "id": "07ca4b45-db65-41e7-925c-4a7c4b53ae96",
+        "n": "Ananá en trozos Vanesa 10 kg"
+       },
+       {
+        "id": "1dde1615-7971-45ff-afac-75dcd1d41194",
+        "n": "Ananá para sembrar Vanesa 10 kg"
+       },
+       {
+        "id": "20e8c1c4-0bd5-4880-b2a4-871744623a5c",
+        "n": "Cereza entera Curicó 6 x 3,1 kg"
+       },
+       {
+        "id": "4dcba58a-f44c-4d37-91e7-b869c1dbdc23",
+        "n": "Durazno en trozos Vanesa 10 kg"
+       },
+       {
+        "id": "836fb617-629e-45ac-a072-27351e7530b5",
+        "n": "Frutilla en trozos para sembrar Vanesa 10 kg"
+       },
+       {
+        "id": "86802cf5-b00b-4bdc-9275-e880d973ea68",
+        "n": "Frutilla entera para sembrar Vanesa 10 kg"
+       },
+       {
+        "id": "6ef3cfa8-3f11-4e98-b916-7cb792003ee2",
+        "n": "Frutilla pulpa molida Vanesa 10 kg"
+       },
+       {
+        "id": "3878189e-5b4a-4890-94fc-ea6e3fd1dc75",
+        "n": "Frutilla tamizada Vanesa 10 kg"
+       },
+       {
+        "id": "15a50602-2485-41b7-897a-7f988232f34b",
+        "n": "Frutos del bosque Pehuenia 15 kg"
+       },
+       {
+        "id": "213837b6-bfad-4e05-a443-5744df395b36",
+        "n": "Higos para sembrar Vanesa 5 kg"
+       },
+       {
+        "id": "db530ae2-b772-4a8d-9265-d1a17068f56c",
+        "n": "Pulpa de frutilla entera Vanesa 10 kg"
+       },
+       {
+        "id": "9da50b7f-da5c-4da3-b93d-7f24f4bf9947",
+        "n": "Quinotos partidos para sembrar Vanesa 5 kg"
+       }
+      ]
+     },
+     {
+      "t": "Coberturas y baños de chocolate",
+      "items": [
+       {
+        "id": "eede5e83-5e5b-4da8-a5d1-bedbd8dc1ba6",
+        "n": "Baño de moldeo blanco CHI 20 kg"
+       },
+       {
+        "id": "289fa731-d097-4286-b090-e4779723f784",
+        "n": "Baño de moldeo con leche CHI 20 kg"
+       },
+       {
+        "id": "0cfd21fa-0cc7-4751-b505-b7ae71dd7de7",
+        "n": "Baño granizado semiamargo especial CHI 10 kg"
+       },
+       {
+        "id": "0abdbe7f-b8fc-43ba-a3a3-19c3c1aa8427",
+        "n": "Baño semiamargo para palito especial CHI 10 kg"
+       },
+       {
+        "id": "ce786d4f-3025-4576-933c-fa0dbe605a81",
+        "n": "Cacao Gerkens 25 kg"
+       },
+       {
+        "id": "cb0c0dc3-a64b-45a4-8a74-18414b4ff634",
+        "n": "Cobertura amarga 70% cacao CHI 20 kg"
+       },
+       {
+        "id": "146b3884-d02c-4f70-8ecd-4227909d8196",
+        "n": "Cobertura blanca CHI 20 kg"
+       },
+       {
+        "id": "33268c39-75e2-4a4a-bf4d-1cb057558331",
+        "n": "Cobertura con leche CHI 20 kg"
+       },
+       {
+        "id": "dfa4dbda-8ef3-4f0c-a51a-0bc94073eeed",
+        "n": "Cobertura semiamarga CHI 20 kg"
+       }
+      ]
+     },
+     {
+      "t": "Chips, crocantes y decoración",
+      "items": [
+       {
+        "id": "fd2b83da-92fb-4375-aa63-13fc7f678241",
+        "n": "Almendra bañada en chocolate CHI 7 kg"
+       },
+       {
+        "id": "56ad0956-62dc-4d96-a410-318acbc73507",
+        "n": "Botón relleno de dulce de leche 5 kg"
+       },
+       {
+        "id": "915b7818-9aa7-42e0-b047-7bd03036f70e",
+        "n": "Chip blanco CHI 5 kg"
+       },
+       {
+        "id": "5801aad8-b5f1-43c2-a157-6400fa022d81",
+        "n": "Chip semiamargo CHI 7 kg"
+       },
+       {
+        "id": "37927556-55a2-4336-bacf-0aeec41fdf5b",
+        "n": "Chocolate blanco en trocitos 14 kg"
+       },
+       {
+        "id": "68940db4-1bdc-4f84-98c9-d3db14493c27",
+        "n": "Chocolate marroc para sembrar 14 kg"
+       },
+       {
+        "id": "0eb2c09e-1f4b-4e28-9684-fc74c20aa19c",
+        "n": "Chocolate marroc para sembrar caja térmica 8 kg"
+       },
+       {
+        "id": "6ace1723-f53c-42ff-8c73-32f067841acd",
+        "n": "Crocante de maní sabor almendra Caviwa 15 x 1 kg"
+       },
+       {
+        "id": "c6654401-a1fb-4bda-8013-ecab55a7f081",
+        "n": "Galletita Dale Black (tipo Oreo) 3 kg"
+       },
+       {
+        "id": "4e3c1b8c-5b08-4ffe-9f54-b810bcc39553",
+        "n": "Galletita Tapi Black (tapita mini) 4 kg"
+       },
+       {
+        "id": "b9ca4503-42d9-4051-b943-e2cf3dd54d91",
+        "n": "Kinder chocolate 12 kg"
+       },
+       {
+        "id": "352745f2-b4ef-48cb-942b-aed0f0eeaaed",
+        "n": "Lentejas de chocolate CHI 7 kg"
+       },
+       {
+        "id": "9fb19ef3-a4e6-4fc6-b64b-4fbaa6557559",
+        "n": "Mantecol 10,5 kg"
+       },
+       {
+        "id": "59886ef4-a2dd-49da-854b-59acf466e430",
+        "n": "Microgalletitas blancas CHI 5 kg"
+       },
+       {
+        "id": "75949125-e564-4fd2-b39c-c48238864b3e",
+        "n": "Microgalletitas semiamargas CHI 5 kg"
+       }
+      ]
+     }
+    ]
+   }
+  ]
  },
  {
   "id": "fiambrerias",
@@ -24,7 +871,346 @@
   "n": 11,
   "fecha": "2026-10-17",
   "rubro": "Fiambrería",
-  "v": 1
+  "v": 1,
+  "t1": "ESPECIAL",
+  "t2": "FIAMBRERÍAS",
+  "lema": "Fiambres y quesos por kilo",
+  "icono": "🧀",
+  "paginas": [
+   {
+    "tipo": "fotos",
+    "titulo": "Jamón cocido",
+    "sub": "Por kilo · pieza entera",
+    "items": [
+     {
+      "id": "04098ba4-4af2-4c74-854f-85b362b70bef",
+      "n": "Jamón Cocido Mediterráneo Frigorífico"
+     },
+     {
+      "id": "aaac614a-2516-46c8-b7d6-df545e3259e9",
+      "n": "Jamón Cocido Rectangular Sol del Pilar"
+     },
+     {
+      "id": "178f7270-a9bf-44e0-94b0-a3d4cb411f55",
+      "n": "Jamón Cocido Natural 1/2 Caña con Cuero Sol del Pilar"
+     },
+     {
+      "id": "426add51-16b8-4c69-b435-3893fe0492fb",
+      "n": "Fiambre J Cerdo Cocido Ch. Calchaqui"
+     },
+     {
+      "id": "73010385-871e-4718-b356-93e21126ce02",
+      "n": "Jamón Cocido Tradicional 42"
+     },
+     {
+      "id": "2197a1ea-9caa-4b83-b6a6-b690bb9c6ee8",
+      "n": "Jamón Cocido Bocatti"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Jamón crudo",
+    "sub": "Por kilo · pieza entera",
+    "items": [
+     {
+      "id": "cffe23c4-f1bd-49b9-85a4-e1d27eafa066",
+      "n": "Jamón Crudo con Cuero Casapueblo 1/2h."
+     },
+     {
+      "id": "4819b7fe-26cd-427e-8671-9fffcea81b70",
+      "n": "Jamón Crudo sin Cuero Casapueblo 1/2h."
+     },
+     {
+      "id": "1c6cfe55-6981-4fb0-bc6f-c5374301f826",
+      "n": "Jamón Crudo Chucuten"
+     },
+     {
+      "id": "e7b3dd65-4f60-49a4-8910-4175dc8df407",
+      "n": "Jamón Crudo Parma. Paladini"
+     },
+     {
+      "id": "fb5ba9b9-4b89-4d37-9318-ac5ad2265bfe",
+      "n": "Jamón Crudo Serrano 42"
+     },
+     {
+      "id": "7c67e3b3-8ea4-4d92-bbd9-14758946b149",
+      "n": "Jamón Crudo Parma la Octava"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Salames y salamines",
+    "sub": "Por kilo · pieza entera",
+    "items": [
+     {
+      "id": "a6dfd85a-e2c6-4205-ac63-a978d343e501",
+      "n": "Salame Milan Luvianka"
+     },
+     {
+      "id": "90f5782d-8808-4aca-bfb8-648647f21157",
+      "n": "Salame Milan el Nahuel"
+     },
+     {
+      "id": "aae991d3-ee58-4939-b605-a54353073af6",
+      "n": "Salame Tipo Cantimpalo la Casona"
+     },
+     {
+      "id": "0f19876b-2dd2-4feb-b55c-6a9452ed4662",
+      "n": "Longaniza Baston 42"
+     },
+     {
+      "id": "12c1666b-ec47-46e8-a3e8-2e6bb7dcbb7d",
+      "n": "Salame Baston Al Vacio Peña"
+     },
+     {
+      "id": "fae8b239-b065-4de9-82dd-d23bb1f66e94",
+      "n": "Salame de Cerdo Montesano la Octava"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Mortadela y fiambres cocidos",
+    "sub": "Por kilo · pieza entera",
+    "items": [
+     {
+      "id": "770c8519-f4fb-480e-aa65-2d493d2fa57b",
+      "n": "Mortadela Bocha Grassetto"
+     },
+     {
+      "id": "27fbfe80-82ca-4e1a-bf76-4d6ac8b4b7f6",
+      "n": "Mortadela Bocha Sintetica 42"
+     },
+     {
+      "id": "2f990184-63d5-4d40-b728-a5166eadcfa7",
+      "n": "Mortadela con Pistachio Bocatti"
+     },
+     {
+      "id": "7bd4bfd8-aba8-4b65-8367-8c09a417f32a",
+      "n": "Fiambre de Pata Don Alejandro"
+     },
+     {
+      "id": "48a75c05-3586-47e3-b280-2741b620b0e1",
+      "n": "Pernil de Cerdo 1/2h la Residencia"
+     },
+     {
+      "id": "456a9444-f1ce-40b2-bf44-5cf460aa7137",
+      "n": "Fiambre P Cerdo Cocido Gde. Calchaqui"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Bondiola, lomo y panceta",
+    "sub": "Por kilo · pieza entera",
+    "items": [
+     {
+      "id": "a0ed81dc-c12a-40b0-8fd9-4c8a1d9bf2d1",
+      "n": "Bondiola Franja de Oro"
+     },
+     {
+      "id": "35a9e484-f370-4b2b-b137-0f5d0b7d33c2",
+      "n": "Bondiola Al Vacio la Octava"
+     },
+     {
+      "id": "0f0601c5-20f2-422c-90e7-7905cde7a5e8",
+      "n": "Lomo Horneado la Octava"
+     },
+     {
+      "id": "52470743-34cd-458e-9d79-a6e9fb3d7f6b",
+      "n": "Lomo Horneado Bocatti"
+     },
+     {
+      "id": "6b180561-6450-4323-b365-aa04ef43b05a",
+      "n": "Panceta Ahumada Mitades Luvianka"
+     },
+     {
+      "id": "710d7b84-0b86-474c-8a70-03e28a563433",
+      "n": "Pastrón Paladini"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Salchichón y queso de cerdo",
+    "sub": "Por kilo · pieza entera",
+    "items": [
+     {
+      "id": "1136a5d8-634d-4e35-96ea-a6d59ac63114",
+      "n": "Salchichón Primavera Luvianka"
+     },
+     {
+      "id": "66b20735-f566-4721-b1a3-aaf700158a2f",
+      "n": "Salchichón con Jamón Luvianka"
+     },
+     {
+      "id": "fd6a0d4c-b19f-4ef1-b253-fced1008d53d",
+      "n": "Queso de Cerdo la Octava"
+     },
+     {
+      "id": "282d5d89-2575-49ab-a4b3-486542fbe9cb",
+      "n": "Salchichón con Jamón la Octava"
+     },
+     {
+      "id": "49d1dd47-0a0d-47fd-ad64-a4b1ef513023",
+      "n": "Salchichón con Jamón 42"
+     },
+     {
+      "id": "2892ea93-9cd2-4713-aa5a-38f0163ea84e",
+      "n": "Queso de Cerdo 42"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Quesos duros",
+    "sub": "Reggianito, sardo, parmesano y más",
+    "items": [
+     {
+      "id": "a9d1de26-fd38-4114-8543-cd4816e693cf",
+      "n": "Queso Sardo Fresco"
+     },
+     {
+      "id": "587a98dd-68c7-4f09-98c7-0ee3259552f7",
+      "n": "Goya sin P Exportacion Melincue"
+     },
+     {
+      "id": "6cffb782-fdbc-41ef-882f-0b1a44801e42",
+      "n": "Sardo Bloque Melincue"
+     },
+     {
+      "id": "aa1eb9cc-4ed1-493f-9170-8eacef5f5357",
+      "n": "Reggianito Pintado Vaquero"
+     },
+     {
+      "id": "790f2573-e3b7-4c60-b0bb-1ff0f4840d39",
+      "n": "Pepato Al Vacío Migue"
+     },
+     {
+      "id": "46a0b85f-eb88-461c-a7ac-dc099765b13c",
+      "n": "Grana Padano 1/4h. Migue"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Quesos semiduros",
+    "sub": "Danbo, tybo, pategrás, fontina y más",
+    "items": [
+     {
+      "id": "70967af1-e70e-4f7d-8f3a-781fb4e2668e",
+      "n": "Danbo Sandwich la Tarantela"
+     },
+     {
+      "id": "7c6fe854-c2c8-457f-8f92-7fb4734e90fc",
+      "n": "Queso Tybo Horma Punta del Agua"
+     },
+     {
+      "id": "3e56eebd-b316-4f70-9500-c9dd3fbe70ff",
+      "n": "Queso Fynbo Punta del Agua"
+     },
+     {
+      "id": "ad73d06e-e509-40f2-b190-60488f2e492c",
+      "n": "Queso Holanda Estilo Artesanal"
+     },
+     {
+      "id": "f27d39dc-af02-4064-b391-1ed735bdd935",
+      "n": "Queso Criollo Estilo Artesanal"
+     },
+     {
+      "id": "d58252ed-2323-43b0-bd4b-1dce42abd813",
+      "n": "Queso Fontina Tradicional Horma Sancor"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Quesos blandos",
+    "sub": "Cremosos y port salut",
+    "items": [
+     {
+      "id": "35e0a841-0732-428e-8207-6bab787d1419",
+      "n": "Queso Cremoso Clarita"
+     },
+     {
+      "id": "089a8fe4-0b05-4545-a5b7-f534f18b4f6f",
+      "n": "Queso Cremoso Arroyo Cabral"
+     },
+     {
+      "id": "cc3ddfe9-dec1-4fd9-bb75-f51b0fca15b7",
+      "n": "Cremoso Horma Vacalin"
+     },
+     {
+      "id": "2effa90b-70d4-4035-a71a-7b53d2b3788a",
+      "n": "Por Salut Horma Vacalin"
+     },
+     {
+      "id": "dbb463a4-c530-4f74-a8c2-3cf73e0d63ef",
+      "n": "Queso Por Salut sin Sal Barraza"
+     },
+     {
+      "id": "c89807f5-897c-4ef5-86aa-9e25bf53c49c",
+      "n": "Por Salut Light Horma Vacalin"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Mozzarella y provoletas",
+    "sub": "Para pizzerías y la parrilla",
+    "items": [
+     {
+      "id": "744b3b43-8ae6-45fd-a413-38c5dd6b94d1",
+      "n": "Mozzarella x 3 kg Espacone"
+     },
+     {
+      "id": "adae001e-7a05-4ce1-a0d0-286089075665",
+      "n": "Muzza Plancha 20 kg Barraza"
+     },
+     {
+      "id": "fd553c7f-04b4-4ed9-9237-305c9735e08a",
+      "n": "Muzzarella en Barra Melincue"
+     },
+     {
+      "id": "89d8082e-e9e5-4894-a9f8-af5b74209795",
+      "n": "Provoleta Vaquero"
+     },
+     {
+      "id": "00fadffe-54f0-470b-9d3a-1bb87d09248d",
+      "n": "Provoleta 1/2 Vaquero"
+     },
+     {
+      "id": "4c37dc62-b46e-490f-a0a7-d076dc3f503d",
+      "n": "Provoleta Gruesa Nonna Pia"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Quesos azules",
+    "sub": "Roquefort y azules",
+    "items": [
+     {
+      "id": "afd1abb9-d590-4e66-b96c-a99c64f2080c",
+      "n": "Queso Azul Emperador"
+     },
+     {
+      "id": "dc87ddc0-34ea-4f82-979c-db078e35696b",
+      "n": "Queso Azul Horma San Gotardo"
+     },
+     {
+      "id": "0c5b1e31-06a7-4635-a481-f6c9a0aec59b",
+      "n": "Queso Azul la Quesera"
+     },
+     {
+      "id": "729b44a8-99d5-4815-9f33-7204e84bbb2f",
+      "n": "Queso Azul Horma Sancor"
+     }
+    ]
+   }
+  ]
  },
  {
   "id": "supermercados",
@@ -33,6 +1219,353 @@
   "n": 11,
   "fecha": "2026-10-17",
   "rubro": "Supermercado",
-  "v": 1
+  "v": 1,
+  "t1": "ESPECIAL",
+  "t2": "SUPERMERCADOS",
+  "lema": "Almacén y lácteos por caja",
+  "icono": "🛒",
+  "paginas": [
+   {
+    "tipo": "fotos",
+    "titulo": "Aceites, vinagres y sal",
+    "sub": "Para la góndola",
+    "items": [
+     {
+      "id": "36f05d1a-44dc-4570-955a-6432f3f7445b",
+      "n": "Sachet Vacuna 500 g Esani"
+     },
+     {
+      "id": "f2f85b15-f417-4e22-9a30-f58ae9321da5",
+      "n": "Aceite Oliva Botella 500 ml la Toscana"
+     },
+     {
+      "id": "814f0164-1b40-4cb4-b758-05044a41086b",
+      "n": "Vinagre Alcohol x 500 ml Marolio"
+     },
+     {
+      "id": "1b68c8df-2a31-45bd-9ca7-c88f7ebd15c8",
+      "n": "Vinagre Alcohol x 5 L Menoyo"
+     },
+     {
+      "id": "9527b7e9-5327-45b3-a5cf-9aec3300ad9e",
+      "n": "Celusal Fina Salero 100 g"
+     },
+     {
+      "id": "4e00b386-2b4d-43b9-87a1-cb2b6c4f8234",
+      "n": "Genser Fina Salero 300 g"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Arroz y harinas",
+    "sub": "Para la góndola",
+    "items": [
+     {
+      "id": "f0ccc264-918f-4edc-9e4a-52f44b447e64",
+      "n": "Arroz Largo F. x 500 g Marolio"
+     },
+     {
+      "id": "05c8ea08-fa06-4c78-a17d-2833ef02f5fb",
+      "n": "Arroz Ala Doble Carolina 500 g"
+     },
+     {
+      "id": "7a8d5852-f67a-4847-9dee-39f5e46456d5",
+      "n": "Arroz Ala Doble Carolina 1 kg"
+     },
+     {
+      "id": "701a6d94-e8c4-4ce5-8ff2-702b667dc158",
+      "n": "Polenta x 500 g Molinos Ala"
+     },
+     {
+      "id": "6406357d-8ca8-4f14-a583-aab76c45d1b2",
+      "n": "Semola Vitina Clasica 250 g"
+     },
+     {
+      "id": "72c17479-8f3d-4015-a2c1-ad3b09bbc575",
+      "n": "Semola Vitina Clasica 500 g"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Yerba mate",
+    "sub": "Las que más salen",
+    "items": [
+     {
+      "id": "7eb11e89-beb0-44fd-8512-e9552d3259a7",
+      "n": "Yerba con Palo Amanda 1/4 Kg."
+     },
+     {
+      "id": "f1e434dc-bcd2-4db7-a903-6624f2b13608",
+      "n": "Yerba con Palo Chamigo 1/2 Kg."
+     },
+     {
+      "id": "f754b0fd-15e0-4f5a-a973-5bfc67aa225b",
+      "n": "Yerba Bcp Mañanita 1/2 Kg."
+     },
+     {
+      "id": "950a6a3b-aaae-4cec-a2db-c6a72bf4bb9f",
+      "n": "Yerba Monte x 1/2 kg la Merced"
+     },
+     {
+      "id": "15f01e0b-0852-4ffd-bbd4-0b1551d25542",
+      "n": "Yerba Campo x 1/2 kg la Merced"
+     },
+     {
+      "id": "8bb9ea5f-f7d9-4c5f-ba40-61f4636c2baf",
+      "n": "Yerba Canarias 1 Kg."
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Tomate y conservas",
+    "sub": "Para la góndola",
+    "items": [
+     {
+      "id": "fac49bd0-dbf7-4220-8ff5-0a43c7b2e09f",
+      "n": "Tomate Triturado Gandara 12x520 g"
+     },
+     {
+      "id": "5097bafb-753d-4988-b814-500658084bec",
+      "n": "Salsa Fileto x 340 g Molto Tetra"
+     },
+     {
+      "id": "fde55d04-bcdc-451e-939c-93715209e6fa",
+      "n": "Triturado Molto 960 Botella"
+     },
+     {
+      "id": "bd770648-36fb-433a-8f31-31d3d1a5bab7",
+      "n": "Arvejas x 340 g Marolio"
+     },
+     {
+      "id": "db1bc516-b70f-4b44-964e-0b79be0027d2",
+      "n": "Morrones x 750 g Finca de Santiago"
+     },
+     {
+      "id": "355c67d6-354a-4677-b634-2761452724bc",
+      "n": "Sardina Buen Pique x 125 g la Banda"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Aderezos y mayonesa",
+    "sub": "Para la góndola",
+    "items": [
+     {
+      "id": "cb18ecec-166e-4bf5-a9dc-37818ff0e6d7",
+      "n": "Mayonesa Natura 125 g x 20 Und."
+     },
+     {
+      "id": "9114c5b6-009d-4576-bf4f-9d7d701c5d1d",
+      "n": "Mayonesa Molto D/p x 241 g"
+     },
+     {
+      "id": "5aaca9c0-051a-4a6d-a042-deb4d9a4f334",
+      "n": "Mayonesa Natura 1 kg"
+     },
+     {
+      "id": "8031212d-c2da-4e65-8256-ff78c320a8f4",
+      "n": "Mostaza Natura x 250 g D/p"
+     },
+     {
+      "id": "c755af8c-e413-4f88-95d9-c4fba8cf4757",
+      "n": "Salsa Chimichurri Tahiti 270 g"
+     },
+     {
+      "id": "bd843571-c6af-4712-892e-a91ced3d48a9",
+      "n": "Aderezo Caesar x 350 g Dos Anclas"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Leches",
+    "sub": "Heladera y larga vida",
+    "items": [
+     {
+      "id": "75976487-2960-40ca-8ad1-1c50758e560a",
+      "n": "Chocolatada 200 Ml(24) Apostoles"
+     },
+     {
+      "id": "fc85d264-e5e1-42a3-bf00-9690c146b642",
+      "n": "Leche Des. Larga Vida Gandara"
+     },
+     {
+      "id": "8513130d-36ad-4d0e-a9a9-b2214964d6cf",
+      "n": "Leche Entero Larga Vida Gandara"
+     },
+     {
+      "id": "fb8d948b-a328-46f0-9c95-b09ce226bd1e",
+      "n": "Leche Larga Vida Entera Manfrey"
+     },
+     {
+      "id": "cb4c61b4-004f-4730-881e-2715c38b8b81",
+      "n": "Chocolatada 1 L Apostoles"
+     },
+     {
+      "id": "f67221da-9077-43c5-bb55-dad501c0d0bc",
+      "n": "Lpd Sancor 5 g Stick x 30"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Yogures",
+    "sub": "Heladera",
+    "items": [
+     {
+      "id": "6863b7e1-9528-49ae-b764-5c3973754750",
+      "n": "Batido Entero Vainilla 120 g Cremigal"
+     },
+     {
+      "id": "768dfca5-8a71-4fb2-9c07-95440a262dbb",
+      "n": "Yogur Cereal Frutilla 155 g Cremigal"
+     },
+     {
+      "id": "40bb8671-11b2-4c3b-a1e0-77856e9bca2b",
+      "n": "Yogur con Cereal x 160 g Gandara"
+     },
+     {
+      "id": "da7f1aba-a88f-4934-94f9-d096cfc5fe03",
+      "n": "Bebible Descremado Vainilla 900 Cremigal"
+     },
+     {
+      "id": "e75e52ab-2cb6-4702-b67c-9436dfb8f85c",
+      "n": "Bebible Frutilla Gandara 900 g"
+     },
+     {
+      "id": "4ef10bb2-a3ed-455e-bddf-4a6c0b15aa66",
+      "n": "Yogur Griego Frambuesa Talos"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Manteca, crema y queso untable",
+    "sub": "Heladera",
+    "items": [
+     {
+      "id": "5bd4baca-07d2-43c3-9ee2-e16f00315ae4",
+      "n": "Manteca 100 g Cotampo(20)"
+     },
+     {
+      "id": "5240179f-da2d-45d4-9a3d-81c66154f539",
+      "n": "Manteca Multivitamina 500 g"
+     },
+     {
+      "id": "79e93db8-f0c8-4e0d-8111-002af34fac1b",
+      "n": "Crema para Batir 24x200 Ml. Apostoles"
+     },
+     {
+      "id": "71486358-5e2d-414b-bc6f-46c42e764c17",
+      "n": "Chantilly 250 g Tonadita"
+     },
+     {
+      "id": "e754217d-d739-48a7-be59-1f4932efb4c1",
+      "n": "Queso 180 g Patagonia"
+     },
+     {
+      "id": "0d218b68-1e2d-4ed0-961b-a5991cf23fc6",
+      "n": "Queso Original 3 kg Sancor Mendicrim"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Dulce de leche y mermeladas",
+    "sub": "Desayuno y merienda",
+    "items": [
+     {
+      "id": "36190876-0d36-4524-8260-ca1ba9b76d13",
+      "n": "Dulce de Leche x 250 g Punta del Agua"
+     },
+     {
+      "id": "7f403f5e-146f-4094-b2e0-9887d1c0d2b2",
+      "n": "Dulce de Leche Pote 400 g Sancor"
+     },
+     {
+      "id": "fa0ded7f-6c89-4ee7-832e-bac243ea7577",
+      "n": "Dulce de Leche Postre x 700 g Esnaola"
+     },
+     {
+      "id": "62c62ed9-dc9a-4c47-a217-1559d4f46837",
+      "n": "Mermelada Damasco x 420 Orieta"
+     },
+     {
+      "id": "2d86f2f3-6444-42d9-afd2-4ac35af00c5a",
+      "n": "Mermelada Damasco Light 390 g Cormillot"
+     },
+     {
+      "id": "b5a00ae3-5652-4ab8-957f-b41f68133db2",
+      "n": "Dulce Frutilla Frasco x 390 g Esnaola"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Galletas, café y snacks",
+    "sub": "Desayuno y merienda",
+    "items": [
+     {
+      "id": "ad366553-0023-4501-a98f-b2a65a27383e",
+      "n": "Tostadas de Arroz sin Sal x 140 g Libera"
+     },
+     {
+      "id": "abcbd502-585d-45fc-a3e5-7977e1661f79",
+      "n": "Galletitas Sándwich 505 g x 5 Marolio"
+     },
+     {
+      "id": "6a70115c-3217-44fb-80cc-0e0267b142b4",
+      "n": "Cacao Chocolino x 180 g la Virginia"
+     },
+     {
+      "id": "64030743-0369-40b5-9a14-177d123da47d",
+      "n": "Café Arlistan 170 g"
+     },
+     {
+      "id": "d6bc5eb1-616c-447c-b674-3680585dd7b7",
+      "n": "Snacks Picante 80 g Molinos Ala"
+     },
+     {
+      "id": "7ff4ac42-226b-4502-aa0a-83d99a07970b",
+      "n": "Hummus Guacamole Kamar 230 g"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Queso rallado, especias e higiene",
+    "sub": "Para completar la góndola",
+    "items": [
+     {
+      "id": "5916ca23-bdeb-4812-8721-ac672856ec2c",
+      "n": "Rallado 20 x 40 g la Quesera"
+     },
+     {
+      "id": "3be36557-0051-4da6-a4bc-b27e5a7bd786",
+      "n": "Rallado x 1 kg la Quesera"
+     },
+     {
+      "id": "ee311bef-8bc0-4211-9f4a-6fb9770535a2",
+      "n": "Adobo para Pizza Sobre 25 g Celusal"
+     },
+     {
+      "id": "84ac316f-d458-40b6-995f-110384c0c600",
+      "n": "Celusal Parrilla Estuche 1 Kg."
+     },
+     {
+      "id": "fb1a4d93-2d4f-4783-a5a0-d8257bc35dff",
+      "n": "Dental Odol x 70 g x 12u. Dientes Blancos"
+     },
+     {
+      "id": "2070b847-df94-446f-ab32-faf8735d6622",
+      "n": "Cepillo Dental Maxwhite Twin x 12u. Colgate"
+     }
+    ]
+   }
+  ]
  }
 ]
