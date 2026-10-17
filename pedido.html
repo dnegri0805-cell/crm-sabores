@@ -758,6 +758,10 @@ function lista(){
   if(ws.length&&!L.length&&filtro.trim().length>=3)anotarBusqueda(filtro);
   if(orden){const pk=p=>{if(esKgP(p.id))return puP(p,1);const k=kgDe(p);return k&&k.k>0?puP(p,1)/k.k:Infinity};
     L=L.slice().sort(orden=='pa'?(a,b)=>puP(a,1)-puP(b,1):orden=='pd'?(a,b)=>puP(b,1)-puP(a,1):orden=='kg'?(a,b)=>pk(a)-pk(b):(a,b)=>a.d.localeCompare(b.d,'es'))}
+  else if(!ws.length){/* Destacados: combos, después lo que hay con foto, lo más pedido primero; sin stock al final */
+    const T=topIds(),rk={};T.forEach((id,i)=>rk[id]=i);const so=EST.social||{};
+    const k=p=>[p.combo?0:1,p.ss?1:0,p.img?0:1,rk[String(p.id)]??999,-(+so[p.id]||0)];
+    L=L.slice().sort((a,b)=>{const x=k(a),y=k(b);for(let i=0;i<x.length;i++)if(x[i]!==y[i])return x[i]-y[i];return a.d.localeCompare(b.d,'es')})}
   {const t=$('#rtit');if(t)t.remove();if(rub&&!ws.length){const n=base.length;$('#l').insertAdjacentHTML('beforebegin',`<div class="rtit" id="rtit"><button id="rtb" aria-label="Volver a todo">←</button><b>${RUB_ICO[rub]||''} ${esc(fam?cap(fam):rub)}</b><small>${n} ${n==1?'producto':'productos'}</small><button id="rtc" aria-label="Ver mi pedido">🛒${Object.keys(car).length?`<i>${Object.keys(car).length}</i>`:''}</button></div>`);$('#rtc').onclick=()=>$('#bv')&&!$('#bar').hidden?$('#bv').click():toast('Tu pedido está vacío. Tocá Agregar en los productos.');$('#rtb').onclick=()=>{if(fam){fam='';lista();$$('[data-fm]').forEach(x=>x.classList.toggle('on',!x.dataset.fm))}else{rub='';pintar()}}}}
   if(vista=='grilla'){grilla(L,ws);return parecHint(parec)}
   const V=L.slice(0,lim);
