@@ -400,10 +400,11 @@ function armarCombos(){CB=(C.combos||[]).map(c=>{const it=(c.items||[]).map(x=>(
 const escala=t=>{let p=0;for(const e of (C?.escalas||[]))if(t>=+e.desde)p=Math.max(p,+e.pct);return p};
 const proxEsc=t=>(C?.escalas||[]).slice().sort((a,b)=>a.desde-b.desde).find(e=>t<+e.desde)||null;
 const totalFinal=()=>{const t=totalCar();return t*(1-escala(t)/100)};
+const envioC=b=>C?.envio&&+C?.costo_envio>0&&b>0&&b<C.envio?+C.costo_envio:0;
 function progresoHTML(t,full){const e=escala(t),nx=proxEsc(t),out=[];
   if(nx){const pc=Math.min(100,t/nx.desde*100);out.push(`<div class="pg"><div class="pgt">${e?'<b class="ok">✓ '+nf(e)+' % de descuento</b> · ':''}Te faltan <b>${$m(nx.desde-t)}</b> para el <b>${nf(nx.pct)} % de descuento</b></div><div class="pgb"><i style="width:${pc}%"></i></div></div>`)}
   else if(e)out.push(`<div class="pg"><div class="pgt"><b class="ok">✓ Tenés ${nf(e)} % de descuento por monto</b></div></div>`);
-  if(C?.envio){const tf=t*(1-e/100);out.push(tf>=C.envio?`<div class="pg"><div class="pgt"><b class="ok">🚚 ¡Tenés envío gratis!</b></div></div>`:`<div class="pg"><div class="pgt">🚚 Te faltan <b>${$m(C.envio-tf)}</b> para el envío gratis</div><div class="pgb"><i style="width:${Math.min(100,tf/C.envio*100)}%"></i></div></div>`)}
+  if(C?.envio){const tf=t*(1-e/100);out.push(tf>=C.envio?`<div class="pg"><div class="pgt"><b class="ok">🚚 ¡Tenés envío gratis!</b></div></div>`:`<div class="pg"><div class="pgt">🚚 Te faltan <b>${$m(C.envio-tf)}</b> para el envío gratis${+C.costo_envio>0?' <small>(si no, el envío cuesta '+$m(C.costo_envio)+')</small>':''}</div><div class="pgb"><i style="width:${Math.min(100,tf/C.envio*100)}%"></i></div></div>`)}
   if(full&&!PUB&&C?.desafio&&+C.desafio.meta>0&&+C.llevas<+C.desafio.meta){const tf=t*(1-e/100),f=+C.desafio.meta-(+C.llevas||0)-tf;
     out.push(f<=0?`<div class="pg"><div class="pgt"><b class="ok">🎯 ¡Con este pedido llegás al desafío del mes y ganás ${nf(C.desafio.puntos)} puntos!</b></div></div>`
       :`<div class="pg"><div class="pgt">🎯 Desafío del mes: te faltan <b>${$m(f)}</b> para ganar <b>${nf(C.desafio.puntos)} puntos</b></div><div class="pgb"><i style="width:${Math.min(100,((+C.llevas||0)+tf)/C.desafio.meta*100)}%"></i></div></div>`)}
@@ -821,7 +822,7 @@ function faqArmar(I){const F=I.faq||{},R=[],oc=F.ocultar||[],add=(k,p,r)=>{if(r&
   add('dias','¿Qué días entregan?',d);
   const mn=!PUB&&+C?.minimo?+C.minimo:+I.minimo||0;
   add('minimo','¿Hay pedido mínimo?',mn?`Sí, el pedido mínimo es de <b>${$m(mn)}</b>${(I.zonas||[]).some(z=>+z.minimo)&&PUB?' (en algunas zonas cambia, mirá los días de entrega)':''}.`:'No, no hay pedido mínimo.');
-  const ev=!PUB&&+C?.envio?+C.envio:+I.envio||0;if(ev||F.envio)add('envio','¿Cobran el envío?',ev?`El envío es <b>gratis desde ${$m(ev)}</b>.${F.envio?' '+esc(F.envio):''}`:esc(F.envio));
+  const ev=!PUB&&+C?.envio?+C.envio:+I.envio||0;if(ev||F.envio)add('envio','¿Cobran el envío?',ev?`🚚 El envío es <b>gratis desde ${$m(ev)}</b>.${+(FAQ?.costo_envio||C?.costo_envio)>0?' Si el pedido es menor, el envío cuesta <b>'+$m(FAQ?.costo_envio||C?.costo_envio)+'</b>.':''}${F.envio?' '+esc(F.envio):''}`:esc(F.envio));
   const fp=['💵 Efectivo al recibir'];if(I.pago)fp.push('🏦 Transferencia');if(I.mp)fp.push('💳 Mercado Pago (link de pago o QR)');
   add('pago','¿Cómo puedo pagar?',fp.join('<br>')+(F.pago?'<br>'+esc(F.pago):'')+(PUB?'':'<br>Los datos para transferir y el link de pago están en <b>Mi cuenta</b>.'));
   add('pedido','¿Cómo hago un pedido?',PUB?'Elegí los productos, tocá <b>Revisar pedido</b> y mandanos el pedido. Te confirmamos por WhatsApp. Si querés ser cliente, tocá <b>Quiero ser cliente</b>.':'Elegí los productos en este catálogo, tocá <b>Revisar pedido</b> y después <b>Enviar</b>. Te llega la confirmación por WhatsApp. Podés repetir tu último pedido con un toque.');
@@ -1007,7 +1008,7 @@ function grilla(L,ws){const busca=ws.length||marca;let html='',n=0;
     if(SU.length&&C.rubro)html+=`<div class="sur"><div class="sec-t"><h2>⭐ Lo más pedido en ${esc(C.rubro.toLowerCase())}</h2><small>negocios como el tuyo</small></div><div class="ofertas">${SU.map(tarjeta).join('')}</div></div>`;const O=P.filter(p=>promoP(p,0,true)).slice(0,14);if(O.length)html+=`<div class="ofb"><div class="sec-t"><h2>🔥 Ofertas</h2><small>${O.length} productos</small></div><div class="ofertas">${O.map(tarjeta).join('')}</div></div>`;
     if(CB.length)html+=`<div class="sec-t"><h2>🎁 Combos</h2><small>${CB.length} ${CB.length==1?'combo':'combos'} con descuento</small></div><div class="ofertas">${CB.map(tarjeta).join('')}</div>`;
     const NV=P.filter(p=>p.nv);if(NV.length)html+=`<div class="sec-t"><h2>✨ Novedades</h2><small>${NV.length} ${NV.length==1?'producto':'productos'}</small></div><div class="ofertas">${NV.map(tarjeta).join('')}</div>`;
-    if(C.escalas?.length)html+=`<div class="escb">💲 <b>Más comprás, más ahorrás:</b> ${C.escalas.slice().sort((a,b)=>a.desde-b.desde).map(e=>nf(e.pct)+' % desde '+$m(e.desde)).join(' · ')}${C.envio?' · 🚚 envío gratis desde '+$m(C.envio):''}</div>`}
+    if(C.escalas?.length)html+=`<div class="escb">💲 <b>Más comprás, más ahorrás:</b> ${C.escalas.slice().sort((a,b)=>a.desde-b.desde).map(e=>nf(e.pct)+' % desde '+$m(e.desde)).join(' · ')}${C.envio?' · 🚚 envío gratis desde '+$m(C.envio)+(+C.costo_envio>0?' (si no, '+$m(C.costo_envio)+')':''):''}</div>`}
   if(orden&&L.length){const V=L.slice(0,lim);html+=`<div class="grid" style="margin-top:12px">${V.map(tarjeta).join('')}</div>`+(V.length<L.length?`<button class="sec" data-mas2="1" style="width:100%;margin-top:8px">Ver más (${L.length-V.length})</button>`:'');n=lim}
   const G={};for(const p of L)(G[famDe(p)]=G[famDe(p)]||[]).push(p);
   for(const f of (orden?[]:familias())){const X=G[f];if(!X||n>=lim)continue;const V=X.slice(0,lim-n);n+=V.length;
@@ -1032,7 +1033,7 @@ function grilla(L,ws){const busca=ws.length||marca;let html='',n=0;
   $$('#l [data-mas2]').forEach(b=>b.onclick=()=>{lim+=60;lista()})}
 function cambiar(id,d){d=Math.abs(d)<paso(id)?Math.sign(d)*paso(id):d;const q=(car[id]||0)+d;q>0?car[id]=q:delete car[id];guardar();lista();barra()}
 function barra(){siempreTop();const n=Object.keys(car).length;$('#bar').hidden=!n;if(!n)return;
-  $('#bn').textContent=n+(n==1?' producto':' productos');$('#bt').textContent=$m(totalFinal());$('#bpg').innerHTML=progresoHTML(totalCar())+entBar()}
+  $('#bn').textContent=n+(n==1?' producto':' productos');$('#bt').textContent=$m(totalFinal()+envioC(totalFinal()));$('#bpg').innerHTML=progresoHTML(totalCar())+entBar()}
 $('#bv').onclick=revisar;
 function revisar(){
   const cerrar=()=>{h.remove();lista();barra()};
@@ -1053,7 +1054,7 @@ function revisar(){
         (k.nv?`<div class="fila"><span class="okt">${NIVI(C.nivel.n)} Nivel ${esc(C.nivel.n)} ${nf(k.nv)} %</span><span class="n okt">− ${$m(k.b1-k.bn)}</span></div>`:'')+
         (k.cu?`<div class="fila"><span class="okt">🎟️ Cupón ${esc(h._cup.codigo)} ${nf(k.cu)} % · <a href="#" id="cupx">quitar</a></span><span class="n okt">− ${$m(k.bn-k.b2)}</span></div>`:'')+
         (k.canje?`<div class="fila"><span class="okt">🏆 Canje de ${nf(k.pts)} puntos</span><span class="n okt">− ${$m(k.canje)}</span></div>`:'')+
-        `<div class="total"><span>Total</span><span>${$m(k.fin)}</span></div>`+progresoHTML(k.t,true)+
+        (envioC(k.fin)?`<div class="fila"><span>🚚 Envío <small style="color:var(--mu)">(gratis desde ${$m(C.envio)})</small></span><span class="n">${$m(envioC(k.fin))}</span></div>`:'')+`<div class="total"><span>Total</span><span>${$m(k.fin+envioC(k.fin))}</span></div>`+progresoHTML(k.t,true)+
         (C.hay_cupones&&!h._cup?`<div class="cupr"><input id="cupi" maxlength="20" placeholder="¿Tenés un cupón de descuento?" autocomplete="off" value="${esc(h._cupv||'')}"><button class="sec" id="cupb">Aplicar</button></div>`:'')+
         (!PUB&&C.puntos_activo&&+C.puntos>0?`<label class="ptchk"><input type="checkbox" id="ptc" ${h._pts?'checked':''}><span>Usar mis <b>${nf(C.puntos)} puntos</b> (valen ${$m(C.puntos*(+C.valor_punto||10))}; se puede pagar hasta el ${nf(+C.canje_max||20)} % del pedido)</span></label>`:'')})()}
       ${!PUB&&token?`<div class="fij"><label><input type="checkbox" id="fjc" ${h._fij?'checked':''}> 🔁 Repetir este pedido automáticamente</label>${h._fij?`<div class="dch">${['Lun','Mar','Mié','Jue','Vie','Sáb'].map((d,i)=>`<button data-fd="${i+1}" class="${(h._fd||[]).includes(i+1)?'on':''}">${d}</button>`).join('')}</div><small style="color:var(--mu)">Te lo armamos solo esos días, con los precios del momento. Lo pausás cuando quieras en "Mi cuenta".</small>`:''}</div>`:''}
@@ -1199,7 +1200,7 @@ function ficha(id){const p0=prod(id);if(!p0)return;if(p0.combo)return zoom(p0);
       ${q?`<p class="fsub">En tu pedido: <b>${nf(q)}${kg?' kg':''}</b> · ${$m(pu*q)}</p>`:''}`}
       ${token&&!PUB?`<button class="sec ffv" data-ffv="1">${esFav(p.id)?'★ Está en tus favoritos':'☆ Agregar a favoritos'}</button>`:''}
       ${fila('🤝 Combina con',CO)}${fila('Otras opciones de '+esc(cap(f)),OT)}
-      ${Object.keys(car).length?`<button class="prim fver" data-fv2="1">Ver mi pedido · ${$m(totalFinal())}</button>`:''}</div>`;
+      ${Object.keys(car).length?`<button class="prim fver" data-fv2="1">Ver mi pedido · ${$m(totalFinal()+envioC(totalFinal()))}</button>`:''}</div>`;
     const Q=s=>h.querySelector(s),upd=()=>{guardar();lista();barra();draw()};
     Q('.fx').onclick=cerrar;const z=Q('[data-zz]');if(z)z.onclick=()=>zoom(p);
     const s1=Q('[data-fs]');if(s1)s1.onclick=()=>{car[p.id]=(car[p.id]||0)+paso(p.id);if(!q)toast('Agregado: '+p.d);upd()};

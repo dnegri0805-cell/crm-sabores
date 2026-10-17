@@ -1537,7 +1537,7 @@ async function vPedidos(){
      S.pgan=S.items.length&&cst>0?`<br><small class="${pg<mm?'baja':'sube'}">💰 Ganancia estimada: ${$m(g)} (${nf(Math.round(pg*10)/10)} %)${pg<mm?' ⚠️ debajo de tu mínimo de '+nf(mm)+' %':''}</small>`:''}
     $('#p_tk')&&($('#p_tk').innerHTML=(S.ptk&&S.items.length?(t>=S.ptk?`<small class="sube">✓ Ya pasó su pedido promedio (${$m(S.ptk)})</small>`:`<small class="hint">🎯 Este cliente suele comprar <b>${$m(S.ptk)}</b> · vas ${$m(t)} · te faltan <b>${$m(S.ptk-t)}</b>${S.pfrec?' — mirá abajo lo que suele llevar':''}</small>`):'')+(S.perfil.rol=='dueno'?S.pgan||'':''));
     const esc_=escalaDe(t),nx=proxEscala(t),cu=(1-(1-(S.pcup?.pct||0)/100)*(1-(S.pniv?.pct||0)/100))*100;S.pesc=esc_;
-    $('#p_t').innerHTML=S.items.length?S.items.length+(S.items.length==1?' producto':' productos')+(esc_||cu?' · Subtotal '+$m(t)+(esc_?' · <span class="sube">Descuento por monto '+nf(esc_)+' %: −'+$m(t*esc_/100)+'</span>':'')+(S.pniv?' · <span class="sube">Nivel '+esc(S.pniv.n)+' −'+nf(S.pniv.pct)+' %</span>':'')+(S.pcup?' · <span class="sube">Cupón '+esc(S.pcup.codigo)+' −'+nf(S.pcup.pct)+' %</span>':'')+' · Total: '+$m(t*(1-esc_/100)*(1-cu/100)):' · Total: '+$m(t))+(nx?` <small class="hint">(faltan ${$m(nx.desde-t)} para el ${nf(nx.pct)} %)</small>`:''):'';
+    $('#p_t').innerHTML=S.items.length?S.items.length+(S.items.length==1?' producto':' productos')+(esc_||cu?' · Subtotal '+$m(t)+(esc_?' · <span class="sube">Descuento por monto '+nf(esc_)+' %: −'+$m(t*esc_/100)+'</span>':'')+(S.pniv?' · <span class="sube">Nivel '+esc(S.pniv.n)+' −'+nf(S.pniv.pct)+' %</span>':'')+(S.pcup?' · <span class="sube">Cupón '+esc(S.pcup.codigo)+' −'+nf(S.pcup.pct)+' %</span>':'')+' · Total: '+$m(t*(1-esc_/100)*(1-cu/100)+envioDe(t*(1-esc_/100)*(1-cu/100))):' · Total: '+$m(t+envioDe(t)))+(envioDe(t*(1-esc_/100)*(1-cu/100))?` <small class="hint">(incluye 🚚 envío ${$m(envioDe(t*(1-esc_/100)*(1-cu/100)))} · faltan ${$m(S.vcfg.envio-t*(1-esc_/100)*(1-cu/100))} para el envío gratis)</small>`:S.vcfg?.envio&&t?' <small class="sube">🚚 envío gratis</small>':'')+(nx?` <small class="hint">(faltan ${$m(nx.desde-t)} para el ${nf(nx.pct)} %)</small>`:''):'';
     const falta=S.stockOk&&S.inv?S.items.filter(i=>i.q>stk(i.p.producto_id).d).length:0;
     $('#p_av').innerHTML=falta?`<p class="aviso">${falta==1?'Un producto pide':falta+' productos piden'} más de lo disponible. Podés guardar igual; revisá antes de aprobar.</p>`:'';
     $$('.qty').forEach(e=>e.onchange=()=>{const i=S.items[e.dataset.k];i.q=i.cb?Math.max(1,+e.value||1):sbq(i.p.producto_id,Math.max(1,+e.value||1));setTimeout(drawI)});
@@ -1654,9 +1654,9 @@ async function listaPedidos(){
         :(sig?`<button data-sig="${o.id}">${sig[1]}</button>`:'');
       const fb=cerr?'':(f?`<span class="fac">Factura ${f.tipo} N° ${f.numero}</span>`:(o.estado=='pendiente'?'':`<button data-fa="${o.id}">Facturar</button>`));
       return `<div class="ped est-${o.estado}">
-        <div class="ped-top"><b>N° ${o.numero}</b> <a class="cli lnk" data-fc="${o.cliente_id}">${esc(o.clientes?.razon_social)}</a><span class="tot">${$m(o.total)}</span></div>${(o.fecha_entrega||o.entrega)||o.observaciones?`<div class="ped-nota"><small>${(o.fecha_entrega||o.entrega)?'📅 Entregar el '+fd((o.fecha_entrega||o.entrega)):''}${(o.fecha_entrega||o.entrega)&&o.observaciones?' · ':''}${o.observaciones?'📝 '+esc(o.observaciones):''}</small></div>`:''}
+        <div class="ped-top"><b>N° ${o.numero}</b> <a class="cli lnk" data-fc="${o.cliente_id}">${esc(o.clientes?.razon_social)}</a><span class="tot">${$m(o.total)}${+o.costo_envio>0?'<br><small>incluye 🚚 envío '+$m(o.costo_envio)+'</small>':''}</span></div>${(o.fecha_entrega||o.entrega)||o.observaciones?`<div class="ped-nota"><small>${(o.fecha_entrega||o.entrega)?'📅 Entregar el '+fd((o.fecha_entrega||o.entrega)):''}${(o.fecha_entrega||o.entrega)&&o.observaciones?' · ':''}${o.observaciones?'📝 '+esc(o.observaciones):''}</small></div>`:''}
         <div class="ped-acc"><span class="badge b-${o.estado}">${EST_TXT[o.estado]||o.estado}</span>${o.origen=='online'?'<span class="badge b-online">Online</span>':''}${o.grupo?'<span class="badge b-online">🤝 Grupo '+esc(o.grupo)+'</span>':''}${o.cliente_ausente?'<span class="badge b-cancelado">🚫 Avisó que no va a estar</span>':''}${prin}${fb}
-          <button class="alt wa" data-w="${o.id}">WhatsApp</button><button class="alt" data-pdf="${o.id}">🖨️ Imprimir</button>${['pendiente','aprobado'].includes(o.estado)&&!f?`<button class="alt" data-edp="${o.id}">✏️ Editar</button>`:''}${['pendiente','cancelado'].includes(o.estado)?'':`<button class="alt" data-rm="${o.id}">Remito</button>`}${['aprobado','en_preparacion','listo'].includes(o.estado)?`<button class="alt" data-flt="${o.id}">📦 Faltó algo</button>`:''}${o.foto_remito?`<button class="alt" data-vr="${o.id}">🧾 Firmado</button>`:''}${o.firma?`<button class="alt" data-rm="${o.id}">✍️ Firmado</button>`:''}${['en_reparto','entregado'].includes(o.estado)&&!o.firma?`<button class="alt" data-fi="${o.id}">✍️ Firma</button>`:''}${['en_reparto','entregado'].includes(o.estado)?`<button class="alt wa" data-av="${o.id}">📲 Avisar</button>`:''}${o.estado=='entregado'?`<button class="alt" data-dv="${o.id}">Devolución</button>`:''}${o.estado=='cancelado'?`<button class="alt" data-rea="${o.id}">♻️ Reactivar</button>`:''}
+          <button class="alt wa" data-w="${o.id}">WhatsApp</button><button class="alt" data-pdf="${o.id}">🖨️ Imprimir</button>${['pendiente','aprobado'].includes(o.estado)&&!f?`<button class="alt" data-edp="${o.id}">✏️ Editar</button>`:''}${['pendiente','cancelado'].includes(o.estado)?'':`<button class="alt" data-rm="${o.id}">Remito</button>`}${['aprobado','en_preparacion','listo'].includes(o.estado)?`<button class="alt" data-flt="${o.id}">📦 Faltó algo</button>`:''}${o.foto_remito?`<button class="alt" data-vr="${o.id}">🧾 Firmado</button>`:''}${o.firma?`<button class="alt" data-rm="${o.id}">✍️ Firmado</button>`:''}${['en_reparto','entregado'].includes(o.estado)&&!o.firma?`<button class="alt" data-fi="${o.id}">✍️ Firma</button>`:''}${['en_reparto','entregado'].includes(o.estado)?`<button class="alt wa" data-av="${o.id}">📲 Avisar</button>`:''}${o.estado=='entregado'?`<button class="alt" data-dv="${o.id}">Devolución</button>`:''}${o.estado=='cancelado'?`<button class="alt" data-rea="${o.id}">♻️ Reactivar</button>`:''}${!f&&!cerr&&o.estado!='entregado'&&+o.costo_envio>0?`<button class="alt" data-eb="${o.id}" data-ev="1">🚚 Bonificar envío</button>`:''}${!f&&!cerr&&o.estado!='entregado'&&o.envio_bonificado&&envioDe(+o.total)>0?`<button class="alt" data-eb="${o.id}" data-ev="0">🚚 Cobrar envío</button>`:''}
           <select class="mas" data-e="${o.id}" aria-label="Cambiar estado"><option value="">Más…</option>${ESTADOS.filter(e=>e!=o.estado).map(e=>`<option value="${e}">${e=='cancelado'?'Cancelar pedido':'Pasar a: '+EST_TXT[e]}</option>`).join('')}</select></div>${['pendiente','aprobado'].includes(o.estado)?`<div class="ped-ins" data-ins="${o.id}"></div>`:''}</div>`}).join('')
       :'<p><small>No hay pedidos en esta lista.</small></p>';
     const ped=id=>data.find(x=>x.id==id);insightsPedidos(data).catch(()=>{});
@@ -1672,6 +1672,9 @@ async function listaPedidos(){
       if(e=='cancelado'&&!confirm('¿Cancelar el pedido N° '+o.numero+'? Se libera la mercadería reservada.')){s.value='';return}
       if(await cambiarEstado(o,e))toast('Pedido N° '+o.numero+': '+EST_TXT[e]+'.');cargar()});
     $$('#pl [data-w]').forEach(b=>b.onclick=()=>enviarWA(ped(b.dataset.w)));
+    $$('#pl [data-eb]').forEach(b=>b.onclick=async()=>{const o=ped(b.dataset.eb),bo=b.dataset.ev=='1';b.disabled=true;
+      const{error}=await sb.from('pedidos').update({envio_bonificado:bo}).eq('id',o.id);if(error){b.disabled=false;return toast(/envio_bonificado/.test(error.message)?'Falta correr envio-costo.sql en Supabase.':error.message,1)}
+      toast('Pedido N° '+o.numero+(bo?': envío bonificado.':': se cobra el envío.'));cargar()});
     $$('#pl [data-fc]').forEach(a=>a.onclick=()=>{const c=S.clientes.find(x=>x.id==a.dataset.fc);if(c){S.tab='clientes';shell();fichaCliente(c)}});
     $$('#pl [data-pdf]').forEach(b=>b.onclick=()=>pedidoPDF(ped(b.dataset.pdf)));$$('#pl [data-edp]').forEach(b=>b.onclick=()=>{S.edPed=ped(b.dataset.edp);vPedidos();window.scrollTo(0,0)});
     $$('#pl [data-rm]').forEach(b=>b.onclick=()=>remitos([ped(b.dataset.rm)]));
@@ -1701,7 +1704,7 @@ async function enviarWA(o){
   const it=await itemsPedido(o);if(!it){w&&w.close();return}
   const c=S.clientes.find(x=>x.id==o.cliente_id)||{};
   const tot=it.reduce((a,i)=>a+i.st,0);
-  const txt=`*Sabores de mi País*\nPedido N° ${o.numero} · ${c.razon_social||''}\n\n`+it.map(i=>`• ${i.qt} x ${i.d} — ${$m(i.st)}${i.pr?' _('+i.pr+')_':''}`).join('\n')+`\n\n*Total: ${$m(o.total||tot)}*`+(S.linkMP?'\n\n💳 Podés pagarlo con Mercado Pago:\n'+S.linkMP:'')+`\n\n¡Gracias por tu compra!`;
+  const txt=`*Sabores de mi País*\nPedido N° ${o.numero} · ${c.razon_social||''}\n\n`+it.map(i=>`• ${i.qt} x ${i.d} — ${$m(i.st)}${i.pr?' _('+i.pr+')_':''}`).join('\n')+(+o.costo_envio>0?`\n• 🚚 Envío — ${$m(o.costo_envio)}`:'')+`\n\n*Total: ${$m(o.total||tot)}*`+(S.linkMP?'\n\n💳 Podés pagarlo con Mercado Pago:\n'+S.linkMP:'')+`\n\n¡Gracias por tu compra!`;
   const tel=telWA(c.telefono),url='https://wa.me/'+tel+'?text='+encodeURIComponent(txt);
   if(w)w.location.href=url;else location.href=url;
   if(!tel)toast('Este cliente no tiene teléfono cargado: elegí el contacto en WhatsApp.')
@@ -1767,7 +1770,7 @@ const tkCab=(tit,num,fecha)=>`<div class="c h">SABORES DE MI PAÍS</div>${S.telE
 
 function tkPedidoCuerpo(o,it,c,f,tot){return tkCab('Nota de pedido',o.numero,f)+`<div class="sep"></div><div class="b">${esc(c.razon_social||'')}</div>${dirCompleta(c)?`<div class="sm">${esc(dirCompleta(c))}</div>`:''}${(o.fecha_entrega||o.entrega)?`<div class="sm b">Entrega: ${fd((o.fecha_entrega||o.entrega))}</div>`:''}${o.observaciones?`<div class="sm">Nota: ${esc(o.observaciones)}</div>`:''}<div class="sep"></div>`+
     it.map(i=>`<div class="it"><div>${esc(i.d)}</div><div class="r sm"><span>${i.qt} × ${i.puT||$m(i.pu)}</span><span>${$m(i.st)}</span></div>${i.pr?`<div class="sm">Promo: ${esc(i.pr)}</div>`:''}</div>`).join('')+
-    `<div class="sep"></div><div class="r g"><span>TOTAL</span><span>${$m(o.total||tot)}</span></div>${it.some(i=>i.kg)?'<div class="sm">Fiambres y quesos: se cobra el peso real.</div>':''}<div class="firma sm">Recibí conforme</div><div class="c sm" style="margin-top:3mm">¡Gracias por tu compra!</div>`}
+    (+o.costo_envio>0?`<div class="it"><div class="r"><span>Envío</span><span>${$m(o.costo_envio)}</span></div></div>`:'')+`<div class="sep"></div><div class="r g"><span>TOTAL</span><span>${$m(o.total||tot)}</span></div>${it.some(i=>i.kg)?'<div class="sm">Fiambres y quesos: se cobra el peso real.</div>':''}<div class="firma sm">Recibí conforme</div><div class="c sm" style="margin-top:3mm">¡Gracias por tu compra!</div>`}
 function tkReciboCuerpo(x,c,d){return tkCab('Recibo',x.numero,fd(x.fecha))+`<div class="sep"></div><div>Recibimos de:</div><div class="b">${esc(c.razon_social||'')}</div><div class="sep"></div><div class="r g"><span>${$m(x.importe)}</span></div><div class="sm">${esc(x.medio||'')}</div>`+
     (d.fac.length?`<div class="sep"></div>${d.fac.map(f=>`<div class="r sm"><span>${esc(f.t)}</span><span>${$m(f.imp)}</span></div>`).join('')}${d.cuenta?`<div class="r sm"><span>A cuenta</span><span>${$m(d.cuenta)}</span></div>`:''}`:'')+
     (d.saldo!=null?`<div class="sep"></div><div class="sm">${d.saldo>0.005?'Saldo pendiente: <b>'+$m(d.saldo)+'</b>':d.saldo<-0.005?'Saldo a favor: <b>'+$m(-d.saldo)+'</b>':'<b>Cuenta al día.</b>'}</div>`:'')+`<div class="firma sm">Firma</div>`}
@@ -1842,7 +1845,7 @@ async function pedidoPDF0(o){
   <div class="top"><div>${logoImg()}<h1>Sabores de mi País</h1><div>Nota de pedido</div></div><div class="n"><b>Pedido N° ${o.numero}</b><br>${f}</div></div>
   <p><b>Cliente:</b> ${esc(c.razon_social)}${c.cuit?'<br><b>CUIT:</b> '+esc(c.cuit):''}${dirCompleta(c)?'<br><b>Domicilio:</b> '+esc(dirCompleta(c)):''}${(o.fecha_entrega||o.entrega)?'<br><b>Entrega:</b> '+fd((o.fecha_entrega||o.entrega)):''}${o.observaciones?'<br><b>Nota:</b> '+esc(o.observaciones):''}</p>
   <table><tr><th>Producto</th><th class="n">Cant.</th><th class="n">Precio</th><th class="n">Subtotal</th></tr>${it.map(i=>`<tr><td>${esc(i.d)}${i.pr?'<br><small style="color:#1d7a46">Promo: '+esc(i.pr)+'</small>':''}</td><td class="n">${i.qt}</td><td class="n">${i.puT||$m(i.pu)}</td><td class="n">${$m(i.st)}</td></tr>`).join('')}
-  <tr class="tot"><td colspan="3" class="n">Total</td><td class="n">${$m(o.total||tot)}</td></tr></table>${it.some(i=>i.kg)?'<p style="font-size:12px;color:#555">⚖️ Fiambres y quesos: precio por kilo, pieza entera, se cobra el peso real.</p>':''}${qb}<style>${QRB_CSS}</style>
+  ${+o.costo_envio>0?`<tr><td>🚚 Envío <small style="color:#6a7184">(gratis desde ${$m(S.vcfg?.envio||0)})</small></td><td class="n">1</td><td class="n">${$m(o.costo_envio)}</td><td class="n">${$m(o.costo_envio)}</td></tr>`:''}<tr class="tot"><td colspan="3" class="n">Total</td><td class="n">${$m(o.total||tot)}</td></tr></table>${it.some(i=>i.kg)?'<p style="font-size:12px;color:#555">⚖️ Fiambres y quesos: precio por kilo, pieza entera, se cobra el peso real.</p>':''}${qb}<style>${QRB_CSS}</style>
   <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close();
 }
 
@@ -2033,7 +2036,7 @@ async function vReparto(){
   const elegidos=()=>S.rvSel.map(id=>data.find(o=>o.id==id)).filter(Boolean);
   const draw=()=>{
     const E=elegidos(),resto=data.filter(o=>!S.rvSel.includes(o.id));
-    const fila=(o,i)=>{const c=cl(o);return `<div class="ped est-${o.estado}"><div class="ped-top">${i!=null?`<b class="parada">${i+1}</b>`:''}<b>N° ${o.numero}</b> <span class="cli">${esc(c.razon_social)}</span>${o.entrega?` <span class="badge ${o.entrega>diaLocal(new Date())?'':'b-entregado'}">📅 ${o.entrega==diaLocal(new Date())?'hoy':fd(o.entrega)}</span>`:''}<span class="tot">${$m(o.total)}</span></div>
+    const fila=(o,i)=>{const c=cl(o);return `<div class="ped est-${o.estado}"><div class="ped-top">${i!=null?`<b class="parada">${i+1}</b>`:''}<b>N° ${o.numero}</b> <span class="cli">${esc(c.razon_social)}</span>${o.entrega?` <span class="badge ${o.entrega>diaLocal(new Date())?'':'b-entregado'}">📅 ${o.entrega==diaLocal(new Date())?'hoy':fd(o.entrega)}</span>`:''}<span class="tot">${$m(o.total)}${+o.costo_envio>0?'<br><small>incluye 🚚 envío '+$m(o.costo_envio)+'</small>':''}</span></div>
       <div class="ped-acc"><span class="badge b-${o.estado}">${EST_TXT[o.estado]}</span><small>${esc(c.domicilio||'Sin domicilio cargado')} · ${nf(bultos(o))} u.</small>
       ${i!=null?`<button class="alt qb" data-up="${o.id}" ${i==0?'disabled':''} aria-label="Subir">↑</button><button class="alt qb" data-dn="${o.id}" ${i==E.length-1?'disabled':''} aria-label="Bajar">↓</button><button class="alt" data-q="${o.id}">Sacar</button>`:`<button data-a="${o.id}">Agregar al reparto</button>`}
       ${o.estado=='en_reparto'?`<button class="alt" data-ent="${o.id}">Entregado</button><button class="alt" data-fr="${o.id}">📷 Remito</button><button class="alt wa" data-avs="${o.id}">📲</button>`:''}</div></div>`};
@@ -3210,7 +3213,7 @@ function rrect(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,
 function lineas(c,t,maxW,maxL){const w=String(t).split(/\s+/),L=[];let cur='';for(const x of w){const tt=cur?cur+' '+x:x;if(c.measureText(tt).width<=maxW)cur=tt;else{if(cur)L.push(cur);cur=x}}if(cur)L.push(cur);
   if(L.length>maxL){L.length=maxL;let u=L[maxL-1];while(c.measureText(u+'…').width>maxW&&u.length)u=u.slice(0,-1);L[maxL-1]=u+'…'}return L}
 async function dibujarFolleto(items,o){const F=FMT[o.fmt],cv=document.createElement('canvas');cv.width=F.w;cv.height=F.h;const c=cv.getContext('2d');
-  const FONT='system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif',m=48,cab=o.fmt=='historia'?380:300,pie=150;
+  const FONT='system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif',m=48,cab=o.fmt=='historia'?380:300,ev=S.vcfg?.envio?62:0,pie=150+ev;
   c.fillStyle='#f6f2ec';c.fillRect(0,0,F.w,F.h);
   // cabecera
   const g=c.createLinearGradient(0,0,F.w,cab);g.addColorStop(0,MARCA.n);g.addColorStop(1,MARCA.c);c.fillStyle=g;c.fillRect(0,0,F.w,cab);
@@ -3259,12 +3262,14 @@ async function dibujarFolleto(items,o){const F=FMT[o.fmt],cv=document.createElem
       x.esc.forEach((t,k)=>{y+=k?(big?38:31):(big?40:32);c.fillStyle=k==x.esc.length-1&&/^Pallet/.test(t)?MARCA.c:'#6a7184';c.fillText(t,X+pad,y)})}});
   }
   // pie
-  c.fillStyle=MARCA.c;c.fillRect(0,F.h-pie,F.w,pie);c.fillStyle='#fff';c.textAlign='center';
-  c.font=`800 46px ${FONT}`;c.fillText(S.telEmp?'Pedí por WhatsApp  '+S.telEmp:'Sabores de mi País',F.w/2,F.h-pie+66);
-  c.font=`500 26px ${FONT}`;c.fillStyle='rgba(255,255,255,.9)';c.fillText('Precios con IVA · lista '+o.lista+(o.pie?' · '+o.pie:''),F.w/2,F.h-pie+112);c.textAlign='left';
+  c.fillStyle=MARCA.c;c.fillRect(0,F.h-pie,F.w,pie);c.textAlign='center';
+  if(ev){c.fillStyle='#ffd54a';c.fillRect(0,F.h-pie,F.w,ev);c.fillStyle='#1c2333';let ef=34;const et='🚚 Envío GRATIS desde '+$m(S.vcfg.envio).replace(',00','')+(S.vcfg.costoEnvio?' · menor: '+$m(S.vcfg.costoEnvio).replace(',00',''):'');
+    c.font=`800 ${ef}px ${FONT}`;while(c.measureText(et).width>F.w-2*m&&ef>20){ef--;c.font=`800 ${ef}px ${FONT}`}c.textBaseline='middle';c.fillText(et,F.w/2,F.h-pie+ev/2);c.textBaseline='alphabetic'}
+  c.fillStyle='#fff';c.font=`800 46px ${FONT}`;c.fillText(S.telEmp?'Pedí por WhatsApp  '+S.telEmp:'Sabores de mi País',F.w/2,F.h-pie+ev+66);
+  c.font=`500 26px ${FONT}`;c.fillStyle='rgba(255,255,255,.9)';c.fillText('Precios con IVA · lista '+o.lista+(o.pie?' · '+o.pie:''),F.w/2,F.h-pie+ev+112);c.textAlign='left';
   try{const{data:cp}=await sb.from('config_app').select('valor').eq('clave','catalogo_publico').maybeSingle();
     if(['mayorista','minorista','especial'].includes(cp?.valor)){const q=await qrURL(urlBase('ver=catalogo'),240);if(q){const im=new Image();await new Promise(r=>{im.onload=r;im.onerror=r;im.src=q});
-      const z=pie-28;c.fillStyle='#fff';c.fillRect(F.w-m-z-8,F.h-pie+10,z+16,z+8);c.drawImage(im,F.w-m-z,F.h-pie+14,z,z)}}}catch(e){}
+      const z=pie-ev-28;c.fillStyle='#fff';c.fillRect(F.w-m-z-8,F.h-pie+ev+10,z+16,z+8);c.drawImage(im,F.w-m-z,F.h-pie+ev+14,z,z)}}}catch(e){}
   return cv}
 /* ======================= FOLLETO BILINGÜE (español / chino) PARA SUPERMERCADOS ======================= */
 /* Nombre en chino simplificado según la descripción (el orden importa: lo más específico primero). Se puede corregir a mano en el armado. */
@@ -3424,10 +3429,13 @@ async function folletoOfertas(opt){
 const cap1=t=>{t=String(t||'').toLowerCase();return t.charAt(0).toUpperCase()+t.slice(1)};
 
 /* ======================= VENTAS ======================= */
-S.vcfg={escalas:[],minimo:null,envio:null};S.combos=[];
-async function cargarVentasCfg(){const[cf,cb]=await Promise.all([sb.from('config_app').select('clave,valor').in('clave',['escalas_descuento','pedido_minimo','envio_gratis_desde']),sb.from('combos').select('*').order('id')]);
+S.vcfg={escalas:[],minimo:null,envio:null,costoEnvio:null};S.combos=[];
+/* Envío: si el pedido no llega a 'envío gratis desde', se cobra el costo de envío (lo suma la base de datos al total) */
+const envioDe=b=>S.vcfg?.envio&&S.vcfg?.costoEnvio&&b>0&&b<S.vcfg.envio?+S.vcfg.costoEnvio:0;
+const envioTxt=()=>S.vcfg?.envio?'🚚 Envío gratis desde '+$m(S.vcfg.envio)+(S.vcfg.costoEnvio?' · si es menor, el envío cuesta '+$m(S.vcfg.costoEnvio):''):'';
+async function cargarVentasCfg(){const[cf,cb]=await Promise.all([sb.from('config_app').select('clave,valor').in('clave',['escalas_descuento','pedido_minimo','envio_gratis_desde','costo_envio']),sb.from('combos').select('*').order('id')]);
   const g=k=>(cf.data||[]).find(x=>x.clave==k)?.valor;let es=[];try{es=JSON.parse(g('escalas_descuento')||'[]')}catch(e){}
-  S.vcfg={escalas:es.filter(x=>+x.desde>0&&+x.pct>0).sort((a,b)=>a.desde-b.desde),minimo:+g('pedido_minimo')||null,envio:+g('envio_gratis_desde')||null};
+  S.vcfg={escalas:es.filter(x=>+x.desde>0&&+x.pct>0).sort((a,b)=>a.desde-b.desde),minimo:+g('pedido_minimo')||null,envio:+g('envio_gratis_desde')||null,costoEnvio:+g('costo_envio')||null};
   const hoy=diaLocal(new Date());S.combos=(cb.data||[]).filter(c=>c.activo&&c.desde<=hoy&&(!c.hasta||c.hasta>=hoy));S.combosTodos=cb.data||[];S.combosOk=!cb.error}
 const escalaDe=t=>{let p=0;for(const e of S.vcfg.escalas)if(t>=+e.desde)p=Math.max(p,+e.pct);return p};
 const proxEscala=t=>S.vcfg.escalas.find(e=>t<+e.desde)||null;
@@ -3671,13 +3679,14 @@ async function vReglas(){await cargarVentasCfg();const due=S.perfil.rol=='dueno'
     ${due?'<button class="alt" id="es_a">+ Agregar escalón</button>':''}
     <h3 style="margin-top:18px">Pedido mínimo y envío gratis</h3><div class="g">
       <label class="f">Pedido mínimo online $ (vacío = sin mínimo)<input id="es_m" type="number" min="0" step="1000" value="${S.vcfg.minimo||''}" ${due?'':'disabled'}></label>
-      <label class="f">Envío gratis desde $ (vacío = no mostrar)<input id="es_e" type="number" min="0" step="1000" value="${S.vcfg.envio||''}" ${due?'':'disabled'}></label></div>
+      <label class="f">Envío gratis desde $ (vacío = no mostrar)<input id="es_e" type="number" min="0" step="1000" value="${S.vcfg.envio||''}" ${due?'':'disabled'}></label>
+      <label class="f">🚚 Costo del envío si no llega $ (vacío = gratis igual)<input id="es_ce" type="number" min="0" step="500" value="${S.vcfg.costoEnvio||''}" ${due?'':'disabled'}></label></div>
     ${due?'<button id="es_g">Guardar</button>':''}
-    <p><small>Ejemplo de lo que ve el cliente: "Te faltan $ 18.000 para el 5 % de descuento" y "Te faltan $ 40.000 para el envío gratis". El pedido mínimo no deja mandar pedidos online más chicos. Los pedidos que cargás vos en el CRM también llevan el descuento por monto.</small></p></div><div class="box" id="rg_pp"></div><div class="box" id="rg_en"></div><div class="box" id="rg_fm"></div>`;prontoBox();entregasBox();frenoBox();
+    <p><small>Ejemplo de lo que ve el cliente: "Te faltan $ 18.000 para el 5 % de descuento" y "Te faltan $ 40.000 para el envío gratis". El pedido mínimo no deja mandar pedidos online más chicos. Si el pedido no llega al envío gratis, el CRM le suma solo el costo del envío (al pedido, la factura y la cuenta corriente); en cada pedido podés bonificarlo. Los pedidos que cargás vos en el CRM también llevan el descuento por monto.</small></p></div><div class="box" id="rg_pp"></div><div class="box" id="rg_en"></div><div class="box" id="rg_fm"></div>`;prontoBox();entregasBox();frenoBox();
     $$('[data-ed]').forEach(i=>i.onchange=()=>E[i.dataset.ed].desde=+i.value||0);$$('[data-ep]').forEach(i=>i.onchange=()=>E[i.dataset.ep].pct=+i.value||0);
     $$('[data-ex]').forEach(a=>a.onclick=()=>{E.splice(+a.dataset.ex,1);draw()});$('#es_a')&&($('#es_a').onclick=()=>{const u=E[E.length-1];E.push({desde:u?u.desde*2:150000,pct:u?u.pct+2:3});draw()});
     $('#es_g')&&($('#es_g').onclick=async()=>{const es=E.filter(e=>e.desde>0&&e.pct>0).sort((a,b)=>a.desde-b.desde);
-      const{error}=await sb.from('config_app').upsert([{clave:'escalas_descuento',valor:JSON.stringify(es)},{clave:'pedido_minimo',valor:$('#es_m').value||''},{clave:'envio_gratis_desde',valor:$('#es_e').value||''}]);
+      const{error}=await sb.from('config_app').upsert([{clave:'escalas_descuento',valor:JSON.stringify(es)},{clave:'pedido_minimo',valor:$('#es_m').value||''},{clave:'envio_gratis_desde',valor:$('#es_e').value||''},{clave:'costo_envio',valor:$('#es_ce').value||''}]);
       if(error)return toast(error.message,1);await cargarVentasCfg();toast('Guardado.');vReglas()})};draw()}
 
 /* ---------- Oportunidades por cliente (ficha) ---------- */
@@ -5433,7 +5442,7 @@ const RR_DEF=[{t:'💲 Pedido mínimo',txt:'El pedido mínimo es de {minimo}. {e
   {t:'🛒 Cómo pedir',txt:'Pedís desde tu catálogo, con tus precios, cuando quieras:\n{link}\nTocás los productos, "Ver pedido" y "Enviar". ¡Listo!'},{t:'📋 Lista de precios',txt:'Te paso el catálogo con todos los precios:\n{link}'}];
 async function respuestasRapidas(x){const[{data:rr},{data:en}]=await Promise.all([sb.from('config_app').select('valor').eq('clave','respuestas_rapidas').maybeSingle(),sb.from('config_app').select('valor').eq('clave','entregas').maybeSingle()]);
   let L=RR_DEF;try{const j=JSON.parse(rr?.valor||'null');if(Array.isArray(j)&&j.length)L=j}catch(e){}let e=null;try{e=JSON.parse(en?.valor||'null')}catch(_){}
-  const c=x.c||(x.cliente_id?S.clientes.find(z=>z.id==x.cliente_id):null),o={minimo:S.vcfg?.minimo?$m(S.vcfg.minimo):'(sin mínimo)',envio:S.vcfg?.envio?'El envío es gratis desde '+$m(S.vcfg.envio)+'.':'',
+  const c=x.c||(x.cliente_id?S.clientes.find(z=>z.id==x.cliente_id):null),o={minimo:S.vcfg?.minimo?$m(S.vcfg.minimo):'(sin mínimo)',envio:S.vcfg?.envio?'🚚 El envío es gratis desde '+$m(S.vcfg.envio)+(S.vcfg.costoEnvio?'; si es menor, cuesta '+$m(S.vcfg.costoEnvio):'')+'.':'',
     dias:(e?.dias||[1,2,3,4,5,6]).map(n=>(DIAS.find(d=>d[0]==n)||[0,''])[1]).join(', '),corte:(e?.corte||'18:00').replace(':00',''),pago:S.datosPago||'',link:c?.token_pedidos?linkPedidos(c):x.rubro?linkRubro(x.rubro):urlBase('ver=catalogo'),nombre:c?nomCorto(c):(x.contacto||x.nombre||'')};
   const tel=telWA(x.telefono||c?.telefono||''),m=document.createElement('div');m.className='modal';document.body.appendChild(m);
   m.innerHTML=`<div class="mc"><div class="bh"><h3>💬 Respuestas rápidas</h3><button class="alt" id="rr_x">Cerrar</button></div><p><small>Para ${esc(x.nombre||c?.razon_social||'')}. Tocá una y se abre WhatsApp con la respuesta.</small></p>
