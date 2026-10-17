@@ -3213,10 +3213,11 @@ const flPes=n=>'$ '+Math.round(+n||0).toLocaleString('es-AR');
 const flMes=()=>{const s=new Date().toLocaleDateString('es-AR',{month:'long',year:'numeric'});return s.replace(' de ',' ')};
 /* datos vivos de un producto del folleto: precio mayorista con IVA, foto, cómo se vende */
 function flItem(x){const p=S.productos.find(q=>q.producto_id==x.id),m=S.min[x.id];if(!p||!m||m.a===false)return null;const pr=+p.precio_mayorista;if(!(pr>0))return null;
-  let suf='c/u',det='',v=pr;const b=bul(x.id);
+  let suf='c/u',det='',dets=null,v=pr;const b=bul(x.id);
   if(esPeso(x.id)){const pz=ppz(x.id);if(pz){v=pr/pz;suf='/kg';det='Pieza ≈ '+nf(Math.round(pz*10)/10)+' kg · peso real'}else{suf='/kg';det=b?b.t+' '+b.n+' kg: '+flPes(pr*b.n):'Se cobra el peso real'}}
-  else if(b)det=b.t+' x '+b.n+': '+flPes(pr*b.n);
-  return{n:x.n||p.descripcion,p:v,suf,det,foto:m.foto||''}}
+  else if(b){const D=[];if(m.ud>1&&m.ud<b.n)D.push('Display x '+m.ud+': '+flPes(pr*m.ud));D.push(b.t+' x '+b.n+': '+flPes(pr*b.n));
+    if(m.bp>0)D.push('Pallet x '+m.bp+' '+String(b.t||'caja').toLowerCase()+(m.bp==1?'':'s')+': '+flPes(Math.round(pr*b.n*m.bp)));det=D.join(' · ');dets=D}
+  return{n:x.n||p.descripcion,p:v,suf,det,dets,foto:m.foto||''}}
 function flLineas(c,t,maxW,maxL){const w=String(t).split(/\s+/),L=[];let cur='';for(const x of w){const tt=cur?cur+' '+x:x;if(c.measureText(tt).width<=maxW)cur=tt;else{if(cur)L.push(cur);cur=x}}if(cur)L.push(cur);return L.slice(0,maxL)}
 async function flPagina(f,n,total,cuerpo,logo){const{W,H,CAB,PIE,FONT}=FL,cv=document.createElement('canvas');cv.width=W;cv.height=H;const c=cv.getContext('2d');
   c.fillStyle=FL.CREMA;c.fillRect(0,0,W,H);
@@ -3249,13 +3250,13 @@ async function flArmar(f,prog){
   for(let k=0;k<P.length;k++){prog&&prog(k+1,P.length);const Q=P[k];
     const cv=await flPagina(f,k+1,P.length,async c=>{
       if(Q.t=='f'){let y=TOP;c.fillStyle=MARCA.c;rrect(c,40,y,W-80,96,18);c.fill();c.fillStyle='#fff';c.textBaseline='middle';c.font=`800 38px ${FONT}`;c.fillText(Q.pg.titulo.toUpperCase(),68,y+32);c.font=`400 24px ${FONT}`;c.fillStyle='rgba(240,225,229,1)';c.fillText(Q.pg.sub||'',68,y+72);y+=118;
-        const gap=22,cw=(W-80-gap)/2,ch=(BOT-y-2*gap)/3,imgs=await Promise.all(Q.L.map(x=>cargarImg(x.foto)));
-        Q.L.forEach((x,i)=>{const X=40+(i%2)*(cw+gap),Y=y+Math.floor(i/2)*(ch+gap),ph=ch-214,pw=cw-48;
+        const gap=22,cw=(W-80-gap)/2,ch=(BOT-y-2*gap)/3,imgs=await Promise.all(Q.L.map(x=>cargarImg(x.foto))),EX=Math.max(0,...Q.L.map(x=>(x.dets?x.dets.length:1)-1));
+        Q.L.forEach((x,i)=>{const X=40+(i%2)*(cw+gap),Y=y+Math.floor(i/2)*(ch+gap),ph=ch-214-28*EX,pw=cw-48;
           c.fillStyle='#fff';rrect(c,X,Y,cw,ch,24);c.fill();c.strokeStyle=FL.LIN;c.lineWidth=2;c.stroke();
           const im=imgs[i];if(im){const k=Math.min(pw/im.width,ph/im.height);c.drawImage(im,X+24+(pw-im.width*k)/2,Y+18+(ph-im.height*k)/2,im.width*k,im.height*k)}
           c.textBaseline='top';c.fillStyle=FL.TXT;c.font=`600 26px ${FONT}`;const NL=flLineas(c,x.n,cw-48,2);let ty=Y+18+ph+10;NL.forEach((l,j)=>c.fillText(l,X+24,ty+j*32));
           const py=ty+NL.length*32+52;c.textBaseline='alphabetic';c.fillStyle=MARCA.c;c.font=`800 44px ${FONT}`;const pt=flPes(x.p);c.fillText(pt,X+24,py);const pw2=c.measureText(pt).width;
-          c.fillStyle=FL.GRI;c.font=`600 24px ${FONT}`;c.fillText(x.suf,X+24+pw2+8,py);if(x.det){c.font=`400 22px ${FONT}`;c.fillText(x.det,X+24,py+32)}})}
+          c.fillStyle=FL.GRI;c.font=`600 24px ${FONT}`;c.fillText(x.suf,X+24+pw2+8,py);{const D=x.dets||(x.det?[x.det]:[]);c.font=`400 22px ${FONT}`;D.forEach((t,j)=>c.fillText(t,X+24,py+32+j*28))}})}
       else{let y=TOP;for(const r of Q.rows){
         if(r.sec){c.fillStyle=MARCA.c;rrect(c,40,y+14,W-80,70-22,14);c.fill();c.fillStyle='#fff';c.textBaseline='middle';c.font=`800 28px ${FONT}`;c.fillText(r.sec.toUpperCase(),64,y+14+24);y+=70;continue}
         c.fillStyle='#fff';rrect(c,40,y+4,W-80,80-8,14);c.fill();const pt=flPes(r.p);c.font=`800 38px ${FONT}`;const pw=c.measureText(pt).width;c.font=`600 22px ${FONT}`;const sw=c.measureText(r.suf).width;
