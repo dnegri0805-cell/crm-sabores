@@ -478,10 +478,8 @@ async function vInicio(){
     <div class="box" id="k4"><span class="lab">Les debés a proveedores</span><span class="num">…</span><span class="det"></span></div>
     <div class="box" id="k5"><span class="lab">Stock bajo</span><span class="num">…</span><span class="det"></span></div>
   </div>
-  <div class="dos">
-    <div class="box"><h3>Pedidos por aprobar</h3><div id="t1">Cargando…</div></div>
-    <div class="box"><h3>Pagos a proveedores (próximos 7 días)</h3><div id="t3">Cargando…</div></div>
-  </div>
+  <div id="t1" hidden></div>
+  <div class="box" id="b3" hidden><h3>Pagos a proveedores (próximos 7 días)</h3><div id="t3"></div></div>
   ${dia?'<details class="plg"><summary>📋 Facturas vencidas y productos para reponer</summary>':''}<div class="dos">
     <div class="box"><h3>Facturas vencidas de clientes</h3><div id="t2">Cargando…</div></div>
     <div class="box"><h3>Productos para reponer</h3><div id="t4">Cargando…</div></div>
@@ -492,6 +490,8 @@ async function vInicio(){
   const kp=(id,num,det,cls)=>{const b=$('#'+id);b.querySelector('.num').textContent=num;b.querySelector('.det').textContent=det||'';if(cls)b.classList.add(cls)};
   const fallo=(id,e)=>kp(id,'—','No se pudo leer: '+e.message);
   $$('[data-iv]').forEach(b=>b.onclick=()=>{S.inicioModo=b.dataset.iv;vInicio();scrollTo(0,0)});
+  const irPed=f=>{S.pf=f;S.tab='pedidos';shell()};
+  {const b=$('#k2');if(b){b.style.cursor='pointer';b.title='Ver los pedidos por aprobar';b.onclick=()=>irPed('pendiente')}}
   if(S.perfil.rol=='dueno')cajaBackup();
   herramientas();generarFijos();alertasMargen();objetivoMes();tocaInicio();fidelInicio().catch(()=>{});masInicio().catch(()=>{});crecerInicio().catch(()=>{});fielesInicio().catch(()=>{});servInicio().catch(()=>{});planInicio().catch(()=>{});colaInicio().catch(()=>{});resumenDia().catch(()=>{});tareasInicio().catch(()=>{});chequeoInicio().catch(()=>{});camionetaInicio().catch(()=>{});cuentasInicio().catch(()=>{});equiposInicio().catch(()=>{});comprobantesInicio().catch(()=>{});mananaInicio().catch(()=>{});miDia().catch(()=>{});ocSemanal().catch(()=>{});aplicarAumentosProg().catch(()=>{});sincronizarOff().catch(()=>{});metasInicio().catch(()=>{});empujonBox($('#empi')).catch(()=>{});avisosEnVivo();fechasInicio();
   const cli=id=>esc(S.clientes.find(c=>c.id==id)?.razon_social||'Cliente');
@@ -525,12 +525,15 @@ async function vInicio(){
   if(fp.error)$('#t3').innerHTML='<p class="err">'+esc(fp.error.message)+'</p>';else{
     const sal=id=>Number(sp.data?.find(x=>x.proveedor_id==id)?.saldo||0);
     const L=fp.data.filter(f=>f.tipo!='NC'&&sal(f.proveedor_id)>0.005);
+    $('#b3').hidden=!L.length;
     $('#t3').innerHTML=L.length?'<table><tr><th>Proveedor</th><th>Factura</th><th>Vence</th><th class="n">Total</th></tr>'+L.slice(0,8).map(f=>`<tr><td>${esc(f.proveedores?.razon_social)}</td><td>${f.tipo} ${esc(f.numero)}</td><td class="${f.vencimiento<hoy?'mora':''}">${fd(f.vencimiento)}</td><td class="n">${$m(f.total)}</td></tr>`).join('')+'</table><p><button class="alt" id="irV">Ir a Compras</button></p>':'<p><small>No hay facturas de proveedores por vencer esta semana.</small></p>';
     $('#irV')&&($('#irV').onclick=()=>{S.tab='compras';S.sub='cuenta';shell()})}
   // 5 stock bajo
   await cargarStock();
   if(!S.stockOk){kp('k5','—','No se pudo leer el stock');$('#t4').innerHTML='<p class="err">No se pudo leer el stock. Corré stock.sql en Supabase.</p>'}else{
-    if(!S.inv){kp('k5','—','Inventario sin cargar');$('#t4').innerHTML='<p><small>Todavía no cargaste el inventario. Cuando hagas el conteo, cargalo en la pestaña Stock y acá vas a ver qué reponer.</small></p><p><button class="alt" id="irS">Ir a Stock</button></p>';$('#irS').onclick=()=>{S.tab='stock';shell()};return}
+    if(!S.inv){const{data:E}=await sb.from('pedidos').select('total').in('estado',['aprobado','en_preparacion','listo','en_reparto']);const n=(E||[]).length,te=(E||[]).reduce((a,o)=>a+Number(o.total||0),0);
+      const b5=$('#k5');b5.querySelector('.lab').textContent='🚚 Para entregar';b5.style.cursor='pointer';b5.title='Ver los pedidos para entregar';b5.onclick=()=>irPed('abiertos');
+      kp('k5',String(n),n?'Suman '+$m(te):'Nada para entregar');$('#t4').innerHTML='<p><small>Todavía no cargaste el inventario. Cuando hagas el conteo, cargalo en la pestaña Stock y acá vas a ver qué reponer.</small></p><p><button class="alt" id="irS">Ir a Stock</button></p>';$('#irS').onclick=()=>{S.tab='stock';shell()};return}
     const B=bajos();
     kp('k5',String(B.length),B.length?(B.filter(x=>x.d<=0).length+' sin stock'):'Todo sobre el mínimo',B.length?'alerta':'ok');
     $('#t4').innerHTML=B.length?'<table><tr><th>Producto</th><th class="n">Disp.</th><th class="n">Mín.</th></tr>'+B.slice(0,8).map(x=>`<tr><td>${esc(x.p.descripcion)}</td><td class="n ${x.d<=0?'mora':''}">${nf(x.d)}</td><td class="n">${nf(x.m)}</td></tr>`).join('')+'</table>'+(B.length>8?`<small>Y ${B.length-8} más.</small>`:'')+'<p><button class="alt" id="irS">Ir a Stock</button></p>':'<p><small>Ningún producto está por debajo de su mínimo.</small></p>';
