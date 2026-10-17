@@ -3256,6 +3256,19 @@ async function flArmar(f,prog){
         c.textAlign='right';c.font=`600 22px ${FONT}`;c.fillStyle=FL.GRI;c.fillText(r.suf,W-64,y+42);c.font=`800 38px ${FONT}`;c.fillStyle=MARCA.c;c.fillText(pt,W-64-sw-8,y+40);c.textAlign='left';y+=80}}},logo);
     out.push(await new Promise(r=>cv.toBlob(r,'image/jpeg',.88)))}
   return out}
+/* Junta las imágenes JPG del folleto en un solo PDF (una imagen por hoja), sin librerías */
+async function pdfDeJpgs(B,W,H){const enc=new TextEncoder(),parts=[],off=[];let len=0;const add=x=>{const u=typeof x=='string'?enc.encode(x):x;parts.push(u);len+=u.length};
+  const pw=W/2,ph=H/2,n=B.length,N=2+3*n;add('%PDF-1.4\n');
+  const obj=(id,body)=>{off[id]=len;add(id+' 0 obj\n'+body+'\nendobj\n')};
+  obj(1,'<< /Type /Catalog /Pages 2 0 R >>');
+  obj(2,'<< /Type /Pages /Count '+n+' /Kids ['+B.map((_,k)=>(3+3*k)+' 0 R').join(' ')+'] >>');
+  for(let k=0;k<n;k++){const pg=3+3*k,ct=pg+1,im=pg+2,c='q '+pw+' 0 0 '+ph+' 0 0 cm /Im0 Do Q';
+    obj(pg,'<< /Type /Page /Parent 2 0 R /MediaBox [0 0 '+pw+' '+ph+'] /Resources << /XObject << /Im0 '+im+' 0 R >> >> /Contents '+ct+' 0 R >>');
+    obj(ct,'<< /Length '+c.length+' >>\nstream\n'+c+'\nendstream');
+    const b=new Uint8Array(await B[k].arrayBuffer());off[im]=len;
+    add(im+' 0 obj\n<< /Type /XObject /Subtype /Image /Width '+W+' /Height '+H+' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length '+b.length+' >>\nstream\n');add(b);add('\nendstream\nendobj\n')}
+  const x=len;let t='xref\n0 '+(N+1)+'\n0000000000 65535 f \n';for(let i=1;i<=N;i++)t+=String(off[i]).padStart(10,'0')+' 00000 n \n';
+  add(t+'trailer\n<< /Size '+(N+1)+' /Root 1 0 R >>\nstartxref\n'+x+'\n%%EOF\n');return new Blob(parts,{type:'application/pdf'})}
 async function folletosListos(){
   const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
   m.innerHTML=`<div class="mc fl-mc"><div class="bh"><h3 style="margin:0">📂 Folletos listos para mandar</h3><button class="alt" id="fl_x">Cerrar</button></div><div id="fl_b">Cargando…</div></div>`;
@@ -3269,17 +3282,21 @@ async function folletosListos(){
   const bajar=async f=>{const{B}=await armar(f);toast('Descargando '+B.length+' imágenes…');B.forEach((b,k)=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=nom(f,k+1);document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)})};
   const compartir=async(f,idx)=>{try{const{B}=await armar(f),I=idx?[idx]:B.map((_,k)=>k+1),files=I.map(i=>new File([B[i-1]],nom(f,i),{type:'image/jpeg'}));
     if(navigator.canShare&&navigator.canShare({files}))await navigator.share({files,text:f.titulo+' · Sabores de mi País'+(S.telEmp?' · Pedí por WhatsApp '+S.telEmp:'')});else bajar(f)}catch(e){}};
+  const pdf=async(f,soloBajar)=>{try{const{B}=await armar(f);est('⏳ Armando el PDF…');const blob=await pdfDeJpgs(B,FL.W,FL.H),nm=f.titulo.replace(/\s+/g,'-')+'.pdf',file=new File([blob],nm,{type:'application/pdf'});est('');
+    if(!soloBajar&&navigator.canShare&&navigator.canShare({files:[file]}))await navigator.share({files:[file],text:f.titulo+' · Sabores de mi País'+(S.telEmp?' · Pedí por WhatsApp '+S.telEmp:'')});
+    else{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nm;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);toast('PDF descargado: '+nm)}}catch(e){est('');if(e&&e.name!='AbortError')toast('No se pudo armar el PDF: '+(e.message||e),1)}};
   const lista=()=>{m.querySelector('#fl_b').innerHTML=`<p><small>Se arman en el momento con los <b>precios de hoy</b> del CRM: si cambiás un precio, el folleto ya sale actualizado. Si desactivás un producto o queda sin precio, no aparece.</small></p><p id="fl_est" class="sube"></p>
     <div class="fl-grid">${L.map((f,k)=>`<div class="fl-card" data-k="${k}"><img src="${tapa(f)}" alt="${esc(f.titulo)}" loading="lazy"><div class="fl-tx"><b>${esc(f.titulo)}</b><small>${esc(f.sub||'')}</small><small class="fl-n">Precios al día · ${esc(flMes())}</small>
-      <div class="fc-acc">${navigator.canShare?`<button data-sh="${k}">Compartir</button>`:''}<button class="alt" data-dl="${k}">Descargar</button><button class="alt" data-ver="${k}">Ver</button></div></div></div>`).join('')}</div>`;
+      <div class="fc-acc"><button class="wa" data-pdf="${k}">📄 PDF por WhatsApp</button>${navigator.canShare?`<button class="alt" data-sh="${k}">Compartir fotos</button>`:''}<button class="alt" data-dl="${k}">Descargar</button><button class="alt" data-ver="${k}">Ver</button></div></div></div>`).join('')}</div>`;
     m.querySelectorAll('[data-sh]').forEach(b=>b.onclick=e=>{e.stopPropagation();compartir(L[b.dataset.sh])});
     m.querySelectorAll('[data-dl]').forEach(b=>b.onclick=e=>{e.stopPropagation();bajar(L[b.dataset.dl])});
+    m.querySelectorAll('[data-pdf]').forEach(b=>b.onclick=e=>{e.stopPropagation();pdf(L[b.dataset.pdf])});
     m.querySelectorAll('.fl-card').forEach(c=>c.onclick=()=>ver(L[c.dataset.k]))};
   const ver=async f=>{m.querySelector('#fl_b').innerHTML=`<p id="fl_est" class="sube">⏳ Armando con los precios de hoy…</p>`;let R;try{R=await armar(f)}catch(e){m.querySelector('#fl_b').innerHTML='<p class="err">No se pudo armar el folleto: '+esc(e.message||e)+'</p>';return}
     m.querySelector('#fl_b').innerHTML=`<div class="bh"><div><b>${esc(f.titulo)}</b><br><small>${R.U.length} imágenes · precios de hoy · tocá una para verla grande</small></div><a class="lnk" id="fl_v">← Volver</a></div>
-    <div class="fc-acc">${navigator.canShare?'<button id="fl_sa">Compartir todas</button>':''}<button class="alt" id="fl_da">Descargar todas</button></div>
+    <p id="fl_est" class="sube"></p><div class="fc-acc"><button class="wa" id="fl_pdf">📄 Mandar todo en PDF por WhatsApp</button><button class="alt" id="fl_pdfd">Descargar PDF</button>${navigator.canShare?'<button class="alt" id="fl_sa">Compartir fotos</button>':''}<button class="alt" id="fl_da">Descargar fotos</button></div>
     <div class="fl-th">${R.U.map((u,k)=>`<a data-i="${k+1}"><img src="${u}" alt="${k+1}"><span>${k+1}</span></a>`).join('')}</div>`;
-    m.querySelector('#fl_v').onclick=lista;m.querySelector('#fl_da').onclick=()=>bajar(f);const sa=m.querySelector('#fl_sa');if(sa)sa.onclick=()=>compartir(f);
+    m.querySelector('#fl_v').onclick=lista;m.querySelector('#fl_da').onclick=()=>bajar(f);m.querySelector('#fl_pdf').onclick=()=>pdf(f);m.querySelector('#fl_pdfd').onclick=()=>pdf(f,true);const sa=m.querySelector('#fl_sa');if(sa)sa.onclick=()=>compartir(f);
     m.querySelectorAll('.fl-th a').forEach(a=>a.onclick=()=>grande(f,+a.dataset.i))};
   const grande=(f,i)=>{const U=cache[f.id].U,g=document.createElement('div');g.className='modal fl-big';document.body.appendChild(g);
     g.innerHTML=`<div class="mc"><div class="bh"><b>${esc(f.titulo)} · ${i}/${U.length}</b><button class="alt" id="g_x">Cerrar</button></div><img src="${U[i-1]}" alt="" style="width:100%;border-radius:10px">
