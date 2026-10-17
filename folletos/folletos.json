@@ -3,10 +3,10 @@
   "id": "panaderias",
   "titulo": "Especial Panaderías",
   "sub": "Ledevit, dulce de leche, membrillo, manteca, crema, miga y más",
-  "n": 16,
+  "n": 17,
   "fecha": "2026-10-17",
   "rubro": "Panadería",
-  "v": 2,
+  "v": 3,
   "t1": "ESPECIAL",
   "t2": "PANADERÍAS",
   "lema": "Todo para la cuadra y el mostrador",
@@ -15,8 +15,12 @@
    {
     "tipo": "fotos",
     "titulo": "Dulce de leche",
-    "sub": "Repostero y panadero, para rellenar y decorar",
+    "sub": "Baldes y cuñetes para rellenar y decorar",
     "items": [
+     {
+      "id": "15c1647a-89c4-42c9-983f-30ed4a2a7182",
+      "n": "Dulce de leche repostero/familiar Milagros del Sol 10 kg"
+     },
      {
       "id": "8f24c8bf-2530-45ae-91f9-ec7d09d9d242",
       "n": "Dulce de leche repostero Vacalin balde 10 kg"
@@ -28,7 +32,14 @@
      {
       "id": "23eb03d4-63ff-4164-8060-8301c11fdc7b",
       "n": "Dulce de leche repostero Cremigal 25 kg"
-     },
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Dulce de leche",
+    "sub": "Formatos chicos: 4 kg y 1 kg",
+    "items": [
      {
       "id": "ac45d006-1e45-4f8e-8503-fbb0678d5562",
       "n": "Dulce de leche repostero Vacalin balde 4 kg"
