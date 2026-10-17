@@ -148,6 +148,14 @@ button.scan{display:inline-flex;align-items:center;justify-content:center;paddin
 .fl-mc{max-width:760px!important}.fl-grid{display:grid;gap:12px}.fl-card{display:grid;grid-template-columns:110px 1fr;gap:14px;align-items:start;border:1px solid #e3dfd8;border-radius:12px;padding:10px;cursor:pointer;background:#fff}
 .fl-card:hover{border-color:var(--c,#7b2d3e)}.fl-card img{width:110px;aspect-ratio:9/16;object-fit:cover;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.12)}.fl-tx{display:grid;gap:4px}.fl-tx b{font-size:17px}.fl-tx small{color:#6a7184}.fl-n{font-weight:600}
 .fl-th{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}.fl-th a{position:relative;cursor:pointer;display:block}.fl-th img{width:100%;aspect-ratio:9/16;object-fit:cover;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.12)}
+.fl-ck{position:absolute;right:4px;top:4px;background:#fff;border-radius:8px;padding:4px 6px;line-height:0;box-shadow:0 1px 4px rgba(0,0,0,.25);cursor:pointer}
+.fl-ck input{width:22px;height:22px;margin:0;cursor:pointer}
+.fl-th a.off img{opacity:.35;filter:grayscale(1)}
+.fl-sel{margin:6px 0 4px}
+.pc-r{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee}
+.pc-r>div:first-child{flex:1;min-width:0}
+.pc-in{display:flex;gap:6px;align-items:center}
+.pc-in input{width:110px}
 .fl-th span{position:absolute;left:6px;top:6px;background:rgba(23,33,58,.8);color:#fff;font-size:12px;font-weight:700;padding:1px 7px;border-radius:10px}.fl-big{z-index:30}.fl-big .mc{max-width:460px}
 .badge.b-online{background:#e4f3ea;color:#1d7a46}
 .link-ped input{font-size:13px;color:#6a7184}
@@ -319,7 +327,7 @@ async function vManual(){const v=$('#v');v.innerHTML='<p>Cargando manual…</p>'
 
 /* Supabase devuelve como máximo 1000 filas por pedido: esto trae todas, de a tandas */
 async function todo(armar){let out=[],i=0;for(;;){const{data,error}=await armar().range(i,i+999);if(error)return{data:out,error};out=out.concat(data);if(data.length<1000)return{data:out,error:null};i+=1000}}
-const PROD_COLS='producto_id,codigo,ean,descripcion,familia,marca,costo,precio_mayorista,precio_minorista,precio_especial';
+const PROD_COLS='producto_id,codigo,ean,descripcion,familia,marca,costo,precio_mayorista,precio_minorista,precio_especial,precio_fijo';
 
 /* Stock: físico, reservado, disponible y mínimo por producto */
 S.stock={};S.stockOk=false;S.min={};
@@ -3279,30 +3287,60 @@ async function folletosListos(){
   const tapa=f=>`folletos/${f.id}/1.jpg${f.v?'?v='+f.v:''}`;
   const nom=(f,i)=>`${f.titulo.replace(/\s+/g,'-')}-${i}.jpg`;
   const armar=async f=>{if(cache[f.id])return cache[f.id];const B=await flArmar(f,(k,n)=>est(`⏳ Armando con los precios de hoy… ${k} de ${n}`));cache[f.id]={B,U:B.map(b=>URL.createObjectURL(b))};est('');return cache[f.id]};
-  const bajar=async f=>{const{B}=await armar(f);toast('Descargando '+B.length+' imágenes…');B.forEach((b,k)=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=nom(f,k+1);document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)})};
-  const compartir=async(f,idx)=>{try{const{B}=await armar(f),I=idx?[idx]:B.map((_,k)=>k+1),files=I.map(i=>new File([B[i-1]],nom(f,i),{type:'image/jpeg'}));
-    if(navigator.canShare&&navigator.canShare({files}))await navigator.share({files,text:f.titulo+' · Sabores de mi País'+(S.telEmp?' · Pedí por WhatsApp '+S.telEmp:'')});else bajar(f)}catch(e){}};
-  const pdf=async(f,soloBajar)=>{try{const{B}=await armar(f);est('⏳ Armando el PDF…');const blob=await pdfDeJpgs(B,FL.W,FL.H),nm=f.titulo.replace(/\s+/g,'-')+'.pdf',file=new File([blob],nm,{type:'application/pdf'});est('');
-    if(!soloBajar&&navigator.canShare&&navigator.canShare({files:[file]}))await navigator.share({files:[file],text:f.titulo+' · Sabores de mi País'+(S.telEmp?' · Pedí por WhatsApp '+S.telEmp:'')});
+  const sels={},selDe=f=>sels[f.id]||null,txt=f=>f.titulo+' · Sabores de mi País'+(S.telEmp?' · Pedí por WhatsApp '+S.telEmp:'');
+  const elegidas=async(f,lst)=>{const{B}=await armar(f);const I=(lst&&lst.length?lst:B.map((_,k)=>k+1)).filter(i=>i>=1&&i<=B.length);return{B,I}};
+  const bajar=async(f,lst)=>{const{B,I}=await elegidas(f,lst);toast('Descargando '+I.length+' imágenes…');I.forEach(i=>{const a=document.createElement('a');a.href=URL.createObjectURL(B[i-1]);a.download=nom(f,i);document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)})};
+  const compartir=async(f,lst)=>{try{const{B,I}=await elegidas(f,lst),files=I.map(i=>new File([B[i-1]],nom(f,i),{type:'image/jpeg'}));
+    if(navigator.canShare&&navigator.canShare({files}))await navigator.share({files,text:txt(f)});else bajar(f,lst)}catch(e){}};
+  const pdf=async(f,soloBajar,lst)=>{try{const{B,I}=await elegidas(f,lst);est('⏳ Armando el PDF…');const parcial=I.length<B.length,blob=await pdfDeJpgs(I.map(i=>B[i-1]),FL.W,FL.H),nm=f.titulo.replace(/\s+/g,'-')+(parcial?'-hojas-'+I.join('-'):'')+'.pdf',file=new File([blob],nm,{type:'application/pdf'});est('');
+    if(!soloBajar&&navigator.canShare&&navigator.canShare({files:[file]}))await navigator.share({files:[file],text:txt(f)});
     else{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nm;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);toast('PDF descargado: '+nm)}}catch(e){est('');if(e&&e.name!='AbortError')toast('No se pudo armar el PDF: '+(e.message||e),1)}};
   const lista=()=>{m.querySelector('#fl_b').innerHTML=`<p><small>Se arman en el momento con los <b>precios de hoy</b> del CRM: si cambiás un precio, el folleto ya sale actualizado. Si desactivás un producto o queda sin precio, no aparece.</small></p><p id="fl_est" class="sube"></p>
     <div class="fl-grid">${L.map((f,k)=>`<div class="fl-card" data-k="${k}"><img src="${tapa(f)}" alt="${esc(f.titulo)}" loading="lazy"><div class="fl-tx"><b>${esc(f.titulo)}</b><small>${esc(f.sub||'')}</small><small class="fl-n">Precios al día · ${esc(flMes())}</small>
-      <div class="fc-acc"><button class="wa" data-pdf="${k}">📄 PDF por WhatsApp</button>${navigator.canShare?`<button class="alt" data-sh="${k}">Compartir fotos</button>`:''}<button class="alt" data-dl="${k}">Descargar</button><button class="alt" data-ver="${k}">Ver</button></div></div></div>`).join('')}</div>`;
+      <div class="fc-acc"><button class="wa" style="background:#1d7a46;color:#fff;border-color:#1d7a46" data-pdf="${k}">📄 PDF por WhatsApp</button>${navigator.canShare?`<button class="alt" data-sh="${k}">Compartir fotos</button>`:''}<button class="alt" data-dl="${k}">Descargar</button><button class="alt" data-ver="${k}">Ver / elegir hojas</button></div></div></div>`).join('')}</div>`;
     m.querySelectorAll('[data-sh]').forEach(b=>b.onclick=e=>{e.stopPropagation();compartir(L[b.dataset.sh])});
     m.querySelectorAll('[data-dl]').forEach(b=>b.onclick=e=>{e.stopPropagation();bajar(L[b.dataset.dl])});
     m.querySelectorAll('[data-pdf]').forEach(b=>b.onclick=e=>{e.stopPropagation();pdf(L[b.dataset.pdf])});
     m.querySelectorAll('.fl-card').forEach(c=>c.onclick=()=>ver(L[c.dataset.k]))};
   const ver=async f=>{m.querySelector('#fl_b').innerHTML=`<p id="fl_est" class="sube">⏳ Armando con los precios de hoy…</p>`;let R;try{R=await armar(f)}catch(e){m.querySelector('#fl_b').innerHTML='<p class="err">No se pudo armar el folleto: '+esc(e.message||e)+'</p>';return}
-    m.querySelector('#fl_b').innerHTML=`<div class="bh"><div><b>${esc(f.titulo)}</b><br><small>${R.U.length} imágenes · precios de hoy · tocá una para verla grande</small></div><a class="lnk" id="fl_v">← Volver</a></div>
-    <p id="fl_est" class="sube"></p><div class="fc-acc"><button class="wa" id="fl_pdf">📄 Mandar todo en PDF por WhatsApp</button><button class="alt" id="fl_pdfd">Descargar PDF</button>${navigator.canShare?'<button class="alt" id="fl_sa">Compartir fotos</button>':''}<button class="alt" id="fl_da">Descargar fotos</button></div>
-    <div class="fl-th">${R.U.map((u,k)=>`<a data-i="${k+1}"><img src="${u}" alt="${k+1}"><span>${k+1}</span></a>`).join('')}</div>`;
-    m.querySelector('#fl_v').onclick=lista;m.querySelector('#fl_da').onclick=()=>bajar(f);m.querySelector('#fl_pdf').onclick=()=>pdf(f);m.querySelector('#fl_pdfd').onclick=()=>pdf(f,true);const sa=m.querySelector('#fl_sa');if(sa)sa.onclick=()=>compartir(f);
-    m.querySelectorAll('.fl-th a').forEach(a=>a.onclick=()=>grande(f,+a.dataset.i))};
+    const n=R.U.length;let sel=new Set((selDe(f)||R.U.map((_,k)=>k+1)).filter(i=>i<=n));const lst=()=>[...sel].sort((a,b)=>a-b);
+    m.querySelector('#fl_b').innerHTML=`<div class="bh"><div><b>${esc(f.titulo)}</b><br><small>${n} hojas · precios de hoy · tocá una para verla grande</small></div><a class="lnk" id="fl_v">← Volver</a></div>
+    <p id="fl_est" class="sube"></p>
+    <div class="fl-sel"><b id="fl_cnt"></b> <a class="lnk" id="fl_all">Marcar todas</a> · <a class="lnk" id="fl_none">Desmarcar todas</a><br><small>Destildá las hojas que no quieras mandar. Los botones mandan solo las hojas marcadas.</small></div>
+    <div class="fc-acc"><button class="wa" style="background:#1d7a46;color:#fff;border-color:#1d7a46" id="fl_pdf">📄 Mandar en PDF por WhatsApp</button><button class="alt" id="fl_pdfd">Descargar PDF</button>${navigator.canShare?'<button class="alt" id="fl_sa">Compartir fotos</button>':''}<button class="alt" id="fl_da">Descargar fotos</button><button class="alt" id="fl_pr">✏️ Cambiar precios</button></div>
+    <div class="fl-th">${R.U.map((u,k)=>`<a data-i="${k+1}"><img src="${u}" alt="${k+1}"><span>${k+1}</span><label class="fl-ck" title="Incluir esta hoja"><input type="checkbox" data-ck="${k+1}" ${sel.has(k+1)?'checked':''}></label></a>`).join('')}</div>`;
+    const pinta=()=>{sels[f.id]=lst();m.querySelector('#fl_cnt').textContent=sel.size==n?`Todas las hojas (${n})`:`${sel.size} de ${n} hojas marcadas`;m.querySelectorAll('[data-ck]').forEach(c=>{c.checked=sel.has(+c.dataset.ck);c.closest('a').classList.toggle('off',!c.checked)})};
+    const hay=()=>{if(!sel.size){toast('Marcá al menos una hoja.',1);return false}return true};
+    m.querySelectorAll('[data-ck]').forEach(c=>{c.onclick=e=>e.stopPropagation();c.closest('label').onclick=e=>e.stopPropagation();c.onchange=()=>{c.checked?sel.add(+c.dataset.ck):sel.delete(+c.dataset.ck);pinta()}});
+    m.querySelector('#fl_all').onclick=()=>{sel=new Set(R.U.map((_,k)=>k+1));pinta()};m.querySelector('#fl_none').onclick=()=>{sel.clear();pinta()};
+    m.querySelector('#fl_v').onclick=lista;m.querySelector('#fl_da').onclick=()=>hay()&&bajar(f,lst());m.querySelector('#fl_pdf').onclick=()=>hay()&&pdf(f,false,lst());m.querySelector('#fl_pdfd').onclick=()=>hay()&&pdf(f,true,lst());
+    const sa=m.querySelector('#fl_sa');if(sa)sa.onclick=()=>hay()&&compartir(f,lst());m.querySelector('#fl_pr').onclick=()=>precios(f);
+    m.querySelectorAll('.fl-th a').forEach(a=>a.onclick=()=>grande(f,+a.dataset.i));pinta()};
+  /* Cambiar precios puntuales de los productos del folleto: queda como precio fijo del producto (folleto, catálogo y pedidos) */
+  const precios=f=>{const G=[];const suma=(t,xs)=>{const L2=xs.map(x=>{const p=S.productos.find(q=>q.producto_id==x.id),mm=S.min[x.id];if(!p||!mm||mm.a===false)return null;
+        const pr=+p.precio_mayorista,pz=esPeso(x.id)?ppz(x.id):0,fac=pz||1,suf=esKg(x.id)?'/kg':pz?'/kg':'c/u';return{id:x.id,n:x.n||p.descripcion,v:pr>0?pr/fac:null,fac,suf,fijo:+p.precio_fijo>0}}).filter(Boolean);if(L2.length)G.push({t,L:L2})};
+      for(const pg of f.paginas||[]){if(pg.tipo=='fotos')suma(pg.titulo,pg.items||[]);else for(const s of pg.secciones||[])suma(s.t,s.items||[])}
+      const g=document.createElement('div');g.className='modal';document.body.appendChild(g);
+      g.innerHTML=`<div class="mc"><div class="bh"><h3 style="margin:0">✏️ Cambiar precios · ${esc(f.titulo)}</h3><button class="alt" id="pc_x">Cerrar</button></div>
+        <p><small>Escribí el precio <b>mayorista final (con IVA)</b> tal como querés que salga en el folleto. Queda fijo para ese producto: sale igual en folletos, catálogo y pedidos (gastronomía usa el mismo y minorista sube en la misma proporción). Dejalo vacío para no tocarlo. Con <b>«Automático»</b> vuelve al precio calculado con el costo.</small></p>
+        <input id="pc_q" placeholder="Buscar producto…">
+        <div id="pc_l">${G.map(gr=>`<div class="pc-g" data-g><h4 style="margin:12px 0 4px">${esc(gr.t)}</h4>${gr.L.map(x=>`<div class="pc-r" data-n="${esc(x.n.toLowerCase())}"><div><b>${esc(x.n)}</b><br><small>Ahora: ${x.v!=null?$m(x.v)+' '+x.suf:'—'}${x.fijo?' · <span class="badge">precio fijo</span>':''}</small></div>
+          <div class="pc-in"><input type="text" inputmode="decimal" data-pid="${x.id}" data-fac="${x.fac}" placeholder="${x.v!=null?nf(Math.round(x.v)):''}">${x.fijo?`<button class="alt" data-auto="${x.id}">Automático</button>`:''}</div></div>`).join('')}</div>`).join('')}</div>
+        <div class="fc-acc"><button id="pc_ok">Guardar precios</button><button class="alt" id="pc_c">Cancelar</button></div></div>`;
+      const cerrar=()=>g.remove();g.querySelector('#pc_x').onclick=cerrar;g.querySelector('#pc_c').onclick=cerrar;g.onclick=e=>{if(e.target===g)cerrar()};
+      g.querySelector('#pc_q').oninput=e=>{const q=e.target.value.trim().toLowerCase();g.querySelectorAll('.pc-r').forEach(r=>r.style.display=!q||r.dataset.n.includes(q)?'':'none');g.querySelectorAll('[data-g]').forEach(d=>d.style.display=[...d.querySelectorAll('.pc-r')].some(r=>r.style.display!='none')?'':'none')};
+      const listo=async k=>{toast(k);await recargarProductos();if(cache[f.id]){cache[f.id].U.forEach(u=>URL.revokeObjectURL(u));delete cache[f.id]}cerrar();ver(f)};
+      g.querySelectorAll('[data-auto]').forEach(b=>b.onclick=async()=>{b.disabled=true;const{error}=await sb.rpc('fijar_precio',{p_producto:b.dataset.auto,p_precio:null});if(error){b.disabled=false;return toast(error.message,1)}listo('Volvió al precio automático.')});
+      g.querySelector('#pc_ok').onclick=async()=>{const it=[...g.querySelectorAll('[data-pid]')].map(i=>({id:i.dataset.pid,v:numAR(i.value),fac:+i.dataset.fac||1})).filter(x=>x.v!=null);
+        if(it.some(x=>!(x.v>0)))return toast('Hay un precio que no es válido.',1);if(!it.length)return toast('No escribiste ningún precio.',1);
+        const b=g.querySelector('#pc_ok');b.disabled=true;b.textContent='Guardando…';
+        for(const x of it){const{error}=await sb.rpc('fijar_precio',{p_producto:x.id,p_precio:Math.round(x.v*x.fac*100)/100});if(error){b.disabled=false;b.textContent='Guardar precios';return toast(/fijar_precio/.test(error.message)?'Falta actualizar la base de datos.':error.message,1)}}
+        listo(it.length==1?'Precio guardado.':it.length+' precios guardados.')}};
   const grande=(f,i)=>{const U=cache[f.id].U,g=document.createElement('div');g.className='modal fl-big';document.body.appendChild(g);
     g.innerHTML=`<div class="mc"><div class="bh"><b>${esc(f.titulo)} · ${i}/${U.length}</b><button class="alt" id="g_x">Cerrar</button></div><img src="${U[i-1]}" alt="" style="width:100%;border-radius:10px">
       <div class="fc-acc">${i>1?'<button class="alt" id="g_p">← Anterior</button>':''}${i<U.length?'<button class="alt" id="g_n">Siguiente →</button>':''}${navigator.canShare?'<button id="g_s">Compartir esta</button>':''}<a class="lnk" download="${nom(f,i)}" href="${U[i-1]}">Descargar</a></div></div>`;
     g.onclick=e=>{if(e.target===g)g.remove()};g.querySelector('#g_x').onclick=()=>g.remove();
-    const p=g.querySelector('#g_p'),n=g.querySelector('#g_n'),sh=g.querySelector('#g_s');if(p)p.onclick=()=>{g.remove();grande(f,i-1)};if(n)n.onclick=()=>{g.remove();grande(f,i+1)};if(sh)sh.onclick=()=>compartir(f,i)};
+    const p=g.querySelector('#g_p'),n=g.querySelector('#g_n'),sh=g.querySelector('#g_s');if(p)p.onclick=()=>{g.remove();grande(f,i-1)};if(n)n.onclick=()=>{g.remove();grande(f,i+1)};if(sh)sh.onclick=()=>compartir(f,[i])};
   lista()}
 
 /* ======================= CATÁLOGO PÚBLICO Y FOLLETO DE OFERTAS ======================= */
