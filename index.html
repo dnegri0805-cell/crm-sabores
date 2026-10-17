@@ -3205,7 +3205,7 @@ async function folletosListos(){
   m.innerHTML=`<div class="mc fl-mc"><div class="bh"><h3 style="margin:0">📂 Folletos listos para mandar</h3><button class="alt" id="fl_x">Cerrar</button></div><div id="fl_b">Cargando…</div></div>`;
   const cerrar=()=>m.remove();m.querySelector('#fl_x').onclick=cerrar;m.onclick=e=>{if(e.target===m)cerrar()};
   let L=[];try{const r=await fetch('folletos/folletos.json?v='+Date.now());L=await r.json()}catch(e){m.querySelector('#fl_b').innerHTML='<p class="err">No se pudieron cargar los folletos.</p>';return}
-  const url=(f,i)=>`folletos/${f.id}/${i}.jpg`;
+  const url=(f,i)=>`folletos/${f.id}/${i}.jpg${f.v?'?v='+f.v:''}`;
   const blobs=async f=>Promise.all(Array.from({length:f.n},(_,k)=>fetch(url(f,k+1)).then(r=>r.blob())));
   const nom=(f,i)=>`${f.titulo.replace(/\s+/g,'-')}-${i}.jpg`;
   const bajar=async f=>{toast('Descargando '+f.n+' imágenes…');const B=await blobs(f);B.forEach((b,k)=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=nom(f,k+1);document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)})};
