@@ -601,6 +601,14 @@ html{overscroll-behavior-y:contain}
 html.oscuro .pr-pega{background:#18202f}
 .prbox{overflow:visible!important}
 @media(max-width:640px){.prbox{padding:10px 12px}}
+/* Botones de arriba: en dos renglones en vez de cortarse al costado */
+@media(max-width:640px){
+  #v>.bh:first-child>.fc-acc,#v>.bh:first-child>.acc{flex-wrap:wrap!important;overflow:visible!important;margin:0!important;padding:0!important}
+  #v>.bh:first-child>.fc-acc,#v>.bh:first-child>.acc{gap:6px!important}
+  #v>.bh:first-child>.fc-acc>button,#v>.bh:first-child>.acc>button{padding:7px 11px!important;font-size:14px!important}
+  #v>.bh:first-child .ici{margin-right:4px}
+  .pr-fams .sub,.cl-pega .sub,#v>.sub{-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent);padding-right:24px}
+}
 </style>
 </head>
 <body>
@@ -608,7 +616,7 @@ html.oscuro .pr-pega{background:#18202f}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-18.2';
+const VERSION='2026-10-18.3';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -1365,7 +1373,7 @@ async function recargarProductos(){const{data,error}=await todo(()=>sb.from('pre
 const pctf=n=>Number(n).toLocaleString('es-AR',{maximumFractionDigits:2})+' %';
 const numAR=x=>{x=String(x??'').trim().replace(/\$|\s/g,'');if(!x)return null;if(x.includes(','))x=x.replace(/\./g,'').replace(',','.');else if(/^\d{1,3}(\.\d{3})+$/.test(x))x=x.replace(/\./g,'');const n=Number(x);return isFinite(n)?n:NaN};
 async function vPrecios(){
-  $('#v').innerHTML=`<div class="bh"><h2>Precios y márgenes</h2><div class="fc-acc"><button class="alt" onclick="window.open('catalogo.html','_blank')">📒 Catálogo con precios</button><button class="alt" id="pr_masb">Más ▾</button><button class="alt" onclick="aumentosProg()">📅 Aumentos programados</button><button class="alt" onclick="pesablesModal()">⚖️ Productos por peso</button></div></div>
+  $('#v').innerHTML=`<div class="bh"><h2>Precios y márgenes</h2><div class="fc-acc"><button class="alt" onclick="window.open('catalogo.html','_blank')" title="Catálogo con precios">📒 Catálogo</button><button class="alt" onclick="aumentosProg()" title="Aumentos programados">📅 Aumentos</button><button class="alt" onclick="pesablesModal()" title="Productos por peso">⚖️ Por peso</button><button class="alt" id="pr_masb">Más</button></div></div>
   <div class="box prbox"><div hidden id="pr_masc"><div class="masc"><button class="alt" id="pr_ofam">🗂️ Ordenar por familias</button><button class="alt" id="pr_fcat">🖼️ Fotos del catálogo</button><button class="alt" id="pr_fjl">🥜 Fotos Maní JL</button><button class="alt" id="pr_fot">🔎 Fotos automáticas</button><button class="alt" id="pr_et">🏷️ Imprimir etiquetas del filtro</button><button class="alt" onclick="const d=document.getElementById('pr_ad');d.hidden=false;d.open=true;d.scrollIntoView({behavior:'smooth',block:'center'})">📈 Aumento por porcentaje</button></div></div>
     <div class="pr-pega"><div class="pr-bus"><div class="conscan"><input id="pr_q" type="search" placeholder="Buscar por nombre o código" autocomplete="off">${btnScan('pr_sc')}</div><button class="alt pr-fb" id="pr_fb" aria-label="Filtros">${IC('sliders',20)}<i id="pr_fbn"></i></button></div>
     <div class="pr-fams"><div class="sub" id="pr_gr"></div></div><small class="prc" id="pr_cnt"></small></div>
