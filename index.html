@@ -334,7 +334,7 @@ button.alt:hover{background:#faf5f6;filter:none}
 .bnav{display:none}
 @media(max-width:640px){
   header nav{display:none!important}
-  .bnav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:30;background:#fff;border-top:1px solid #e6e1d8;box-shadow:0 -4px 16px rgba(23,33,58,.08);padding:4px 4px calc(4px + env(safe-area-inset-bottom,0px))}
+  .bnav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:19;background:#fff;border-top:1px solid #e6e1d8;box-shadow:0 -4px 16px rgba(23,33,58,.08);padding:4px 4px calc(4px + env(safe-area-inset-bottom,0px))}
   .bnav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 2px;font-size:11.5px;color:#6a7184;text-decoration:none;cursor:pointer;border-radius:10px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .bnav a span{font-size:21px;line-height:1.1;filter:grayscale(1);opacity:.7}
   .bnav a.on{color:var(--m);font-weight:700;background:#f7eef1}.bnav a.on span{filter:none;opacity:1}
@@ -394,7 +394,6 @@ small>.skl,td>.skl{min-height:16px;border-radius:6px}
 .fl-mas{margin-top:6px}.fl-mas summary{list-style:none;cursor:pointer;color:#6a7184;font-size:13px;display:inline-flex;align-items:center;gap:4px;padding:4px 0}
 @media(max-width:640px){.fl-card{grid-template-columns:84px 1fr;gap:10px}.fl-card img{width:84px}.fl-bt{grid-template-columns:1fr}}
 .fl-tx{min-width:0}.fl-bt button{min-width:0;font-size:14px}
-body:has(.modal) .bnav{display:none!important}
 .fl-mas summary::-webkit-details-marker{display:none}.fl-mas .fc-acc button{padding:6px 12px;font-size:13px;border-radius:999px}
 @media(max-width:640px){
   #v>.bh:first-child,#v>.cab:first-child{display:flex;flex-direction:column;align-items:stretch;gap:8px;margin-bottom:12px}
