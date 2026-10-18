@@ -609,6 +609,18 @@ html.oscuro .pr-pega{background:#18202f}
   #v>.bh:first-child .ici{margin-right:4px}
   .pr-fams .sub,.cl-pega .sub,#v>.sub{-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent);padding-right:24px}
 }
+
+.pcsel{display:flex!important;align-items:center;gap:10px;background:#faf7f8;border:1px solid #ebe6df;border-radius:14px;padding:10px 12px;margin-bottom:8px}
+.pcsel .cl-ini{position:static;width:42px;height:42px;font-size:15px;flex:none}
+.pcs-t{display:flex;flex-direction:column;min-width:0;flex:1}.pcs-t b{font-size:17px}.pcs-t small{color:#6a7184}
+#p_cq{width:100%;box-sizing:border-box}
+html.oscuro .pcsel{background:#18202f;border-color:#273246}
+
+.rv-ped .ped-top{align-items:center}.rv-av{position:static!important;width:34px;height:34px;font-size:12.5px;flex:none}
+.rv-ped .parada{flex:none;width:30px;height:30px;border-radius:50%;background:var(--m);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:14px}
+.rv-dir{display:flex;align-items:center;gap:4px;color:#6a7184;font-size:13px;margin:4px 0 2px}.rv-dir .ic{color:#9aa0ad}
+.rv-main{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0}.rv-main button{border-radius:12px;padding:11px 8px;font-weight:600}
+.rv-ayu{margin:0 0 8px}
 </style>
 </head>
 <body>
@@ -616,7 +628,7 @@ html.oscuro .pr-pega{background:#18202f}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-18.3';
+const VERSION='2026-10-18.4';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -1990,10 +2002,10 @@ function precioAMano(it,lista,fin){const m=document.createElement('div');m.class
 async function vPedidos(){
   S.items=[];S.pcli=null;S.pcup=null;S.pac={};S.pniv=null;
   $('#v').innerHTML=`<h2>Pedidos</h2><div class="box">
-  <div id="p_edb"></div><input id="p_cq" placeholder="Cliente: escribí nombre o CUIT" autocomplete="off"><div id="p_cr"></div>
-  <div id="p_sel" hidden><div class="clirow"><b id="p_cn"></b> <small id="p_cl"></small> <a id="p_cx">Cambiar</a></div>
+  <div id="p_edb"></div><input id="p_cq" type="search" placeholder="¿Para qué cliente? Escribí nombre o CUIT" autocomplete="off"><div id="p_cr"></div>
+  <div id="p_sel" hidden><div class="clirow pcsel"><span id="p_ava"></span><span class="pcs-t"><b id="p_cn"></b><small id="p_cl"></small></span><a id="p_cx" class="lnk">Cambiar</a></div>
     <div id="p_rep"></div><div id="p_fav" class="chips"></div></div><div id="p_cb" class="chips sug"></div>
-  <div class="conscan"><input id="p_q" type="search" placeholder="🔎 Buscar producto por nombre o código" autocomplete="off">${btnScan('p_sc')}<button class="alt" id="p_qk" title="Ver todos los productos por familia y cargar cantidades">${IC('bars',17)} Carga rápida</button><button class="alt" id="p_wa" title="Pegar el pedido que te mandó por WhatsApp">${IC('chat',17)} Pegar de WhatsApp</button><button class="alt" id="p_vo" title="Dictar el pedido">${IC('mic',17)} Dictar</button></div><div id="p_r"></div><table id="p_i"></table><p><b id="p_t"></b><br><span id="p_tk"></span></p><div id="p_av"></div><div id="p_sug" class="chips sug"></div><div class="g" id="p_ex" style="margin-top:8px"><label class="f">📅 Fecha de entrega<input type="date" id="p_fe"></label><label class="f" style="grid-column:span 2">📝 Nota del pedido<input id="p_ob" maxlength="300" placeholder="Ej.: entregar después de las 10, cobrar con transferencia"></label></div><div class="cupw"><input id="p_cu" placeholder="Cupón (opcional)" autocomplete="off" style="text-transform:uppercase"><button class="alt" id="p_cuo">Aplicar cupón</button> <small id="p_cum"></small></div><div class="fc-acc"><button id="p_g">Guardar pedido</button><button class="alt" id="p_pre">📝 Mandar como presupuesto</button></div></div>
+  <div class="conscan"><input id="p_q" type="search" placeholder="Buscar producto por nombre o código" autocomplete="off">${btnScan('p_sc')}<button class="alt" id="p_qk" title="Ver todos los productos por familia y cargar cantidades">${IC('bars',17)} Carga rápida</button><button class="alt" id="p_wa" title="Pegar el pedido que te mandó por WhatsApp">${IC('chat',17)} Pegar de WhatsApp</button><button class="alt" id="p_vo" title="Dictar el pedido">${IC('mic',17)} Dictar</button></div><div id="p_r"></div><table id="p_i"></table><p><b id="p_t"></b><br><span id="p_tk"></span></p><div id="p_av"></div><div id="p_sug" class="chips sug"></div><div class="g" id="p_ex" style="margin-top:8px"><label class="f">📅 Fecha de entrega<input type="date" id="p_fe"></label><label class="f" style="grid-column:span 2">📝 Nota del pedido<input id="p_ob" maxlength="300" placeholder="Ej.: entregar después de las 10, cobrar con transferencia"></label></div><div class="cupw"><input id="p_cu" placeholder="Cupón (opcional)" autocomplete="off" style="text-transform:uppercase"><button class="alt" id="p_cuo">Aplicar cupón</button> <small id="p_cum"></small></div><div class="fc-acc"><button id="p_g">Guardar pedido</button><button class="alt" id="p_pre">📝 Mandar como presupuesto</button></div></div>
   <div class="bh"><h3>Últimos pedidos</h3><div class="fc-acc"><button class="alt" onclick="hojaArmado()">🧺 Hoja de armado</button><button class="alt" onclick="autoAprobarCfg()">🤖 Aprobación automática</button></div></div><table id="pl"></table><div id="p_bar" class="pbar" hidden><div class="pbar-t"><small id="p_bn"></small><b id="p_bt"></b></div><button id="p_bg">Guardar pedido</button></div>`;
   {const sync=()=>{const n=S.items.length,bar=$('#p_bar');if(!bar)return;bar.hidden=!n||!S.pcli;const tx=$('#p_t')?.textContent||'',m=tx.match(/Total:\s*(\$\s*[\d.,]+)/);$('#p_bn').textContent=n+(n==1?' producto':' productos')+(S.pcli?' · '+nomVis(S.pcli):'');$('#p_bt').textContent=m?m[1]:''};
    new MutationObserver(sync).observe($('#p_t'),{childList:true,subtree:true,characterData:true});$('#p_bg').onclick=()=>$('#p_g').click();sync()}
@@ -2028,12 +2040,12 @@ async function vPedidos(){
   /* Cliente: buscador */
   cargarCoocurrencias().then(()=>drawI());
   const elegir=async c=>{S.pcli=c;setTimeout(()=>debidosNuevo(c,(p,q)=>{add(p,q);drawI()}).catch(()=>{}),900);S.pfrec=null;S.ptk=0;S.pcup=null;S.pac={};$('#p_cum').textContent='';cargarPactados(c).then(m=>{if(S.pcli===c){S.pac=m;drawI()}});S.pniv=null;sb.rpc('nivel_cliente',{p_cliente:c.id}).then(({data})=>{if(S.pcli===c&&data&&+data.pct>0){S.pniv={n:data.n,pct:+data.pct};drawI()}},()=>{});$('#p_cq').hidden=true;$('#p_cr').innerHTML='';$('#p_sel').hidden=false;
-    $('#p_cn').textContent=nomVis(c);$('#p_cl').textContent='Lista '+c.lista;drawI();if(!$('#p_nt'))$('#p_rep').insertAdjacentHTML('beforebegin','<div id="p_nt"></div>');$('#p_nt').innerHTML='';notasMini(c.id,'#p_nt');
+    $('#p_cn').textContent=nomVis(c);$('#p_ava').innerHTML=avatar(c);$('#p_cl').textContent=['Lista '+nomL(c.lista),c.condicion_pago_dias?c.condicion_pago_dias+' días':'Contado',c.barrio||c.ciudad].filter(Boolean).join(' · ');drawI();if(!$('#p_nt'))$('#p_rep').insertAdjacentHTML('beforebegin','<div id="p_nt"></div>');$('#p_nt').innerHTML='';notasMini(c.id,'#p_nt');
     $('#p_rep').innerHTML='<small>Buscando sus pedidos anteriores…</small>';$('#p_fav').innerHTML='';
     const{data:ped}=await sb.from('pedidos').select('id,numero,total,pedido_items(producto_id,cantidad)').eq('cliente_id',c.id).neq('estado','cancelado').order('numero',{ascending:false}).limit(10);
     if(S.pcli!==c)return;
     const P=(ped||[]).filter(o=>o.pedido_items?.length);S.ptk=P.length>=2?P.reduce((a,o)=>a+Number(o.total||0),0)/P.length:0;
-    if(!P.length){$('#p_rep').innerHTML='<small>Es su primer pedido.</small>';return}
+    if(!P.length){$('#p_rep').innerHTML='<span class="badge b-online">Primer pedido</span>';return}
     const u=P[0];
     $('#p_rep').innerHTML=`<button class="alt" id="p_ru">Repetir último pedido (N° ${u.numero} · ${u.pedido_items.length} productos)</button>`;
     $('#p_ru').onclick=()=>{let n=0;for(const it of u.pedido_items){const p=S.productos.find(x=>x.producto_id==it.producto_id);if(p){add(p,Number(it.cantidad)||1);n++}}
@@ -2503,11 +2515,13 @@ async function reciboPDF0(x,c){if(!x||!c)return;const w=window.open('','_blank')
 
 /* ---------- Hoja de reparto ---------- */
 async function vReparto(){
-  $('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Hoja de reparto</h2><div class="fc-acc"><button class="alt" onclick="hojaArmado()">🧺 Hoja de armado</button><button class="alt" onclick="zonasReparto()">🗺️ Zonas y camioneta</button><button class="alt" onclick="camioneta()">🚐 Camioneta al día</button><button class="alt" onclick="calendarioEntregas()">🗓️ Calendario</button><button class="alt" onclick="historialRepartos()">📈 Repartos</button><button class="alt" onclick="diasSinReparto()">📅 Días sin reparto</button></div></div>
-  <p><small>Marcá los pedidos que salen hoy y ordenalos con las flechas según el recorrido. Después imprimí la hoja, mandásela al chofer o abrí el recorrido en Google Maps.</small></p>
+  $('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Hoja de reparto</h2><div class="fc-acc"><button class="alt" onclick="hojaArmado()">🧺 Hoja de armado</button><button class="alt" onclick="zonasReparto()">🗺️ Zonas</button><button class="alt" onclick="abrirMasHoja('rv_mh','Más de reparto')">Más</button></div></div>
+  <div hidden id="rv_mh"><button class="alt" onclick="camioneta()">🚐 Camioneta al día</button><button class="alt" onclick="calendarioEntregas()">🗓️ Calendario de entregas</button><button class="alt" onclick="historialRepartos()">📈 Repartos anteriores</button><button class="alt" onclick="diasSinReparto()">📅 Días sin reparto</button></div>
+  <p class="rv-ayu"><small>Marcá los pedidos que salen hoy y ordenalos con las flechas.</small></p>
   <div class="box"><div class="sub" id="rv_f"></div><div id="rv_l"><span class="skl" role="status" aria-label="Cargando"></span></div></div>
   <div class="box" id="rv_acc" hidden><div class="bh"><h3 id="rv_t"></h3></div><div id="rv_cap"></div>
-    <div class="fc-acc"><button id="rv_imp">Imprimir hoja</button><button id="rv_rm">Imprimir remitos</button><button class="alt wa" id="rv_wa">Mandar al chofer</button><button class="alt" id="rv_map">Recorrido en Google Maps</button><button class="alt" id="rv_sal">Marcar «Salió a reparto»</button><button class="alt" id="rv_ord">🧭 Ordenar recorrido</button><button class="wa" id="rv_ch">🚚 Modo chofer</button></div></div>`;
+    <div class="rv-main"><button id="rv_imp">🖨️ Imprimir hoja</button><button class="alt wa" id="rv_wa">📲 Mandar al chofer</button><button class="alt" id="rv_map">🗺️ Google Maps</button><button class="alt" id="rv_sal">🚚 Salió a reparto</button></div>
+    <details class="prf rv-mas"><summary>Más opciones ${IC('down',14)}</summary><div class="fc-acc" style="padding:0 12px 12px"><button class="alt" id="rv_rm">🧾 Imprimir remitos</button><button class="alt" id="rv_ord">🧭 Ordenar recorrido</button><button class="alt wa" id="rv_ch">🚚 Modo chofer</button></div></details></div>`;
   const{data,error}=await sb.from('pedidos').select('*,clientes(razon_social),pedido_items(producto_id,cantidad)').in('estado',['aprobado','en_preparacion','listo','en_reparto']).order('numero');
   if(error){$('#rv_l').innerHTML='<p class="err">'+esc(error.message)+'</p>';return}
   const ids=data.map(o=>o.id),fac={};
@@ -2519,8 +2533,8 @@ async function vReparto(){
   const elegidos=()=>S.rvSel.map(id=>data.find(o=>o.id==id)).filter(Boolean);
   const draw=()=>{
     const E=elegidos(),resto=data.filter(o=>!S.rvSel.includes(o.id));
-    const fila=(o,i)=>{const c=cl(o);return `<div class="ped est-${o.estado}"><div class="ped-top">${i!=null?`<b class="parada">${i+1}</b>`:''}<b>N° ${o.numero}</b> <span class="cli">${esc(c.razon_social)}</span>${o.entrega?` <span class="badge ${o.entrega>diaLocal(new Date())?'':'b-entregado'}">📅 ${o.entrega==diaLocal(new Date())?'hoy':fd(o.entrega)}</span>`:''}<span class="tot">${$m(o.total)}${+o.costo_envio>0?'<br><small>incluye 🚚 envío '+$m(o.costo_envio)+'</small>':''}</span></div>
-      <div class="ped-acc"><span class="badge b-${o.estado}">${EST_TXT[o.estado]}</span><small>${esc(c.domicilio||'Sin domicilio cargado')} · ${nf(bultos(o))} u.</small>
+    const fila=(o,i)=>{const c=cl(o);return `<div class="ped rv-ped est-${o.estado}"><div class="ped-top">${i!=null?`<b class="parada">${i+1}</b>`:(c.id?avatar(c,'rv-av'):'')}<div class="ped-q"><span class="cli">${esc(c.id?nomVis(c):c.razon_social)}</span><small>N° ${o.numero}${o.entrega?' · Entregar '+(o.entrega==diaLocal(new Date())?'hoy':fd(o.entrega)):''}</small></div><span class="tot">${$m0(o.total)}${+o.costo_envio>0?'<br><small>incluye 🚚 envío '+$m(o.costo_envio)+'</small>':''}</span></div>
+      <div class="rv-dir">${IC('pin',15)} ${esc(c.domicilio||'Sin domicilio cargado')} · ${nf(bultos(o))} u.</div><div class="ped-acc"><span class="badge b-${o.estado}">${EST_TXT[o.estado]}</span>
       ${i!=null?`<button class="alt qb" data-up="${o.id}" ${i==0?'disabled':''} aria-label="Subir">↑</button><button class="alt qb" data-dn="${o.id}" ${i==E.length-1?'disabled':''} aria-label="Bajar">↓</button><button class="alt" data-q="${o.id}">Sacar</button>`:`<button data-a="${o.id}">Agregar al reparto</button>`}
       ${o.estado=='en_reparto'?`<button class="alt" data-ent="${o.id}">Entregado</button><button class="alt" data-fr="${o.id}">📷 Remito</button><button class="alt wa" data-avs="${o.id}">📲</button>`:''}</div></div>`};
     $('#rv_l').innerHTML=(E.length?`<h3>En el reparto (${E.length})</h3>`+E.map(fila).join(''):'<p><small>Todavía no elegiste pedidos para el reparto.</small></p>')+
@@ -7269,6 +7283,11 @@ function tabsMenu(){const T=['inicio','pedidos','clientes','compras','ventas','r
   return{pri:T.filter(t=>TAB_PRI.includes(t)),sec:T.filter(t=>!TAB_PRI.includes(t))}}
 const bottomTabs=()=>['inicio','pedidos','clientes',S.perfil.rol=='dueno'?'precios':'stock'];
 const MAS_IC={compras:['box','Proveedores y órdenes'],ventas:['chart','Cola, difusión y ofertas'],reparto:['truck','Hoja de reparto y entregas'],cobranza:['cash','Deudas y cobros'],caja:['receipt','Movimientos del día'],stock:['bars','Conteo y reposición'],reportes:['doc','Números del negocio'],contable:['book','Libros e impuestos'],manual:['book','Cómo usar el CRM'],precios:['tag','Márgenes y productos'],pedidos:['cart','Cargar y aprobar'],clientes:['user','Fichas y agenda'],inicio:['home','Resumen del día']};
+/* Abre como hoja desde abajo los botones guardados en un contenedor oculto */
+function abrirMasHoja(id,tit){const src=document.getElementById(id);if(!src)return;const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  m.innerHTML=`<div class="mc"><div class="bh"><h3>${esc(tit||'Más opciones')}</h3><button class="alt" id="mh_x">Cerrar</button></div><div class="pm-l"></div></div>`;
+  m.onclick=e=>{if(e.target==m)m.remove()};m.querySelector('#mh_x').onclick=()=>m.remove();
+  src.querySelectorAll('button').forEach(o=>{const c=o.cloneNode(true);c.removeAttribute('id');c.removeAttribute('onclick');c.onclick=()=>{m.remove();o.click()};m.querySelector('.pm-l').appendChild(c)})}
 function menuMas(todas){const LT=todas===1?(()=>{const t=tabsMenu();return [...t.pri,...t.sec].filter(x=>!bottomTabs().includes(x))})():tabsMenu().sec;const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
   m.innerHTML=`<div class="mc"><div class="bh"><h3>Más secciones</h3><button class="alt" id="mm_x">Cerrar</button></div>
   <div class="mmas">${LT.map(t=>`<button class="${S.tab==t?'on':'alt'}" data-mt="${t}">${IC(MAS_IC[t]?.[0]||'box',24)}<span><b>${t=='manual'?'Manual':t[0].toUpperCase()+t.slice(1)}</b><small>${MAS_IC[t]?.[1]||''}</small></span></button>`).join('')}</div></div>`;
@@ -9068,7 +9087,7 @@ function iconizar(raiz){try{(raiz||document).querySelectorAll('button,summary,a.
   t.nodeValue=t.nodeValue.slice(m[0].length);const w=document.createElement('span');w.className='ici';w.innerHTML=IC(EMO_IC[m[1]],17);b.insertBefore(w,t)})}catch(e){}}
 /* Tablas como tarjetas en el celular (Caja, Stock, Reportes) */
 function tarjetizar(){try{if(!matchMedia('(max-width:640px)').matches)return;
-  const sel=(['caja','stock','reportes'].includes(S.tab)?'#v table:not(.tcard):not(#pr_t):not(#p_i):not(.morc),':'')+'.modal table:not(.tcard)';
+  const sel=(['caja','stock','reportes','compras'].includes(S.tab)?'#v table:not(.tcard):not(#pr_t):not(#p_i):not(.morc),':'')+'.modal table:not(.tcard)';
   document.querySelectorAll(sel).forEach(t=>{const filas=[...t.rows];if(filas.length<2)return;const h=[...filas[0].cells];if(!h.length||h[0].tagName!='TH')return;const N=h.map(x=>x.textContent.trim());
     filas.slice(1).forEach(r=>{if(r.cells.length<2)return;r.classList.add('tcr');if(!r.cells[0].textContent.trim())r.cells[0].classList.add('tc-ico');[...r.cells].forEach((c,i)=>{if(N[i]&&!c.hasAttribute('data-l'))c.setAttribute('data-l',N[i])})});t.classList.add('tcard')})}catch(e){}}
 function cerrarX(){document.querySelectorAll('.modal .bh button:not(.xcl)').forEach(b=>{if(b.textContent.trim()!=='Cerrar')return;b.classList.add('xcl');b.setAttribute('aria-label','Cerrar');b.title='Cerrar';b.innerHTML='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>'})}
