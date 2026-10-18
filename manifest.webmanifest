@@ -1,5 +1,5 @@
 {
-  "name": "Sabores de mi País · Gestión",
+  "name": "Sabores de mi País",
   "short_name": "Sabores",
   "description": "CRM y gestión de Sabores de mi País",
   "lang": "es-AR",
@@ -7,7 +7,7 @@
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#f3f4f7",
+  "background_color": "#17213a",
   "theme_color": "#17213a",
   "icons": [
     {
