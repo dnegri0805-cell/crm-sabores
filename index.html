@@ -413,6 +413,7 @@ small>.skl,td>.skl{min-height:16px;border-radius:6px}
 .praum>summary{color:#6a7184;font-weight:500}
 .prc{margin:10px 2px 6px;color:#3c4458}
 .pcod{color:#9aa0ad;font-weight:400;font-size:12px}
+.pkg{display:inline!important;margin-left:2px!important;font-size:12px;color:#8a90a0}
 .pcaja{display:block;font-size:12px;color:#6a7184;font-weight:500}
 @media(max-width:640px){#pr_t tr.prw td .cs{text-align:left}#pr_t tr.prw td.pult.vac{display:none}#pr_t tr.prw td.pmay{grid-column:span 2}}
 .lgw{min-height:100vh;background:linear-gradient(var(--n) 0,var(--n) 260px,var(--g) 260px);display:flex;flex-direction:column;align-items:center;padding:28px 16px}
@@ -616,7 +617,10 @@ function promoCerca(id,lista){const hoy=diaLocal(new Date()),p=S.productos.find(
 const chipPromo=r=>r?`<span class="promo">−${nf(r.descuento_pct)} % ${esc(condPromo(r)||r.nombre)}</span>`:'';
 
 /* ---------- Bultos (caja / pack) ---------- */
-const bul=id=>{const x=S.min[id];return x&&x.b>1?{n:x.b,t:x.tb||'Caja'}:null};
+/* Bultos que en realidad son kilos (ej.: «Azúcar 25 kg» con precio por kg y Bolsa × 25): se muestran como «Bolsa 25 kg» */
+let _dsc={a:null,m:null};const dscDe=id=>{if(_dsc.a!==S.productos){_dsc.a=S.productos;_dsc.m={};for(const p of S.productos||[])_dsc.m[p.producto_id]=p.descripcion||''}return _dsc.m[id]||''};
+const bul=id=>{const x=S.min[id];return x&&x.b>1?{n:x.b,t:x.tb||'Caja',kg:new RegExp('(^|\\D)'+x.b+'\\s*kg','i').test(dscDe(id))}:null};
+const bulL=b=>b?(b.kg?b.t+' '+b.n+' kg':b.t+' × '+b.n):'';
 const plural=(t,n)=>{t=String(t||'Caja').toLowerCase();return n==1?t:(t.endsWith('s')?t:t+'s')};
 function enBultos(id,q){const b=bul(id);q=Number(q)||0;if(!b||q<b.n)return '';const c=Math.floor(q/b.n),r=q-c*b.n;return c+' '+plural(b.t,c)+(r?' + '+nf(r)+' u.':'')}
 const esPeso=id=>!!S.min[id]?.pw,esKg=id=>esPeso(id)&&!ppz(id);
@@ -625,7 +629,7 @@ const cantTxt=(id,q)=>{if(esKg(id))return nf(q)+' kg';if(esPeso(id))return nf(q)
 const FAM_PESO=/queso|fiambre|chacinad|jamoner|embutid|^secos$/i,FAM_NO=/fetas|rallad|hebras|mendicrim|tholem|untable|fetead|cheddar|dips/i,
   DES_NO=/\d+\s*(gr|grs|g|gs|ml|cc)\b|fetas|rallad|\bunt\b|unt\.|hebras|crema\b|tholem|pizzeta|mascarpone|camembert|brie|mendicrim|\bman[ií]\b|salchicha|rodajitas|fuet|bandeja|\(\d+\)/i;
 const pareceKg=p=>FAM_PESO.test(famGrupo(p.familia)+' '+(p.familia||''))&&!FAM_NO.test(p.familia||'')&&!DES_NO.test(p.descripcion||'');
-const chipBulto=id=>{const b=bul(id);return b?`<span class="bulto">${esc(b.t)} × ${b.n}</span>`:''};
+const chipBulto=id=>{const b=bul(id);return b?`<span class="bulto">${esc(bulL(b))}</span>`:''};
 
 /* ---------- Escáner de códigos de barras con la cámara ---------- */
 const solo=x=>String(x??'').replace(/\D/g,'').replace(/^0+/,'');
@@ -1268,7 +1272,7 @@ SDMP-01279	8.900</pre>
       V.map(p=>{const id=p.producto_id,c=nuevo[id]??+p.costo/(ppz(id)||1),pm=precio(c,'mayorista',p.familia),u=ult[id];
         return `<tr class="prw${nuevo[id]!=null?' cambio':''}"><td class="fto">${S.min[id]?.foto?`<img src="${esc(S.min[id].foto)}" alt="" data-ft="${id}" loading="lazy">`:`<button class="alt" data-ft="${id}" aria-label="Cargar foto">📷</button>`}</td><td>${esc(p.descripcion)} <small class="pcod">${esc(p.codigo)}</small>${ppz(id)&&pm!=null?`<br><span class="badge">⚖️ precios por kg · pieza ≈ ${nf(ppz(id))} kg → ${$m(pm*ppz(id))}</span>`:''}</td>
         <td class="n" data-l="Costo"><input type="number" step="0.01" min="0" class="cs" data-id="${id}" value="${nuevo[id]??''}" placeholder="${p.costo!=null?nf(+p.costo/(ppz(id)||1)):'—'}"></td>
-        <td class="n pmay" data-l="Mayorista">${pm!=null?$m0(pm):'—'}${pm!=null&&!ppz(id)&&(S.min[id]?.b||1)>1?`<small class="pcaja">${esc(S.min[id]?.tb||'Caja')} × ${S.min[id].b}: ${$m0(pm*S.min[id].b)}</small>`:''}</td><td class="n" data-l="Minorista">${precio(c,'minorista',p.familia)!=null?$m0(precio(c,'minorista',p.familia)):'—'}</td><td class="n" data-l="Gastronomía">${precio(c,'especial',p.familia)!=null?$m0(precio(c,'especial',p.familia)):'—'}</td>
+        <td class="n pmay" data-l="Mayorista">${pm!=null?$m0(pm)+(bul(id)?.kg?'<small class="pkg">/kg</small>':''):'—'}${pm!=null&&!ppz(id)&&(S.min[id]?.b||1)>1?`<small class="pcaja">${esc(bulL(bul(id)))}: ${$m0(pm*S.min[id].b)}</small>`:''}</td><td class="n" data-l="Minorista">${precio(c,'minorista',p.familia)!=null?$m0(precio(c,'minorista',p.familia)):'—'}</td><td class="n" data-l="Gastronomía">${precio(c,'especial',p.familia)!=null?$m0(precio(c,'especial',p.familia)):'—'}</td>
         <td class="n" data-l="Ganás">${pm!=null?$m0(pm-c):'—'}</td>
         <td style="white-space:nowrap" data-l="Bulto" class="pbu"><select class="tb" data-id="${id}" aria-label="Tipo de bulto">${['Caja','Pack','Bolsa','Fardo','Display','Balde','Cuñete','Lata','Bidón','Paquete'].map(t=>`<option ${(S.min[id]?.tb||'Caja')==t?'selected':''}>${t}</option>`).join('')}</select> × <input type="number" min="1" step="1" class="ub" data-id="${id}" value="${S.min[id]?.b||1}" aria-label="Unidades por bulto"></td>
         <td class="pult${u?'':' vac'}"><small>${u?'Último cambio: '+fd(u.fecha)+' · '+(u.costo_anterior>0?(u.costo_nuevo>=u.costo_anterior?'+':'')+pctf((u.costo_nuevo/u.costo_anterior-1)*100):'nuevo'):''}</small></td></tr>`}).join('')+
@@ -1814,7 +1818,7 @@ async function vPedidos(){
   const pintaCombos=()=>{const CB=S.combos.filter(c=>!c.solo_nuevos||!S.pfrec?.n);$('#p_cb').innerHTML=CB.length?'<small>🎁 Combos:</small>'+CB.map(c=>`<button class="chip" data-cbp="${c.id}">+ ${esc(c.nombre)} (${$m(comboPrecio(c,lis()).p)})</button>`).join(''):'';
     $$('#p_cb [data-cbp]').forEach(b=>b.onclick=()=>{addCombo(S.combos.find(c=>c.id==b.dataset.cbp));drawI();toast('Combo agregado.')})};pintaCombos();
   const drawI=()=>{pintaCombos();let t=0;
-    $('#p_i').innerHTML=S.items.map((i,k)=>{const P=pi(i),s=P.pu*i.q;t+=s;const pc=P.r||P.lab?null:promoCerca(i.p.producto_id,lis());return `<tr><td>${esc(i.p.descripcion)}${ppz(i.p.producto_id)?` <span class="badge">⚖️ pieza ≈ ${nf(ppz(i.p.producto_id))} kg · ${$m(P.pu/ppz(i.p.producto_id))}/kg</span>`:esKg(i.p.producto_id)?` <span class="badge">⚖️ por kilo · ${$m(P.pu)}/kg</span>`:''} ${i.p.marca?`<span class="marca">${esc(i.p.marca)}</span>`:''}${P.lab?` <span class="promo">${esc(P.lab)}</span>`:''}<br>${chipStock(i.p.producto_id,i.q)} ${chipBulto(i.p.producto_id)}${!i.cb&&S.perfil.rol=='dueno'?` <a class="lnk" data-mpr="${k}"><small>✏️ ${$m(P.pu)}</small></a>`:''}</td><td class="qbox"><button class="alt qb" data-m="${k}" aria-label="Restar">−</button><input type="number" min="1" value="${i.q}" data-k="${k}" class="qty">${esKg(i.p.producto_id)?' kg':''}<button class="alt qb" data-p="${k}" aria-label="Sumar">+</button>${bul(i.p.producto_id)?`<button class="alt qb bb" data-bb="${k}">+ ${esc(bul(i.p.producto_id).t)} (${bul(i.p.producto_id).n})</button>`:''}<br><small class="eq">${enBultos(i.p.producto_id,i.q)?'= '+enBultos(i.p.producto_id,i.q):''}</small></td><td class="pu">${P.r?`<s>${$m(pr(i.p))}</s><br>`:''}${!i.cb&&S.perfil.rol=='dueno'?`<a class="lnk" data-mpr="${k}" title="Cambiar el precio de este renglón">${$m(P.pu)} ✏️</a>`:$m(P.pu)}</td><td class="n">${$m(s)}${P.r?`<br>${chipPromo(P.r)}`:pc?`<br><small class="hint">Promo −${nf(pc.descuento_pct)} % ${esc(condPromo(pc))}</small>`:''}</td><td><a data-x="${k}">Quitar</a></td></tr>`}).join('');
+    $('#p_i').innerHTML=S.items.map((i,k)=>{const P=pi(i),s=P.pu*i.q;t+=s;const pc=P.r||P.lab?null:promoCerca(i.p.producto_id,lis());return `<tr><td>${esc(i.p.descripcion)}${ppz(i.p.producto_id)?` <span class="badge">⚖️ pieza ≈ ${nf(ppz(i.p.producto_id))} kg · ${$m(P.pu/ppz(i.p.producto_id))}/kg</span>`:esKg(i.p.producto_id)?` <span class="badge">⚖️ por kilo · ${$m(P.pu)}/kg</span>`:''} ${i.p.marca?`<span class="marca">${esc(i.p.marca)}</span>`:''}${P.lab?` <span class="promo">${esc(P.lab)}</span>`:''}<br>${chipStock(i.p.producto_id,i.q)} ${chipBulto(i.p.producto_id)}${!i.cb&&S.perfil.rol=='dueno'?` <a class="lnk" data-mpr="${k}"><small>✏️ ${$m(P.pu)}</small></a>`:''}</td><td class="qbox"><button class="alt qb" data-m="${k}" aria-label="Restar">−</button><input type="number" min="1" value="${i.q}" data-k="${k}" class="qty">${esKg(i.p.producto_id)?' kg':''}<button class="alt qb" data-p="${k}" aria-label="Sumar">+</button>${bul(i.p.producto_id)?`<button class="alt qb bb" data-bb="${k}">+ ${esc(bul(i.p.producto_id).t)} (${bul(i.p.producto_id).n}${bul(i.p.producto_id).kg?' kg':''})</button>`:''}<br><small class="eq">${enBultos(i.p.producto_id,i.q)?'= '+enBultos(i.p.producto_id,i.q):''}</small></td><td class="pu">${P.r?`<s>${$m(pr(i.p))}</s><br>`:''}${!i.cb&&S.perfil.rol=='dueno'?`<a class="lnk" data-mpr="${k}" title="Cambiar el precio de este renglón">${$m(P.pu)} ✏️</a>`:$m(P.pu)}</td><td class="n">${$m(s)}${P.r?`<br>${chipPromo(P.r)}`:pc?`<br><small class="hint">Promo −${nf(pc.descuento_pct)} % ${esc(condPromo(pc))}</small>`:''}</td><td><a data-x="${k}">Quitar</a></td></tr>`}).join('');
     {const cst=S.items.reduce((a,i)=>a+(+i.p.costo||0)*i.q,0),fct=(1-escalaDe(t)/100)*(1-(S.pcup?.pct||0)/100)*(1-(S.pniv?.pct||0)/100),vt=t*fct,g=vt-cst,pg=vt>0?g/vt*100:0,mm=S.margenMin??15;
      S.pgan=S.items.length&&cst>0?`<br><small class="${pg<mm?'baja':'sube'}">💰 Ganancia estimada: ${$m(g)} (${nf(Math.round(pg*10)/10)} %)${pg<mm?' ⚠️ debajo de tu mínimo de '+nf(mm)+' %':''}</small>`:''}
     $('#p_tk')&&($('#p_tk').innerHTML=(S.ptk&&S.items.length?(t>=S.ptk?`<small class="sube">✓ Ya pasó su pedido promedio (${$m(S.ptk)})</small>`:`<small class="hint">🎯 Este cliente suele comprar <b>${$m(S.ptk)}</b> · vas ${$m(t)} · te faltan <b>${$m(S.ptk-t)}</b>${S.pfrec?' — mirá abajo lo que suele llevar':''}</small>`):'')+(S.perfil.rol=='dueno'?S.pgan||'':''));
@@ -2057,7 +2061,7 @@ function tkPedidoCuerpo(o,it,c,f,tot){return tkCab('Nota de pedido',o.numero,f)+
 function tkReciboCuerpo(x,c,d){return tkCab('Recibo',x.numero,fd(x.fecha))+`<div class="sep"></div><div>Recibimos de:</div><div class="b">${esc(c.razon_social||'')}</div><div class="sep"></div><div class="r g"><span>${$m(x.importe)}</span></div><div class="sm">${esc(x.medio||'')}</div>`+
     (d.fac.length?`<div class="sep"></div>${d.fac.map(f=>`<div class="r sm"><span>${esc(f.t)}</span><span>${$m(f.imp)}</span></div>`).join('')}${d.cuenta?`<div class="r sm"><span>A cuenta</span><span>${$m(d.cuenta)}</span></div>`:''}`:'')+
     (d.saldo!=null?`<div class="sep"></div><div class="sm">${d.saldo>0.005?'Saldo pendiente: <b>'+$m(d.saldo)+'</b>':d.saldo<-0.005?'Saldo a favor: <b>'+$m(-d.saldo)+'</b>':'<b>Cuenta al día.</b>'}</div>`:'')+`<div class="firma sm">Firma</div>`}
-function tkEtiquetasCuerpo(E,l,bu,bc){return E.map(p=>{const b=bul(p.producto_id);return `<div class="et"><div class="b">${esc(p.descripcion)}</div><div class="pr">${$m(p['precio_'+l])}</div>${esPeso(p.producto_id)?'<div class="sm">por kg</div>':''}${bu&&b?`<div class="sm">${esc(b.t)} × ${b.n}: ${$m(p['precio_'+l]*b.n)}</div>`:''}${bc?bc(p):''}</div>`}).join('')}
+function tkEtiquetasCuerpo(E,l,bu,bc){return E.map(p=>{const b=bul(p.producto_id);return `<div class="et"><div class="b">${esc(p.descripcion)}</div><div class="pr">${$m(p['precio_'+l])}</div>${esPeso(p.producto_id)?'<div class="sm">por kg</div>':''}${bu&&b?`<div class="sm">${esc(bulL(b))}: ${$m(p['precio_'+l]*b.n)}</div>`:''}${bc?bc(p):''}</div>`}).join('')}
 /* ---------- Imprimir en el depósito (cola de impresión) ---------- */
 const esEstacion=()=>{try{return localStorage.getItem('estacion_imp')=='1'}catch(e){return false}};
 const depUsar=()=>!!(S.dep&&S.dep.activa)&&!esEstacion();
@@ -2457,7 +2461,7 @@ async function cOrdenes(){
   <div id="rx"></div><h3>Órdenes</h3><table id="ol"></table>`;
   const drawI=()=>{let t=0;
     $('#o_i').innerHTML=S.oc.length?'<tr><th>Producto</th><th>Cant.</th><th>Costo unit.</th><th>Subtotal</th><th></th></tr>'+S.oc.map((i,k)=>{const s=i.c*i.q;t+=s;
-      return `<tr><td>${esc(i.p.descripcion)}</td><td style="white-space:nowrap"><input type="number" min="1" value="${i.q}" data-k="${k}" class="oq">${bul(i.p.producto_id)?` <button class="alt qb bb" data-ob="${k}">+ ${esc(bul(i.p.producto_id).t)} (${bul(i.p.producto_id).n})</button><br><small class="eq">${enBultos(i.p.producto_id,i.q)?'= '+enBultos(i.p.producto_id,i.q):''}</small>`:''}</td><td><input type="number" min="0" step="0.01" value="${i.c}" data-k="${k}" class="oc" style="width:110px"></td><td>${$m(s)}</td><td><a data-x="${k}">Quitar</a></td></tr>`}).join(''):'';
+      return `<tr><td>${esc(i.p.descripcion)}</td><td style="white-space:nowrap"><input type="number" min="1" value="${i.q}" data-k="${k}" class="oq">${bul(i.p.producto_id)?` <button class="alt qb bb" data-ob="${k}">+ ${esc(bul(i.p.producto_id).t)} (${bul(i.p.producto_id).n}${bul(i.p.producto_id).kg?' kg':''})</button><br><small class="eq">${enBultos(i.p.producto_id,i.q)?'= '+enBultos(i.p.producto_id,i.q):''}</small>`:''}</td><td><input type="number" min="0" step="0.01" value="${i.c}" data-k="${k}" class="oc" style="width:110px"></td><td>${$m(s)}</td><td><a data-x="${k}">Quitar</a></td></tr>`}).join(''):'';
     $('#o_t').textContent=S.oc.length?'Total: '+$m(t):'';
     $$('.oq').forEach(e=>e.onchange=()=>{S.oc[e.dataset.k].q=Math.max(1,+e.value||1);setTimeout(drawI)});
     $$('.oc').forEach(e=>e.onchange=()=>{S.oc[e.dataset.k].c=Math.max(0,+e.value||0);setTimeout(drawI)});
@@ -2938,7 +2942,7 @@ async function etiquetas(ids){
       const s=document.createElementNS('http://www.w3.org/2000/svg','svg');try{JsBarcode(s,code,{format:ean?'EAN13':'CODE128',height:cols==3?26:34,width:cols==3?1.3:1.6,fontSize:cols==3?10:12,margin:0,displayValue:true});return s.outerHTML}catch(e){return''}};
     const hgt={3:'33mm',2:'45mm',1:'90mm'}[cols],fs={3:'20px',2:'30px',1:'54px'}[cols];
     const E=L.map(id=>S.productos.find(p=>p.producto_id==id)).filter(p=>+p['precio_'+l]>0);
-    if($('#et_t').value=='t'){w.document.open();w.document.write(ticketDoc('Etiquetas',E.map(p=>{const b=bul(p.producto_id);return `<div class="et"><div class="b">${esc(p.descripcion)}</div><div class="pr">${$m(p['precio_'+l])}</div>${esPeso(p.producto_id)?'<div class="sm">por kg</div>':''}${bu&&b?`<div class="sm">${esc(b.t)} × ${b.n}: ${$m(p['precio_'+l]*b.n)}</div>`:''}${bc(p)}</div>`}).join('')));w.document.close();return}
+    if($('#et_t').value=='t'){w.document.open();w.document.write(ticketDoc('Etiquetas',E.map(p=>{const b=bul(p.producto_id);return `<div class="et"><div class="b">${esc(p.descripcion)}</div><div class="pr">${$m(p['precio_'+l])}</div>${esPeso(p.producto_id)?'<div class="sm">por kg</div>':''}${bu&&b?`<div class="sm">${esc(bulL(b))}: ${$m(p['precio_'+l]*b.n)}</div>`:''}${bc(p)}</div>`}).join('')));w.document.close();return}
     w.document.open();w.document.write(`<html><head><meta charset="utf-8"><title>Etiquetas ${new Date().toLocaleDateString('es-AR')}</title><style>
       @page{size:A4;margin:8mm}body{margin:0;font-family:system-ui,Segoe UI,sans-serif;color:#1c2333}
       .h{display:grid;grid-template-columns:repeat(${cols},1fr);gap:0}.e{height:${hgt};border:1px dashed #b9bfcc;padding:3mm 3.5mm;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;page-break-inside:avoid;box-sizing:border-box}
@@ -2948,7 +2952,7 @@ async function etiquetas(ids){
       .ayuda{font:14px system-ui;background:#f6e9ec;padding:10px;border-radius:6px;margin:10px}@media print{.ayuda{display:none}}</style></head><body>
       <p class="ayuda">Imprimí en hoja A4 sin márgenes extra ("Márgenes: ninguno" o "Predeterminado") y recortá por las líneas punteadas.</p>
       <div class="h">${E.map(p=>{const pr=+p['precio_'+l],b=bul(p.producto_id);return`<div class="e"><div>${p.marca?`<div class="m">${esc(p.marca)}</div>`:''}<div class="d">${esc(p.descripcion)}</div></div>
-        <div class="p">${$m(pr).replace(/,(\d\d)$/,'<small>,$1</small>')}</div>${bu&&b?`<div class="b">${esc(b.t)} × ${b.n}: ${$m(pr*b.n)}</div>`:''}
+        <div class="p">${$m(pr).replace(/,(\d\d)$/,'<small>,$1</small>')}</div>${bu&&b?`<div class="b">${esc(bulL(b))}: ${$m(pr*b.n)}</div>`:''}
         <div class="f">${bc(p)}<span class="x">${new Date().toLocaleDateString('es-AR')}</span></div></div>`}).join('')}</div>
       <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close()};
 }
@@ -3850,7 +3854,7 @@ async function folletoOfertas(opt){
   $('#fo_g').onclick=async()=>{if(!sel.length)return toast('Elegí al menos un producto.',1);const l=$('#fo_l').value,fmt=$('#fo_t').value,F=FMT[fmt],fs=[...famSet()],f=fs.length==1?fs[0]:'';
     $('#fo_g').disabled=true;$('#fo_out').innerHTML='<p>Armando…</p>';
     const items=sel.map(p=>{const r=promoCerca(p.producto_id,l),base=+p['precio_'+l],b=bul(p.producto_id);const pr=r?Math.round(base*(1-r.descuento_pct/100)*100)/100:base;
-      return{d:p.descripcion,img:S.min[p.producto_id]?.foto||'',p:pr,ant:r?base:null,pct:r?+r.descuento_pct:0,cond:r&&condPromo(r)?condPromo(r):'',bulto:b?b.t+' × '+b.n+': '+$m(pr*b.n):'',esc:escFolleto(p.producto_id,pr),cu:!!b&&!esPeso(p.producto_id)}});
+      return{d:p.descripcion,img:S.min[p.producto_id]?.foto||'',p:pr,ant:r?base:null,pct:r?+r.descuento_pct:0,cond:r&&condPromo(r)?condPromo(r):'',bulto:b?bulL(b)+': '+$m(pr*b.n):'',esc:escFolleto(p.producto_id,pr),cu:!!b&&!esPeso(p.producto_id)}});
     if($('#fo_cb')?.checked)items.unshift(...S.combos.map(c=>{const v=comboPrecio(c,l);return{d:'🎁 '+c.nombre,img:S.min[(c.items||[]).find(x=>S.min[x.id]?.foto)?.id]?.foto||'',p:v.p,ant:v.s,pct:+c.descuento_pct,cond:comboTxt(c)}}));
     const filas=items.some(x=>x.esc),porPag=filas?(fmt=='historia'?4:3):F.n;
     const pags=[];for(let i=0;i<items.length;i+=porPag)pags.push(items.slice(i,i+porPag));
@@ -5102,7 +5106,7 @@ const escFolleto=(id,pr)=>{const x=S.min[id];if(!x||!(x.b>1)||!(x.ud>1||x.bp>0))
   if(x.ud>1&&x.ud<x.b)L.push('Display × '+x.ud+': '+$m(pr*x.ud));L.push(x.tb+' × '+x.b+': '+$m(pr*x.b));
   if(x.bp>0)L.push('Pallet × '+x.bp+' '+String(x.tb||'caja').toLowerCase()+(x.bp==1?'':'s')+': '+$m(Math.round(pr*x.b*x.bp*100)/100));return L};
 const itemFolleto=(p,l)=>{const r=promoCerca(p.producto_id,l),base=+p['precio_'+l],b=bul(p.producto_id),pr=r?Math.round(base*(1-r.descuento_pct/100)*100)/100:base;
-  return{d:p.descripcion,img:S.min[p.producto_id]?.foto||'',p:pr,ant:r?base:null,pct:r?+r.descuento_pct:0,cond:r&&condPromo(r)?condPromo(r):'',bulto:b?b.t+' × '+b.n+': '+$m(pr*b.n):'',esc:escFolleto(p.producto_id,pr),cu:!!b&&!esPeso(p.producto_id)}};
+  return{d:p.descripcion,img:S.min[p.producto_id]?.foto||'',p:pr,ant:r?base:null,pct:r?+r.descuento_pct:0,cond:r&&condPromo(r)?condPromo(r):'',bulto:b?bulL(b)+': '+$m(pr*b.n):'',esc:escFolleto(p.producto_id,pr),cu:!!b&&!esPeso(p.producto_id)}};
 
 /* ---------- 5. Reclamos ---------- */
 async function vReclamos(){S.garantia=await cfgJ('garantia',{activa:false,pct:10,dias:30});
@@ -5329,7 +5333,7 @@ async function vBultos(){const due=S.perfil.rol=='dueno';await cargarStock();
   const L=S.productos.filter(p=>bul(p.producto_id)).sort((a,b)=>(!!S.min[b.producto_id]?.sb)-(!!S.min[a.producto_id]?.sb)||a.descripcion.localeCompare(b.descripcion));
   $('#vs').innerHTML=`<div class="box"><h3>📦 Venta solo por bulto cerrado</h3><p><small>Los productos marcados se venden únicamente por caja/pack completo: en el catálogo el botón agrega el bulto entero y la cantidad se redondea al bulto. Sirve para proteger el margen y no abrir cajas.</small></p>
     <input id="bu_q" placeholder="Filtrar productos" style="margin-bottom:8px">
-    ${L.length?`<table id="bu_t">${L.map(p=>`<tr data-n="${esc(norm(p.descripcion))}"><td>${esc(p.descripcion)}<br><small>${esc(bul(p.producto_id).t)} × ${bul(p.producto_id).n}</small></td><td><label class="chk"><input type="checkbox" data-sb="${p.producto_id}" ${S.min[p.producto_id]?.sb?'checked':''} ${due?'':'disabled'}> Solo por bulto</label></td></tr>`).join('')}</table>`:'<p><small>No hay productos con bulto cargado.</small></p>'}</div>`;
+    ${L.length?`<table id="bu_t">${L.map(p=>`<tr data-n="${esc(norm(p.descripcion))}"><td>${esc(p.descripcion)}<br><small>${esc(bulL(bul(p.producto_id)))}</small></td><td><label class="chk"><input type="checkbox" data-sb="${p.producto_id}" ${S.min[p.producto_id]?.sb?'checked':''} ${due?'':'disabled'}> Solo por bulto</label></td></tr>`).join('')}</table>`:'<p><small>No hay productos con bulto cargado.</small></p>'}</div>`;
   $('#bu_q').oninput=e=>{const q=norm(e.target.value);$$('#bu_t tr').forEach(r=>r.hidden=q&&!r.dataset.n.includes(q))};
   $$('#vs [data-sb]').forEach(c=>c.onchange=async()=>{const{error}=await sb.from('productos').update({solo_bulto:c.checked}).eq('id',c.dataset.sb);
     if(error){c.checked=!c.checked;return toast(/solo_bulto/.test(error.message)?'Falta correr ventas-plan.sql en Supabase.':error.message,1)}S.min[c.dataset.sb].sb=c.checked;toast('Guardado.')})}
