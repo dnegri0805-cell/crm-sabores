@@ -685,7 +685,7 @@ html.oscuro .rci{background:#18202f;border-color:#273246}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-18.26';
+const VERSION='2026-10-18.27';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -3851,8 +3851,10 @@ async function flPagina(f,n,total,cuerpo,logo){const{W,H,CAB,PIE,FONT}=FL,cv=doc
   c.font=`800 44px ${FONT}`;c.fillText(S.telEmp?'Pedí por WhatsApp  '+S.telEmp:'Sabores de mi País',W/2,yb+140);
   c.font=`400 23px ${FONT}`;c.fillStyle='rgba(240,225,229,1)';c.fillText('Sabores de mi País · Distribuidora de alimentos · Precios sujetos a cambio',W/2,yb+196);c.textAlign='left';
   return cv}
+const FL_IMG=new Map(),FL_OUT=new Map();
+const flImg=src=>{if(!src)return Promise.resolve(null);if(!FL_IMG.has(src))FL_IMG.set(src,cargarImg(src).then(i=>{if(!i)FL_IMG.delete(src);return i}));return FL_IMG.get(src)};
 async function flArmar(f,prog){
-  const logo=await cargarImg(MARCA.logo||LOGO_DEF),{W,H,CAB,PIE,FONT}=FL,BOT=H-PIE-24,TOP=CAB+28,P=[];
+  const logo=await flImg(MARCA.logo||LOGO_DEF),{W,H,CAB,PIE,FONT}=FL,BOT=H-PIE-24,TOP=CAB+28,P=[];
   for(const pg of f.paginas||[]){
     if(pg.tipo=='fotos'){const L=(pg.items||[]).map(flItem).filter(Boolean);if(L.length)P.push({t:'f',pg,L})}
     else if(pg.tipo=='lista'){const SEC=70,ROW=80;let cur=[],y=TOP,last=null;
@@ -3860,11 +3862,14 @@ async function flArmar(f,prog){
         if(y+need>BOT){P.push({t:'l',rows:cur});cur=[];y=TOP;last=null;need=ROW+SEC}
         if(s.t!==last){cur.push({sec:s.t});y+=SEC;last=s.t}cur.push(it);y+=ROW}
       if(cur.length)P.push({t:'l',rows:cur})}}
+  const clave=f.id+'|'+(f.v||'')+'|'+S.telEmp+'|'+(S.vcfg?.envio||'')+'|'+(S.vcfg?.costoEnvio||'')+'|'+JSON.stringify(P);
+  if(FL_OUT.has(clave))return FL_OUT.get(clave);
+  P.forEach(Q=>Q.t=='f'&&Q.L.forEach(x=>flImg(x.foto)));
   const out=[];
   for(let k=0;k<P.length;k++){prog&&prog(k+1,P.length);const Q=P[k];
     const cv=await flPagina(f,k+1,P.length,async c=>{
       if(Q.t=='f'){let y=TOP;c.fillStyle=MARCA.c;rrect(c,40,y,W-80,96,18);c.fill();c.fillStyle='#fff';c.textBaseline='middle';c.font=`800 38px ${FONT}`;c.fillText(Q.pg.titulo.toUpperCase(),68,y+32);c.font=`400 24px ${FONT}`;c.fillStyle='rgba(240,225,229,1)';c.fillText(Q.pg.sub||'',68,y+72);y+=118;
-        const gap=22,cw=(W-80-gap)/2,ch=(BOT-y-2*gap)/3,imgs=await Promise.all(Q.L.map(x=>cargarImg(x.foto))),EX=Math.max(0,...Q.L.map(x=>(x.dets?x.dets.length:1)-1+(x.cod?1:0)));
+        const gap=22,cw=(W-80-gap)/2,ch=(BOT-y-2*gap)/3,imgs=await Promise.all(Q.L.map(x=>flImg(x.foto))),EX=Math.max(0,...Q.L.map(x=>(x.dets?x.dets.length:1)-1+(x.cod?1:0)));
         Q.L.forEach((x,i)=>{const X=40+(i%2)*(cw+gap),Y=y+Math.floor(i/2)*(ch+gap),ph=ch-214-28*EX,pw=cw-48;
           c.fillStyle='#fff';rrect(c,X,Y,cw,ch,24);c.fill();c.strokeStyle=FL.LIN;c.lineWidth=2;c.stroke();
           const im=imgs[i];if(im){const k=Math.min(pw/im.width,ph/im.height);c.drawImage(im,X+24+(pw-im.width*k)/2,Y+18+(ph-im.height*k)/2,im.width*k,im.height*k)}
@@ -3878,6 +3883,7 @@ async function flArmar(f,prog){
         const d2=!!(r.det||r.cod);c.fillStyle=FL.TXT;c.textBaseline='middle';c.fillText(r.n,64,d2?y+30:y+40);if(d2){let dx=64;if(r.cod){const ct='Cód. '+r.cod;c.font=`800 23px ${FONT}`;c.fillStyle=MARCA.c;c.fillText(ct,dx,y+59);dx+=c.measureText(ct).width}if(r.det){c.font=`400 23px ${FONT}`;c.fillStyle=FL.GRI;c.fillText((r.cod?'  ·  ':'')+r.det,dx,y+59)}}
         c.textAlign='right';c.font=`600 22px ${FONT}`;c.fillStyle=FL.GRI;c.fillText(r.suf,W-64,y+42);c.font=`800 38px ${FONT}`;c.fillStyle=MARCA.c;c.fillText(pt,W-64-sw-8,y+40);c.textAlign='left';y+=80}}},logo);
     out.push(await new Promise(r=>cv.toBlob(r,'image/jpeg',.88)))}
+  for(const k of [...FL_OUT.keys()])if(k.startsWith(f.id+'|'))FL_OUT.delete(k);FL_OUT.set(clave,out);
   return out}
 /* Junta las imágenes JPG del folleto en un solo PDF (una imagen por hoja), sin librerías */
 async function pdfDeJpgs(B,W,H){const enc=new TextEncoder(),parts=[],off=[];let len=0;const add=x=>{const u=typeof x=='string'?enc.encode(x):x;parts.push(u);len+=u.length};
