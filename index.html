@@ -468,6 +468,15 @@ button:active:not(:disabled),.btn:active,.bnav a:active,.hbt:active{transform:sc
 .splash i{width:34px;height:34px;border-radius:50%;border:3px solid rgba(255,255,255,.2);border-top-color:#fff;animation:gira .8s linear infinite}
 @keyframes gira{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){#v>*,.modal,.modal>.mc,.okc,.splash img{animation:none!important}}
+.cl-av{position:relative;padding-left:62px!important}
+.cl-ini{position:absolute;left:12px;top:11px;width:38px;height:38px;border-radius:50%;color:#fff;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;letter-spacing:.02em}
+.cl-cond{background:#f1eef0;color:#5b4650;border-radius:999px;padding:2px 8px;font-size:11.5px!important}
+.cl-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:middle;flex:none}
+.cl-fam{display:flex;align-items:center;gap:0}.cl-fam small{margin-left:5px}
+.cl-pega{position:sticky;top:0;z-index:9;background:var(--g);padding:8px 0 4px;margin:0 -2px}
+.cl-pega #q{margin:0 0 6px;width:100%;box-sizing:border-box}.cl-pega .sub{margin:0}
+.cl-pega .sub button{display:inline-flex;align-items:center}
+@media(min-width:900px){main#v:has(.cl-grid){max-width:1200px}.cl-grid{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))!important}}
 </style>
 </head>
 <body>
@@ -1175,19 +1184,23 @@ function vClientes(){
   const subs=`<div class="sub">${[['lista','Clientes'],['agenda','Agenda de visitas'],['mapa','Mapa'],['dormidos','Dormidos'],['prospectos','Prospectos'],['fijos','Pedidos fijos']].map(([k,t])=>`<button class="${S.cs==k?'':'alt'}" data-cs2="${k}">${t}</button>`).join('')}</div>`;
   if(S.cs!='lista'){$('#v').innerHTML=`${cabClientes()}${subs}<div id="cs"><span class="skl" role="status" aria-label="Cargando"></span></div>`;$$('[data-cs2]').forEach(b=>b.onclick=()=>{S.cs=b.dataset.cs2;vClientes()});enlazarCab();
     return ({agenda:vAgenda,prospectos:vProspectos,fijos:vFijos,dormidos:vDormidos,mapa:vMapa})[S.cs]()}
-  $('#v').innerHTML=`${cabClientes()}${subs}<div class="sub" id="cfam"></div><input id="q" placeholder="🔎 Buscar cliente o CUIT"><div id="ct"></div>`;
+  $('#v').innerHTML=`${cabClientes()}${subs}<div class="cl-pega"><input id="q" type="search" placeholder="Buscar cliente o CUIT"><div class="sub" id="cfam"></div></div><div id="ct"></div>`;
   const ORD=[...FAM_CLI.map(x=>x[0]),'❔ Sin rubro'];S.cfam=S.cfam||'';
+  const FCOL={'🥖 Panaderías':'#c58a1c','🍦 Heladerías':'#3c8fc4','🧀 Fiambrerías':'#7b2d3e','🇨🇳 Supermercados chinos':'#c0392b','🏪 Almacenes y comercios':'#2f8a57','🍝 Gastronomía':'#d0672a','🚚 Distribuidores':'#5b4fa8','❔ Sin rubro':'#9aa0ad'};
+  const fCol=f=>FCOL[f]||'#6a7184',fTxt=f=>String(f).replace(/^\S+\s+/,'');
+  const inic=c=>{const w=nomVis(c).replace(/\b(SRL|SA|SAS|SH)\b/gi,'').trim().split(/\s+/).filter(x=>/^[\p{L}\d]/u.test(x));return ((w[0]||'?')[0]+(w.length>1&&!/^\d/.test(w[1])?w[1][0]:(w[0]||'')[1]||'')).toUpperCase()};
+  const condTag=c=>{const t=[];if(c.lista&&c.lista!='mayorista')t.push(c.lista=='especial'?'gastronomía':c.lista);if(+c.condicion_pago_dias)t.push(c.condicion_pago_dias+' días');return t.length?`<small class="cl-cond">${esc(t.join(' · '))}</small>`:''};
   const rsSimil=c=>{const f=x=>norm(x||'').replace(/\b(s\.?r\.?l|s\.?a|s\.?a\.?s|s\.?h|y cia)\b\.?/g,'').replace(/[^a-z0-9]/g,'');const a=f(c.nombre_fantasia),b=f(c.razon_social);return !a||!b||a==b||b.includes(a)||a.includes(b)};
   const ultTxt=c=>{if(!S.ultPed)return '';const d=S.ultPed[c.id];if(!d)return '<span class="cl-ult nunca">Todavía no compró</span>';const n=Math.floor((Date.now()-new Date(d))/864e5);
     return `<span class="cl-ult${n>30?' viejo':''}">Último pedido: ${n<1?'hoy':n==1?'ayer':'hace '+n+' días'}</span>`};
-  const fila=c=>{const tel=telWA(c.telefono||'');return `<div class="cl-card clic" data-fc="${c.id}"><div class="cl-top"><b>${esc(nomVis(c))}</b><small class="cl-cond">${c.lista=='especial'?'gastronomía':esc(c.lista)} · ${c.condicion_pago_dias?c.condicion_pago_dias+' días':'Contado'}</small></div>
+  const fila=c=>{const tel=telWA(c.telefono||'');return `<div class="cl-card clic cl-av" data-fc="${c.id}"><span class="cl-ini" style="background:${fCol(famCli(c))}">${esc(inic(c))}</span><div class="cl-top"><b>${esc(nomVis(c))}</b>${condTag(c)}</div>
     <div class="cl-sub">${esc([(c.nombre_fantasia||'').trim()&&!rsSimil(c)?tituloCaso(c.razon_social):'',c.barrio||c.ciudad,c.rubro?'':'sin rubro'].filter(Boolean).join(' · '))}</div>
     <div class="cl-acc">${ultTxt(c)}<span class="cl-bts">${tel?`<a class="cl-bt wa" data-wa="${esc(tel)}" aria-label="WhatsApp">${IC('chat',18)}</a><a class="cl-bt" href="tel:${esc(c.telefono)}" data-no="1" aria-label="Llamar">${IC('phone',18)}</a>`:`<a class="cl-bt tel" data-tel="${c.id}">${IC('plus',15)} Teléfono</a>`}</span></div></div>`};
   const draw=()=>{const q=$('#q').value.toLowerCase(),A=S.clientes.filter(c=>c.activo!==false),cnt={};A.forEach(c=>{const f=famCli(c);cnt[f]=(cnt[f]||0)+1});
-    $('#cfam').innerHTML=`<button class="${S.cfam?'alt':''}" data-cf="">Todas (${A.length})</button>`+ORD.filter(f=>cnt[f]).map(f=>`<button class="${S.cfam==f?'':'alt'}" data-cf="${esc(f)}">${esc(f)} (${cnt[f]})</button>`).join('');
+    $('#cfam').innerHTML=`<button class="${S.cfam?'alt':''}" data-cf="">Todas (${A.length})</button>`+ORD.filter(f=>cnt[f]).map(f=>`<button class="${S.cfam==f?'':'alt'}" data-cf="${esc(f)}"><i class="cl-dot" style="background:${fCol(f)}"></i>${esc(fTxt(f))} (${cnt[f]})</button>`).join('');
     const L=S.clientes.filter(c=>coincide(c.razon_social+' '+(c.nombre_fantasia||'')+' '+(c.cuit||'')+' '+(c.rubro||''),q)&&(!S.cfam||famCli(c)==S.cfam)),G={};L.forEach(c=>(G[famCli(c)]=G[famCli(c)]||[]).push(c));
     Object.values(G).forEach(x=>x.sort((a,b)=>nomVis(a).localeCompare(nomVis(b))));
-    $('#ct').innerHTML=ORD.filter(f=>G[f]).map(f=>`<h4 class="cl-fam">${esc(f)} <small>(${G[f].length})</small>${f=='❔ Sin rubro'?' <small>· entrá a la ficha y cargá el rubro</small>':''}</h4><div class="cl-grid">${G[f].map(fila).join('')}</div>`).join('')||vacioHTML('No hay clientes con ese filtro.','user');
+    $('#ct').innerHTML=ORD.filter(f=>G[f]).map(f=>`<h4 class="cl-fam"><i class="cl-dot" style="background:${fCol(f)}"></i>${esc(fTxt(f))} <small>(${G[f].length})</small>${f=='❔ Sin rubro'?' <small>· entrá a la ficha y cargá el rubro</small>':''}</h4><div class="cl-grid">${G[f].map(fila).join('')}</div>`).join('')||vacioHTML('No hay clientes con ese filtro.','user');
     $$('#cfam [data-cf]').forEach(b=>b.onclick=()=>{S.cfam=b.dataset.cf;draw();bind()})};
   $$('[data-cs2]').forEach(b=>b.onclick=()=>{S.cs=b.dataset.cs2;vClientes()});
   const bind=()=>{$$('#ct [data-fc]').forEach(r=>r.onclick=()=>fichaCliente(S.clientes.find(c=>c.id==r.dataset.fc)));$$('#ct [data-wa]').forEach(a=>a.onclick=e=>{e.stopPropagation();window.open('https://wa.me/'+a.dataset.wa,'_blank')});$$('#ct [data-no]').forEach(a=>a.onclick=e=>e.stopPropagation());
