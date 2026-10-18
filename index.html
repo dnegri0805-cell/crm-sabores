@@ -666,6 +666,12 @@ html.oscuro .ag .vi{background:#18202f}
 .ksp{margin-top:6px;align-items:center}.ksp .k_del{width:42px;padding:0}
 .ksp-acc{margin:6px 0 10px;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center}.ksp-acc small{color:#5b6274}
 @media(max-width:640px){.ksp{display:grid!important;grid-template-columns:1fr 1fr 42px;gap:6px}}
+.rcl{display:grid;gap:6px}
+.rci{display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center;background:#fff;border:1px solid #ebe6df;border-radius:12px;padding:10px 12px}
+.rci-t{display:flex;flex-direction:column;min-width:0}.rci-t small{color:#6a7184}
+.rci-m{font-size:16px;text-align:right}
+.rci-b{grid-column:1/-1;display:flex;gap:6px;justify-content:flex-end}.rci-b button{width:42px;height:36px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:10px}
+html.oscuro .rci{background:#18202f;border-color:#273246}
 </style>
 </head>
 <body>
@@ -673,7 +679,7 @@ html.oscuro .ag .vi{background:#18202f}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-18.15';
+const VERSION='2026-10-18.16';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -2431,7 +2437,7 @@ function vCobranza(){setTimeout(()=>{if(S.preCob&&$('#k_c')){$('#k_c').value=S.p
     <div class="g"><input id="k_i" type="number" step="0.01" min="0" placeholder="Importe a cobrar"><select id="k_m"><option>transferencia</option><option>efectivo</option><option>cheque</option><option value="echeq">eCheq</option><option>tarjeta</option><option>otro</option></select></div><div id="k_x"></div>
     <div id="k_split"></div><p class="ksp-acc"><a class="lnk" id="k_add">+ Dividir pago</a> <small id="k_falta"></small></p>
     <button id="k_g">Registrar cobro</button><div id="k_ok"></div><h3>Últimos recibos</h3>
-    <table>${recUn(r.data||[]).map(x=>`<tr><td>Recibo ${x.numero}</td><td>${fd(x.fecha)}</td><td>${esc(x.medio)}</td><td class="n">${$m(x.importe)}</td><td style="white-space:nowrap"><button class="alt wa" data-rw="${x.numero}">WhatsApp</button> <button class="alt" data-rp="${x.numero}">PDF</button></td></tr>`).join('')||'<tr><td>Todavía no hay recibos.</td></tr>'}</table>`;
+    <div class="rcl">${recUn(r.data||[]).map(x=>`<div class="rci"><div class="rci-t"><b>Recibo N° ${x.numero}</b><small>${fd(x.fecha)} · ${esc(x.medio)}</small></div><b class="rci-m">${$m(x.importe)}</b><span class="rci-b"><button class="alt wa" data-rw="${x.numero}" aria-label="WhatsApp">${IC('chat',18)}</button><button class="alt" data-rp="${x.numero}" aria-label="PDF">${IC('doc',18)}</button></span></div>`).join('')||'<p><small>Todavía no hay recibos.</small></p>'}</div>`;
     const cli=S.clientes.find(c=>c.id==id),rec=n=>(r.data||[]).find(x=>x.numero==n);
     $$('#k_s [data-ppf]').forEach(b=>b.onclick=async()=>{const x=F.find(y=>y.factura_id==b.dataset.ppf);if(!confirm('¿Aplicar '+nf(PP.pct)+' % de descuento por pronto pago a la factura '+x.tipo+' '+x.numero+'? Se hace una nota de crédito por '+$m(x.pendiente*PP.pct/100)+'.'))return;
       const{data,error}=await sb.rpc('descuento_pronto_pago',{p_factura:x.factura_id});if(error)return toast(/descuento_pronto_pago/.test(error.message)?'Falta correr ventas-crecer.sql en Supabase.':error.message,1);
