@@ -930,10 +930,15 @@ function vClientes(){
   const subs=`<div class="sub">${[['lista','Clientes'],['agenda','Agenda de visitas'],['mapa','Mapa'],['dormidos','Dormidos'],['prospectos','Prospectos'],['fijos','Pedidos fijos']].map(([k,t])=>`<button class="${S.cs==k?'':'alt'}" data-cs2="${k}">${t}</button>`).join('')}</div>`;
   if(S.cs!='lista'){$('#v').innerHTML=`${cabClientes()}${subs}<div id="cs">Cargando…</div>`;$$('[data-cs2]').forEach(b=>b.onclick=()=>{S.cs=b.dataset.cs2;vClientes()});enlazarCab();
     return ({agenda:vAgenda,prospectos:vProspectos,fijos:vFijos,dormidos:vDormidos,mapa:vMapa})[S.cs]()}
-  $('#v').innerHTML=`${cabClientes()}${subs}<input id="q" placeholder="Buscar por nombre o CUIT · tocá un cliente para ver su ficha"><table id="ct"></table>`;
-  const draw=()=>{const q=$('#q').value.toLowerCase();
+  $('#v').innerHTML=`${cabClientes()}${subs}<div class="sub" id="cfam"></div><input id="q" placeholder="Buscar por nombre o CUIT · tocá un cliente para ver su ficha"><table id="ct"></table>`;
+  const ORD=[...FAM_CLI.map(x=>x[0]),'❔ Sin rubro'];S.cfam=S.cfam||'';
+  const fila=c=>`<tr class="clic" data-fc="${c.id}"><td><a class="lnk">${esc(c.razon_social)}</a><br><small>${esc([c.rubro,c.barrio||c.ciudad].filter(Boolean).join(' · '))}</small></td><td>${esc(c.cuit)}</td><td>${c.lista=='especial'?'gastronomía':c.lista}</td><td>${c.condicion_pago_dias?c.condicion_pago_dias+' días':'Contado'}</td><td>${esc(c.telefono)}</td></tr>`;
+  const draw=()=>{const q=$('#q').value.toLowerCase(),A=S.clientes.filter(c=>c.activo!==false),cnt={};A.forEach(c=>{const f=famCli(c);cnt[f]=(cnt[f]||0)+1});
+    $('#cfam').innerHTML=`<button class="${S.cfam?'alt':''}" data-cf="">Todas (${A.length})</button>`+ORD.filter(f=>cnt[f]).map(f=>`<button class="${S.cfam==f?'':'alt'}" data-cf="${esc(f)}">${esc(f)} (${cnt[f]})</button>`).join('');
+    const L=S.clientes.filter(c=>coincide(c.razon_social+' '+(c.cuit||'')+' '+(c.rubro||''),q)&&(!S.cfam||famCli(c)==S.cfam)),G={};L.forEach(c=>(G[famCli(c)]=G[famCli(c)]||[]).push(c));
     $('#ct').innerHTML='<tr><th>Cliente</th><th>CUIT</th><th>Lista</th><th>Pago</th><th>Teléfono</th></tr>'+
-    S.clientes.filter(c=>coincide(c.razon_social+' '+(c.cuit||''),q)).map(c=>`<tr class="clic" data-fc="${c.id}"><td><a class="lnk">${esc(c.razon_social)}</a>${c.barrio||c.ciudad?`<br><small>${esc(c.barrio||c.ciudad)}</small>`:''}</td><td>${esc(c.cuit)}</td><td>${c.lista}</td><td>${c.condicion_pago_dias?c.condicion_pago_dias+' días':'Contado'}</td><td>${esc(c.telefono)}</td></tr>`).join('')};
+      ORD.filter(f=>G[f]).map(f=>`<tr><td colspan="5" style="background:var(--suave,#f3eee6);font-weight:700">${esc(f)} <small>(${G[f].length})</small>${f=='❔ Sin rubro'?' <small>· entrá a la ficha y cargá el rubro para ordenarlo</small>':''}</td></tr>`+G[f].map(fila).join('')).join('')||'<tr><td colspan="5"><small>No hay clientes con ese filtro.</small></td></tr>';
+    $$('#cfam [data-cf]').forEach(b=>b.onclick=()=>{S.cfam=b.dataset.cf;draw();bind()})};
   $$('[data-cs2]').forEach(b=>b.onclick=()=>{S.cs=b.dataset.cs2;vClientes()});
   const bind=()=>$$('#ct [data-fc]').forEach(r=>r.onclick=()=>fichaCliente(S.clientes.find(c=>c.id==r.dataset.fc)));
   $('#q').oninput=()=>{draw();bind()};draw();bind();
@@ -947,14 +952,14 @@ function enlazarCab(){$('#c_new')&&($('#c_new').onclick=nuevoCliente);
   document.querySelectorAll('details.mas,details.umenu').forEach(d=>d.querySelectorAll('.masc button,.umc button').forEach(b=>b.addEventListener('click',()=>d.open=false)))}
 function nuevoCliente(){const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
   m.innerHTML=`<div class="mc"><div class="bh"><h3>Nuevo cliente</h3><button class="alt" id="c_x">Cancelar</button></div>
-  <div class="g"><input id="c_n" placeholder="Razón social *"><input id="c_c" placeholder="CUIT"><input id="c_t" placeholder="Teléfono"><input id="c_d" placeholder="Domicilio (calle y número)">${dirCampos('c')}
+  <div class="g"><input id="c_n" placeholder="Razón social *"><input id="c_c" placeholder="CUIT"><input id="c_t" placeholder="Teléfono">${selRubro('c_r','')}<input id="c_d" placeholder="Domicilio (calle y número)">${dirCampos('c')}
   <select id="c_i"><option value="responsable_inscripto">Responsable Inscripto</option><option value="monotributo">Monotributo</option><option value="consumidor_final">Consumidor final</option><option value="exento">Exento</option></select>
   <select id="c_l"><option>mayorista</option><option>minorista</option><option value="especial">gastronomía</option></select>
   <input id="c_p" type="number" min="0" placeholder="Días de pago (0 = contado)"></div><button id="c_g">Guardar cliente</button></div>`;
   m.onclick=e=>{if(e.target==m)m.remove()};$('#c_x').onclick=()=>m.remove();setTimeout(()=>$('#c_n')?.focus(),50);
   $('#c_g').onclick=async()=>{const n=$('#c_n').value.trim();if(!n)return toast('Falta la razón social.',1);$('#c_g').disabled=true;
     const{data,error}=await sb.from('clientes').insert({razon_social:n,cuit:$('#c_c').value.trim()||null,telefono:$('#c_t').value.trim()||null,domicilio:$('#c_d').value.trim()||null,
-      condicion_iva:$('#c_i').value,lista:$('#c_l').value,condicion_pago_dias:+$('#c_p').value||0,vendedor_id:S.perfil.id,...(dirOk()?dirLeer('c'):{})}).select().single();
+      condicion_iva:$('#c_i').value,lista:$('#c_l').value,...($('#c_r').value?{rubro:$('#c_r').value}:{}),condicion_pago_dias:+$('#c_p').value||0,vendedor_id:S.perfil.id,...(dirOk()?dirLeer('c'):{})}).select().single();
     if(error){$('#c_g').disabled=false;return toast(dirFalta(error),1)}
     m.remove();S.clientes.push(data);S.clientes.sort((a,b)=>a.razon_social.localeCompare(b.razon_social));toast('Cliente guardado.');S.cs='lista';vClientes()}}
 
@@ -4308,7 +4313,14 @@ async function vABC(){S.abcD=S.abcD||180;
 }
 
 /* ---------- 9. Catálogo por tipo de negocio ---------- */
-const RUBROS=['Kiosco','Almacén','Autoservicio','Supermercado','Dietética','Verdulería','Bar / Café','Panadería','Rotisería','Maxikiosco','Distribuidor','Restaurante','Pizzería','Parrilla','Heladería','Hotel'];
+const RUBROS=['Kiosco','Almacén','Autoservicio','Supermercado','Supermercado chino','Dietética','Verdulería','Fiambrería','Bar / Café','Panadería','Confitería','Rotisería','Maxikiosco','Distribuidor','Restaurante','Pizzería','Parrilla','Heladería','Hotel'];
+/* Familias de clientes: agrupan los rubros para ver la lista de clientes ordenada */
+const FAM_CLI=[['🥖 Panaderías',['Panadería','Confitería']],['🍦 Heladerías',['Heladería']],['🧀 Fiambrerías',['Fiambrería']],['🇨🇳 Supermercados chinos',['Supermercado chino']],
+  ['🏪 Almacenes y comercios',['Almacén','Kiosco','Maxikiosco','Autoservicio','Supermercado','Dietética','Verdulería']],['🍝 Gastronomía',['Restaurante','Pizzería','Parrilla','Bar / Café','Rotisería','Hotel']],['🚚 Distribuidores',['Distribuidor']]];
+const famCli=c=>{const r=norm((c?.rubro||'').trim());if(!r)return '❔ Sin rubro';for(const[f,L]of FAM_CLI)if(L.some(x=>norm(x)==r))return f;
+  if(/chin/.test(r))return '🇨🇳 Supermercados chinos';if(/panad|confit/.test(r))return '🥖 Panaderías';if(/helad/.test(r))return '🍦 Heladerías';if(/fiambr/.test(r))return '🧀 Fiambrerías';
+  if(/resto|restaur|pizz|parri|bar|cafe|rotis|hotel|gastro/.test(r))return '🍝 Gastronomía';if(/distrib/.test(r))return '🚚 Distribuidores';return '🏪 Almacenes y comercios'};
+const selRubro=(id,val)=>`<select id="${id}"><option value="">— Rubro (tipo de negocio) —</option>${FAM_CLI.map(([f,L])=>`<optgroup label="${esc(f)}">${L.map(r=>`<option ${val==r?'selected':''}>${esc(r)}</option>`).join('')}</optgroup>`).join('')}</select>`;
 const rubroDL=()=>`<datalist id="dl_rub">${[...new Set([...RUBROS,...S.clientes.map(c=>(c.rubro||'').trim()).filter(Boolean)])].map(r=>`<option value="${esc(r)}">`).join('')}</datalist>`;
 const linkRubro=r=>urlBase('ver=catalogo&rubro='+encodeURIComponent(r));
 async function vRubros(){
