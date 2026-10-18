@@ -662,6 +662,10 @@ html.oscuro .ag .vi{background:#18202f}
   .vtab button .ici{margin:0}.vtab button .ic{width:22px;height:22px}
   .vtab button:not(.on) .ic{color:var(--m)}
 }
+
+.ksp{margin-top:6px;align-items:center}.ksp .k_del{width:42px;padding:0}
+.ksp-acc{margin:6px 0 10px;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center}.ksp-acc small{color:#5b6274}
+@media(max-width:640px){.ksp{display:grid!important;grid-template-columns:1fr 1fr 42px;gap:6px}}
 </style>
 </head>
 <body>
@@ -669,7 +673,7 @@ html.oscuro .ag .vi{background:#18202f}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-18.13';
+const VERSION='2026-10-18.14';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -2425,6 +2429,7 @@ function vCobranza(){setTimeout(()=>{if(S.preCob&&$('#k_c')){$('#k_c').value=S.p
     $('#k_s').innerHTML=`<p>Saldo: <b>${$m(s.data?.saldo)}</b> <small>(facturado ${$m(s.data?.facturado)} · cobrado ${$m(s.data?.cobrado)})</small></p>
     <table><tr><th>Factura</th><th>Vence</th><th>Mora</th><th>Pendiente</th></tr>${F.map(x=>`<tr><td>${x.tipo} ${x.numero}</td><td>${fd(x.vencimiento)}</td><td>${x.dias_mora?x.dias_mora+' días':'—'}</td><td>${$m(x.pendiente)}${ppOk(x)?`<br><button class="alt" data-ppf="${x.factura_id}" title="Descuento por pronto pago">💸 −${nf(PP.pct)} % pronto pago (${$m(x.pendiente*PP.pct/100)})</button>`:''}</td></tr>`).join('')||'<tr><td colspan="4">No tiene facturas pendientes.</td></tr>'}</table>
     <div class="g"><input id="k_i" type="number" step="0.01" min="0" placeholder="Importe a cobrar"><select id="k_m"><option>transferencia</option><option>efectivo</option><option>cheque</option><option value="echeq">eCheq</option><option>tarjeta</option><option>otro</option></select></div><div id="k_x"></div>
+    <div id="k_split"></div><p class="ksp-acc"><a class="lnk" id="k_add">+ Dividir pago</a> <small id="k_falta"></small></p>
     <button id="k_g">Registrar cobro</button><div id="k_ok"></div><h3>Últimos recibos</h3>
     <table>${(r.data||[]).map(x=>`<tr><td>Recibo ${x.numero}</td><td>${fd(x.fecha)}</td><td>${esc(x.medio)}</td><td class="n">${$m(x.importe)}</td><td style="white-space:nowrap"><button class="alt wa" data-rw="${x.numero}">WhatsApp</button> <button class="alt" data-rp="${x.numero}">PDF</button></td></tr>`).join('')||'<tr><td>Todavía no hay recibos.</td></tr>'}</table>`;
     const cli=S.clientes.find(c=>c.id==id),rec=n=>(r.data||[]).find(x=>x.numero==n);
@@ -2436,15 +2441,29 @@ function vCobranza(){setTimeout(()=>{if(S.preCob&&$('#k_c')){$('#k_c').value=S.p
     if(S.recNuevo){const n=S.recNuevo;S.recNuevo=null;const x=rec(n);if(x){$('#k_ok').innerHTML=`<div class="aviso okb"><b>Recibo N° ${n} registrado.</b> Mandale el comprobante al cliente: <button class="alt wa" id="k_w">WhatsApp</button> <button class="alt" id="k_p">PDF</button></div>`;
       $('#k_w').onclick=()=>reciboWA(x,cli);$('#k_p').onclick=()=>reciboPDF(x,cli)}}
     $('#k_m').onchange=()=>extrasPago('#k_x',$('#k_m').value,'cobro');$('#k_m').onchange();
-    $('#k_g').onclick=async()=>{const total=+$('#k_i').value;if(!(total>0))return toast('Poné el importe a cobrar.',1);
+    /* Dividir pago: varias formas de pago con su importe, un recibo por cada una */
+    const totPend=F.reduce((a,x)=>a+Number(x.pendiente||0),0);
+    const partes=()=>[{imp:+$('#k_i').value||0,med:$('#k_m').value,main:1},...[...document.querySelectorAll('#k_split .ksp')].map(r=>({imp:+r.querySelector('.k_ii').value||0,med:r.querySelector('.k_mm').value}))];
+    const falta=()=>{const t=partes().reduce((a,x)=>a+x.imp,0),d=+(totPend-t).toFixed(2),hay=document.querySelector('#k_split .ksp');
+      $('#k_falta').innerHTML=!hay&&!t?'':`Total ${$m(t)}${totPend>0?(d>0.004?` · <b class="mora">falta ${$m(d)}</b>`:d<-0.004?` · sobra ${$m(-d)} (queda a cuenta)`:' · <b style="color:var(--ok)">justo</b>'):''}`};
+    $('#k_i').oninput=falta;
+    $('#k_add').onclick=()=>{const usados=partes().map(x=>x.med);const d=document.createElement('div');d.className='g ksp';
+      d.innerHTML=`<input type="number" step="0.01" min="0" class="k_ii" placeholder="Importe"><select class="k_mm"><option>efectivo</option><option>transferencia</option><option>tarjeta</option><option>otro</option></select><button class="alt k_del" aria-label="Quitar">✕</button>`;
+      $('#k_split').appendChild(d);const t=partes().reduce((a,x)=>a+x.imp,0),r=+(totPend-t).toFixed(2);if(r>0)d.querySelector('.k_ii').value=r;
+      const lib=['efectivo','transferencia','tarjeta','otro'].find(m=>!usados.includes(m));if(lib)d.querySelector('.k_mm').value=lib;
+      d.querySelector('.k_ii').oninput=falta;d.querySelector('.k_del').onclick=()=>{d.remove();falta()};$('#k_add').textContent='+ Otra forma de pago';falta();d.querySelector('.k_ii').focus()};
+    $('#k_g').onclick=async()=>{const P=partes().filter(x=>x.imp>0);if(!P.length||!(P[0].imp>0))return toast('Poné el importe a cobrar.',1);
       if($('#ch_fp')&&!$('#ch_fp').value)return toast('Poné la fecha de pago del cheque.',1);
-      const medio=$('#k_m').value=='echeq'?'cheque':$('#k_m').value;
-      let rest=total;const imp=[];
-      for(const x of F){if(rest<=0)break;const a=Math.min(rest,x.pendiente);imp.push({factura_id:x.factura_id,importe:+a.toFixed(2)});rest=+(rest-a).toFixed(2)}
-      const{data,error}=await sb.rpc('registrar_cobranza',{p_cliente:id,p_importe:total,p_medio:medio,p_imputaciones:imp});
-      if(error)return toast(error.message,1);
-      await extrasGuardar('cobro',total,'Cobro recibo N° '+data+' · '+nomCli(id),{cliente:id,ref:'Recibo N° '+data});
-      (okAnim('Cobro registrado'),toast('Recibo N° '+data+' registrado'+(rest>0?'. Quedan '+$m(rest)+' a cuenta.':'.')));S.recNuevo=data;$('#k_c').onchange();morosos()}};
+      if(P.length>1&&!confirm('Se registran '+P.length+' cobros ('+P.map(x=>x.med+' '+$m(x.imp)).join(' + ')+'), un recibo por cada forma de pago. ¿Seguimos?'))return;
+      $('#k_g').disabled=true;const pend=F.map(x=>({id:x.factura_id,p:Number(x.pendiente||0)}));const recs=[];let aCuenta=0;
+      for(const x of P){const medio=x.med=='echeq'?'cheque':x.med;let rest=x.imp;const imp=[];
+        for(const f of pend){if(rest<=0)break;if(f.p<=0.004)continue;const a=Math.min(rest,f.p);imp.push({factura_id:f.id,importe:+a.toFixed(2)});f.p=+(f.p-a).toFixed(2);rest=+(rest-a).toFixed(2)}
+        const{data,error}=await sb.rpc('registrar_cobranza',{p_cliente:id,p_importe:x.imp,p_medio:medio,p_imputaciones:imp});
+        if(error){$('#k_g').disabled=false;toast((recs.length?'Se registraron '+recs.length+' de '+P.length+'. ':'')+error.message,1);break}
+        if(x.main)await extrasGuardar('cobro',x.imp,'Cobro recibo N° '+data+' · '+nomCli(id),{cliente:id,ref:'Recibo N° '+data});
+        recs.push(data);aCuenta+=rest}
+      if(!recs.length)return;
+      (okAnim(recs.length>1?'Cobro registrado ('+recs.length+' formas de pago)':'Cobro registrado'),toast((recs.length>1?'Recibos N° '+recs.join(', '):'Recibo N° '+recs[0])+' registrado'+(recs.length>1?'s':'')+(aCuenta>0.004?'. Quedan '+$m(aCuenta)+' a cuenta.':'.')));S.recNuevo=recs[recs.length-1];$('#k_c').onchange();morosos()}};
 }
 
 /* Extras contables al cobrar, pagar o cargar gastos (solo dueño): cuenta bancaria y cheques */
