@@ -625,6 +625,15 @@ html.oscuro .pcsel{background:#18202f;border-color:#273246}
 input:focus,select:focus,textarea:focus{outline:none!important;border-color:var(--m)!important;box-shadow:0 0 0 3px rgba(123,45,62,.14)!important}
 html.oscuro input:focus,html.oscuro select:focus,html.oscuro textarea:focus{border-color:#c98a99!important;box-shadow:0 0 0 3px rgba(201,138,153,.2)!important}
 #p_r:empty,#p_av:empty,#p_sug:empty,#p_i:empty,#p_cb:empty,#p_fav:empty{display:none}
+
+.ptools{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0 4px}
+.ptools button{display:flex!important;flex-direction:column;align-items:center;gap:4px;padding:10px 4px!important;border-radius:12px!important;font-size:13.5px!important;margin:0!important;width:auto!important}
+.ptools .ic{color:var(--m)}
+.prc-row{margin:8px 0 2px}.prc-row>small{color:#8a90a0;display:block;margin-bottom:6px}
+.prc-l{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}.prc-l::-webkit-scrollbar{display:none}
+.prc{flex:none;display:flex!important;flex-direction:column;align-items:center;gap:5px;width:78px;padding:8px 4px!important;border-radius:14px!important;font-size:12.5px!important}
+.prc .cl-ini{position:static;width:40px;height:40px;font-size:14px}
+.prc span{max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -632,7 +641,7 @@ html.oscuro input:focus,html.oscuro select:focus,html.oscuro textarea:focus{bord
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-18.6';
+const VERSION='2026-10-18.7';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -2006,12 +2015,13 @@ function precioAMano(it,lista,fin){const m=document.createElement('div');m.class
 async function vPedidos(){
   S.items=[];S.pcli=null;S.pcup=null;S.pac={};S.pniv=null;
   $('#v').innerHTML=`<h2>Pedidos</h2><div class="box">
-  <div id="p_edb"></div><input id="p_cq" type="search" placeholder="¿Para qué cliente? Escribí nombre o CUIT" autocomplete="off"><div id="p_cr"></div>
+  <div id="p_edb"></div><input id="p_cq" type="search" placeholder="¿Para qué cliente? Escribí nombre o CUIT" autocomplete="off"><div id="p_cr"></div><div id="p_rc" class="prc-row"></div>
   <div id="p_sel" hidden><div class="clirow pcsel"><span id="p_ava"></span><span class="pcs-t"><b id="p_cn"></b><small id="p_cl"></small></span><a id="p_cx" class="lnk">Cambiar</a></div>
     <div id="p_rep"></div><div id="p_fav" class="chips"></div></div><div id="p_cb" class="chips sug"></div>
-  <div class="conscan"><input id="p_q" type="search" placeholder="Buscar producto por nombre o código" autocomplete="off">${btnScan('p_sc')}<button class="alt" id="p_qk" title="Ver todos los productos por familia y cargar cantidades">${IC('bars',17)} Carga rápida</button><button class="alt" id="p_wa" title="Pegar el pedido que te mandó por WhatsApp">${IC('chat',17)} Pegar de WhatsApp</button><button class="alt" id="p_vo" title="Dictar el pedido">${IC('mic',17)} Dictar</button></div><div id="p_r"></div><table id="p_i"></table><p id="p_tp" hidden><b id="p_t"></b><br><span id="p_tk"></span></p><div id="p_av"></div><div id="p_sug" class="chips sug"></div><div id="p_fin" hidden><div class="g" id="p_ex" style="margin-top:8px"><label class="f">📅 Fecha de entrega<input type="date" id="p_fe"></label><label class="f" style="grid-column:span 2">📝 Nota del pedido<input id="p_ob" maxlength="300" placeholder="Ej.: entregar después de las 10, cobrar con transferencia"></label></div><div class="cupw"><input id="p_cu" placeholder="Cupón (opcional)" autocomplete="off" style="text-transform:uppercase"><button class="alt" id="p_cuo">Aplicar cupón</button> <small id="p_cum"></small></div><div class="fc-acc"><button id="p_g">Guardar pedido</button><button class="alt" id="p_pre">📝 Mandar como presupuesto</button></div></div></div>
-  <div class="bh"><h3>Últimos pedidos</h3><div class="fc-acc"><button class="alt" onclick="hojaArmado()">🧺 Hoja de armado</button><button class="alt" onclick="autoAprobarCfg()">🤖 Aprobación automática</button></div></div><table id="pl"></table><div id="p_bar" class="pbar" hidden><div class="pbar-t"><small id="p_bn"></small><b id="p_bt"></b></div><button id="p_bg">Guardar pedido</button></div>`;
-  {const sync=()=>{const n=S.items.length,bar=$('#p_bar');if(!bar)return;$('#p_fin').hidden=!n;$('#p_tp').hidden=!n;bar.hidden=!n||!S.pcli;const tx=$('#p_t')?.textContent||'',m=tx.match(/Total:\s*(\$\s*[\d.,]+)/);$('#p_bn').textContent=n+(n==1?' producto':' productos')+(S.pcli?' · '+nomVis(S.pcli):'');$('#p_bt').textContent=m?m[1]:''};
+  <div id="p_prod" hidden><div class="conscan"><input id="p_q" type="search" placeholder="Buscar producto por nombre o código" autocomplete="off">${btnScan('p_sc')}</div>
+  <div class="ptools"><button class="alt" id="p_qk" title="Ver todos los productos por familia y cargar cantidades">${IC('bars',20)}<span>Rápida</span></button><button class="alt" id="p_wa" title="Pegar el pedido que te mandó por WhatsApp">${IC('chat',20)}<span>WhatsApp</span></button><button class="alt" id="p_vo" title="Dictar el pedido">${IC('mic',20)}<span>Dictar</span></button></div><div id="p_r"></div></div><table id="p_i"></table><p id="p_tp" hidden><b id="p_t"></b><br><span id="p_tk"></span></p><div id="p_av"></div><div id="p_sug" class="chips sug"></div><div id="p_fin" hidden><div class="g" id="p_ex" style="margin-top:8px"><label class="f">📅 Fecha de entrega<input type="date" id="p_fe"></label><label class="f" style="grid-column:span 2">📝 Nota del pedido<input id="p_ob" maxlength="300" placeholder="Ej.: entregar después de las 10, cobrar con transferencia"></label></div><div class="cupw"><input id="p_cu" placeholder="Cupón (opcional)" autocomplete="off" style="text-transform:uppercase"><button class="alt" id="p_cuo">Aplicar cupón</button> <small id="p_cum"></small></div><div class="fc-acc"><button id="p_g">Guardar pedido</button><button class="alt" id="p_pre">📝 Mandar como presupuesto</button></div></div></div>
+  <div class="bh"><h3>Últimos pedidos</h3><button class="alt" onclick="abrirMasHoja('pl_mh','Pedidos')">Más</button></div><div hidden id="pl_mh"><button class="alt" onclick="hojaArmado()">🧺 Hoja de armado</button><button class="alt" onclick="autoAprobarCfg()">🤖 Aprobación automática</button></div><table id="pl"></table><div id="p_bar" class="pbar" hidden><div class="pbar-t"><small id="p_bn"></small><b id="p_bt"></b></div><button id="p_bg">Guardar pedido</button></div>`;
+  {const sync=()=>{const n=S.items.length,bar=$('#p_bar');if(!bar)return;$('#p_fin').hidden=!n;$('#p_tp').hidden=!n;if(n)$('#p_prod').hidden=false;bar.hidden=!n||!S.pcli;const tx=$('#p_t')?.textContent||'',m=tx.match(/Total:\s*(\$\s*[\d.,]+)/);$('#p_bn').textContent=n+(n==1?' producto':' productos')+(S.pcli?' · '+nomVis(S.pcli):'');$('#p_bt').textContent=m?m[1]:''};
    new MutationObserver(sync).observe($('#p_t'),{childList:true,subtree:true,characterData:true});$('#p_bg').onclick=()=>$('#p_g').click();sync()}
   const cli=()=>S.pcli;
   const pr=p=>S.pac[p.producto_id]||Number(p['precio_'+(cli()?.lista||'mayorista')]);
@@ -2043,7 +2053,7 @@ async function vPedidos(){
   drawI();
   /* Cliente: buscador */
   cargarCoocurrencias().then(()=>drawI());
-  const elegir=async c=>{S.pcli=c;setTimeout(()=>debidosNuevo(c,(p,q)=>{add(p,q);drawI()}).catch(()=>{}),900);S.pfrec=null;S.ptk=0;S.pcup=null;S.pac={};$('#p_cum').textContent='';cargarPactados(c).then(m=>{if(S.pcli===c){S.pac=m;drawI()}});S.pniv=null;sb.rpc('nivel_cliente',{p_cliente:c.id}).then(({data})=>{if(S.pcli===c&&data&&+data.pct>0){S.pniv={n:data.n,pct:+data.pct};drawI()}},()=>{});$('#p_cq').hidden=true;$('#p_cr').innerHTML='';$('#p_sel').hidden=false;
+  const elegir=async c=>{S.pcli=c;setTimeout(()=>debidosNuevo(c,(p,q)=>{add(p,q);drawI()}).catch(()=>{}),900);S.pfrec=null;S.ptk=0;S.pcup=null;S.pac={};$('#p_cum').textContent='';cargarPactados(c).then(m=>{if(S.pcli===c){S.pac=m;drawI()}});S.pniv=null;sb.rpc('nivel_cliente',{p_cliente:c.id}).then(({data})=>{if(S.pcli===c&&data&&+data.pct>0){S.pniv={n:data.n,pct:+data.pct};drawI()}},()=>{});$('#p_cq').hidden=true;$('#p_cr').innerHTML='';$('#p_sel').hidden=false;$('#p_rc').hidden=true;$('#p_prod').hidden=false;
     $('#p_cn').textContent=nomVis(c);$('#p_ava').innerHTML=avatar(c);$('#p_cl').textContent=['Lista '+nomL(c.lista),c.condicion_pago_dias?c.condicion_pago_dias+' días':'Contado',c.barrio||c.ciudad].filter(Boolean).join(' · ');drawI();if(!$('#p_nt'))$('#p_rep').insertAdjacentHTML('beforebegin','<div id="p_nt"></div>');$('#p_nt').innerHTML='';notasMini(c.id,'#p_nt');
     $('#p_rep').innerHTML='<small>Buscando sus pedidos anteriores…</small>';$('#p_fav').innerHTML='';
     const{data:ped}=await sb.from('pedidos').select('id,numero,total,pedido_items(producto_id,cantidad)').eq('cliente_id',c.id).neq('estado','cancelado').order('numero',{ascending:false}).limit(10);
@@ -2066,7 +2076,14 @@ async function vPedidos(){
     $$('#p_cr .r').forEach(d=>d.onclick=()=>elegir(S.clientes.find(c=>c.id==d.dataset.id)));return r};
   $('#p_cq').oninput=listaCli;
   $('#p_cq').onkeydown=e=>{if(e.key=='Enter'){const r=listaCli();if(r.length)elegir(r[0])}};
-  $('#p_cx').onclick=()=>{S.pcli=null;$('#p_sel').hidden=true;$('#p_cq').hidden=false;$('#p_cq').value='';$('#p_cq').focus();drawI()};
+  $('#p_cx').onclick=()=>{S.pcli=null;$('#p_sel').hidden=true;$('#p_cq').hidden=false;$('#p_cq').value='';$('#p_rc').hidden=false;$('#p_prod').hidden=!S.items.length;$('#p_cq').focus();drawI()};
+  /* Clientes a mano: los que tienen visita hoy y los que pidieron hace poco */
+  (async()=>{try{const dv=new Date().getDay()||7,vis=S.clientes.filter(c=>c.activo!==false&&(c.dias_visita||[]).includes(dv));
+    const{data:rp}=await sb.from('pedidos').select('cliente_id').neq('estado','cancelado').order('numero',{ascending:false}).limit(60);
+    const ids=[...new Set([...vis.map(c=>c.id),...(rp||[]).map(x=>x.cliente_id)])].slice(0,10),L=ids.map(id=>S.clientes.find(c=>c.id==id)).filter(Boolean);
+    const box=$('#p_rc');if(!box||!L.length||S.pcli)return;
+    box.innerHTML=`<small>${vis.length?'Visitas de hoy y últimos clientes':'Últimos clientes'}</small><div class="prc-l">${L.map(c=>`<button class="alt prc" data-rcid="${c.id}">${avatar(c)}<span>${esc(nomVis(c))}</span></button>`).join('')}</div>`;
+    box.querySelectorAll('[data-rcid]').forEach(b=>b.onclick=()=>elegir(S.clientes.find(c=>c.id==b.dataset.rcid)))}catch(e){}})();
   /* Productos: Enter agrega el primero y deja el buscador listo */
   buscador('#p_q','#p_r',p=>{add(p);drawI();$('#p_q').focus()},p=>`<b>${$m(pr(p))}</b> ${chipStock(p.producto_id)} ${chipBulto(p.producto_id)} ${chipPromo(promoCerca(p.producto_id,lis()))}`);
   $('#p_sc').onclick=()=>escanear('Escanear productos del pedido',p=>{add(p);drawI();const it=S.items.find(i=>i.p.producto_id==p.producto_id);return '✔ '+p.descripcion+' · llevás '+it.q});
