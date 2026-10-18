@@ -669,7 +669,7 @@ html.oscuro .ag .vi{background:#18202f}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-18.11';
+const VERSION='2026-10-18.12';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -854,6 +854,8 @@ const bulL=b=>b?(b.kg?b.t+' '+b.n+' kg':b.t+' × '+b.n):'';
 const plural=(t,n)=>{t=String(t||'Caja').toLowerCase();return n==1?t:(t.endsWith('s')?t:t+'s')};
 function enBultos(id,q){const b=bul(id);q=Number(q)||0;if(!b||q<b.n)return '';const c=Math.floor(q/b.n),r=q-c*b.n;return c+' '+plural(b.t,c)+(r?' + '+nf(r)+' u.':'')}
 const esPeso=id=>!!S.min[id]?.pw,esKg=id=>esPeso(id)&&!ppz(id);
+/* Se pesa de verdad (fiambres y quesos); los insumos por kilo en bolsas/cajas cerradas no */
+const aPesar=id=>{if(!esPeso(id))return false;const p=S.productos.find(x=>x.producto_id==id);return !p||pareceKg(p)};
 const cantTxt=(id,q)=>{if(esKg(id))return nf(q)+' kg';if(esPeso(id))return nf(q)+' '+(+q==1?'pieza':'piezas')+' (≈ '+nf(Math.round(q*ppz(id)*10)/10)+' kg)';const e=enBultos(id,q);return nf(q)+(e?' ('+e+')':'')};
 /* Quesos y fiambres: se detectan por familia y descripción (los envasados por gramos quedan afuera) */
 const FAM_PESO=/queso|fiambre|chacinad|jamoner|embutid|^secos$/i,FAM_NO=/fetas|rallad|hebras|mendicrim|tholem|untable|fetead|cheddar|dips/i,
@@ -2247,7 +2249,7 @@ async function itemsPedido(o){
   const{data,error}=await sb.from('pedido_items').select('*').eq('pedido_id',o.id);
   if(error){toast('No se pudieron leer los productos: '+error.message,1);return null}
   return data.map(i=>{const id=i.producto_id,z=ppz(id),pr=String(i.promo||'').replace(/\s*·?\s*⚖️.*$/,''),pk=+i.precio_kg||(esKg(id)?+i.precio_unitario:z?+i.precio_unitario/z:0);
-    const qt=i.peso_real!=null?(esKg(id)||!z?kgTxt(+i.peso_real):nf(i.cantidad)+' '+(+i.cantidad==1?'pieza':'piezas')+' · '+kgTxt(+i.peso_real)):cantTxt(id,i.cantidad)+(esPeso(id)?' · a pesar':'');
+    const qt=i.peso_real!=null?(esKg(id)||!z?kgTxt(+i.peso_real):nf(i.cantidad)+' '+(+i.cantidad==1?'pieza':'piezas')+' · '+kgTxt(+i.peso_real)):cantTxt(id,i.cantidad)+(aPesar(id)?' · a pesar':'');
     return{id,d:S.productos.find(p=>p.producto_id==id)?.descripcion||'Producto',q:+i.cantidad,qt,pr,pu:+i.precio_unitario,puT:esPeso(id)||i.peso_real!=null?$m(pk)+' /kg':'',kg:esPeso(id)||i.peso_real!=null,st:+i.cantidad*+i.precio_unitario}});
 }
 function telWA(t){let d=String(t||'').replace(/\D/g,'');if(!d)return '';
@@ -2324,7 +2326,7 @@ const tkCab=(tit,num,fecha)=>`<div class="c h">SABORES DE MI PAÍS</div>${S.telE
 
 function tkPedidoCuerpo(o,it,c,f,tot){return tkCab('Nota de pedido',o.numero,f)+`<div class="sep"></div><div class="b">${esc(c.razon_social||'')}</div>${dirCompleta(c)?`<div class="sm">${esc(dirCompleta(c))}</div>`:''}${(o.fecha_entrega||o.entrega)?`<div class="sm b">Entrega: ${fd((o.fecha_entrega||o.entrega))}</div>`:''}${o.observaciones?`<div class="sm">Nota: ${esc(o.observaciones)}</div>`:''}<div class="sep"></div>`+
     it.map(i=>`<div class="it"><div>${esc(i.d)}</div><div class="r sm"><span>${i.qt} × ${i.puT||$m(i.pu)}</span><span>${$m(i.st)}</span></div>${i.pr?`<div class="sm">Promo: ${esc(i.pr)}</div>`:''}</div>`).join('')+
-    (+o.costo_envio>0?`<div class="it"><div class="r"><span>Envío</span><span>${$m(o.costo_envio)}</span></div></div>`:'')+`<div class="sep"></div><div class="r g"><span>TOTAL</span><span>${$m(o.total||tot)}</span></div>${it.some(i=>i.kg)?'<div class="sm">Fiambres y quesos: se cobra el peso real.</div>':''}<div class="firma sm">Recibí conforme</div><div class="c sm" style="margin-top:3mm">¡Gracias por tu compra!</div>`}
+    (+o.costo_envio>0?`<div class="it"><div class="r"><span>Envío</span><span>${$m(o.costo_envio)}</span></div></div>`:'')+`<div class="sep"></div><div class="r g"><span>TOTAL</span><span>${$m(o.total||tot)}</span></div>${it.some(i=>i.kg&&aPesar(i.id))?'<div class="sm">Fiambres y quesos: se cobra el peso real.</div>':''}<div class="firma sm">Recibí conforme</div><div class="c sm" style="margin-top:3mm">¡Gracias por tu compra!</div>`}
 function tkReciboCuerpo(x,c,d){return tkCab('Recibo',x.numero,fd(x.fecha))+`<div class="sep"></div><div>Recibimos de:</div><div class="b">${esc(c.razon_social||'')}</div><div class="sep"></div><div class="r g"><span>${$m(x.importe)}</span></div><div class="sm">${esc(x.medio||'')}</div>`+
     (d.fac.length?`<div class="sep"></div>${d.fac.map(f=>`<div class="r sm"><span>${esc(f.t)}</span><span>${$m(f.imp)}</span></div>`).join('')}${d.cuenta?`<div class="r sm"><span>A cuenta</span><span>${$m(d.cuenta)}</span></div>`:''}`:'')+
     (d.saldo!=null?`<div class="sep"></div><div class="sm">${d.saldo>0.005?'Saldo pendiente: <b>'+$m(d.saldo)+'</b>':d.saldo<-0.005?'Saldo a favor: <b>'+$m(-d.saldo)+'</b>':'<b>Cuenta al día.</b>'}</div>`:'')+`<div class="firma sm">Firma</div>`}
@@ -2399,7 +2401,7 @@ async function pedidoPDF0(o){
   <div class="top"><div>${logoImg()}<h1>Sabores de mi País</h1><div>Nota de pedido</div></div><div class="n"><b>Pedido N° ${o.numero}</b><br>${f}</div></div>
   <p><b>Cliente:</b> ${cliDocNom(c)}${c.cuit?'<br><b>CUIT:</b> '+esc(cuitFmt(c.cuit)):''}${dirCompleta(c)?'<br><b>Domicilio:</b> '+esc(dirLinda(c)):''}${(o.fecha_entrega||o.entrega)?'<br><b>Entrega:</b> '+fd((o.fecha_entrega||o.entrega)):''}${o.observaciones?'<br><b>Nota:</b> '+esc(o.observaciones):''}</p>
   <table><tr><th>Producto</th><th class="n">Cant.</th><th class="n">Precio</th><th class="n">Subtotal</th></tr>${it.map(i=>`<tr><td>${esc(i.d)}${i.pr?'<br><small style="color:#1d7a46">Promo: '+esc(i.pr)+'</small>':''}</td><td class="n">${i.qt}</td><td class="n">${i.puT||$m(i.pu)}</td><td class="n">${$m(i.st)}</td></tr>`).join('')}
-  ${+o.costo_envio>0?`<tr><td>🚚 Envío <small style="color:#6a7184">(gratis desde ${$m(S.vcfg?.envio||0)})</small></td><td class="n">1</td><td class="n">${$m(o.costo_envio)}</td><td class="n">${$m(o.costo_envio)}</td></tr>`:''}<tr class="tot"><td colspan="3" class="n">Total</td><td class="n">${$m(o.total||tot)}</td></tr></table>${it.some(i=>i.kg)?'<p style="font-size:12px;color:#555">⚖️ Fiambres y quesos: precio por kilo, pieza entera, se cobra el peso real.</p>':''}${qb}<style>${QRB_CSS}</style>
+  ${+o.costo_envio>0?`<tr><td>🚚 Envío <small style="color:#6a7184">(gratis desde ${$m(S.vcfg?.envio||0)})</small></td><td class="n">1</td><td class="n">${$m(o.costo_envio)}</td><td class="n">${$m(o.costo_envio)}</td></tr>`:''}<tr class="tot"><td colspan="3" class="n">Total</td><td class="n">${$m(o.total||tot)}</td></tr></table>${it.some(i=>i.kg&&aPesar(i.id))?'<p style="font-size:12px;color:#555">⚖️ Fiambres y quesos: precio por kilo, pieza entera, se cobra el peso real.</p>':''}${qb}<style>${QRB_CSS}</style>
   <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close();
 }
 
