@@ -287,6 +287,28 @@ button.alt:hover{background:#faf5f6;filter:none}
   .cl-card{padding:10px 12px}
   .cl-card b{font-size:15px}
 }
+@media(max-width:640px){
+  #p_i,#p_i tbody{display:block}
+  #p_i tr{display:grid;grid-template-columns:1fr auto;grid-template-areas:"d x" "q q" ". n";gap:8px 10px;background:#fff;border:1px solid #ebe6df;border-radius:12px;padding:10px 12px;margin-bottom:8px;box-shadow:0 1px 2px rgba(23,33,58,.04)}
+  #p_i td{display:block;border:0!important;padding:0!important}
+  #p_i td:first-child{grid-area:d;font-weight:600;line-height:1.3}
+  #p_i td.qbox{grid-area:q;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  #p_i td.qbox br{display:none}
+  #p_i td.pu{display:none}
+  #p_i td.n{grid-area:n;align-self:center;text-align:right;font-weight:800;font-size:17px}
+  #p_qk,#p_wa,#p_vo{padding:7px 12px;font-size:14px;border-radius:999px;margin:6px 4px 0 0}
+  #p_cu,#p_cuo{padding:9px 12px;font-size:15px}
+  #p_i td:last-child{grid-area:x;font-size:13px;color:#9aa0ad}
+  #p_i .qb{width:42px;height:42px;font-size:20px;padding:0;border-radius:10px}
+  #p_i .qty{width:64px;height:42px;text-align:center;font-size:16px}
+  #p_i .bb,#p_i td.qbox button:not(.qb){height:42px;width:auto!important;min-width:0;padding:0 12px;font-size:15px;line-height:1}
+}
+.pbar{position:sticky;bottom:0;z-index:12;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;border:1px solid #ebe6df;border-radius:16px 16px 0 0;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));margin:10px -8px 0;box-shadow:0 -6px 20px rgba(23,33,58,.10)}
+.pbar[hidden]{display:none}
+.pbar-t{display:flex;flex-direction:column;min-width:0}
+.pbar-t small{color:#5b6274;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pbar-t b{font-size:20px;font-variant-numeric:tabular-nums}
+.pbar button{padding:12px 18px;font-weight:700;border-radius:12px;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -1619,7 +1641,9 @@ async function vPedidos(){
   <div id="p_sel" hidden><div class="clirow"><b id="p_cn"></b> <small id="p_cl"></small> <a id="p_cx">Cambiar</a></div>
     <div id="p_rep"></div><div id="p_fav" class="chips"></div></div><div id="p_cb" class="chips sug"></div>
   <div class="conscan"><input id="p_q" type="search" placeholder="🔎 Buscar producto por nombre o código" autocomplete="off">${btnScan('p_sc')}<button class="alt" id="p_qk" title="Ver todos los productos por familia y cargar cantidades">⚡ Carga rápida</button><button class="alt" id="p_wa" title="Pegar el pedido que te mandó por WhatsApp">📋 Pegar de WhatsApp</button><button class="alt" id="p_vo" title="Dictar el pedido">🎤 Dictar</button></div><div id="p_r"></div><table id="p_i"></table><p><b id="p_t"></b><br><span id="p_tk"></span></p><div id="p_av"></div><div id="p_sug" class="chips sug"></div><div class="g" id="p_ex" style="margin-top:8px"><label class="f">📅 Fecha de entrega<input type="date" id="p_fe"></label><label class="f" style="grid-column:span 2">📝 Nota del pedido<input id="p_ob" maxlength="300" placeholder="Ej.: entregar después de las 10, cobrar con transferencia"></label></div><div class="cupw"><input id="p_cu" placeholder="Cupón (opcional)" autocomplete="off" style="text-transform:uppercase"><button class="alt" id="p_cuo">Aplicar cupón</button> <small id="p_cum"></small></div><div class="fc-acc"><button id="p_g">Guardar pedido</button><button class="alt" id="p_pre">📝 Mandar como presupuesto</button></div></div>
-  <div class="bh"><h3>Últimos pedidos</h3><div class="fc-acc"><button class="alt" onclick="hojaArmado()">🧺 Hoja de armado</button><button class="alt" onclick="autoAprobarCfg()">🤖 Aprobación automática</button></div></div><table id="pl"></table>`;
+  <div class="bh"><h3>Últimos pedidos</h3><div class="fc-acc"><button class="alt" onclick="hojaArmado()">🧺 Hoja de armado</button><button class="alt" onclick="autoAprobarCfg()">🤖 Aprobación automática</button></div></div><table id="pl"></table><div id="p_bar" class="pbar" hidden><div class="pbar-t"><small id="p_bn"></small><b id="p_bt"></b></div><button id="p_bg">Guardar pedido</button></div>`;
+  {const sync=()=>{const n=S.items.length,bar=$('#p_bar');if(!bar)return;bar.hidden=!n||!S.pcli;const tx=$('#p_t')?.textContent||'',m=tx.match(/Total:\s*(\$\s*[\d.,]+)/);$('#p_bn').textContent=n+(n==1?' producto':' productos')+(S.pcli?' · '+nomVis(S.pcli):'');$('#p_bt').textContent=m?m[1]:''};
+   new MutationObserver(sync).observe($('#p_t'),{childList:true,subtree:true,characterData:true});$('#p_bg').onclick=()=>$('#p_g').click();sync()}
   const cli=()=>S.pcli;
   const pr=p=>S.pac[p.producto_id]||Number(p['precio_'+(cli()?.lista||'mayorista')]);
   const lis=()=>cli()?.lista||'mayorista',pi=i=>{if(i.mp!=null&&!i.cb)return{r:null,lab:'✍️ Precio a mano',pu:i.mp};if(i.cb){const c=S.combos.find(x=>x.id==i.cb);return{r:null,lab:/^combo/i.test(c?.nombre||'')?c.nombre:'Combo '+(c?.nombre||''),pu:Math.round(pr(i.p)*(1-(c?.descuento_pct||0)/100)*100)/100}}
