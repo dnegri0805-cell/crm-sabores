@@ -641,7 +641,7 @@ html.oscuro input:focus,html.oscuro select:focus,html.oscuro textarea:focus{bord
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-18.7';
+const VERSION='2026-10-18.8';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -9121,10 +9121,11 @@ async function actualizarTodo(){const ind=document.getElementById('ptr');setTime
   if(!c.error&&c.data.length)S.clientes.splice(0,S.clientes.length,...c.data);if(!pr.error&&pr.data.length)S.productos.splice(0,S.productos.length,...pr.data);
   try{guardarCache()}catch(e){}await cargarStock().catch(()=>{});S.ultPed=null;
   if(S.fc&&document.getElementById('fc_vol')){const cl=S.clientes.find(x=>x.id==S.fc);if(cl)fichaCliente(cl);else shell()}else shell();toast('Datos actualizados.')}catch(e){toast('No se pudo actualizar: '+(e.message||e),1)}finally{ind&&ind.remove()}}
-{let y0=null,d=0,ind=null;const ok=()=>matchMedia('(max-width:640px)').matches&&scrollY<=0&&!document.querySelector('.modal')&&S.perfil&&document.getElementById('v');
+{let y0=null,d=0,ind=null,wd=0;setInterval(()=>{const x=document.getElementById('ptr');if(x&&!x.classList.contains('gira')&&y0==null)x.remove()},1500);const ok=()=>matchMedia('(max-width:640px)').matches&&scrollY<=0&&!document.querySelector('.modal')&&S.perfil&&document.getElementById('v');
  document.addEventListener('touchstart',e=>{if(!ok()||e.target.closest('input,textarea,select,.modal'))return;y0=e.touches[0].clientY;d=0},{passive:true});
  document.addEventListener('touchmove',e=>{if(y0==null)return;d=e.touches[0].clientY-y0;if(d<=0||scrollY>0){ind&&ind.remove();ind=null;return}
-   if(!ind){ind=document.createElement('div');ind.id='ptr';ind.innerHTML='<i></i>';document.body.appendChild(ind)}const k=Math.min(1,d/110);ind.style.transform=`translate(-50%,${Math.min(d*.5,70)}px) rotate(${k*270}deg)`;ind.style.opacity=k;ind.classList.toggle('listo',d>110)},{passive:true});
+   clearTimeout(wd);wd=setTimeout(()=>{if(ind&&!ind.classList.contains('gira')){ind.remove();ind=null;y0=null}},900);
+   if(!ind){document.querySelectorAll('#ptr:not(.gira)').forEach(x=>x.remove());ind=document.createElement('div');ind.id='ptr';ind.innerHTML='<i></i>';document.body.appendChild(ind)}const k=Math.min(1,d/110);ind.style.transform=`translate(-50%,${Math.min(d*.5,70)}px) rotate(${k*270}deg)`;ind.style.opacity=k;ind.classList.toggle('listo',d>110)},{passive:true});
  const fin=ok=>{if(y0==null&&!ind)return;y0=null;if(ind){if(ok&&d>110){ind.classList.add('gira');ind.style.transform='translate(-50%,50px)';actualizarTodo()}else ind.remove();ind=null}};
  document.addEventListener('touchend',()=>fin(true));document.addEventListener('touchcancel',()=>fin(false));
  document.addEventListener('scroll',()=>{if(scrollY>10&&ind&&!ind.classList.contains('gira')){ind.remove();ind=null;y0=null}},{passive:true})}
