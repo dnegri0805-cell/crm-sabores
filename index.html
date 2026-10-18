@@ -537,6 +537,11 @@ html.oscuro .cl-bt,html.oscuro details.mas>summary,html.oscuro .fc-big a.btn,htm
 html.oscuro .cl-bt.wa,html.oscuro .fc-big a.fc-wa,html.oscuro .ped-acc .pwa{background:#12301f!important;color:#7fd3a0!important;border-color:#1f5a38!important}
 html.oscuro .masc,html.oscuro .umc{background:#18202f;border-color:#273246}
 html.oscuro .cl-ini{box-shadow:0 0 0 2px #0f1524}
+/* Nada más ancho que la pantalla: las tablas anchas se deslizan dentro de su recuadro */
+html,body{overflow-x:clip}
+.modal .mc>*,.dos>*,.kp>*,.g>*{min-width:0}
+.modal .mc{max-width:min(640px,100%);box-sizing:border-box}
+.modal .tw,.box .tw{max-width:100%;overflow-x:auto}
 </style>
 </head>
 <body>
