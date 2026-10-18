@@ -483,7 +483,7 @@ async function vInicio(){
   $('#v').innerHTML=`<div class="bh" style="flex-wrap:wrap;gap:8px"><h2 style="margin:0">Hoy, ${hoyD.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}</h2>
     ${dia?'':'<button class="alt" data-iv="dia">← Volver al inicio simple</button>'}</div>
   ${dia?`${principalesHTML(false)}`:`
-  ${principalesHTML()}<div id="bk"></div><div id="chk"></div><div id="cmpi"></div><div id="cami"></div><div id="equi"></div><div id="doci"></div><div id="midia"></div><div id="mani"></div><div id="resd"></div><div id="tari"></div>
+  ${principalesHTML()}<div id="bk"></div><div id="dlr"></div><div id="chk"></div><div id="cmpi"></div><div id="cami"></div><div id="equi"></div><div id="doci"></div><div id="midia"></div><div id="mani"></div><div id="resd"></div><div id="tari"></div>
   <div class="herr" id="herr"></div>
   <div id="alm"></div>
   <div id="empi"></div><div id="metai"></div><div id="colai"></div><div id="plani"></div><div id="toca"></div><div id="fidel"></div><div id="masi"></div><div id="creci"></div><div id="servi"></div><div id="fieli"></div><div id="fechas"></div>
@@ -503,13 +503,13 @@ async function vInicio(){
   </div>${dia?`</details>
   <details class="plg"><summary>🗓️ Tareas y avisos del día</summary><div id="midia"></div><div id="tari"></div><div id="alm"></div></details>
   <div id="chk"></div>
-  <div class="pieini"><div id="bk"></div><a class="lnk" data-iv="completa">📋 Ver panel completo</a> · <a class="lnk" onclick="menuTabsCfg()">☰ Elegir pestañas del menú</a></div>`:''}`;
+  <div class="pieini"><div id="bk"></div><div id="dlr"></div><a class="lnk" data-iv="completa">📋 Ver panel completo</a> · <a class="lnk" onclick="menuTabsCfg()">☰ Elegir pestañas del menú</a></div>`:''}`;
   const kp=(id,num,det,cls)=>{const b=$('#'+id);b.querySelector('.num').textContent=num;b.querySelector('.det').textContent=det||'';if(cls)b.classList.add(cls)};
   const fallo=(id,e)=>kp(id,'—','No se pudo leer: '+e.message);
   $$('[data-iv]').forEach(b=>b.onclick=()=>{S.inicioModo=b.dataset.iv;vInicio();scrollTo(0,0)});
   const irPed=f=>{S.pf=f;S.tab='pedidos';shell()};
   {const b=$('#k2');if(b){b.style.cursor='pointer';b.title='Ver los pedidos por aprobar';b.onclick=()=>irPed('pendiente')}}
-  if(S.perfil.rol=='dueno')cajaBackup();
+  if(S.perfil.rol=='dueno'){cajaBackup();cajaDolar().catch(()=>{})}
   herramientas();generarFijos();alertasMargen();objetivoMes();tocaInicio();fidelInicio().catch(()=>{});masInicio().catch(()=>{});crecerInicio().catch(()=>{});fielesInicio().catch(()=>{});servInicio().catch(()=>{});planInicio().catch(()=>{});colaInicio().catch(()=>{});resumenDia().catch(()=>{});tareasInicio().catch(()=>{});chequeoInicio().catch(()=>{});camionetaInicio().catch(()=>{});cuentasInicio().catch(()=>{});equiposInicio().catch(()=>{});comprobantesInicio().catch(()=>{});mananaInicio().catch(()=>{});miDia().catch(()=>{});ocSemanal().catch(()=>{});aplicarAumentosProg().catch(()=>{});sincronizarOff().catch(()=>{});metasInicio().catch(()=>{});empujonBox($('#empi')).catch(()=>{});avisosEnVivo();fechasInicio();
   const cli=id=>esc(S.clientes.find(c=>c.id==id)?.razon_social||'Cliente');
   const [fv,pe,fe,sp,fp]=await Promise.all([
@@ -642,6 +642,36 @@ const BK_TABLAS=[['Clientes','clientes'],['Productos y precios','precios_product
   ['Cuentas','cuentas'],['Movimientos de cuentas','movimientos_cuenta'],['Cheques','cheques'],['Retenciones','retenciones'],['Pedidos fijos','pedidos_fijos'],['Prospectos','prospectos'],['Notas de crédito','notas_credito'],['Vencimientos','vencimientos'],['Combos','combos'],['Contactos con clientes','contactos_clientes'],
   ['Encuestas','encuestas'],['Cupones','cupones'],['Cupones usados','cupones_usos'],['Puntos','puntos_mov'],['Presupuestos','presupuestos'],
   ['Carritos guardados','carritos'],['Avisos de stock','avisos_stock'],['Búsquedas sin resultado','busquedas'],['Precios pactados','precios_cliente'],['Precios de la competencia','precios_competencia'],['Muestras','muestras'],['Visitas al catálogo','vistas_catalogo'],['Reclamos','reclamos'],['Productos que piden','pedidos_sugeridos'],['Preventas','preventas'],['Reservas','reservas'],['Exhibidores','comodatos'],['Fraccionados','fraccionados'],['Combustible','cargas_combustible'],['Promesas de pago','promesas_pago'],['Documentos (lista)','documentos_cliente'],['Le debemos','pendientes_cliente'],['Repartos','repartos_dia'],['Fotos de góndola (lista)','fotos_cliente'],['Comprobantes recibidos','comprobantes_cliente'],['Votos','votos_producto']];
+/* ---------- Dólar del día: actualiza el costo de los productos que se compran en dólares ---------- */
+async function cajaDolar(){const b=$('#dlr');if(!b)return;
+  const{data}=await sb.from('config_app').select('clave,valor').in('clave',['dolar','dolar_fecha']);const v=Object.fromEntries((data||[]).map(r=>[r.clave,r.valor]));
+  const d=+v.dolar||0,f=v.dolar_fecha?new Date(v.dolar_fecha):null;
+  b.innerHTML=`<p class="bkp"><small>💵 Dólar del día: <b>${d?$m(d):'sin cargar'}</b>${f?' · cargado el '+f.toLocaleDateString('es-AR',{day:'numeric',month:'numeric'}):''}</small> <a class="lnk" id="dl_c">Cambiar dólar</a></p>`;
+  $('#dl_c').onclick=()=>dolarModal()}
+async function dolarModal(){const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  const{data:cf}=await sb.from('config_app').select('valor').eq('clave','dolar').maybeSingle();let d=+cf?.valor||0;
+  const carga=async()=>{const{data,error}=await sb.from('productos').select('id,descripcion,costo,costo_usd,precio_fijo').gt('costo_usd',0).order('descripcion');if(error)throw error;return data||[]};
+  const pinta=async()=>{let P;try{P=await carga()}catch(e){m.innerHTML=`<div class="mc"><h3>💵 Dólar del día</h3><p class="err">${/costo_usd/.test(e.message)?'Falta actualizar la base de datos.':esc(e.message)}</p><button id="dl_x">Cerrar</button></div>`;m.querySelector('#dl_x').onclick=()=>m.remove();return}
+    m.innerHTML=`<div class="mc"><div class="bh"><h3 style="margin:0">💵 Dólar del día</h3><button class="alt" id="dl_x">Cerrar</button></div>
+      <p><small>Escribí el dólar de hoy y tocá <b>Actualizar</b>: el costo en pesos de los productos de abajo se recalcula solo (costo en dólares × dólar), y con eso sus precios de venta. Los que tienen <b>precio fijo</b> mantienen su precio de venta.</small></p>
+      <div class="g"><label class="f">Dólar de hoy ($)<input id="dl_v" type="text" inputmode="decimal" value="${d?nf(d):''}" placeholder="Ej.: 1550"></label></div>
+      <div class="fc-acc"><button id="dl_ok">Actualizar ${P.length} productos</button></div>
+      <h4 style="margin:14px 0 4px">Productos en dólares (${P.length})</h4>
+      <div>${P.map(p=>`<div class="pc-r"><div><b>${esc(p.descripcion)}</b><br><small>Hoy: ${$m(+p.costo)}${+p.precio_fijo>0?' · <span class="badge">precio fijo</span>':''}</small></div><div class="pc-in">US$ <input type="text" inputmode="decimal" data-usd="${p.id}" value="${(+p.costo_usd).toLocaleString('es-AR',{maximumFractionDigits:4,useGrouping:false})}"><button class="alt" data-q="${p.id}" title="Sacar de la lista (queda con el costo en pesos de hoy)">✕</button></div></div>`).join('')||'<p><small>Todavía no hay productos en dólares.</small></p>'}</div>
+      <div class="fc-acc"><button class="alt" id="dl_gu">Guardar costos en dólares</button></div>
+      <h4 style="margin:14px 0 4px">Agregar un producto que se compra en dólares</h4><input id="dl_q" placeholder="Buscar producto…"><div id="dl_r"></div>
+      <p><small>Se agrega con su costo actual pasado a dólares (costo ÷ dólar de hoy). Después podés corregir el número en US$.</small></p></div>`;
+    const q=s=>m.querySelector(s);q('#dl_x').onclick=()=>m.remove();
+    const leer=()=>{const v=numAR(q('#dl_v').value);if(!(v>0)){toast('Escribí el dólar de hoy.',1);return null}return v};
+    q('#dl_ok').onclick=async()=>{const v=leer();if(!v)return;const b=q('#dl_ok');b.disabled=true;b.textContent='Actualizando…';
+      const{data:n,error}=await sb.rpc('fijar_dolar',{p_valor:v});if(error){b.disabled=false;b.textContent='Actualizar';return toast(error.message,1)}
+      d=v;await recargarProductos();toast('Dólar '+$m(v)+': '+(n||0)+' productos actualizados.');m.remove();cajaDolar()};
+    q('#dl_gu').onclick=async()=>{const it=[...m.querySelectorAll('[data-usd]')].map(i=>({id:i.dataset.usd,v:numAR(i.value)}));if(it.some(x=>!(x.v>0)))return toast('Hay un costo en dólares que no es válido.',1);
+      for(const x of it){const{error}=await sb.rpc('fijar_costo_usd',{p_producto:x.id,p_usd:x.v});if(error)return toast(error.message,1)}await recargarProductos();toast('Costos en dólares guardados.');pinta()};
+    m.querySelectorAll('[data-q]').forEach(b=>b.onclick=async()=>{const{error}=await sb.rpc('fijar_costo_usd',{p_producto:b.dataset.q,p_usd:null});if(error)return toast(error.message,1);toast('Sacado de la lista de dólares.');pinta()});
+    buscador('#dl_q','#dl_r',async p=>{if(!(d>0))return toast('Primero cargá el dólar de hoy y tocá Actualizar.',1);const c=+p.costo/(ppz(p.producto_id)||1);if(!(c>0))return toast('Ese producto no tiene costo cargado.',1);
+      const{error}=await sb.rpc('fijar_costo_usd',{p_producto:p.producto_id,p_usd:Math.round(c/d*10000)/10000});if(error)return toast(error.message,1);toast('Agregado a la lista de dólares.');pinta()})};
+  m.innerHTML='<div class="mc"><p>Cargando…</p></div>';pinta()}
 async function cajaBackup(){const b=$('#bk');if(!b)return;
   const{data}=await sb.from('config_app').select('valor').eq('clave','ultima_copia').maybeSingle();
   const u=data?.valor,dias=u?Math.floor((Date.now()-new Date(u))/864e5):null,mal=dias==null||dias>=7;
@@ -7123,7 +7153,7 @@ const TAB_NOM={pedidos:'Pedidos',ventas:'Ventas',reparto:'Reparto',clientes:'Cli
 async function menuTabsCfg(){if(S.menuT==null)S.menuT=await cfgJ('menu_tabs',{oc:[]});const oc=new Set(S.menuT.oc||[]),m=document.createElement('div');m.className='modal';document.body.appendChild(m);
   const tabs=Object.keys(TAB_NOM).filter(t=>!['precios','caja','contable'].includes(t)||S.perfil.rol=='dueno');
   m.innerHTML=`<div class="mc"><div class="bh"><h3>☰ Qué se ve en el menú</h3><button class="alt" id="mt_x">Cerrar</button></div>
-    <div class="aviso" style="margin:0 0 10px"><b>✨ Menú simple recomendado</b><br><small>Deja lo del día a día: pedidos, reparto, cobranza, clientes y prospectos, las ofertas y la difusión principales, Instagram, compras, stock, caja y contable. Oculta Reportes, los análisis avanzados y las promociones que casi no se usan. No se borra nada: lo oculto se sigue encontrando con el buscador de Ventas.</small><br><button id="mt_s" style="margin-top:8px">Usar el menú simple</button></div>
+    <div class="aviso" style="margin:0 0 10px"><b>✨ Menú simple recomendado</b><br><small>Deja lo del día a día. En Ventas quedan solo 14 pantallas: les toca comprar, prospectos, folletos y catálogo, estados de WhatsApp, presupuestos, reclamos, combos y pocas más. Oculta Reportes, los análisis, Instagram y las promociones que casi no se usan. No se borra nada: lo oculto se sigue encontrando con el buscador de Ventas.</small><br><button id="mt_s" style="margin-top:8px">Usar el menú simple</button></div>
     <p><small>O elegí vos: destildá las pestañas que no usás. No se borra nada: podés volver a mostrarlas cuando quieras, y se guarda para la PC y el celular.</small></p>
     <label class="chk"><input type="checkbox" checked disabled style="width:auto;margin:0 8px 0 0">Inicio (siempre)</label>
     ${tabs.map(t=>`<label class="chk"><input type="checkbox" data-mt="${t}" ${oc.has(t)?'':'checked'} style="width:auto;margin:0 8px 0 0">${TAB_NOM[t]}</label>`).join('')}
@@ -7137,12 +7167,7 @@ async function menuTabsCfg(){if(S.menuT==null)S.menuT=await cfgJ('menu_tabs',{oc
 
 /* 3. Menú de Ventas a tu medida */
 /* Menú simple: lo que se usa todos los días (lo demás queda oculto, se encuentra con el buscador de Ventas) */
-const MENU_SIMPLE_VENTAS={fav:['cola','toca','embudo','difusion'],oc:['plansem','auto',
-  'clave','ataque','nuevos90','bienvenida','encuestas','faq','votacion','comodatos',
-  'cobertura',
-  'cupo','personal','preventa','acuerdos','micombo','checkout','empujar','online','quincenal','niveles','pvp','bultos',
-  'novsem','tarjeta','fechas','qr','puntos','liga','sorteo',
-  'semana','anual','rentkg','zonasrep','captacion','pronostico','tablero','rentcli','simulador','abc','potencial','competencia','nocompra','perdidas','buscan','marcas','zonas','horarios','proveedores']};
+const MENU_SIMPLE_VENTAS={'fav':['toca','difusion','embudo','rapido'],'oc':['plansem','plan','auto','miraron','carritos','menos','esperan','clave','ataque','nuevos90','bienvenida','encuestas','faq','votacion','muestras','comodatos','ruta','llamadas','cobertura','campanias','novsem','tarjeta','fiambres','fechas','rubros','qr','puntos','liga','sorteo','relampago','cupo','personal','cupones','liquidar','preventa','novedades','acuerdos','micombo','checkout','empujar','online','quincenal','niveles','pvp','bultos','redondeo','aumento','reglas','ig','igcal','igbio','igsorteo','igpros','igshop','semana','anual','rentkg','zonasrep','captacion','pronostico','tablero','rentcli','simulador','abc','potencial','competencia','nocompra','perdidas','buscan','marcas','zonas','horarios','proveedores']};
 function menuAplicar(GR){S.GRfull=GR;const MV=S.menuV||{oc:[],fav:[]};if(S.menuV===undefined){S.menuV=null;cfgJ('menu_ventas',{oc:[],fav:[]}).then(v=>{S.menuV=v;if(S.tab=='ventas'&&((v.oc||[]).length||(v.fav||[]).length))vVentas()})}
   let G=GR.map(([g,L])=>[g,L.filter(([k])=>!(MV.oc||[]).includes(k)||k==S.vs)]).filter(([g,L])=>L.length);const all=GR.flatMap(([g,L])=>L);
   if((MV.fav||[]).length)G.unshift(['⭐ Favoritas',MV.fav.map(k=>all.find(x=>x[0]==k)).filter(Boolean)]);return G}
