@@ -256,6 +256,34 @@ body{zoom:var(--z,1)}html.oscuro{filter:invert(.92) hue-rotate(180deg);backgroun
 .vot-res{display:flex;gap:8px}
 .btn-ver{display:inline-flex;align-items:center;justify-content:center;background:var(--m);color:#fff!important;text-decoration:none;border-radius:8px;padding:10px 16px;font-weight:600}
 </style>
+<style id="pulido">
+/* Pulido visual (oct-2026): pastillas en una fila, botones secundarios livianos, tarjetas limpias, encabezado más bajo */
+.sub{display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:0 -2px 12px;padding:2px}
+.sub::-webkit-scrollbar{display:none}
+.sub button{flex:none;white-space:nowrap;border-radius:999px;padding:7px 15px;font-size:14px;font-weight:600;line-height:1.2}
+.sub button.alt{background:#fff;color:#3c4458;border:1px solid var(--l)}
+.sub button:not(.alt){background:var(--m);color:#fff;border:1px solid var(--m)}
+button.alt{border-color:#dcc9ce}
+button.alt:hover{background:#faf5f6;filter:none}
+.cl-card{border-color:#ebe6df;box-shadow:0 1px 2px rgba(23,33,58,.04)}
+.cl-card b{font-size:16px}
+.cl-rs{font-size:12px;color:#8a90a0;margin-top:2px}
+.cl-sub{font-size:13px;color:#5b6274;margin-top:3px}
+.cl-acc{margin-top:10px}
+.cl-bt{display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border-radius:999px;border:1px solid var(--l);color:#3c4458;text-decoration:none;font-size:14px;cursor:pointer;background:#fff}
+.cl-bt.wa{border-color:#bfe3cc;color:var(--ok);background:#f2faf5}
+.cl-sintel{font-size:12px;color:#9aa0ad}
+.cl-fam{font-size:15px;color:#3c4458}
+@media(max-width:640px){
+  header{padding:6px 10px 4px;gap:4px}
+  .hlogo{height:46px!important;max-width:160px!important;margin:0!important}
+  .hback{width:38px;height:38px;font-size:22px}
+  header nav a{padding:6px 11px}
+  header nav{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  header nav::-webkit-scrollbar{display:none}
+  header nav a{white-space:nowrap}
+}
+</style>
 </head>
 <body>
 <div id="app"></div><div id="t"></div>
@@ -942,9 +970,9 @@ function vClientes(){
     return ({agenda:vAgenda,prospectos:vProspectos,fijos:vFijos,dormidos:vDormidos,mapa:vMapa})[S.cs]()}
   $('#v').innerHTML=`${cabClientes()}${subs}<div class="sub" id="cfam"></div><input id="q" placeholder="Buscar por nombre, negocio o CUIT · tocá un cliente para ver su ficha"><div id="ct"></div>`;
   const ORD=[...FAM_CLI.map(x=>x[0]),'❔ Sin rubro'];S.cfam=S.cfam||'';
-  const fila=c=>{const tel=telWA(c.telefono||'');return `<div class="cl-card clic" data-fc="${c.id}"><div class="cl-top"><div><b>${esc(nomVis(c))}</b>${(c.nombre_fantasia||'').trim()?`<br><small>${esc(c.razon_social)}</small>`:''}<br><small>${esc([c.rubro,c.barrio||c.ciudad].filter(Boolean).join(' · '))}</small></div>
+  const fila=c=>{const tel=telWA(c.telefono||'');return `<div class="cl-card clic" data-fc="${c.id}"><div class="cl-top"><div><b>${esc(nomVis(c))}</b>${(c.nombre_fantasia||'').trim()?`<div class="cl-rs">${esc(tituloCaso(c.razon_social))}</div>`:''}<div class="cl-sub">${esc([c.rubro,c.barrio||c.ciudad].filter(Boolean).join(' · '))}</div></div>
     <div class="cl-der"><span class="badge">${c.lista=='especial'?'gastronomía':esc(c.lista)}</span><small>${c.condicion_pago_dias?c.condicion_pago_dias+' días':'Contado'}</small></div></div>
-    <div class="cl-acc">${tel?`<a class="lnk" data-wa="${esc(tel)}">💬 WhatsApp</a><a class="lnk" href="tel:${esc(c.telefono)}" data-no="1">📞 Llamar</a>`:'<small class="err">Sin teléfono · tocá para cargarlo</small>'}${c.cuit?`<small>CUIT ${esc(c.cuit)}</small>`:''}</div></div>`};
+    <div class="cl-acc">${tel?`<a class="cl-bt wa" data-wa="${esc(tel)}">💬 WhatsApp</a><a class="cl-bt" href="tel:${esc(c.telefono)}" data-no="1">📞 Llamar</a>`:'<span class="cl-sintel">📵 Sin teléfono</span>'}</div></div>`};
   const draw=()=>{const q=$('#q').value.toLowerCase(),A=S.clientes.filter(c=>c.activo!==false),cnt={};A.forEach(c=>{const f=famCli(c);cnt[f]=(cnt[f]||0)+1});
     $('#cfam').innerHTML=`<button class="${S.cfam?'alt':''}" data-cf="">Todas (${A.length})</button>`+ORD.filter(f=>cnt[f]).map(f=>`<button class="${S.cfam==f?'':'alt'}" data-cf="${esc(f)}">${esc(f)} (${cnt[f]})</button>`).join('');
     const L=S.clientes.filter(c=>coincide(c.razon_social+' '+(c.nombre_fantasia||'')+' '+(c.cuit||'')+' '+(c.rubro||''),q)&&(!S.cfam||famCli(c)==S.cfam)),G={};L.forEach(c=>(G[famCli(c)]=G[famCli(c)]||[]).push(c));
