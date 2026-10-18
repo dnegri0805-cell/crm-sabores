@@ -685,7 +685,7 @@ html.oscuro .rci{background:#18202f;border-color:#273246}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-18.25';
+const VERSION='2026-10-18.26';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -4245,7 +4245,7 @@ function vVentas(){
 /* ---------- 🚀 Rápido: difundir una oferta en 3 pasos ---------- */
 const RP_AUD={todos:['👥','Todos','mayorista'],almacen:['🏪','Almacenes y comercios','mayorista'],gastro:['🍝','Gastronomía','especial'],helado:['🍦','Heladerías y panaderías','mayorista'],chino:['🇨🇳','Supermercados chinos 中文','mayorista'],publico:['🙋','Público / minorista','minorista']};
 const RP_DUR=[['0','Solo hoy ⚡'],['3','3 días'],['7','Esta semana'],['15','15 días'],['','Hasta que la saque']];
-async function vRapido(){await Promise.all([cargarPromos(),typeof cargarStock=='function'?cargarStock():0]);
+async function vRapido(cargar=true){if(cargar&&!(S._rpT>Date.now()-60000&&S.promos)){await Promise.all([cargarPromos(),typeof cargarStock=='function'?cargarStock():0]);S._rpT=Date.now()}if(S.vs!='rapido'||!$('#vs'))return;
   const R=S.rp=Object.assign({que:'oferta',fams:[],prods:[],aud:'todos',lista:'mayorista'},S.rp||{});const due=S.perfil.rol=='dueno',hoy=diaLocal(new Date());
   const fams=[...new Set(S.productos.map(p=>(p.familia||'').trim()).filter(Boolean))].sort(famCmp);R.fams=R.fams.filter(f=>fams.includes(f));
   const conPrecio=p=>+p['precio_'+R.lista]>0;
@@ -4280,15 +4280,15 @@ async function vRapido(){await Promise.all([cargarPromos(),typeof cargarStock=='
       :'<p><small>No hay ofertas activas. Elegí productos o familias arriba y ponéles un descuento.</small></p>'}</div>`;
   const res=()=>{const E=elegidos(),cf=E.filter(p=>promoCerca(p.producto_id,R.lista)).length;
     $('#rp_res').innerHTML=E.length?`<b>${E.length}</b> ${E.length==1?'producto':'productos'}${R.que!='oferta'?` · ${cf} con oferta`:''}`:'<small>'+(R.que=='oferta'?'No hay productos en oferta para esa lista.':R.que=='fam'?'Elegí al menos una familia.':'Agregá productos con el buscador.')+'</small>'};res();
-  $$('#vs [data-rq]').forEach(b=>b.onclick=()=>{R.que=b.dataset.rq;vRapido()});
-  $$('#vs [data-ra]').forEach(b=>b.onclick=()=>{R.aud=b.dataset.ra;R.lista=RP_AUD[R.aud][2];vRapido()});
+  $$('#vs [data-rq]').forEach(b=>b.onclick=()=>{R.que=b.dataset.rq;vRapido(0)});
+  $$('#vs [data-ra]').forEach(b=>b.onclick=()=>{R.aud=b.dataset.ra;R.lista=RP_AUD[R.aud][2];vRapido(0)});
   $('#rp_l').onchange=e=>{R.lista=e.target.value;res()};
   $$('#vs [data-rf]').forEach(i=>i.onchange=()=>{R.fams=[...$$('#vs [data-rf]')].filter(x=>x.checked).map(x=>x.dataset.rf);$('#rp_fd summary').textContent=famTxt();res()});
-  if($('#rp_q')){buscador('#rp_q','#rp_r',p=>{if(!R.prods.includes(p.producto_id))R.prods.push(p.producto_id);vRapido();setTimeout(()=>$('#rp_q')&&$('#rp_q').focus(),50)});
-    $('#rp_sc').onclick=()=>escanear('Agregar a la oferta',p=>{if(!R.prods.includes(p.producto_id))R.prods.push(p.producto_id);vRapido();return '✔ '+p.descripcion})}
-  $$('#vs [data-rx]').forEach(a=>a.onclick=()=>{R.prods.splice(+a.dataset.rx,1);vRapido()});
+  if($('#rp_q')){buscador('#rp_q','#rp_r',p=>{if(!R.prods.includes(p.producto_id))R.prods.push(p.producto_id);vRapido(0);setTimeout(()=>$('#rp_q')&&$('#rp_q').focus(),50)});
+    $('#rp_sc').onclick=()=>escanear('Agregar a la oferta',p=>{if(!R.prods.includes(p.producto_id))R.prods.push(p.producto_id);vRapido(0);return '✔ '+p.descripcion})}
+  $$('#vs [data-rx]').forEach(a=>a.onclick=()=>{R.prods.splice(+a.dataset.rx,1);vRapido(0)});
   $$('#vs [data-rv]').forEach(b=>b.onclick=()=>{S.vs=b.dataset.rv;vVentas()});
-  $$('#vs [data-rt]').forEach(a=>a.onclick=async()=>{if(!confirm('¿Terminar esta oferta? Deja de verse en el catálogo.'))return;const{error}=await sb.from('promociones').update({activa:false}).eq('id',a.dataset.rt);if(error)return toast(error.message,1);toast('Oferta terminada.');vRapido()});
+  $$('#vs [data-rt]').forEach(a=>a.onclick=async()=>{if(!confirm('¿Terminar esta oferta? Deja de verse en el catálogo.'))return;const{error}=await sb.from('promociones').update({activa:false}).eq('id',a.dataset.rt);if(error)return toast(error.message,1);toast('Oferta terminada.');S._rpT=0;vRapido()});
   $('#rp_cr')&&($('#rp_cr').onclick=async()=>{const pct=+$('#rp_pct').value,d=$('#rp_dur').value;if(!(pct>0&&pct<90))return toast('Poné un % válido.',1);
     const E=elegidos();if(!E.length)return toast(R.que=='fam'?'Elegí al menos una familia.':'Agregá al menos un producto.',1);
     const mb=E.filter(p=>{const m=typeof margenP=='function'?margenP(p):null;return m!=null&&m-pct<(S.margenMin??15)});
@@ -4297,7 +4297,7 @@ async function vRapido(){await Promise.all([cargarPromos(),typeof cargarStock=='
     const base={nombre,descuento_pct:pct,minimo_tipo:'ninguno',minimo_unidades:0,listas:null,desde:hoy,hasta,activa:true};
     const rows=R.que=='fam'?R.fams.map(f=>({...base,alcance:'familia',alcance_valor:f})):E.map(p=>({...base,alcance:'producto',alcance_valor:p.producto_id}));
     $('#rp_cr').disabled=true;const{error}=await sb.from('promociones').insert(rows);$('#rp_cr').disabled=false;if(error)return toast(error.message,1);
-    toast(`¡Listo! −${nf(pct)} % en ${R.que=='fam'?(R.fams.length==1?R.fams[0]:R.fams.length+' familias'):E.length+' productos'}. Ahora elegí cómo mandarlo.`);vRapido()});
+    S._rpT=0;toast(`¡Listo! −${nf(pct)} % en ${R.que=='fam'?(R.fams.length==1?R.fams[0]:R.fams.length+' familias'):E.length+' productos'}. Ahora elegí cómo mandarlo.`);vRapido()});
   $$('#vs [data-rc]').forEach(b=>b.onclick=()=>{const c=b.dataset.rc,E=elegidos();
     if(c=='catalogo'){S.vs='difusion';return vVentas()}
     if(!E.length&&R.que!='oferta')return toast(R.que=='fam'?'Elegí al menos una familia.':'Agregá al menos un producto.',1);
