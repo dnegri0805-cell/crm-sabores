@@ -148,6 +148,13 @@ button.scan{display:inline-flex;align-items:center;justify-content:center;paddin
 .fl-mc{max-width:760px!important}.fl-grid{display:grid;gap:12px}.fl-card{display:grid;grid-template-columns:110px 1fr;gap:14px;align-items:start;border:1px solid #e3dfd8;border-radius:12px;padding:10px;cursor:pointer;background:#fff}
 .fl-card:hover{border-color:var(--c,#7b2d3e)}.fl-card img{width:110px;aspect-ratio:9/16;object-fit:cover;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.12)}.fl-tx{display:grid;gap:4px}.fl-tx b{font-size:17px}.fl-tx small{color:#6a7184}.fl-n{font-weight:600}
 .fl-th{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}.fl-th a{position:relative;cursor:pointer;display:block}.fl-th img{width:100%;aspect-ratio:9/16;object-fit:cover;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.12)}
+.cl-fam{margin:14px 0 6px}
+.cl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.cl-card{background:#fff;border:1px solid #e6e1d8;border-radius:12px;padding:12px 14px;cursor:pointer}
+.cl-card:hover{border-color:#b9a99a}
+.cl-top{display:flex;justify-content:space-between;gap:10px}
+.cl-der{text-align:right;display:flex;flex-direction:column;gap:4px;align-items:flex-end;white-space:nowrap}
+.cl-acc{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-top:8px}
 .fl-ck{position:absolute;right:4px;top:4px;background:#fff;border-radius:8px;padding:4px 6px;line-height:0;box-shadow:0 1px 4px rgba(0,0,0,.25);cursor:pointer}
 .fl-ck input{width:22px;height:22px;margin:0;cursor:pointer}
 .fl-th a.off img{opacity:.35;filter:grayscale(1)}
@@ -930,17 +937,19 @@ function vClientes(){
   const subs=`<div class="sub">${[['lista','Clientes'],['agenda','Agenda de visitas'],['mapa','Mapa'],['dormidos','Dormidos'],['prospectos','Prospectos'],['fijos','Pedidos fijos']].map(([k,t])=>`<button class="${S.cs==k?'':'alt'}" data-cs2="${k}">${t}</button>`).join('')}</div>`;
   if(S.cs!='lista'){$('#v').innerHTML=`${cabClientes()}${subs}<div id="cs">Cargando…</div>`;$$('[data-cs2]').forEach(b=>b.onclick=()=>{S.cs=b.dataset.cs2;vClientes()});enlazarCab();
     return ({agenda:vAgenda,prospectos:vProspectos,fijos:vFijos,dormidos:vDormidos,mapa:vMapa})[S.cs]()}
-  $('#v').innerHTML=`${cabClientes()}${subs}<div class="sub" id="cfam"></div><input id="q" placeholder="Buscar por nombre o CUIT · tocá un cliente para ver su ficha"><table id="ct"></table>`;
+  $('#v').innerHTML=`${cabClientes()}${subs}<div class="sub" id="cfam"></div><input id="q" placeholder="Buscar por nombre, negocio o CUIT · tocá un cliente para ver su ficha"><div id="ct"></div>`;
   const ORD=[...FAM_CLI.map(x=>x[0]),'❔ Sin rubro'];S.cfam=S.cfam||'';
-  const fila=c=>`<tr class="clic" data-fc="${c.id}"><td><a class="lnk">${esc(c.razon_social)}</a><br><small>${esc([c.rubro,c.barrio||c.ciudad].filter(Boolean).join(' · '))}</small></td><td>${esc(c.cuit)}</td><td>${c.lista=='especial'?'gastronomía':c.lista}</td><td>${c.condicion_pago_dias?c.condicion_pago_dias+' días':'Contado'}</td><td>${esc(c.telefono)}</td></tr>`;
+  const fila=c=>{const tel=telWA(c.telefono||'');return `<div class="cl-card clic" data-fc="${c.id}"><div class="cl-top"><div><b>${esc(nomVis(c))}</b>${(c.nombre_fantasia||'').trim()?`<br><small>${esc(c.razon_social)}</small>`:''}<br><small>${esc([c.rubro,c.barrio||c.ciudad].filter(Boolean).join(' · '))}</small></div>
+    <div class="cl-der"><span class="badge">${c.lista=='especial'?'gastronomía':esc(c.lista)}</span><small>${c.condicion_pago_dias?c.condicion_pago_dias+' días':'Contado'}</small></div></div>
+    <div class="cl-acc">${tel?`<a class="lnk" data-wa="${esc(tel)}">💬 WhatsApp</a><a class="lnk" href="tel:${esc(c.telefono)}" data-no="1">📞 Llamar</a>`:'<small class="err">Sin teléfono · tocá para cargarlo</small>'}${c.cuit?`<small>CUIT ${esc(c.cuit)}</small>`:''}</div></div>`};
   const draw=()=>{const q=$('#q').value.toLowerCase(),A=S.clientes.filter(c=>c.activo!==false),cnt={};A.forEach(c=>{const f=famCli(c);cnt[f]=(cnt[f]||0)+1});
     $('#cfam').innerHTML=`<button class="${S.cfam?'alt':''}" data-cf="">Todas (${A.length})</button>`+ORD.filter(f=>cnt[f]).map(f=>`<button class="${S.cfam==f?'':'alt'}" data-cf="${esc(f)}">${esc(f)} (${cnt[f]})</button>`).join('');
-    const L=S.clientes.filter(c=>coincide(c.razon_social+' '+(c.cuit||'')+' '+(c.rubro||''),q)&&(!S.cfam||famCli(c)==S.cfam)),G={};L.forEach(c=>(G[famCli(c)]=G[famCli(c)]||[]).push(c));
-    $('#ct').innerHTML='<tr><th>Cliente</th><th>CUIT</th><th>Lista</th><th>Pago</th><th>Teléfono</th></tr>'+
-      ORD.filter(f=>G[f]).map(f=>`<tr><td colspan="5" style="background:var(--suave,#f3eee6);font-weight:700">${esc(f)} <small>(${G[f].length})</small>${f=='❔ Sin rubro'?' <small>· entrá a la ficha y cargá el rubro para ordenarlo</small>':''}</td></tr>`+G[f].map(fila).join('')).join('')||'<tr><td colspan="5"><small>No hay clientes con ese filtro.</small></td></tr>';
+    const L=S.clientes.filter(c=>coincide(c.razon_social+' '+(c.nombre_fantasia||'')+' '+(c.cuit||'')+' '+(c.rubro||''),q)&&(!S.cfam||famCli(c)==S.cfam)),G={};L.forEach(c=>(G[famCli(c)]=G[famCli(c)]||[]).push(c));
+    Object.values(G).forEach(x=>x.sort((a,b)=>nomVis(a).localeCompare(nomVis(b))));
+    $('#ct').innerHTML=ORD.filter(f=>G[f]).map(f=>`<h4 class="cl-fam">${esc(f)} <small>(${G[f].length})</small>${f=='❔ Sin rubro'?' <small>· entrá a la ficha y cargá el rubro</small>':''}</h4><div class="cl-grid">${G[f].map(fila).join('')}</div>`).join('')||'<p><small>No hay clientes con ese filtro.</small></p>';
     $$('#cfam [data-cf]').forEach(b=>b.onclick=()=>{S.cfam=b.dataset.cf;draw();bind()})};
   $$('[data-cs2]').forEach(b=>b.onclick=()=>{S.cs=b.dataset.cs2;vClientes()});
-  const bind=()=>$$('#ct [data-fc]').forEach(r=>r.onclick=()=>fichaCliente(S.clientes.find(c=>c.id==r.dataset.fc)));
+  const bind=()=>{$$('#ct [data-fc]').forEach(r=>r.onclick=()=>fichaCliente(S.clientes.find(c=>c.id==r.dataset.fc)));$$('#ct [data-wa]').forEach(a=>a.onclick=e=>{e.stopPropagation();window.open('https://wa.me/'+a.dataset.wa,'_blank')});$$('#ct [data-no]').forEach(a=>a.onclick=e=>e.stopPropagation())};
   $('#q').oninput=()=>{draw();bind()};draw();bind();
   enlazarCab();if(S.abrirNuevo){S.abrirNuevo=0;nuevoCliente()}
 }
@@ -952,14 +961,14 @@ function enlazarCab(){$('#c_new')&&($('#c_new').onclick=nuevoCliente);
   document.querySelectorAll('details.mas,details.umenu').forEach(d=>d.querySelectorAll('.masc button,.umc button').forEach(b=>b.addEventListener('click',()=>d.open=false)))}
 function nuevoCliente(){const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
   m.innerHTML=`<div class="mc"><div class="bh"><h3>Nuevo cliente</h3><button class="alt" id="c_x">Cancelar</button></div>
-  <div class="g"><input id="c_n" placeholder="Razón social *"><input id="c_c" placeholder="CUIT"><input id="c_t" placeholder="Teléfono">${selRubro('c_r','')}<input id="c_d" placeholder="Domicilio (calle y número)">${dirCampos('c')}
+  <div class="g"><input id="c_nf" placeholder="Nombre del negocio (ej.: Juancito)"><input id="c_n" placeholder="Razón social * (para facturas)"><input id="c_c" placeholder="CUIT"><input id="c_t" placeholder="Teléfono">${selRubro('c_r','')}<input id="c_d" placeholder="Domicilio (calle y número)">${dirCampos('c')}
   <select id="c_i"><option value="responsable_inscripto">Responsable Inscripto</option><option value="monotributo">Monotributo</option><option value="consumidor_final">Consumidor final</option><option value="exento">Exento</option></select>
   <select id="c_l"><option>mayorista</option><option>minorista</option><option value="especial">gastronomía</option></select>
   <input id="c_p" type="number" min="0" placeholder="Días de pago (0 = contado)"></div><button id="c_g">Guardar cliente</button></div>`;
   m.onclick=e=>{if(e.target==m)m.remove()};$('#c_x').onclick=()=>m.remove();setTimeout(()=>$('#c_n')?.focus(),50);
   $('#c_g').onclick=async()=>{const n=$('#c_n').value.trim();if(!n)return toast('Falta la razón social.',1);$('#c_g').disabled=true;
     const{data,error}=await sb.from('clientes').insert({razon_social:n,cuit:$('#c_c').value.trim()||null,telefono:$('#c_t').value.trim()||null,domicilio:$('#c_d').value.trim()||null,
-      condicion_iva:$('#c_i').value,lista:$('#c_l').value,...($('#c_r').value?{rubro:$('#c_r').value}:{}),condicion_pago_dias:+$('#c_p').value||0,vendedor_id:S.perfil.id,...(dirOk()?dirLeer('c'):{})}).select().single();
+      condicion_iva:$('#c_i').value,lista:$('#c_l').value,...($('#c_r').value?{rubro:$('#c_r').value}:{}),...($('#c_nf').value.trim()?{nombre_fantasia:$('#c_nf').value.trim()}:{}),condicion_pago_dias:+$('#c_p').value||0,vendedor_id:S.perfil.id,...(dirOk()?dirLeer('c'):{})}).select().single();
     if(error){$('#c_g').disabled=false;return toast(dirFalta(error),1)}
     m.remove();S.clientes.push(data);S.clientes.sort((a,b)=>a.razon_social.localeCompare(b.razon_social));toast('Cliente guardado.');S.cs='lista';vClientes()}}
 
@@ -1433,7 +1442,7 @@ async function fichaCliente(c){
   if(!c)return;window.scrollTo(0,0);
   const IVA={responsable_inscripto:'Responsable Inscripto',monotributo:'Monotributo',consumidor_final:'Consumidor final',exento:'Exento'};
   $('#v').innerHTML=`<p><a class="lnk" id="fc_vol">← Volver a Clientes</a></p>
-  <div class="fc-head"><div><h2>${esc(c.razon_social)}</h2><small>${c.cuit?'CUIT '+esc(c.cuit)+' · ':''}${IVA[c.condicion_iva]||esc(c.condicion_iva||'')} ${c.rubro?' · '+esc(c.rubro):''} · Lista ${esc(nomL(c.lista))} · ${c.condicion_pago_dias?c.condicion_pago_dias+' días':'Contado'}${+c.limite_credito>0?' · Límite '+$m(c.limite_credito):''}</small>
+  <div class="fc-head"><div><h2>${esc(nomVis(c))}</h2>${(c.nombre_fantasia||'').trim()?`<div><small><b>${esc(c.razon_social)}</b></small></div>`:''}<small>${c.cuit?'CUIT '+esc(c.cuit)+' · ':''}${IVA[c.condicion_iva]||esc(c.condicion_iva||'')} ${c.rubro?' · '+esc(c.rubro):''} · Lista ${esc(nomL(c.lista))} · ${c.condicion_pago_dias?c.condicion_pago_dias+' días':'Contado'}${+c.limite_credito>0?' · Límite '+$m(c.limite_credito):''}</small>
     <div><small>${c.telefono?'Tel. '+esc(c.telefono):'Sin teléfono'}${dirCompleta(c)?' · '+esc(dirCompleta(c)):''}</small></div></div>
     <div class="fc-acc"><button id="fc_np">Nuevo pedido</button><button class="alt" id="fc_rp">🔁 Repetir último</button><button class="alt" id="fc_po">🛒 Pedido online</button><button class="alt" id="fc_co">Registrar cobro</button><button class="alt" id="fc_ec">📄 Estado de cuenta</button><button class="alt" id="fc_lp">Lista de precios</button><button class="alt" id="fc_ed">Editar datos</button><button class="alt" id="fc_fj">Pedido fijo</button><button class="alt" id="fc_gl">📞 Guion de llamada</button><button class="alt" id="fc_ng">🧮 Negociar</button><button class="alt" id="fc_gon">📸 Góndola</button><button class="alt" id="fc_doc">📂 Documentos</button><button class="alt" id="fc_vac">${vacBtn(c)}</button><button class="alt" id="fc_hr">${horarioTxt(c)||'🕐 Horario de recepción'}</button>${'cuenta_clave' in c?`<button class="alt" id="fc_kc">${c.cuenta_clave?'👑 Es cuenta clave':'☆ Cuenta clave'}</button><button class="alt" id="fc_pd">${c.perdido_en?'🚩 Perdido ('+esc(c.perdido_con||'')+')':'🚩 Se fue a la competencia'}</button>`:''}</div></div>
   <div id="fc_nt"></div>
@@ -1442,7 +1451,7 @@ async function fichaCliente(c){
     <input readonly id="lk_u" value="${linkPedidos(c)}"><div class="fc-acc"><a class="btn-ver" href="${linkPedidos(c)}" target="_blank" rel="noopener">👀 Ver como lo ve el cliente</a><button class="alt wa" id="lk_w">Mandar por WhatsApp</button><button class="alt wa" id="lk_cu">Mandar link de su cuenta</button><button class="alt" id="lk_c">Copiar link</button><button class="alt" id="lk_n">Generar link nuevo</button></div>`
     :'<p class="err"><small>Todavía no está activado. Corré pedidos-online.sql en Supabase.</small></p>'}</div>
   <div id="fc_edit" hidden class="box"><div class="g">
-    <label class="f">Razón social<input id="e_n" value="${esc(c.razon_social)}"></label><label class="f">CUIT<input id="e_c" value="${esc(c.cuit)}"></label>
+    ${'nombre_fantasia' in c?`<label class="f">Nombre del negocio (como lo conocés)<input id="e_nf" value="${esc(c.nombre_fantasia||'')}" placeholder="Ej.: Juancito"></label>`:''}<label class="f">Razón social (para facturas)<input id="e_n" value="${esc(c.razon_social)}"></label><label class="f">CUIT<input id="e_c" value="${esc(c.cuit)}"></label>
     <label class="f">Teléfono<input id="e_t" value="${esc(c.telefono)}"></label><label class="f">Domicilio (calle y número)<input id="e_d" value="${esc(c.domicilio)}"></label>${'codigo_postal' in c?`<div class="f" style="grid-column:1/-1"><span>Barrio · Localidad · Provincia · CP</span><div class="g">${dirCampos('e',c)}</div></div>`:''}
     <label class="f">Condición IVA<select id="e_i">${Object.entries(IVA).map(([k,t])=>`<option value="${k}" ${k==c.condicion_iva?'selected':''}>${t}</option>`).join('')}</select></label>
     <label class="f">Lista<select id="e_l">${['mayorista','minorista','especial'].map(l=>`<option value="${l}" ${l==c.lista?'selected':''}>${nomL(l)}</option>`).join('')}</select></label>
@@ -1488,7 +1497,7 @@ async function fichaCliente(c){
   $('#e_g').onclick=async()=>{const n=$('#e_n').value.trim();if(!n)return toast('Falta la razón social.',1);
     const cambios={razon_social:n,cuit:$('#e_c').value.trim()||null,telefono:$('#e_t').value.trim()||null,domicilio:$('#e_d').value.trim()||null,
       condicion_iva:$('#e_i').value,lista:$('#e_l').value,condicion_pago_dias:+$('#e_p').value||0,...('codigo_postal' in c?dirLeer('e'):{})};
-    if('dias_visita' in c)cambios.dias_visita=leerDias('ecd');if($('#e_rf'))cambios.referido_por=$('#e_rf').value||null;if($('#e_ru'))cambios.rubro=$('#e_ru').value.trim()||null;if($('#e_cd'))cambios.cliente_desde=$('#e_cd').value||null;if($('#e_cu'))cambios.cumpleanos=$('#e_cu').value||null;cambios.limite_credito=+$('#e_lc').value||0;
+    if('dias_visita' in c)cambios.dias_visita=leerDias('ecd');if($('#e_rf'))cambios.referido_por=$('#e_rf').value||null;if($('#e_ru'))cambios.rubro=$('#e_ru').value.trim()||null;if($('#e_nf'))cambios.nombre_fantasia=$('#e_nf').value.trim()||null;if($('#e_cd'))cambios.cliente_desde=$('#e_cd').value||null;if($('#e_cu'))cambios.cumpleanos=$('#e_cu').value||null;cambios.limite_credito=+$('#e_lc').value||0;
     const{error}=await sb.from('clientes').update(cambios).eq('id',c.id);if(error)return toast(error.message,1);
     Object.assign(c,cambios);toast('Datos guardados.');fichaCliente(c)};
   const kp=(id,num,det,cls)=>{const b=$('#'+id);b.querySelector('.num').textContent=num;b.querySelector('.det').textContent=det||'';if(cls)b.classList.add(cls)};
@@ -8152,7 +8161,10 @@ const pc1=x=>(x*100).toLocaleString('es-AR',{maximumFractionDigits:1})+' %';
 const $s=n=>n<0?'− '+$m(-n):$m(n);
 const xl=n=>Number(n||0).toFixed(2).replace('.',',');
 const esNC=t=>/^NC/i.test(String(t||''));
-const nomCli=id=>S.clientes.find(c=>c.id==id)?.razon_social||'Cliente';
+const nomCli=id=>{const c=S.clientes.find(c=>c.id==id);return c?nomVis(c):'Cliente'};
+/* Nombre para mostrar: el del negocio si está cargado; si no, la razón social prolija (las facturas y remitos siguen con la razón social) */
+const tituloCaso=t=>String(t||'').toLowerCase().replace(/(^|[\s(\-\/])([a-záéíóúñü])/g,(m,a,b)=>a+b.toUpperCase()).replace(/\b(Srl|Sa|Sas|Sh)\b/g,x=>x.toUpperCase()).replace(/\b(De|Del|La|Las|Los|Y|E)\b/g,(x,g,off)=>off?x.toLowerCase():x);
+const nomVis=c=>(c?.nombre_fantasia||'').trim()||tituloCaso(c?.razon_social)||'Cliente';
 const nomProd=id=>S.productos.find(p=>p.producto_id==id)?.descripcion||'Producto';
 const cuitCli=id=>S.clientes.find(c=>c.id==id)?.cuit||'';
 
