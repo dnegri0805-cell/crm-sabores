@@ -677,6 +677,7 @@ html.oscuro .rci{background:#18202f;border-color:#273246}
 .ped-top .tot small{display:block;font-size:12px!important;font-weight:500;color:#6a7184;text-align:right}
 .ped-acc button[data-edp]{display:inline-flex;align-items:center;gap:4px}
 .mas .masc .pcan{color:var(--er,#b3261e);border-color:#f0c8c4}
+#v>*:has(details[open]>.masc),.cab:has(details[open]>.masc){position:relative;z-index:40}
 </style>
 </head>
 <body>
@@ -684,7 +685,7 @@ html.oscuro .rci{background:#18202f;border-color:#273246}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-18.22';
+const VERSION='2026-10-18.23';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
