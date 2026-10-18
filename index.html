@@ -309,6 +309,14 @@ button.alt:hover{background:#faf5f6;filter:none}
 .pbar-t small{color:#5b6274;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pbar-t b{font-size:20px;font-variant-numeric:tabular-nums}
 .pbar button{padding:12px 18px;font-weight:700;border-radius:12px;white-space:nowrap}
+.cl-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.cl-cond{color:#8a90a0;font-size:12px;white-space:nowrap}
+.cl-acc{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:6px}
+.cl-bts{display:flex;gap:6px;margin-left:auto}
+.cl-ult{font-size:12.5px;color:var(--ok)}.cl-ult.viejo{color:#b4690e}.cl-ult.nunca{color:#9aa0ad}
+.cl-bt{padding:4px 10px;font-size:13px}.cl-bt.tel{color:var(--m);border-style:dashed}
+.cl-grid{gap:8px}
+@media(max-width:640px){.cab #c_new{padding:8px 14px!important;font-size:15px!important}.cl-card{padding:9px 12px}}
 </style>
 </head>
 <body>
@@ -994,11 +1002,14 @@ function vClientes(){
   const subs=`<div class="sub">${[['lista','Clientes'],['agenda','Agenda de visitas'],['mapa','Mapa'],['dormidos','Dormidos'],['prospectos','Prospectos'],['fijos','Pedidos fijos']].map(([k,t])=>`<button class="${S.cs==k?'':'alt'}" data-cs2="${k}">${t}</button>`).join('')}</div>`;
   if(S.cs!='lista'){$('#v').innerHTML=`${cabClientes()}${subs}<div id="cs">Cargando…</div>`;$$('[data-cs2]').forEach(b=>b.onclick=()=>{S.cs=b.dataset.cs2;vClientes()});enlazarCab();
     return ({agenda:vAgenda,prospectos:vProspectos,fijos:vFijos,dormidos:vDormidos,mapa:vMapa})[S.cs]()}
-  $('#v').innerHTML=`${cabClientes()}${subs}<div class="sub" id="cfam"></div><input id="q" placeholder="Buscar por nombre, negocio o CUIT · tocá un cliente para ver su ficha"><div id="ct"></div>`;
+  $('#v').innerHTML=`${cabClientes()}${subs}<div class="sub" id="cfam"></div><input id="q" placeholder="🔎 Buscar cliente o CUIT"><div id="ct"></div>`;
   const ORD=[...FAM_CLI.map(x=>x[0]),'❔ Sin rubro'];S.cfam=S.cfam||'';
-  const fila=c=>{const tel=telWA(c.telefono||'');return `<div class="cl-card clic" data-fc="${c.id}"><div class="cl-top"><div><b>${esc(nomVis(c))}</b>${(c.nombre_fantasia||'').trim()?`<div class="cl-rs">${esc(tituloCaso(c.razon_social))}</div>`:''}<div class="cl-sub">${esc([c.rubro,c.barrio||c.ciudad].filter(Boolean).join(' · '))}</div></div>
-    <div class="cl-der"><span class="badge">${c.lista=='especial'?'gastronomía':esc(c.lista)}</span><small>${c.condicion_pago_dias?c.condicion_pago_dias+' días':'Contado'}</small></div></div>
-    <div class="cl-acc">${tel?`<a class="cl-bt wa" data-wa="${esc(tel)}">💬 WhatsApp</a><a class="cl-bt" href="tel:${esc(c.telefono)}" data-no="1">📞 Llamar</a>`:'<span class="cl-sintel">📵 Sin teléfono</span>'}</div></div>`};
+  const rsSimil=c=>{const f=x=>norm(x||'').replace(/\b(s\.?r\.?l|s\.?a|s\.?a\.?s|s\.?h|y cia)\b\.?/g,'').replace(/[^a-z0-9]/g,'');const a=f(c.nombre_fantasia),b=f(c.razon_social);return !a||!b||a==b||b.includes(a)||a.includes(b)};
+  const ultTxt=c=>{if(!S.ultPed)return '';const d=S.ultPed[c.id];if(!d)return '<span class="cl-ult nunca">Todavía no compró</span>';const n=Math.floor((Date.now()-new Date(d))/864e5);
+    return `<span class="cl-ult${n>30?' viejo':''}">Último pedido: ${n<1?'hoy':n==1?'ayer':'hace '+n+' días'}</span>`};
+  const fila=c=>{const tel=telWA(c.telefono||'');return `<div class="cl-card clic" data-fc="${c.id}"><div class="cl-top"><b>${esc(nomVis(c))}</b><small class="cl-cond">${c.lista=='especial'?'gastronomía':esc(c.lista)} · ${c.condicion_pago_dias?c.condicion_pago_dias+' días':'Contado'}</small></div>
+    <div class="cl-sub">${esc([(c.nombre_fantasia||'').trim()&&!rsSimil(c)?tituloCaso(c.razon_social):'',c.barrio||c.ciudad,c.rubro?'':'sin rubro'].filter(Boolean).join(' · '))}</div>
+    <div class="cl-acc">${ultTxt(c)}<span class="cl-bts">${tel?`<a class="cl-bt wa" data-wa="${esc(tel)}">💬</a><a class="cl-bt" href="tel:${esc(c.telefono)}" data-no="1">📞</a>`:`<a class="cl-bt tel" data-tel="${c.id}">+ Teléfono</a>`}</span></div></div>`};
   const draw=()=>{const q=$('#q').value.toLowerCase(),A=S.clientes.filter(c=>c.activo!==false),cnt={};A.forEach(c=>{const f=famCli(c);cnt[f]=(cnt[f]||0)+1});
     $('#cfam').innerHTML=`<button class="${S.cfam?'alt':''}" data-cf="">Todas (${A.length})</button>`+ORD.filter(f=>cnt[f]).map(f=>`<button class="${S.cfam==f?'':'alt'}" data-cf="${esc(f)}">${esc(f)} (${cnt[f]})</button>`).join('');
     const L=S.clientes.filter(c=>coincide(c.razon_social+' '+(c.nombre_fantasia||'')+' '+(c.cuit||'')+' '+(c.rubro||''),q)&&(!S.cfam||famCli(c)==S.cfam)),G={};L.forEach(c=>(G[famCli(c)]=G[famCli(c)]||[]).push(c));
@@ -1006,8 +1017,11 @@ function vClientes(){
     $('#ct').innerHTML=ORD.filter(f=>G[f]).map(f=>`<h4 class="cl-fam">${esc(f)} <small>(${G[f].length})</small>${f=='❔ Sin rubro'?' <small>· entrá a la ficha y cargá el rubro</small>':''}</h4><div class="cl-grid">${G[f].map(fila).join('')}</div>`).join('')||'<p><small>No hay clientes con ese filtro.</small></p>';
     $$('#cfam [data-cf]').forEach(b=>b.onclick=()=>{S.cfam=b.dataset.cf;draw();bind()})};
   $$('[data-cs2]').forEach(b=>b.onclick=()=>{S.cs=b.dataset.cs2;vClientes()});
-  const bind=()=>{$$('#ct [data-fc]').forEach(r=>r.onclick=()=>fichaCliente(S.clientes.find(c=>c.id==r.dataset.fc)));$$('#ct [data-wa]').forEach(a=>a.onclick=e=>{e.stopPropagation();window.open('https://wa.me/'+a.dataset.wa,'_blank')});$$('#ct [data-no]').forEach(a=>a.onclick=e=>e.stopPropagation())};
+  const bind=()=>{$$('#ct [data-fc]').forEach(r=>r.onclick=()=>fichaCliente(S.clientes.find(c=>c.id==r.dataset.fc)));$$('#ct [data-wa]').forEach(a=>a.onclick=e=>{e.stopPropagation();window.open('https://wa.me/'+a.dataset.wa,'_blank')});$$('#ct [data-no]').forEach(a=>a.onclick=e=>e.stopPropagation());
+    $$('#ct [data-tel]').forEach(a=>a.onclick=async e=>{e.stopPropagation();const c=S.clientes.find(x=>x.id==a.dataset.tel),t=(prompt('Teléfono de '+nomVis(c)+' (ej.: 11 2345 6789)')||'').trim();if(!t)return;
+      const{error}=await sb.from('clientes').update({telefono:t}).eq('id',c.id);if(error)return toast(error.message,1);c.telefono=t;toast('Teléfono guardado.');draw();bind()})};
   $('#q').oninput=()=>{draw();bind()};draw();bind();
+  if(!S.ultPed)todo(()=>sb.from('pedidos').select('cliente_id,creado_en').neq('estado','cancelado')).then(({data})=>{if(!data)return;const u={};data.forEach(o=>{if(!u[o.cliente_id]||o.creado_en>u[o.cliente_id])u[o.cliente_id]=o.creado_en});S.ultPed=u;if($('#ct')&&$('#q')){draw();bind()}}).catch(()=>{});
   enlazarCab();if(S.abrirNuevo){S.abrirNuevo=0;nuevoCliente()}
 }
 /* Encabezado de Clientes: título, botón para crear y el resto de las herramientas en "Más" */
