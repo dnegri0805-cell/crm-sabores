@@ -673,7 +673,7 @@ html.oscuro .ag .vi{background:#18202f}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-18.14';
+const VERSION='2026-10-18.15';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -2354,7 +2354,7 @@ function pedidoPDF(o){if(!depUsar())return pedidoPDF0(o);
     const tot=it.reduce((a,i)=>a+i.st,0),f=new Date(o.fecha||o.creado_en||o.created_at||Date.now()).toLocaleDateString('es-AR');
     await depEnviar('pedido','Pedido '+o.numero+' · '+(c.razon_social||''),tkPedidoCuerpo(o,it,c,f,tot))})}
 function reciboPDF(x,c){if(!x||!c)return;if(!depUsar())return reciboPDF0(x,c);
-  elegirImpresion(()=>reciboPDF0(x,c),async()=>{const d=await datosRecibo(x,c);await depEnviar('recibo','Recibo '+x.numero+' · '+(c.razon_social||''),tkReciboCuerpo(x,c,d))})}
+  elegirImpresion(()=>reciboPDF0(x,c),async()=>{x=await reciboUnido(x);const d=await datosRecibo(x,c);await depEnviar('recibo','Recibo '+x.numero+' · '+(c.razon_social||''),tkReciboCuerpo(x,c,d))})}
 /* Pantalla de la PC del depósito: imprime sola lo que llega a la cola */
 async function vImpresora(){
   try{localStorage.setItem('estacion_imp','1')}catch(e){}
@@ -2431,7 +2431,7 @@ function vCobranza(){setTimeout(()=>{if(S.preCob&&$('#k_c')){$('#k_c').value=S.p
     <div class="g"><input id="k_i" type="number" step="0.01" min="0" placeholder="Importe a cobrar"><select id="k_m"><option>transferencia</option><option>efectivo</option><option>cheque</option><option value="echeq">eCheq</option><option>tarjeta</option><option>otro</option></select></div><div id="k_x"></div>
     <div id="k_split"></div><p class="ksp-acc"><a class="lnk" id="k_add">+ Dividir pago</a> <small id="k_falta"></small></p>
     <button id="k_g">Registrar cobro</button><div id="k_ok"></div><h3>Últimos recibos</h3>
-    <table>${(r.data||[]).map(x=>`<tr><td>Recibo ${x.numero}</td><td>${fd(x.fecha)}</td><td>${esc(x.medio)}</td><td class="n">${$m(x.importe)}</td><td style="white-space:nowrap"><button class="alt wa" data-rw="${x.numero}">WhatsApp</button> <button class="alt" data-rp="${x.numero}">PDF</button></td></tr>`).join('')||'<tr><td>Todavía no hay recibos.</td></tr>'}</table>`;
+    <table>${recUn(r.data||[]).map(x=>`<tr><td>Recibo ${x.numero}</td><td>${fd(x.fecha)}</td><td>${esc(x.medio)}</td><td class="n">${$m(x.importe)}</td><td style="white-space:nowrap"><button class="alt wa" data-rw="${x.numero}">WhatsApp</button> <button class="alt" data-rp="${x.numero}">PDF</button></td></tr>`).join('')||'<tr><td>Todavía no hay recibos.</td></tr>'}</table>`;
     const cli=S.clientes.find(c=>c.id==id),rec=n=>(r.data||[]).find(x=>x.numero==n);
     $$('#k_s [data-ppf]').forEach(b=>b.onclick=async()=>{const x=F.find(y=>y.factura_id==b.dataset.ppf);if(!confirm('¿Aplicar '+nf(PP.pct)+' % de descuento por pronto pago a la factura '+x.tipo+' '+x.numero+'? Se hace una nota de crédito por '+$m(x.pendiente*PP.pct/100)+'.'))return;
       const{data,error}=await sb.rpc('descuento_pronto_pago',{p_factura:x.factura_id});if(error)return toast(/descuento_pronto_pago/.test(error.message)?'Falta correr ventas-crecer.sql en Supabase.':error.message,1);
@@ -2454,16 +2454,16 @@ function vCobranza(){setTimeout(()=>{if(S.preCob&&$('#k_c')){$('#k_c').value=S.p
       d.querySelector('.k_ii').oninput=falta;d.querySelector('.k_del').onclick=()=>{d.remove();falta()};$('#k_add').textContent='+ Otra forma de pago';falta();d.querySelector('.k_ii').focus()};
     $('#k_g').onclick=async()=>{const P=partes().filter(x=>x.imp>0);if(!P.length||!(P[0].imp>0))return toast('Poné el importe a cobrar.',1);
       if($('#ch_fp')&&!$('#ch_fp').value)return toast('Poné la fecha de pago del cheque.',1);
-      if(P.length>1&&!confirm('Se registran '+P.length+' cobros ('+P.map(x=>x.med+' '+$m(x.imp)).join(' + ')+'), un recibo por cada forma de pago. ¿Seguimos?'))return;
+      if(P.length>1&&!confirm('Se registra un cobro de '+$m(P.reduce((a,x)=>a+x.imp,0))+' en un solo recibo: '+P.map(x=>x.med+' '+$m(x.imp)).join(' + ')+'. ¿Seguimos?'))return;
       $('#k_g').disabled=true;const pend=F.map(x=>({id:x.factura_id,p:Number(x.pendiente||0)}));const recs=[];let aCuenta=0;
       for(const x of P){const medio=x.med=='echeq'?'cheque':x.med;let rest=x.imp;const imp=[];
         for(const f of pend){if(rest<=0)break;if(f.p<=0.004)continue;const a=Math.min(rest,f.p);imp.push({factura_id:f.id,importe:+a.toFixed(2)});f.p=+(f.p-a).toFixed(2);rest=+(rest-a).toFixed(2)}
-        const{data,error}=await sb.rpc('registrar_cobranza',{p_cliente:id,p_importe:x.imp,p_medio:medio,p_imputaciones:imp});
+        const{data,error}=await sb.rpc('registrar_cobranza',{p_cliente:id,p_importe:x.imp,p_medio:medio,p_imputaciones:imp,...(recs.length?{p_observacion:'Parte del recibo N° '+recs[0]}:{})});
         if(error){$('#k_g').disabled=false;toast((recs.length?'Se registraron '+recs.length+' de '+P.length+'. ':'')+error.message,1);break}
         if(x.main)await extrasGuardar('cobro',x.imp,'Cobro recibo N° '+data+' · '+nomCli(id),{cliente:id,ref:'Recibo N° '+data});
         recs.push(data);aCuenta+=rest}
       if(!recs.length)return;
-      (okAnim(recs.length>1?'Cobro registrado ('+recs.length+' formas de pago)':'Cobro registrado'),toast((recs.length>1?'Recibos N° '+recs.join(', '):'Recibo N° '+recs[0])+' registrado'+(recs.length>1?'s':'')+(aCuenta>0.004?'. Quedan '+$m(aCuenta)+' a cuenta.':'.')));S.recNuevo=recs[recs.length-1];$('#k_c').onchange();morosos()}};
+      (okAnim('Cobro registrado'),toast('Recibo N° '+recs[0]+' registrado'+(recs.length>1?' ('+recs.length+' formas de pago)':'')+(aCuenta>0.004?'. Quedan '+$m(aCuenta)+' a cuenta.':'.')));S.recNuevo=recs[0];$('#k_c').onchange();morosos()}};
 }
 
 /* Extras contables al cobrar, pagar o cargar gastos (solo dueño): cuenta bancaria y cheques */
@@ -2569,15 +2569,20 @@ function resumenPDF(g){const c=g.c,w=window.open('','_blank');if(!w)return toast
   <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close()}
 
 /* ---------- Recibo de cobro: WhatsApp y PDF ---------- */
+/* Pago dividido: el recibo principal junta sus partes (una por forma de pago) en un solo comprobante */
+const recUn=RR=>{const pt={};RR.forEach(x=>{const m=/^Parte del recibo N° (\d+)/.exec(x.observacion||'');if(m)(pt[m[1]]=pt[m[1]]||[]).push(x)});
+  return RR.filter(x=>!/^Parte del recibo N°/.test(x.observacion||'')).map(x=>pt[x.numero]?{...x,importe:+x.importe+pt[x.numero].reduce((a,y)=>a+Number(y.importe||0),0),medio:[x,...pt[x.numero]].map(y=>y.medio).join(' + ')}:x)};
+async function reciboUnido(x){if(!x||x.ids)return x;try{const{data:P}=await sb.from('recibos').select('*').eq('observacion','Parte del recibo N° '+x.numero).eq('anulado',false);
+  if(!P||!P.length)return x;const T=[x,...P];return{...x,importe:T.reduce((a,y)=>a+Number(y.importe||0),0),medio:T.map(y=>y.medio+' '+$m(y.importe)).join(' + '),ids:T.map(y=>y.id)}}catch(e){return x}}
 async function datosRecibo(x,c){
   const[sa,im]=await Promise.all([sb.from('saldos_clientes').select('saldo').eq('cliente_id',c.id).maybeSingle(),
-    x.id!=null?sb.from('recibo_imputaciones').select('*').eq('recibo_id',x.id):Promise.resolve({data:[]})]);
+    x.id!=null?sb.from('recibo_imputaciones').select('*').in('recibo_id',x.ids||[x.id]):Promise.resolve({data:[]})]);
   let fac=[];const I=im.error?[]:(im.data||[]);
   if(I.length){const ids=I.map(i=>i.factura_id).filter(Boolean);const{data:F}=ids.length?await sb.from('facturas_venta').select('id,tipo,numero').in('id',ids):{data:[]};
     fac=I.map(i=>{const f=(F||[]).find(y=>y.id==i.factura_id);return{t:f?'Factura '+f.tipo+' N° '+f.numero:'Factura',imp:Number(i.importe??i.monto??0)}})}
   const aplicado=fac.reduce((a,f)=>a+f.imp,0),cuenta=Math.max(0,Number(x.importe)-aplicado);
   return{saldo:sa.data?Number(sa.data.saldo):null,fac,cuenta:fac.length&&cuenta>0.005?cuenta:0}}
-async function reciboWA(x,c){if(!x||!c)return;const w=window.open('','_blank');
+async function reciboWA(x,c){if(!x||!c)return;const w=window.open('','_blank');x=await reciboUnido(x);
   const d=await datosRecibo(x,c);
   const txt=`*Sabores de mi País*\nRecibo de cobro N° ${x.numero} · ${fd(x.fecha)}\n${c.razon_social}\n\nRecibimos *${$m(x.importe)}* (${x.medio}).`+
     (d.fac.length?'\n\nAplicado a:\n'+d.fac.map(f=>`• ${f.t}: ${$m(f.imp)}`).join('\n')+(d.cuenta?`\n• A cuenta: ${$m(d.cuenta)}`:''):'')+
@@ -2585,7 +2590,7 @@ async function reciboWA(x,c){if(!x||!c)return;const w=window.open('','_blank');
   const tel=telWA(c.telefono),url='https://wa.me/'+tel+'?text='+encodeURIComponent(txt);
   if(w)w.location.href=url;else location.href=url;
   if(!tel)toast('Este cliente no tiene teléfono cargado: elegí el contacto en WhatsApp.')}
-async function reciboPDF0(x,c){if(!x||!c)return;const w=window.open('','_blank');if(!w)return toast('Permití las ventanas emergentes para generar el PDF.',1);
+async function reciboPDF0(x,c){if(!x||!c)return;const w=window.open('','_blank');x=await reciboUnido(x);if(!w)return toast('Permití las ventanas emergentes para generar el PDF.',1);
   w.document.write('<p style="font:16px system-ui;margin:32px">Armando el recibo…</p>');
   const d=await datosRecibo(x,c);
   if(tkW()){w.document.open();w.document.write(ticketDoc('Recibo '+x.numero,tkReciboCuerpo(x,c,d)));w.document.close();return}
