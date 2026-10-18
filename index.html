@@ -572,6 +572,18 @@ html,body{overflow-x:clip}
 }
 /* Con la letra agrandada (Aa) las capas fijas tienen que medir la pantalla, no más */
 .modal,.okanim,.splash{right:auto!important;bottom:auto!important;width:calc(100vw / var(--z,1));height:calc(100dvh / var(--z,1))}
+
+.xcl{width:36px;height:36px;padding:0!important;border-radius:50%!important;display:inline-flex!important;align-items:center;justify-content:center;flex:none;background:#f1eef0!important;color:#5b4650!important;border:0!important}
+html.oscuro .xcl{background:#262f42!important;color:#c9cfdc!important}
+.ich{margin-right:8px;color:var(--m);vertical-align:-3px}
+.sdot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:0}.sdot.sr{background:#c0392b}.sdot.sa{background:#e0a21c}
+.kp .num.cero{color:#b5bac6!important}.kphoy #k1 .num.cero{color:#e9c9d1!important}
+#ptr{position:fixed;top:6px;left:50%;z-index:60;width:38px;height:38px;border-radius:50%;background:#fff;box-shadow:0 4px 14px rgba(23,33,58,.2);display:flex;align-items:center;justify-content:center;transform:translate(-50%,0)}
+#ptr i{width:18px;height:18px;border-radius:50%;border:2.5px solid #d5d8df;border-top-color:var(--m)}
+#ptr.listo i{border-color:var(--m);border-top-color:transparent}
+#ptr.gira i{animation:gira .7s linear infinite;border-color:#d5d8df;border-top-color:var(--m)}
+html{overscroll-behavior-y:contain}
+@media(max-width:640px){table.tcard tr.tcr{position:relative}table.tcard tr.tcr td.tc-ico{position:absolute;top:12px;right:12px}table.tcard tr.tcr td.tc-ico+td{grid-column:1/-1;font-weight:600;padding-right:24px!important}table.tcard tr.tcr td.tc-ico+td::before{display:none!important}}
 </style>
 </head>
 <body>
@@ -6979,8 +6991,8 @@ async function creditoInteligente(){const D=await datosRiesgo(),L=D.filter(x=>x.
     for(const x of K){const{error}=await sb.from('clientes').update({limite_credito:x.sug}).eq('id',x.c.id);if(error){ok.disabled=false;return toast(error.message,1)}x.c.limite_credito=x.sug}toast(K.length+' límites actualizados.');m.remove();creditoInteligente()}}
 async function semaforoRiesgo(){const D=(await datosRiesgo()).filter(x=>x.nivel!='bajo').sort((a,b)=>(a.nivel=='alto'?0:1)-(b.nivel=='alto'?0:1)||b.venc-a.venc),m=document.createElement('div');m.className='modal';document.body.appendChild(m);
   m.innerHTML=`<div class="mc"><div class="bh"><h3>🚦 Semáforo de riesgo</h3><button class="alt" id="sr_x">Cerrar</button></div>
-    <p><small><b>🔴 Alto:</b> tiene deuda vencida y además compra mucho menos, lleva 45 días o más de mora o paga menos de la mitad de lo que compra. <b>🟡 Medio:</b> tiene deuda vencida o paga menos de lo que compra. Escribile, o cortale el crédito para que no siga sumando deuda.</small></p>
-    <div class="tw"><table><tr><th></th><th>Cliente</th><th class="n">Vencido</th><th class="n">Mora</th><th class="n">Compra (30 d)</th><th class="n">Paga</th><th></th></tr>${D.map((x,k)=>`<tr><td>${x.nivel=='alto'?'🔴':'🟡'}</td><td>${esc(x.c.razon_social)}<br><small>deuda total ${$m(x.deuda)}</small></td><td class="n">${$m(x.venc)}</td><td class="n">${x.mora?x.mora+' d':'—'}</td><td class="n">${$m(x.com30)}${x.caida>=20?`<br><small class="baja">−${pctf(x.caida)}</small>`:''}</td><td class="n">${pctf(Math.min(x.cob,9.99)*100)}</td>
+    <p><small><b><i class="sdot sr"></i>Alto:</b> tiene deuda vencida y además compra mucho menos, lleva 45 días o más de mora o paga menos de la mitad de lo que compra. <b><i class="sdot sa"></i>Medio:</b> tiene deuda vencida o paga menos de lo que compra. Escribile, o cortale el crédito para que no siga sumando deuda.</small></p>
+    <div class="tw"><table><tr><th></th><th>Cliente</th><th class="n">Vencido</th><th class="n">Mora</th><th class="n">Compra (30 d)</th><th class="n">Paga</th><th></th></tr>${D.map((x,k)=>`<tr><td>${x.nivel=='alto'?'<i class="sdot sr"></i>':'<i class="sdot sa"></i>'}</td><td>${esc(nomVis(x.c))}<br><small>deuda total ${$m(x.deuda)}</small></td><td class="n">${$m(x.venc)}</td><td class="n">${x.mora?x.mora+' d':'—'}</td><td class="n">${$m(x.com30)}${x.caida>=20?`<br><small class="baja">−${pctf(x.caida)}</small>`:''}</td><td class="n">${pctf(Math.min(x.cob,9.99)*100)}</td>
       <td style="white-space:nowrap">${x.c.telefono?`<button class="alt wa" data-srw="${k}">📲</button> `:''}${S.perfil.rol=='dueno'?`<button class="alt" data-src="${k}" title="El límite queda en su deuda actual: no puede sumar más">🔒 Cortar crédito</button>`:''}</td></tr>`).join('')||'<tr><td colspan="7">¡Nadie en riesgo! 🎉</td></tr>'}</table></div></div>`;
   m.querySelector('#sr_x').onclick=()=>m.remove();
   m.querySelectorAll('[data-srw]').forEach(b=>b.onclick=()=>{const x=D[+b.dataset.srw];window.open('https://wa.me/'+telWA(x.c.telefono)+'?text='+encodeURIComponent(`¡Hola ${nomCorto(x.c)}! ¿Cómo andás? Te escribo de *Sabores de mi País* porque en tu cuenta figura un saldo vencido de *${$m(x.venc)}*. ¿Cuándo lo podés regularizar? Así seguimos con tus pedidos sin problema. ¡Gracias!${S.datosPago?'\n\n'+S.datosPago:''}`),'_blank')});
@@ -9017,10 +9029,25 @@ const EMO_RE=new RegExp('^\\s*('+Object.keys(EMO_IC).sort((a,b)=>b.length-a.leng
 function iconizar(raiz){try{(raiz||document).querySelectorAll('button,summary,a.btn').forEach(b=>{const t=b.firstChild;if(!t||t.nodeType!==3)return;const m=t.nodeValue.match(EMO_RE);if(!m)return;
   t.nodeValue=t.nodeValue.slice(m[0].length);const w=document.createElement('span');w.className='ici';w.innerHTML=IC(EMO_IC[m[1]],17);b.insertBefore(w,t)})}catch(e){}}
 /* Tablas como tarjetas en el celular (Caja, Stock, Reportes) */
-function tarjetizar(){try{if(!['caja','stock','reportes'].includes(S.tab)||!matchMedia('(max-width:640px)').matches)return;
-  document.querySelectorAll('#v table:not(.tcard):not(#pr_t):not(#p_i):not(.morc)').forEach(t=>{const filas=[...t.rows];if(filas.length<2)return;const h=[...filas[0].cells];if(!h.length||h[0].tagName!='TH')return;const N=h.map(x=>x.textContent.trim());
-    filas.slice(1).forEach(r=>{if(r.cells.length<2)return;r.classList.add('tcr');[...r.cells].forEach((c,i)=>{if(N[i]&&!c.hasAttribute('data-l'))c.setAttribute('data-l',N[i])})});t.classList.add('tcard')})}catch(e){}}
-{let pend=0;new MutationObserver(()=>{if(pend)return;pend=1;requestAnimationFrame(()=>{pend=0;iconizar();tarjetizar()})}).observe(document.body,{childList:true,subtree:true})}
+function tarjetizar(){try{if(!matchMedia('(max-width:640px)').matches)return;
+  const sel=(['caja','stock','reportes'].includes(S.tab)?'#v table:not(.tcard):not(#pr_t):not(#p_i):not(.morc),':'')+'.modal table:not(.tcard)';
+  document.querySelectorAll(sel).forEach(t=>{const filas=[...t.rows];if(filas.length<2)return;const h=[...filas[0].cells];if(!h.length||h[0].tagName!='TH')return;const N=h.map(x=>x.textContent.trim());
+    filas.slice(1).forEach(r=>{if(r.cells.length<2)return;r.classList.add('tcr');if(!r.cells[0].textContent.trim())r.cells[0].classList.add('tc-ico');[...r.cells].forEach((c,i)=>{if(N[i]&&!c.hasAttribute('data-l'))c.setAttribute('data-l',N[i])})});t.classList.add('tcard')})}catch(e){}}
+function cerrarX(){document.querySelectorAll('.modal .bh button:not(.xcl)').forEach(b=>{if(b.textContent.trim()!=='Cerrar')return;b.classList.add('xcl');b.setAttribute('aria-label','Cerrar');b.title='Cerrar';b.innerHTML='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>'})}
+function titulosIc(){document.querySelectorAll('.modal h3,.modal h2,#v h2,#v h3').forEach(h=>{const t=h.firstChild;if(!t||t.nodeType!==3)return;const m=t.nodeValue.match(EMO_RE);if(!m)return;t.nodeValue=t.nodeValue.slice(m[0].length);const w=document.createElement('span');w.className='ici ich';w.innerHTML=IC(EMO_IC[m[1]],20);h.insertBefore(w,t)})}
+function ceros(){document.querySelectorAll('.kp .num').forEach(n=>n.classList.toggle('cero',/^\s*(\$\s*)?0(,00)?\s*$/.test(n.textContent)))}
+{let pend=0;new MutationObserver(()=>{if(pend)return;pend=1;requestAnimationFrame(()=>{pend=0;iconizar();tarjetizar();cerrarX();titulosIc();ceros()})}).observe(document.body,{childList:true,subtree:true,characterData:true})}
+/* Tirar hacia abajo para actualizar */
+async function actualizarTodo(){const ind=document.getElementById('ptr');try{
+  const[c,pr]=await Promise.all([todo(()=>sb.from('clientes').select('*').eq('activo',true).order('razon_social').order('id')),todo(()=>sb.from('precios_productos').select(PROD_COLS).order('descripcion').order('producto_id'))]);
+  if(!c.error&&c.data.length)S.clientes.splice(0,S.clientes.length,...c.data);if(!pr.error&&pr.data.length)S.productos.splice(0,S.productos.length,...pr.data);
+  try{guardarCache()}catch(e){}await cargarStock().catch(()=>{});S.ultPed=null;
+  if(S.fc&&document.getElementById('fc_vol')){const cl=S.clientes.find(x=>x.id==S.fc);if(cl)fichaCliente(cl);else shell()}else shell();toast('Datos actualizados.')}catch(e){toast('No se pudo actualizar: '+(e.message||e),1)}finally{ind&&ind.remove()}}
+{let y0=null,d=0,ind=null;const ok=()=>matchMedia('(max-width:640px)').matches&&scrollY<=0&&!document.querySelector('.modal')&&S.perfil&&document.getElementById('v');
+ document.addEventListener('touchstart',e=>{if(!ok()||e.target.closest('input,textarea,select,.modal'))return;y0=e.touches[0].clientY;d=0},{passive:true});
+ document.addEventListener('touchmove',e=>{if(y0==null)return;d=e.touches[0].clientY-y0;if(d<=0||scrollY>0){ind&&ind.remove();ind=null;return}
+   if(!ind){ind=document.createElement('div');ind.id='ptr';ind.innerHTML='<i></i>';document.body.appendChild(ind)}const k=Math.min(1,d/110);ind.style.transform=`translate(-50%,${Math.min(d*.5,70)}px) rotate(${k*270}deg)`;ind.style.opacity=k;ind.classList.toggle('listo',d>110)},{passive:true});
+ document.addEventListener('touchend',()=>{if(y0==null)return;y0=null;if(ind){if(d>110){ind.classList.add('gira');ind.style.transform='translate(-50%,50px)';actualizarTodo()}else ind.remove();ind=null}})}
 /* Ventanas como hoja que sube desde abajo: se cierran deslizando hacia abajo */
 {let y0=null,mc=null,dy=0;
  document.addEventListener('touchstart',e=>{const c=e.target.closest('.modal>.mc');if(!c||!matchMedia('(max-width:640px)').matches||c.closest('.fl-big,.scanm,.firma'))return;
