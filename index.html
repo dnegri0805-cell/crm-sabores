@@ -628,7 +628,7 @@ html.oscuro .pcsel{background:#18202f;border-color:#273246}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-18.4';
+const VERSION='2026-10-18.5';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -9095,7 +9095,7 @@ function titulosIc(){document.querySelectorAll('.modal h3,.modal h2,#v h2,#v h3'
 function ceros(){document.querySelectorAll('.kp .num').forEach(n=>n.classList.toggle('cero',/^\s*(\$\s*)?0(,00)?\s*$/.test(n.textContent)))}
 {let pend=0;new MutationObserver(()=>{if(pend)return;pend=1;requestAnimationFrame(()=>{pend=0;iconizar();tarjetizar();cerrarX();titulosIc();ceros()})}).observe(document.body,{childList:true,subtree:true,characterData:true})}
 /* Tirar hacia abajo para actualizar */
-async function actualizarTodo(){const ind=document.getElementById('ptr');try{
+async function actualizarTodo(){const ind=document.getElementById('ptr');setTimeout(()=>ind&&ind.remove(),12000);try{
   const[c,pr]=await Promise.all([todo(()=>sb.from('clientes').select('*').eq('activo',true).order('razon_social').order('id')),todo(()=>sb.from('precios_productos').select(PROD_COLS).order('descripcion').order('producto_id'))]);
   if(!c.error&&c.data.length)S.clientes.splice(0,S.clientes.length,...c.data);if(!pr.error&&pr.data.length)S.productos.splice(0,S.productos.length,...pr.data);
   try{guardarCache()}catch(e){}await cargarStock().catch(()=>{});S.ultPed=null;
@@ -9104,7 +9104,9 @@ async function actualizarTodo(){const ind=document.getElementById('ptr');try{
  document.addEventListener('touchstart',e=>{if(!ok()||e.target.closest('input,textarea,select,.modal'))return;y0=e.touches[0].clientY;d=0},{passive:true});
  document.addEventListener('touchmove',e=>{if(y0==null)return;d=e.touches[0].clientY-y0;if(d<=0||scrollY>0){ind&&ind.remove();ind=null;return}
    if(!ind){ind=document.createElement('div');ind.id='ptr';ind.innerHTML='<i></i>';document.body.appendChild(ind)}const k=Math.min(1,d/110);ind.style.transform=`translate(-50%,${Math.min(d*.5,70)}px) rotate(${k*270}deg)`;ind.style.opacity=k;ind.classList.toggle('listo',d>110)},{passive:true});
- document.addEventListener('touchend',()=>{if(y0==null)return;y0=null;if(ind){if(d>110){ind.classList.add('gira');ind.style.transform='translate(-50%,50px)';actualizarTodo()}else ind.remove();ind=null}})}
+ const fin=ok=>{if(y0==null&&!ind)return;y0=null;if(ind){if(ok&&d>110){ind.classList.add('gira');ind.style.transform='translate(-50%,50px)';actualizarTodo()}else ind.remove();ind=null}};
+ document.addEventListener('touchend',()=>fin(true));document.addEventListener('touchcancel',()=>fin(false));
+ document.addEventListener('scroll',()=>{if(scrollY>10&&ind&&!ind.classList.contains('gira')){ind.remove();ind=null;y0=null}},{passive:true})}
 /* Ventanas como hoja que sube desde abajo: se cierran deslizando hacia abajo */
 {let y0=null,mc=null,dy=0;
  document.addEventListener('touchstart',e=>{const c=e.target.closest('.modal>.mc');if(!c||!matchMedia('(max-width:640px)').matches||c.closest('.fl-big,.scanm,.firma'))return;
