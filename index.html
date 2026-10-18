@@ -317,6 +317,31 @@ button.alt:hover{background:#faf5f6;filter:none}
 .cl-bt{padding:4px 10px;font-size:13px}.cl-bt.tel{color:var(--m);border-style:dashed}
 .cl-grid{gap:8px}
 @media(max-width:640px){.cab #c_new{padding:8px 14px!important;font-size:15px!important}.cl-card{padding:9px 12px}}
+.fc-head{display:block}
+.fc-tit h2{font-size:24px;margin:0 0 2px}
+.fc-sub{color:#5b6274;font-size:14px}
+.fc-chips{display:flex;gap:6px;margin:8px 0 2px;flex-wrap:wrap}.fc-chips span{background:#f1eef0;color:#5b4650;border-radius:999px;padding:3px 10px;font-size:12.5px}
+.fc-big{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0 8px}
+.fc-big>*{display:flex;white-space:nowrap;align-items:center;justify-content:center;gap:6px;padding:12px 10px;font-weight:700;font-size:15px;border-radius:12px;text-decoration:none;text-align:center}
+.fc-big #fc_np{grid-column:1/-1;font-size:17px;padding:14px}
+.fc-big a.btn{background:#fff;border:1px solid #dcc9ce;color:var(--m)}.fc-big a.fc-wa{background:#f2faf5;border:1px solid #bfe3cc;color:var(--ok)}
+.fc-dat,.fc-mas{background:#fff;border:1px solid #ebe6df;border-radius:12px;margin-top:8px}
+.fc-dat summary,.fc-mas summary{padding:10px 14px;cursor:pointer;font-weight:600;color:#3c4458;list-style:none}
+.fc-dat summary::-webkit-details-marker,.fc-mas summary::-webkit-details-marker{display:none}
+.fc-datc{padding:0 14px 12px;color:#3c4458;font-size:14px;display:flex;flex-direction:column;gap:4px}.fc-datc button{align-self:flex-start;margin-top:6px}
+.fc-mas .fc-acc{padding:0 12px 12px}.fc-mas .fc-acc button{border-radius:999px;padding:6px 12px;font-size:14px}
+.fc-plg summary{cursor:pointer;list-style:none;padding:2px 0}
+.bnav{display:none}
+@media(max-width:640px){
+  header nav{display:none!important}
+  .bnav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:30;background:#fff;border-top:1px solid #e6e1d8;box-shadow:0 -4px 16px rgba(23,33,58,.08);padding:4px 4px calc(4px + env(safe-area-inset-bottom,0px))}
+  .bnav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 2px;font-size:11.5px;color:#6a7184;text-decoration:none;cursor:pointer;border-radius:10px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bnav a span{font-size:21px;line-height:1.1;filter:grayscale(1);opacity:.7}
+  .bnav a.on{color:var(--m);font-weight:700;background:#f7eef1}.bnav a.on span{filter:none;opacity:1}
+  main#v{padding-bottom:84px}
+  #t{bottom:76px;z-index:40}#snk{bottom:76px}#vivos{bottom:76px}
+  .pbar{bottom:62px}
+}
 </style>
 </head>
 <body>
@@ -366,6 +391,9 @@ async function init(){
 function shell(){
   app.innerHTML=`<header><b><a id="hback" class="hback" onclick="volver()" title="Volver a la pantalla anterior" aria-label="Volver" hidden>←</a>${MARCA.logo?`<img class="hlogo" src="${MARCA.logo}" alt="Sabores de mi País"><span class="hn">Sabores de mi País</span>`:'Sabores de mi País'}</b><nav>${tabsMenu().pri.map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${nomTab(t)}</a>`).join('')}${tabsMenu().sec.length?`<a data-mas="1" class="${tabsMenu().sec.includes(S.tab)?'on':''}">${tabsMenu().sec.includes(S.tab)?nomTab(S.tab)+' ▾':'Más ▾'}</a>`:''}</nav><span><a class="hbt" onclick="buscarTodo()" title="Buscar (Ctrl+K)">🔎</a><a class="hbt" onclick="ayuda()" title="Ayuda de esta pantalla (?)">❓</a><a class="hbt" onclick="vistaCfg()" title="Letra, colores y avisos">Aa</a><details class="umenu"><summary title="${esc(S.perfil.nombre)}" aria-label="Mi usuario">${esc((S.perfil.nombre||'?').trim().charAt(0).toUpperCase())}</summary><div class="umc"><b>${esc(S.perfil.nombre)}</b><small>${S.perfil.rol=='dueno'?'Dueño':esc(S.perfil.rol)} · versión ${VERSION}</small><button class="alt" onclick="out()">Salir</button></div></details></span></header><main id="v"></main>`;
   $$('nav a[data-t]').forEach(a=>a.onclick=()=>{S.tab=a.dataset.t;shell()});$$('nav a[data-mas]').forEach(a=>a.onclick=menuMas);
+  {const B=bottomTabs(),dentro=B.includes(S.tab),bn=document.createElement('nav');bn.className='bnav';
+   bn.innerHTML=B.map(t=>`<a data-bt="${t}" class="${S.tab==t?'on':''}"><span>${TAB_ICO[t]}</span>${t=='precios'?'Precios':nomTab(t)}</a>`).join('')+`<a data-bm="1" class="${dentro?'':'on'}"><span>☰</span>${dentro?'Más':esc(nomTab(S.tab).replace(/^📖 /,''))}</a>`;
+   app.appendChild(bn);bn.querySelectorAll('[data-bt]').forEach(a=>a.onclick=()=>{S.tab=a.dataset.bt;shell();window.scrollTo(0,0)});bn.querySelector('[data-bm]').onclick=()=>menuMas(1)}
   if(S.menuT===undefined){S.menuT=null;cfgJ('menu_tabs',{oc:[]}).then(v=>{S.menuT=v;if((v.oc||[]).length)$$('nav a').forEach(a=>{if(a.dataset.t!='inicio'&&a.dataset.t!=S.tab&&v.oc.includes(a.dataset.t))a.remove()})})}
   if(S.dep===undefined){S.dep=null;cfgJ('impresora_deposito',{}).then(v=>S.dep=v)}
   ({impresora:vImpresora,inicio:vInicio,pedidos:vPedidos,ventas:vVentas,reparto:vReparto,caja:vCaja,contable:vContable,clientes:vClientes,cobranza:vCobranza,compras:vCompras,stock:vStock,precios:vPrecios,reportes:vReportes,manual:vManual})[S.tab]();
@@ -1513,14 +1541,16 @@ async function fichaCliente(c){
   if(!c)return;window.scrollTo(0,0);
   const IVA={responsable_inscripto:'Responsable Inscripto',monotributo:'Monotributo',consumidor_final:'Consumidor final',exento:'Exento'};
   $('#v').innerHTML=`<p><a class="lnk" id="fc_vol">← Volver a Clientes</a></p>
-  <div class="fc-head"><div><h2>${esc(nomVis(c))}</h2>${(c.nombre_fantasia||'').trim()?`<div><small><b>${esc(c.razon_social)}</b></small></div>`:''}<small>${c.cuit?'CUIT '+esc(c.cuit)+' · ':''}${IVA[c.condicion_iva]||esc(c.condicion_iva||'')} ${c.rubro?' · '+esc(c.rubro):''} · Lista ${esc(nomL(c.lista))} · ${c.condicion_pago_dias?c.condicion_pago_dias+' días':'Contado'}${+c.limite_credito>0?' · Límite '+$m(c.limite_credito):''}</small>
-    <div><small>${c.telefono?'Tel. '+esc(c.telefono):'Sin teléfono'}${dirCompleta(c)?' · '+esc(dirCompleta(c)):''}</small></div></div>
-    <div class="fc-acc"><button id="fc_np">Nuevo pedido</button><button class="alt" id="fc_rp">🔁 Repetir último</button><button class="alt" id="fc_po">🛒 Pedido online</button><button class="alt" id="fc_co">Registrar cobro</button><button class="alt" id="fc_ec">📄 Estado de cuenta</button><button class="alt" id="fc_lp">Lista de precios</button><button class="alt" id="fc_ed">Editar datos</button><button class="alt" id="fc_fj">Pedido fijo</button><button class="alt" id="fc_gl">📞 Guion de llamada</button><button class="alt" id="fc_ng">🧮 Negociar</button><button class="alt" id="fc_gon">📸 Góndola</button><button class="alt" id="fc_doc">📂 Documentos</button><button class="alt" id="fc_vac">${vacBtn(c)}</button><button class="alt" id="fc_hr">${horarioTxt(c)||'🕐 Horario de recepción'}</button>${'cuenta_clave' in c?`<button class="alt" id="fc_kc">${c.cuenta_clave?'👑 Es cuenta clave':'☆ Cuenta clave'}</button><button class="alt" id="fc_pd">${c.perdido_en?'🚩 Perdido ('+esc(c.perdido_con||'')+')':'🚩 Se fue a la competencia'}</button>`:''}</div></div>
+  <div class="fc-head"><div class="fc-tit"><h2>${esc(nomVis(c))}</h2><div class="fc-sub">${esc([(c.nombre_fantasia||'').trim()?tituloCaso(c.razon_social):'',c.rubro,c.barrio||c.ciudad].filter(Boolean).join(' · '))}</div>
+    <div class="fc-chips"><span>${esc(nomL(c.lista))}</span><span>${c.condicion_pago_dias?c.condicion_pago_dias+' días':'Contado'}</span>${+c.limite_credito>0?`<span>Límite ${$m(c.limite_credito)}</span>`:''}</div></div>
+    <div class="fc-big"><button id="fc_np">🛒 Nuevo pedido</button>${telWA(c.telefono||'')?`<a class="btn fc-wa" href="https://wa.me/${esc(telWA(c.telefono))}" target="_blank" rel="noopener">💬 WhatsApp</a><a class="btn alt" href="tel:${esc(c.telefono)}">📞 Llamar</a>`:`<button class="alt" id="fc_tel">+ Teléfono</button>`}</div>
+    <details class="fc-dat"><summary>📋 Datos del cliente</summary><div class="fc-datc"><div>${c.cuit?'CUIT '+esc(c.cuit)+' · ':''}${IVA[c.condicion_iva]||esc(c.condicion_iva||'')}</div><div>${c.razon_social?'Razón social: '+esc(c.razon_social):''}</div><div>${c.telefono?'Tel. '+esc(c.telefono):'Sin teléfono'}</div><div>${dirCompleta(c)?esc(dirCompleta(c)):'Sin dirección'}</div><button class="alt" id="fc_ed">✏️ Editar datos</button></div></details>
+    <details class="fc-mas"><summary>Más acciones ▾</summary><div class="fc-acc"><button class="alt" id="fc_rp">🔁 Repetir último</button><button class="alt" id="fc_po">🛒 Pedido online</button><button class="alt" id="fc_co">Registrar cobro</button><button class="alt" id="fc_ec">📄 Estado de cuenta</button><button class="alt" id="fc_lp">Lista de precios</button><button class="alt" id="fc_fj">Pedido fijo</button><button class="alt" id="fc_gl">📞 Guion de llamada</button><button class="alt" id="fc_ng">🧮 Negociar</button><button class="alt" id="fc_gon">📸 Góndola</button><button class="alt" id="fc_doc">📂 Documentos</button><button class="alt" id="fc_vac">${vacBtn(c)}</button><button class="alt" id="fc_hr">${horarioTxt(c)||'🕐 Horario de recepción'}</button>${'cuenta_clave' in c?`<button class="alt" id="fc_kc">${c.cuenta_clave?'👑 Es cuenta clave':'☆ Cuenta clave'}</button><button class="alt" id="fc_pd">${c.perdido_en?'🚩 Perdido ('+esc(c.perdido_con||'')+')':'🚩 Se fue a la competencia'}</button>`:''}</div></details></div>
   <div id="fc_nt"></div>
-  <div class="box link-ped" id="fc_lp"><div class="bh"><h3>Pedidos online</h3></div>
+  <details class="box link-ped fc-plg"><summary><b>🌐 Link de pedidos online</b></summary>
     ${c.token_pedidos?`<p><small>Con este link ${esc(c.razon_social)} ve su catálogo con los precios de su lista y te manda pedidos, que llegan como <b>Por aprobar</b>.</small></p>
     <input readonly id="lk_u" value="${linkPedidos(c)}"><div class="fc-acc"><a class="btn-ver" href="${linkPedidos(c)}" target="_blank" rel="noopener">👀 Ver como lo ve el cliente</a><button class="alt wa" id="lk_w">Mandar por WhatsApp</button><button class="alt wa" id="lk_cu">Mandar link de su cuenta</button><button class="alt" id="lk_c">Copiar link</button><button class="alt" id="lk_n">Generar link nuevo</button></div>`
-    :'<p class="err"><small>Todavía no está activado. Corré pedidos-online.sql en Supabase.</small></p>'}</div>
+    :'<p class="err"><small>Todavía no está activado. Corré pedidos-online.sql en Supabase.</small></p>'}</details>
   <div id="fc_edit" hidden class="box"><div class="g">
     ${'nombre_fantasia' in c?`<label class="f">Nombre del negocio (como lo conocés)<input id="e_nf" value="${esc(c.nombre_fantasia||'')}" placeholder="Ej.: Juancito"></label>`:''}<label class="f">Razón social (para facturas)<input id="e_n" value="${esc(c.razon_social)}"></label><label class="f">CUIT<input id="e_c" value="${esc(c.cuit)}"></label>
     <label class="f">Teléfono<input id="e_t" value="${esc(c.telefono)}"></label><label class="f">Domicilio (calle y número)<input id="e_d" value="${esc(c.domicilio)}"></label>${'codigo_postal' in c?`<div class="f" style="grid-column:1/-1"><span>Barrio · Localidad · Provincia · CP</span><div class="g">${dirCampos('e',c)}</div></div>`:''}
@@ -1541,15 +1571,16 @@ async function fichaCliente(c){
     <div class="box" id="f4"><span class="lab">Último pedido</span><span class="num">…</span><span class="det"></span></div>
   </div>
   <div class="dos fc2">
+    <div class="box"><h3>Pedidos</h3><div id="fc_pe">Cargando…</div></div>
     <div class="box"><h3>Facturas pendientes</h3><div id="fc_fa">Cargando…</div></div>
     <div class="box"><h3>Pagos recibidos</h3><div id="fc_pa">Cargando…</div></div>
-    <div class="box"><h3>Pedidos</h3><div id="fc_pe">Cargando…</div></div>
     <div class="box"><h3>Lo que más compra</h3><div id="fc_pr">Cargando…</div></div>
     <div class="box" id="fc_op"><h3>💡 Oportunidades</h3><p><small>Buscando…</small></p></div>
     <div class="box" id="fc_pt"><h3>🏆 Puntos</h3><p><small>Cargando…</small></p></div>
     <div class="box" id="fc_pc"><h3>💲 Precios pactados</h3><p><small>Cargando…</small></p></div>
   </div>`;
   $('#fc_vol').onclick=()=>vClientes();
+  $('#fc_tel')&&($('#fc_tel').onclick=async()=>{const t=(prompt('Teléfono de '+nomVis(c)+' (ej.: 11 2345 6789)')||'').trim();if(!t)return;const{error}=await sb.from('clientes').update({telefono:t}).eq('id',c.id);if(error)return toast(error.message,1);c.telefono=t;toast('Teléfono guardado.');fichaCliente(c)});
   $('#fc_lp').onclick=()=>abrirListaPrecios(c);
   if(c.token_pedidos){
     $('#lk_c').onclick=async()=>{try{await navigator.clipboard.writeText(linkPedidos(c));toast('Link copiado.')}catch(e){$('#lk_u').select();document.execCommand('copy');toast('Link copiado.')}};
@@ -6861,9 +6892,10 @@ const TAB_ICO={inicio:'🏠',pedidos:'🛒',clientes:'👤',compras:'📦',venta
 const nomTab=t=>t=='manual'?'📖 Manual':t[0].toUpperCase()+t.slice(1);
 function tabsMenu(){const T=['inicio','pedidos','clientes','compras','ventas','reparto','cobranza','caja','stock','precios','reportes','contable','manual'].filter(t=>!['precios','caja','contable'].includes(t)||S.perfil.rol=='dueno').filter(t=>t=='inicio'||t==S.tab||!(S.menuT?.oc||[]).includes(t));
   return{pri:T.filter(t=>TAB_PRI.includes(t)),sec:T.filter(t=>!TAB_PRI.includes(t))}}
-function menuMas(){const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+const bottomTabs=()=>['inicio','pedidos','clientes',S.perfil.rol=='dueno'?'precios':'stock'];
+function menuMas(todas){const LT=todas===1?(()=>{const t=tabsMenu();return [...t.pri,...t.sec].filter(x=>!bottomTabs().includes(x))})():tabsMenu().sec;const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
   m.innerHTML=`<div class="mc"><div class="bh"><h3>Más secciones</h3><button class="alt" id="mm_x">Cerrar</button></div>
-  <div class="mmas">${tabsMenu().sec.map(t=>`<button class="${S.tab==t?'':'alt'}" data-mt="${t}"><span>${TAB_ICO[t]||'•'}</span>${t=='manual'?'Manual':t[0].toUpperCase()+t.slice(1)}</button>`).join('')}</div></div>`;
+  <div class="mmas">${LT.map(t=>`<button class="${S.tab==t?'':'alt'}" data-mt="${t}"><span>${TAB_ICO[t]||'•'}</span>${t=='manual'?'Manual':t[0].toUpperCase()+t.slice(1)}</button>`).join('')}</div></div>`;
   m.onclick=e=>{if(e.target==m)m.remove()};m.querySelector('#mm_x').onclick=()=>m.remove();
   m.querySelectorAll('[data-mt]').forEach(b=>b.onclick=()=>{m.remove();S.tab=b.dataset.mt;shell()})}
 const irA=(tab,extra)=>{Object.assign(S,extra||{});S.tab=tab;shell()};
