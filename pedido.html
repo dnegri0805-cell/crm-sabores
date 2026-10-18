@@ -327,6 +327,8 @@ body.foco .sto,body.foco .sgb,body.foco #rep,body.foco #alta,body.foco .opi,body
 .p .pr .pz{font-size:20px}.p .pr s{display:block}
 body.foco #l .card .cp .cp-v{font-size:32px}
 @media(max-width:380px){.card .cp .cp-v{font-size:24px}}
+/* Pulido oct-2026: la barra del pedido siempre por encima de las tarjetas */
+.bar{z-index:15}
 </style>
 </head>
 <body>
@@ -369,7 +371,7 @@ const esKgP=id=>!!PZ&&Object.prototype.hasOwnProperty.call(PZ,id)&&!+PZ[id],esPe
 function presKg(p){if(!p||p.combo||!esKgP(p.id))return null;const k=kgDe(p);if(!k||k.u!='kg'||k.k<.5||k.k>60)return null;const n=norm(p.d);
   const t=/plancha/.test(n)?'Plancha':/horma/.test(n)?'Horma':/barra/.test(n)?'Barra':/bocha/.test(n)?'Bocha':/balde/.test(n)?'Balde':/caja/.test(n)?'Caja':'Pieza';return{k:k.k,t}}
 function presHTML(p,pu){const pr=presKg(p);if(!pr)return '';return `<div class="pres">${pr.t} de ${nf(pr.k)} kg ≈ <b>${$m(pu*pr.k)}</b></div>`}
-function pesoHTML(p,pu){const k=+PZ[p.id];if(!p.combo&&esKgP(p.id))return presKg(p)?'<div class="kgp">⚖️ Precio por kilo · se cobra el peso real de la pieza</div>':'<div class="kgp">⚖️ Precio por kilo · pedís los kilos que querés · se cobra el peso real</div>';if(!k||p.combo)return '';return `<div class="kgp">⚖️ Pieza ≈ ${nf(k)} kg · ${$m(pu/k)} el kg${PUB?'':` · <a class="kgb" data-kgp="${p.id}">pedir en kilos</a>`}</div>`}
+function pesoHTML(p,pu){const k=+PZ[p.id];if(!p.combo&&esKgP(p.id))return presKg(p)?'<div class="kgp">⚖️ Por kilo · se cobra el peso real</div>':'<div class="kgp">⚖️ Por kilo · se cobra el peso real</div>';if(!k||p.combo)return '';return `<div class="kgp">⚖️ Pieza ≈ ${nf(k)} kg · ${$m(pu/k)} el kg${PUB?'':` · <a class="kgb" data-kgp="${p.id}">pedir en kilos</a>`}</div>`}
 document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('[data-kgp]');if(!a)return;e.preventDefault();e.stopPropagation();const id=a.dataset.kgp,k=+PZ[id],p=prod(id);if(!k||!p)return;
   const v=prompt('¿Cuántos kilos de '+p.d+' necesitás? (cada pieza pesa aprox. '+nf(k)+' kg)','');if(v===null)return;const kg=+String(v).replace(',','.');if(!(kg>0))return toast('Escribí los kilos, por ejemplo 7.');
   const n=Math.max(1,Math.round(kg/k));car[id]=n;guardar();lista();barra();toast(n+' '+(n==1?'pieza':'piezas')+' (≈ '+nf(Math.round(n*k*10)/10)+' kg). Se cobra el peso real.')},true);const cargarEst=()=>sb.rpc('estrategia_cliente',{p_token:PUB?null:token}).then(({data})=>{if(data&&typeof data=='object'){EST=data;if(P.length&&!BIO&&typeof lista=='function')lista()}},()=>{});
@@ -718,8 +720,8 @@ function pintar(){
       const FR=rub?fams.filter(f=>((typeof famGrupo=='function'&&famGrupo(f))||'Otros')==rub):[];
       return `<div class="rubs" role="group" aria-label="Rubros"><button class="rub ${rub?'':'on'}" data-rb=""><i>★</i><span>Todo</span></button>${R.map(([r,n])=>`<button class="rub ${rub==r?'on':''}" data-rb="${esc(r)}"><i>${RUB_ICO[r]||'📦'}</i><span>${esc(r=='Otros'?'Otros productos':r)}</span></button>`).join('')}</div>`+
         (FR.length>1?`<div class="fchips" role="group" aria-label="Familias"><button class="fch ${fam?'':'on'}" data-fm="">Todo ${esc(rub.toLowerCase())}</button>${FR.map(f=>{const ph=P.find(p=>famDe(p)==f&&p.img);return `<button class="fch ${fam==f?'on':''}" data-fm="${esc(f)}">${ph?`<img src="${esc(ph.img)}" alt="" loading="lazy">`:`<b aria-hidden="true">${famIco(f)}</b>`}${esc(cap(f))}</button>`}).join('')}</div>`:'')})()}
-    <div class="tbar"><label class="tsel"><span>⇅ Ordenar</span><select id="ord" aria-label="Ordenar por"><option value="">Destacados</option><option value="pa" ${orden=='pa'?'selected':''}>Menor precio</option><option value="pd" ${orden=='pd'?'selected':''}>Mayor precio</option><option value="kg" ${orden=='kg'?'selected':''}>Menor precio por kilo</option><option value="az" ${orden=='az'?'selected':''}>A–Z</option></select></label>
-    ${marcas.length>1?`<label class="tsel"><span>☰ Marca</span><select id="mk" aria-label="Marca"><option value="">Todas</option>${marcas.map(m=>`<option ${marca==m?'selected':''}>${esc(m)}</option>`).join('')}</select></label>`:''}</div></div>
+    <div class="tbar"><label class="tsel"><span>⇅</span><select id="ord" aria-label="Ordenar por"><option value="">Destacados</option><option value="pa" ${orden=='pa'?'selected':''}>Menor precio</option><option value="pd" ${orden=='pd'?'selected':''}>Mayor precio</option><option value="kg" ${orden=='kg'?'selected':''}>Menor precio por kilo</option><option value="az" ${orden=='az'?'selected':''}>A–Z</option></select></label>
+    ${marcas.length>1?`<label class="tsel"><span>Marca</span><select id="mk" aria-label="Marca"><option value="">Todas</option>${marcas.map(m=>`<option ${marca==m?'selected':''}>${esc(m)}</option>`).join('')}</select></label>`:''}</div></div>
     <div class="sto" id="sto"></div>${instHTML()}${morosoHTML()}${micomboHTML()}${premioHTML()}${ligaHTML()}${acuerdoHTML()}${nivelHTML()}${entregaHTML()}${creditoHTML()}
     ${C.aumento&&C.aumento.fecha?`<div class="aum">⚠️ <b>${esc(C.aumento.texto||'Aumentan los precios')}</b> a partir del ${new Date(C.aumento.fecha+'T12:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'numeric'})}. ¡Comprá antes con los precios de hoy!<br><small data-ca="${esc(C.aumento.fecha)}">…</small></div>`:''}
     ${PUB?'<button class="sec rep" id="alta">🏪 ¿Tenés un negocio? Quiero ser cliente</button>':''}${PUB&&OPI.length?`<div class="opi"><h3>⭐ Lo que dicen nuestros clientes</h3><div class="opl">${OPI.map(o=>`<div class="op"><div class="es">${'★'.repeat(+o.p||5)}</div><p>“${esc(o.t)}”</p><small>${esc(o.n)}${o.r?' · '+esc(o.r):''}</small></div>`).join('')}</div></div>`:''}
