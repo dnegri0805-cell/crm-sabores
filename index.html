@@ -405,6 +405,16 @@ small>.skl,td>.skl{min-height:16px;border-radius:6px}
   #v>.bh:first-child>button{align-self:flex-start;border-radius:999px!important;padding:8px 15px!important;font-size:14.5px!important}
   #v>h2:first-child{font-size:26px;margin:4px 0 12px}
 }
+.prf{border:1px solid #ebe6df;border-radius:12px;margin:8px 0;background:#fff}
+.prf>summary{list-style:none;cursor:pointer;padding:9px 12px;font-weight:600;color:#3c4458;display:flex;align-items:center;gap:6px}
+.prf>summary::-webkit-details-marker{display:none}.prf>summary .ic{margin-left:auto;color:#8a90a0;transition:transform .2s}.prf[open]>summary .ic{transform:rotate(180deg)}
+.prf>summary span{color:var(--m);font-weight:700}
+.prf>.g,.prf>p,.prf>.aum{padding:0 12px 10px;margin-top:0}
+.praum>summary{color:#6a7184;font-weight:500}
+.prc{margin:10px 2px 6px;color:#3c4458}
+.pcod{color:#9aa0ad;font-weight:400;font-size:12px}
+.pcaja{display:block;font-size:12px;color:#6a7184;font-weight:500}
+@media(max-width:640px){#pr_t tr.prw td .cs{text-align:left}#pr_t tr.prw td.pult.vac{display:none}#pr_t tr.prw td.pmay{grid-column:span 2}}
 </style>
 </head>
 <body>
@@ -1144,13 +1154,15 @@ const pctf=n=>Number(n).toLocaleString('es-AR',{maximumFractionDigits:2})+' %';
 const numAR=x=>{x=String(x??'').trim().replace(/\$|\s/g,'');if(!x)return null;if(x.includes(','))x=x.replace(/\./g,'').replace(',','.');else if(/^\d{1,3}(\.\d{3})+$/.test(x))x=x.replace(/\./g,'');const n=Number(x);return isFinite(n)?n:NaN};
 async function vPrecios(){
   $('#v').innerHTML=`<div class="bh"><h2>Precios y márgenes</h2><div class="fc-acc"><button class="alt" onclick="aumentosProg()">📅 Aumentos programados</button><button class="alt" onclick="pesablesModal()">⚖️ Productos por peso</button></div></div>
-  <div class="box"><div class="bh"><h3>Productos</h3><div class="acc"><button class="alt" onclick="window.open('catalogo.html','_blank')">Catálogo con precios</button><details class="mas"><summary>Más ▾</summary><div class="masc"><button class="alt" id="pr_ofam">🗂️ Ordenar por familias</button><button class="alt" id="pr_fcat">🖼️ Fotos del catálogo</button><button class="alt" id="pr_fjl">🥜 Fotos Maní JL</button><button class="alt" id="pr_fot">🔎 Fotos automáticas</button><button class="alt" id="pr_et">🏷️ Imprimir etiquetas del filtro</button></div></details></div></div>
-    <div class="g"><div class="conscan"><input id="pr_q" placeholder="Buscar por nombre o código" autocomplete="off">${btnScan('pr_sc')}</div>
+  <div class="box"><div class="bh"><h3>Productos</h3><div class="acc"><button class="alt" onclick="window.open('catalogo.html','_blank')">Catálogo con precios</button><details class="mas"><summary>Más ▾</summary><div class="masc"><button class="alt" id="pr_ofam">🗂️ Ordenar por familias</button><button class="alt" id="pr_fcat">🖼️ Fotos del catálogo</button><button class="alt" id="pr_fjl">🥜 Fotos Maní JL</button><button class="alt" id="pr_fot">🔎 Fotos automáticas</button><button class="alt" id="pr_et">🏷️ Imprimir etiquetas del filtro</button><button class="alt" onclick="const d=document.getElementById('pr_ad');d.open=true;d.scrollIntoView({behavior:'smooth',block:'center'})">📈 Aumento por porcentaje</button></div></details></div></div>
+    <div class="g"><div class="conscan"><input id="pr_q" placeholder="Buscar por nombre o código" autocomplete="off">${btnScan('pr_sc')}</div></div>
+    <details class="prf" id="pr_fd"><summary>Filtros <span id="pr_fn"></span> ${IC('down',14)}</summary><div class="g">
       <select id="pr_pv"><option value="">Todos los proveedores</option></select>
       <select id="pr_ma"><option value="">Todas las marcas</option></select>
       <select id="pr_fa"><option value="">Todas las familias</option></select>
-      <label class="chk"><input type="checkbox" id="pr_sf"> Solo sin foto</label></div>
-    <div class="aum"><b id="pr_cnt"></b><span>Aumentar costo</span><input id="pr_pct" type="number" step="0.1" placeholder="%"><span>%</span><button class="alt" id="pr_prev">Ver cómo queda</button></div>
+      <label class="chk"><input type="checkbox" id="pr_sf"> Solo sin foto</label></div></details>
+    <details class="prf praum" id="pr_ad"><summary>Aumento por porcentaje ${IC('down',14)}</summary><p><small>Sube (o baja, con −) el costo de <b>todos los productos que muestra el filtro</b>. Primero te muestra cómo queda.</small></p><div class="aum"><span>Aumentar costo</span><input id="pr_pct" type="number" step="0.1" placeholder="%"><span>%</span><button class="alt" id="pr_prev">Ver cómo queda</button></div></details>
+    <p class="prc"><b id="pr_cnt"></b></p>
     <div id="pr_conf"></div>
     <div class="tw"><table id="pr_t"></table></div>
     <button id="pr_g">Guardar costos cambiados</button> <span id="pr_n"></span></div>
@@ -1217,15 +1229,16 @@ SDMP-01279	8.900</pre>
   const precio=(c,l,f)=>{const m=mgEf(l,f);return m!=null&&c>0?Math.round(c/(1-m/100)*100)/100:null};
   const upd=()=>{const n=Object.keys(nuevo).length;$('#pr_n').textContent=n?n+(n==1?' costo cambiado sin guardar':' costos cambiados sin guardar'):''};
   const draw=()=>{sel=filtrar();$('#pr_cnt').textContent=sel.length+(sel.length==1?' producto':' productos');
+    {const nf_=[$('#pr_pv').value,$('#pr_ma').value,$('#pr_fa').value].filter(Boolean).length+($('#pr_sf').checked?1:0);$('#pr_fn').textContent=nf_?'· '+nf_+(nf_==1?' activo':' activos'):''}
     const V=sel.slice(0,150);
     $('#pr_t').innerHTML='<tr><th>Foto</th><th>Producto</th><th class="n">Costo</th><th class="n">Mayorista</th><th class="n">Minorista</th><th class="n">Gastronomía</th><th class="n">Ganás (may.)</th><th>Bulto</th><th>Último cambio</th></tr>'+
       V.map(p=>{const id=p.producto_id,c=nuevo[id]??+p.costo/(ppz(id)||1),pm=precio(c,'mayorista',p.familia),u=ult[id];
-        return `<tr class="prw${nuevo[id]!=null?' cambio':''}"><td class="fto">${S.min[id]?.foto?`<img src="${esc(S.min[id].foto)}" alt="" data-ft="${id}" loading="lazy">`:`<button class="alt" data-ft="${id}" aria-label="Cargar foto">📷</button>`}</td><td>${esc(p.descripcion)} <small>${esc(p.codigo)}</small>${ppz(id)&&pm!=null?`<br><span class="badge">⚖️ precios por kg · pieza ≈ ${nf(ppz(id))} kg → ${$m(pm*ppz(id))}</span>`:''}</td>
+        return `<tr class="prw${nuevo[id]!=null?' cambio':''}"><td class="fto">${S.min[id]?.foto?`<img src="${esc(S.min[id].foto)}" alt="" data-ft="${id}" loading="lazy">`:`<button class="alt" data-ft="${id}" aria-label="Cargar foto">📷</button>`}</td><td>${esc(p.descripcion)} <small class="pcod">${esc(p.codigo)}</small>${ppz(id)&&pm!=null?`<br><span class="badge">⚖️ precios por kg · pieza ≈ ${nf(ppz(id))} kg → ${$m(pm*ppz(id))}</span>`:''}</td>
         <td class="n" data-l="Costo"><input type="number" step="0.01" min="0" class="cs" data-id="${id}" value="${nuevo[id]??''}" placeholder="${p.costo!=null?nf(+p.costo/(ppz(id)||1)):'—'}"></td>
-        <td class="n pmay" data-l="Mayorista">${pm!=null?$m(pm):'—'}</td><td class="n" data-l="Minorista">${precio(c,'minorista',p.familia)!=null?$m(precio(c,'minorista',p.familia)):'—'}</td><td class="n" data-l="Gastronomía">${precio(c,'especial',p.familia)!=null?$m(precio(c,'especial',p.familia)):'—'}</td>
+        <td class="n pmay" data-l="Mayorista">${pm!=null?$m(pm):'—'}${pm!=null&&!ppz(id)&&(S.min[id]?.b||1)>1?`<small class="pcaja">${esc(S.min[id]?.tb||'Caja')} × ${S.min[id].b}: ${$m(pm*S.min[id].b)}</small>`:''}</td><td class="n" data-l="Minorista">${precio(c,'minorista',p.familia)!=null?$m(precio(c,'minorista',p.familia)):'—'}</td><td class="n" data-l="Gastronomía">${precio(c,'especial',p.familia)!=null?$m(precio(c,'especial',p.familia)):'—'}</td>
         <td class="n" data-l="Ganás">${pm!=null?$m(pm-c):'—'}</td>
         <td style="white-space:nowrap" data-l="Bulto" class="pbu"><select class="tb" data-id="${id}" aria-label="Tipo de bulto">${['Caja','Pack','Bolsa','Fardo','Display','Balde','Cuñete','Lata','Bidón','Paquete'].map(t=>`<option ${(S.min[id]?.tb||'Caja')==t?'selected':''}>${t}</option>`).join('')}</select> × <input type="number" min="1" step="1" class="ub" data-id="${id}" value="${S.min[id]?.b||1}" aria-label="Unidades por bulto"></td>
-        <td class="pult"><small>${u?'Último cambio: '+fd(u.fecha)+' · '+(u.costo_anterior>0?(u.costo_nuevo>=u.costo_anterior?'+':'')+pctf((u.costo_nuevo/u.costo_anterior-1)*100):'nuevo'):'—'}</small></td></tr>`}).join('')+
+        <td class="pult${u?'':' vac'}"><small>${u?'Último cambio: '+fd(u.fecha)+' · '+(u.costo_anterior>0?(u.costo_nuevo>=u.costo_anterior?'+':'')+pctf((u.costo_nuevo/u.costo_anterior-1)*100):'nuevo'):''}</small></td></tr>`}).join('')+
       (sel.length>V.length?`<tr><td colspan="9"><small>Se muestran 150 de ${sel.length}. El aumento por porcentaje se aplica a los ${sel.length}.</small></td></tr>`:'')+
       (sel.length?'':'<tr><td colspan="9"><small>No hay productos con ese filtro.</small></td></tr>');
     $$('#pr_t [data-ft]').forEach(b=>b.onclick=()=>fotoProducto(b.dataset.ft,()=>{draw()},()=>sel.filter(x=>!S.min[x.producto_id]?.foto).map(x=>x.producto_id)));
