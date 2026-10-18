@@ -593,7 +593,7 @@ html{overscroll-behavior-y:contain}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-16.6';
+const VERSION='2026-10-18.1';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -638,7 +638,12 @@ async function init(){
   if(C0){S.clientes=C0.c;S.productos=C0.p;traer().then(([c,pr])=>{if(c.error||pr.error)return;S.clientes.splice(0,S.clientes.length,...c.data);S.productos.splice(0,S.productos.length,...pr.data);guardarCache()}).catch(()=>{})}
   else{const[c,pr]=await traer();
   if(c.error||pr.error){app.innerHTML='<div class="box login"><p class="err">No se pudieron cargar los datos: '+esc((c.error||pr.error).message)+'</p><button onclick="out()">Salir</button></div>';return}
-  S.clientes=c.data;S.productos=pr.data;guardarCache()}await Promise.all([cargarStock(),cargarPromos(),cargarMarca(),cargarVentasCfg()]);
+  S.clientes=c.data;S.productos=pr.data;guardarCache()}
+  /* Arranque rápido: si hay datos guardados en el celular, se muestra enseguida y lo demás (stock, promos, marca) se completa en segundo plano */
+  const cargas=Promise.all([cargarStock(),cargarPromos(),cargarMarca(),cargarVentasCfg()]).catch(()=>{});
+  if(!C0)await cargas;else{S.stock=S.stock||{};S.min=S.min||{};S.promos=S.promos||[];
+    cargas.then(()=>{const ae=document.activeElement?.tagName||'';if(document.querySelector('.modal')||/INPUT|TEXTAREA|SELECT/.test(ae)||scrollY>150)return;
+      if(S.fc&&document.getElementById('fc_vol')){const cl=S.clientes.find(x=>x.id==S.fc);cl&&fichaCliente(cl)}else if(document.getElementById('v'))shell()})}
   if(location.hash=='#tablero')return tablero();
   if(location.hash=='#cola'){S.tab='ventas';S.vs='cola';try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
   irAtajo();
@@ -7685,7 +7690,7 @@ function snack(txt,deshacer){let e=$('#snk');if(!e){e=document.createElement('di
 
 /* 7. Abrir más rápido: guarda clientes y productos en el equipo */
 const CACHE_K='crm_cache_v1';
-function leerCache(uid){try{const x=JSON.parse(localStorage.getItem(CACHE_K)||'null');return x&&x.u==uid&&Date.now()-x.t<12*36e5&&Array.isArray(x.c)&&Array.isArray(x.p)?x:null}catch(e){return null}}
+function leerCache(uid){try{const x=JSON.parse(localStorage.getItem(CACHE_K)||'null');return x&&x.u==uid&&Date.now()-x.t<7*24*36e5&&Array.isArray(x.c)&&Array.isArray(x.p)?x:null}catch(e){return null}}
 function guardarCache(){try{localStorage.setItem(CACHE_K,JSON.stringify({u:S.perfil.id,t:Date.now(),c:S.clientes,p:S.productos}))}catch(e){try{localStorage.removeItem(CACHE_K)}catch(er){}}}
 
 /* ======================= DESTACARSE (tanda 20) ======================= */
