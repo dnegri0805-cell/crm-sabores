@@ -621,6 +621,10 @@ html.oscuro .pcsel{background:#18202f;border-color:#273246}
 .rv-dir{display:flex;align-items:center;gap:4px;color:#6a7184;font-size:13px;margin:4px 0 2px}.rv-dir .ic{color:#9aa0ad}
 .rv-main{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0}.rv-main button{border-radius:12px;padding:11px 8px;font-weight:600}
 .rv-ayu{margin:0 0 8px}
+/* Campo activo: borde bordó suave en vez de negro grueso */
+input:focus,select:focus,textarea:focus{outline:none!important;border-color:var(--m)!important;box-shadow:0 0 0 3px rgba(123,45,62,.14)!important}
+html.oscuro input:focus,html.oscuro select:focus,html.oscuro textarea:focus{border-color:#c98a99!important;box-shadow:0 0 0 3px rgba(201,138,153,.2)!important}
+#p_r:empty,#p_av:empty,#p_sug:empty,#p_i:empty,#p_cb:empty,#p_fav:empty{display:none}
 </style>
 </head>
 <body>
@@ -628,7 +632,7 @@ html.oscuro .pcsel{background:#18202f;border-color:#273246}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-18.5';
+const VERSION='2026-10-18.6';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -2005,9 +2009,9 @@ async function vPedidos(){
   <div id="p_edb"></div><input id="p_cq" type="search" placeholder="¿Para qué cliente? Escribí nombre o CUIT" autocomplete="off"><div id="p_cr"></div>
   <div id="p_sel" hidden><div class="clirow pcsel"><span id="p_ava"></span><span class="pcs-t"><b id="p_cn"></b><small id="p_cl"></small></span><a id="p_cx" class="lnk">Cambiar</a></div>
     <div id="p_rep"></div><div id="p_fav" class="chips"></div></div><div id="p_cb" class="chips sug"></div>
-  <div class="conscan"><input id="p_q" type="search" placeholder="Buscar producto por nombre o código" autocomplete="off">${btnScan('p_sc')}<button class="alt" id="p_qk" title="Ver todos los productos por familia y cargar cantidades">${IC('bars',17)} Carga rápida</button><button class="alt" id="p_wa" title="Pegar el pedido que te mandó por WhatsApp">${IC('chat',17)} Pegar de WhatsApp</button><button class="alt" id="p_vo" title="Dictar el pedido">${IC('mic',17)} Dictar</button></div><div id="p_r"></div><table id="p_i"></table><p><b id="p_t"></b><br><span id="p_tk"></span></p><div id="p_av"></div><div id="p_sug" class="chips sug"></div><div class="g" id="p_ex" style="margin-top:8px"><label class="f">📅 Fecha de entrega<input type="date" id="p_fe"></label><label class="f" style="grid-column:span 2">📝 Nota del pedido<input id="p_ob" maxlength="300" placeholder="Ej.: entregar después de las 10, cobrar con transferencia"></label></div><div class="cupw"><input id="p_cu" placeholder="Cupón (opcional)" autocomplete="off" style="text-transform:uppercase"><button class="alt" id="p_cuo">Aplicar cupón</button> <small id="p_cum"></small></div><div class="fc-acc"><button id="p_g">Guardar pedido</button><button class="alt" id="p_pre">📝 Mandar como presupuesto</button></div></div>
+  <div class="conscan"><input id="p_q" type="search" placeholder="Buscar producto por nombre o código" autocomplete="off">${btnScan('p_sc')}<button class="alt" id="p_qk" title="Ver todos los productos por familia y cargar cantidades">${IC('bars',17)} Carga rápida</button><button class="alt" id="p_wa" title="Pegar el pedido que te mandó por WhatsApp">${IC('chat',17)} Pegar de WhatsApp</button><button class="alt" id="p_vo" title="Dictar el pedido">${IC('mic',17)} Dictar</button></div><div id="p_r"></div><table id="p_i"></table><p id="p_tp" hidden><b id="p_t"></b><br><span id="p_tk"></span></p><div id="p_av"></div><div id="p_sug" class="chips sug"></div><div id="p_fin" hidden><div class="g" id="p_ex" style="margin-top:8px"><label class="f">📅 Fecha de entrega<input type="date" id="p_fe"></label><label class="f" style="grid-column:span 2">📝 Nota del pedido<input id="p_ob" maxlength="300" placeholder="Ej.: entregar después de las 10, cobrar con transferencia"></label></div><div class="cupw"><input id="p_cu" placeholder="Cupón (opcional)" autocomplete="off" style="text-transform:uppercase"><button class="alt" id="p_cuo">Aplicar cupón</button> <small id="p_cum"></small></div><div class="fc-acc"><button id="p_g">Guardar pedido</button><button class="alt" id="p_pre">📝 Mandar como presupuesto</button></div></div></div>
   <div class="bh"><h3>Últimos pedidos</h3><div class="fc-acc"><button class="alt" onclick="hojaArmado()">🧺 Hoja de armado</button><button class="alt" onclick="autoAprobarCfg()">🤖 Aprobación automática</button></div></div><table id="pl"></table><div id="p_bar" class="pbar" hidden><div class="pbar-t"><small id="p_bn"></small><b id="p_bt"></b></div><button id="p_bg">Guardar pedido</button></div>`;
-  {const sync=()=>{const n=S.items.length,bar=$('#p_bar');if(!bar)return;bar.hidden=!n||!S.pcli;const tx=$('#p_t')?.textContent||'',m=tx.match(/Total:\s*(\$\s*[\d.,]+)/);$('#p_bn').textContent=n+(n==1?' producto':' productos')+(S.pcli?' · '+nomVis(S.pcli):'');$('#p_bt').textContent=m?m[1]:''};
+  {const sync=()=>{const n=S.items.length,bar=$('#p_bar');if(!bar)return;$('#p_fin').hidden=!n;$('#p_tp').hidden=!n;bar.hidden=!n||!S.pcli;const tx=$('#p_t')?.textContent||'',m=tx.match(/Total:\s*(\$\s*[\d.,]+)/);$('#p_bn').textContent=n+(n==1?' producto':' productos')+(S.pcli?' · '+nomVis(S.pcli):'');$('#p_bt').textContent=m?m[1]:''};
    new MutationObserver(sync).observe($('#p_t'),{childList:true,subtree:true,characterData:true});$('#p_bg').onclick=()=>$('#p_g').click();sync()}
   const cli=()=>S.pcli;
   const pr=p=>S.pac[p.producto_id]||Number(p['precio_'+(cli()?.lista||'mayorista')]);
