@@ -683,7 +683,7 @@ html.oscuro .rci{background:#18202f;border-color:#273246}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-18.19';
+const VERSION='2026-10-18.20';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -2316,7 +2316,12 @@ async function remitos(lista){lista=(lista||[]).filter(Boolean);if(!lista.length
   .par .cli{margin:6px 0;padding:5px 8px}.par td,.par th{padding:4px 8px!important}.par .leg{margin:8px 0 0}.par .firmas{margin-top:30px}.par .firmas.fd{margin-top:8px}
   .par .qrb,.par .pgb{display:none}
   .par .hoja>div[style*="dashed"]{margin:6px 0!important;padding:5px 10px!important}.par .hoja>div[style*="dashed"] img{width:64px!important;height:64px!important}
-  .corte{text-align:center;color:#9aa0ad;font-size:11px;letter-spacing:1px;margin:14px 0 10px;white-space:nowrap;overflow:hidden}
+  .par .hoja{font-size:10.5px;line-height:1.25}.par td,.par th{padding:2px 7px!important;font-size:10.5px!important}.par th{font-size:9.5px!important;padding:3px 7px!important}
+  .par .top{padding-bottom:5px;gap:8px}.par .nro{line-height:1.3}.par .em img{height:40px!important}.par h1{font-size:14px}.par .x{width:50px;padding:2px}.par .x b{font-size:22px}.par .x small{font-size:6.5px}
+  .par .cli{gap:1px 14px;margin:5px 0;padding:4px 8px}.par .firmas{margin-top:22px;gap:12px}.par .firmas div{font-size:10px}.par .leg{margin:5px 0 0;font-size:10px}
+  .par .hoja>div[style*="dashed"]{margin:5px 0!important;padding:3px 8px!important;font-size:10px}.par .hoja>div[style*="dashed"] b{font-size:10.5px!important}.par .hoja>div[style*="dashed"] div{margin-top:1px!important}
+  .par .obs{padding:4px 8px;margin:4px 0}
+  .corte{text-align:center;color:#9aa0ad;font-size:10px;letter-spacing:1px;margin:8px 0 6px;white-space:nowrap;overflow:hidden}
   body::after{display:none!important}
   .top{display:grid;grid-template-columns:1.4fr auto 1fr;gap:12px;align-items:start;border-bottom:2px solid ${MARCA.c};padding-bottom:10px}
   .em{display:flex;gap:10px;align-items:center}.em img{margin:0!important}h1{color:${MARCA.c};margin:0;font-size:20px}.sub{color:#6a7184}
@@ -2329,7 +2334,7 @@ async function remitos(lista){lista=(lista||[]).filter(Boolean);if(!lista.length
   .firmas{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:56px}.firmas.fd{margin-top:16px;align-items:end}.firmas div{border-top:1px solid #1c2333;text-align:center;padding-top:4px;font-size:12px}
   .ayuda{font:14px system-ui;background:#f6e9ec;padding:10px;border-radius:6px;margin:12px}@media print{.ayuda{display:none}}${QRB_CSS}
   </style><style>${docCss()}</style></head><body><p class="ayuda">Se imprime <b>original y duplicado</b> de cada remito. Para guardarlo en PDF elegí <b>Guardar como PDF</b> como destino.</p>
-  ${lista.map(o=>{const n=(its[o.id]||o.pedido_items||[]).length;const chico=n<=6;return chico?`<div class="par">${hoja(o,'ORIGINAL')}<div class="corte">✂ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</div>${hoja(o,'DUPLICADO')}</div>`:hoja(o,'ORIGINAL')+hoja(o,'DUPLICADO')}).join('')}
+  ${lista.map(o=>{const n=(its[o.id]||o.pedido_items||[]).length;const chico=n<=10;return chico?`<div class="par">${hoja(o,'ORIGINAL')}<div class="corte">✂ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -</div>${hoja(o,'DUPLICADO')}</div>`:hoja(o,'ORIGINAL')+hoja(o,'DUPLICADO')}).join('')}
   <script>window.onload=()=>setTimeout(()=>window.print(),400)<\/script></body></html>`);w.document.close()}
 
 /* ---------- Impresora térmica (tickets de rollo 58/80 mm) — se elige en "Aa" y queda guardado en este equipo ---------- */
