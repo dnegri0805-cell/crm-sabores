@@ -584,6 +584,8 @@ html.oscuro .xcl{background:#262f42!important;color:#c9cfdc!important}
 #ptr.gira i{animation:gira .7s linear infinite;border-color:#d5d8df;border-top-color:var(--m)}
 html{overscroll-behavior-y:contain}
 @media(max-width:640px){table.tcard tr.tcr{position:relative}table.tcard tr.tcr td.tc-ico{position:absolute;top:12px;right:12px}table.tcard tr.tcr td.tc-ico+td{grid-column:1/-1;font-weight:600;padding-right:24px!important}table.tcard tr.tcr td.tc-ico+td::before{display:none!important}}
+.kp2{grid-template-columns:1fr 1fr!important;gap:8px!important}
+@media(max-width:640px){.kp2 .box{padding:12px}.kp2 .lab{font-size:11px}.kp2 .num{font-size:20px!important}.kp2 .det{font-size:12px}}
 </style>
 </head>
 <body>
@@ -2365,16 +2367,16 @@ async function morosos(){
   const L=Object.values(G).map(g=>({...g,c:S.clientes.find(c=>c.id==g.id)||{id:g.id,razon_social:'Cliente'}}));
   const tot=L.reduce((a,g)=>a+g.t,0),tv=L.reduce((a,g)=>a+g.v,0),nv=L.filter(g=>g.v>0).length;
   S.morF=S.morF||'vencidos';S.morTono=S.morTono||'amable';
-  box.innerHTML=`<div class="kp">
+  box.innerHTML=`<div class="kp kp2">
     <div class="box"><span class="lab">Te deben en total</span><span class="num">${$m(tot)}</span><span class="det">${L.length} ${L.length==1?'cliente':'clientes'}</span></div>
     <div class="box ${tv?'alerta':'ok'}"><span class="lab">Vencido</span><span class="num">${$m(tv)}</span><span class="det">${nv} ${nv==1?'cliente':'clientes'} con deuda vencida</span></div></div>
-  <div class="box"><div class="bh"><h3>Clientes que deben</h3><button class="alt" onclick="recargoCfg()">💸 Recargo por mora${S.recargo.activa?': '+nf(S.recargo.pct)+' % mensual':' (apagado)'}</button><div class="sub" style="margin:0">${[['vencidos','Con deuda vencida'],['todos','Todos']].map(([k,t])=>`<button class="${S.morF==k?'':'alt'}" data-mf="${k}">${t}</button>`).join('')}</div></div>
-    <details class="prf mocfg"><summary>Configurar avisos y cobros ${IC('down',14)}</summary><div class="g"><label class="f">Tono del mensaje<select id="mo_t"><option value="amable" ${S.morTono=='amable'?'selected':''}>Recordatorio amable</option><option value="firme" ${S.morTono=='firme'?'selected':''}>Aviso firme</option></select></label>
+  <div class="box"><div class="bh"><h3>Clientes que deben</h3><div class="sub" style="margin:0">${[['vencidos','Con deuda vencida'],['todos','Todos']].map(([k,t])=>`<button class="${S.morF==k?'':'alt'}" data-mf="${k}">${t}</button>`).join('')}</div></div>
+    <details class="prf mocfg"><summary>Configurar avisos y cobros ${IC('down',14)}</summary><p style="padding:0 12px"><button class="alt" onclick="recargoCfg()">💸 Recargo por mora${S.recargo.activa?': '+nf(S.recargo.pct)+' % mensual':' (apagado)'}</button></p><div class="g"><label class="f">Tono del mensaje<select id="mo_t"><option value="amable" ${S.morTono=='amable'?'selected':''}>Recordatorio amable</option><option value="firme" ${S.morTono=='firme'?'selected':''}>Aviso firme</option></select></label>
       <label class="f">Datos para transferir (van al final del mensaje)<input id="mo_d" placeholder="Ej.: Alias SABORES.MP · CBU 0000…" value="${esc(S.datosPago)}"></label>
       ${S.perfil.rol=='dueno'?`<label class="f">Link de pago de Mercado Pago<input id="mo_mp" placeholder="Ej.: https://link.mercadopago.com.ar/sabores" value="${esc(S.linkMP||'')}"></label>
       <label class="f">Tu WhatsApp (para que te avisen los pagos)<input id="mo_tel" placeholder="Ej.: 11 5555-1234" value="${esc(S.telEmp||'')}"></label>
-      <label class="f">Si un cliente supera su límite de crédito<select id="mo_cr"><option value="avisar" ${S.creditoModo!='bloquear'?'selected':''}>Avisar y dejar seguir</option><option value="bloquear" ${S.creditoModo=='bloquear'?'selected':''}>Bloquear (solo el dueño puede pasar)</option></select></label>`:''}</div></details>
-    ${S.perfil.rol=='dueno'&&!S.linkMP?'<p><small>¿Cómo saco mi link de Mercado Pago? En la app de Mercado Pago: <b>Cobrar → Link de pago</b>, sin monto fijo. Copialo y pegalo acá.</small></p>':''}
+      <label class="f">Si un cliente supera su límite de crédito<select id="mo_cr"><option value="avisar" ${S.creditoModo!='bloquear'?'selected':''}>Avisar y dejar seguir</option><option value="bloquear" ${S.creditoModo=='bloquear'?'selected':''}>Bloquear (solo el dueño puede pasar)</option></select></label>`:''}</div>
+    ${S.perfil.rol=='dueno'&&!S.linkMP?'<p><small>¿Cómo saco mi link de Mercado Pago? En la app de Mercado Pago: <b>Cobrar → Link de pago</b>, sin monto fijo. Copialo y pegalo acá.</small></p>':''}</details>
     <div id="mo_l"></div>${sinAvisos?'<p><small class="err">Para registrar cuándo le avisaste a cada cliente, corré avisos-deuda.sql en Supabase.</small></p>':''}</div>`;
   $$('#mor [data-mf]').forEach(b=>b.onclick=()=>{S.morF=b.dataset.mf;morosos()});
   $('#mo_t').onchange=e=>S.morTono=e.target.value;
@@ -2397,7 +2399,7 @@ async function morosos(){
     <td class="n mdebe" data-l="Debe">${$m(g.t)}</td><td class="n mven ${g.v?'mora':''}" data-l="Vencido">${g.v?$m(g.v):'—'}${recargoG(g.F,g.id)>0?`<br><small>+ recargo ${$m(recargoG(g.F,g.id))}<br><a class="lnk" data-rgp="${g.id}">perdonar o cobrado</a></small>`:''}</td><td class="mmor">${g.mora?`<span class="badge ${g.mora>30?'b-mora30':'b-pendiente'}">${g.mora} días</span>`:'<span class="badge b-entregado">Al día</span>'}</td>
     <td class="mav"><small>${sinAvisos?'—':'Aviso: '+hace(ult[g.id])}</small></td>
     <td class="macc" style="white-space:nowrap"><button class="alt wa" data-mw="${g.id}">WhatsApp</button> <button class="alt" data-mp="${g.id}">PDF</button> <button class="alt" data-mc="${g.id}">Cobrar</button> <button class="alt" data-mpr="${g.id}">🤝 Promesa</button></td></tr>`).join('')}</table></div>`
-    :`<p><small>${S.morF=='vencidos'?'Ningún cliente tiene deuda vencida. ':'Nadie te debe. '}</small></p>`;
+    :vacioHTML(S.morF=='vencidos'?'Nadie te debe plata vencida 👍':'Nadie te debe nada 👍','check');
   const gr=id=>V.find(g=>g.id==id);
   $$('#mo_l [data-fc]').forEach(a=>a.onclick=()=>{S.tab='clientes';shell();fichaCliente(S.clientes.find(c=>c.id==a.dataset.fc))});
   $$('#mo_l [data-mc]').forEach(b=>b.onclick=()=>{$('#k_c').value=b.dataset.mc;$('#k_c').onchange();$('#k_sel').scrollIntoView({behavior:'smooth'})});
