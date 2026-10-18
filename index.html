@@ -586,6 +586,21 @@ html{overscroll-behavior-y:contain}
 @media(max-width:640px){table.tcard tr.tcr{position:relative}table.tcard tr.tcr td.tc-ico{position:absolute;top:12px;right:12px}table.tcard tr.tcr td.tc-ico+td{grid-column:1/-1;font-weight:600;padding-right:24px!important}table.tcard tr.tcr td.tc-ico+td::before{display:none!important}}
 .kp2{grid-template-columns:1fr 1fr!important;gap:8px!important}
 @media(max-width:640px){.kp2 .box{padding:12px}.kp2 .lab{font-size:11px}.kp2 .num{font-size:20px!important}.kp2 .det{font-size:12px}}
+
+.pr-pega{position:sticky;top:0;z-index:9;background:#fff;margin:-4px -4px 6px;padding:6px 4px 4px}
+.pr-bus{display:flex;gap:8px;align-items:center}.pr-bus .conscan{flex:1;min-width:0;margin:0;display:flex!important;flex-wrap:nowrap;gap:8px;align-items:center}.pr-bus .conscan input{flex:1;min-width:0;width:auto;margin:0}.pr-bus .conscan .scan,.pr-fb{height:46px;flex:none}
+.pr-fb{position:relative;width:48px;padding:0!important;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.pr-fb.on{background:var(--m)!important;color:#fff!important;border-color:var(--m)!important}
+.pr-fb i{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;border-radius:9px;background:var(--m);color:#fff;font-size:11px;font-style:normal;font-weight:700;display:none;align-items:center;justify-content:center;border:2px solid #fff}
+.pr-fb.on i{display:flex}
+.pr-fams .sub{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:8px 0 2px}.pr-fams .sub::-webkit-scrollbar{display:none}
+.pr-fams .sub button{flex:none;white-space:nowrap}
+.pr-pega .prc{display:block;margin:4px 2px 0;color:#8a90a0;font-size:12.5px;font-weight:400}
+.pr-fd>summary{display:none!important}.pr-fd{display:none}.pr-fd.vis{display:block}.pr-fd>.g{padding-top:10px}
+.pm-l{display:grid;gap:6px}.pm-l button{text-align:left;justify-content:flex-start;display:flex;align-items:center}
+html.oscuro .pr-pega{background:#18202f}
+.prbox{overflow:visible!important}
+@media(max-width:640px){.prbox{padding:10px 12px}}
 </style>
 </head>
 <body>
@@ -593,7 +608,7 @@ html{overscroll-behavior-y:contain}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-18.1';
+const VERSION='2026-10-18.2';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -1350,16 +1365,16 @@ async function recargarProductos(){const{data,error}=await todo(()=>sb.from('pre
 const pctf=n=>Number(n).toLocaleString('es-AR',{maximumFractionDigits:2})+' %';
 const numAR=x=>{x=String(x??'').trim().replace(/\$|\s/g,'');if(!x)return null;if(x.includes(','))x=x.replace(/\./g,'').replace(',','.');else if(/^\d{1,3}(\.\d{3})+$/.test(x))x=x.replace(/\./g,'');const n=Number(x);return isFinite(n)?n:NaN};
 async function vPrecios(){
-  $('#v').innerHTML=`<div class="bh"><h2>Precios y márgenes</h2><div class="fc-acc"><button class="alt" onclick="aumentosProg()">📅 Aumentos programados</button><button class="alt" onclick="pesablesModal()">⚖️ Productos por peso</button></div></div>
-  <div class="box"><div class="bh"><h3>Productos</h3><div class="acc"><button class="alt" onclick="window.open('catalogo.html','_blank')">Catálogo con precios</button><details class="mas"><summary>Más ▾</summary><div class="masc"><button class="alt" id="pr_ofam">🗂️ Ordenar por familias</button><button class="alt" id="pr_fcat">🖼️ Fotos del catálogo</button><button class="alt" id="pr_fjl">🥜 Fotos Maní JL</button><button class="alt" id="pr_fot">🔎 Fotos automáticas</button><button class="alt" id="pr_et">🏷️ Imprimir etiquetas del filtro</button><button class="alt" onclick="const d=document.getElementById('pr_ad');d.open=true;d.scrollIntoView({behavior:'smooth',block:'center'})">📈 Aumento por porcentaje</button></div></details></div></div>
-    <div class="g"><div class="conscan"><input id="pr_q" placeholder="Buscar por nombre o código" autocomplete="off">${btnScan('pr_sc')}</div></div>
-    <details class="prf" id="pr_fd"><summary>Filtros <span id="pr_fn"></span> ${IC('down',14)}</summary><div class="g">
+  $('#v').innerHTML=`<div class="bh"><h2>Precios y márgenes</h2><div class="fc-acc"><button class="alt" onclick="window.open('catalogo.html','_blank')">📒 Catálogo con precios</button><button class="alt" id="pr_masb">Más ▾</button><button class="alt" onclick="aumentosProg()">📅 Aumentos programados</button><button class="alt" onclick="pesablesModal()">⚖️ Productos por peso</button></div></div>
+  <div class="box prbox"><div hidden id="pr_masc"><div class="masc"><button class="alt" id="pr_ofam">🗂️ Ordenar por familias</button><button class="alt" id="pr_fcat">🖼️ Fotos del catálogo</button><button class="alt" id="pr_fjl">🥜 Fotos Maní JL</button><button class="alt" id="pr_fot">🔎 Fotos automáticas</button><button class="alt" id="pr_et">🏷️ Imprimir etiquetas del filtro</button><button class="alt" onclick="const d=document.getElementById('pr_ad');d.hidden=false;d.open=true;d.scrollIntoView({behavior:'smooth',block:'center'})">📈 Aumento por porcentaje</button></div></div>
+    <div class="pr-pega"><div class="pr-bus"><div class="conscan"><input id="pr_q" type="search" placeholder="Buscar por nombre o código" autocomplete="off">${btnScan('pr_sc')}</div><button class="alt pr-fb" id="pr_fb" aria-label="Filtros">${IC('sliders',20)}<i id="pr_fbn"></i></button></div>
+    <div class="pr-fams"><div class="sub" id="pr_gr"></div></div><small class="prc" id="pr_cnt"></small></div>
+    <details class="prf pr-fd" id="pr_fd"><summary>Filtros <span id="pr_fn"></span> ${IC('down',14)}</summary><div class="g">
       <select id="pr_pv"><option value="">Todos los proveedores</option></select>
       <select id="pr_ma"><option value="">Todas las marcas</option></select>
       <select id="pr_fa"><option value="">Todas las familias</option></select>
       <label class="chk"><input type="checkbox" id="pr_sf"> Solo sin foto</label></div></details>
-    <details class="prf praum" id="pr_ad"><summary>Aumento por porcentaje ${IC('down',14)}</summary><p><small>Sube (o baja, con −) el costo de <b>todos los productos que muestra el filtro</b>. Primero te muestra cómo queda.</small></p><div class="aum"><span>Aumentar costo</span><input id="pr_pct" type="number" step="0.1" placeholder="%"><span>%</span><button class="alt" id="pr_prev">Ver cómo queda</button></div></details>
-    <p class="prc"><b id="pr_cnt"></b></p>
+    <details class="prf praum" id="pr_ad" hidden><summary>Aumento por porcentaje ${IC('down',14)}</summary><p><small>Sube (o baja, con −) el costo de <b>todos los productos que muestra el filtro</b>. Primero te muestra cómo queda.</small></p><div class="aum"><span>Aumentar costo</span><input id="pr_pct" type="number" step="0.1" placeholder="%"><span>%</span><button class="alt" id="pr_prev">Ver cómo queda</button></div></details>
     <div id="pr_conf"></div>
     <div class="tw"><table id="pr_t"></table></div>
     <button id="pr_g">Guardar costos cambiados</button> <span id="pr_n"></span></div>
@@ -1422,11 +1437,14 @@ SDMP-01279	8.900</pre>
   $('#pr_fa').innerHTML+=uniq('familia').sort(famCmp).map(x=>`<option>${esc(x)}</option>`).join('');
   const nuevo={};let sel=[];
   const filtrar=()=>{const q=$('#pr_q').value.toLowerCase().trim(),v=$('#pr_pv').value,m=$('#pr_ma').value,f=$('#pr_fa').value;
-    const sf=$('#pr_sf').checked;return S.productos.filter(p=>(!q||coincide(txtProd(p),q))&&(!v||S.min[p.producto_id]?.pv==v)&&(!m||p.marca==m)&&(!f||p.familia==f)&&(!sf||!S.min[p.producto_id]?.foto))};
+    const sf=$('#pr_sf').checked;return S.productos.filter(p=>(!S.prG||(famGrupo(p.familia)||'Otras familias')==S.prG)&&(!q||coincide(txtProd(p),q))&&(!v||S.min[p.producto_id]?.pv==v)&&(!m||p.marca==m)&&(!f||p.familia==f)&&(!sf||!S.min[p.producto_id]?.foto))};
   const precio=(c,l,f)=>{const m=mgEf(l,f);return m!=null&&c>0?Math.round(c/(1-m/100)*100)/100:null};
   const upd=()=>{const n=Object.keys(nuevo).length;$('#pr_n').textContent=n?n+(n==1?' costo cambiado sin guardar':' costos cambiados sin guardar'):''};
   const draw=()=>{sel=filtrar();$('#pr_cnt').textContent=sel.length+(sel.length==1?' producto':' productos');
-    {const nf_=[$('#pr_pv').value,$('#pr_ma').value,$('#pr_fa').value].filter(Boolean).length+($('#pr_sf').checked?1:0);$('#pr_fn').textContent=nf_?'· '+nf_+(nf_==1?' activo':' activos'):''}
+    {const nf_=[$('#pr_pv').value,$('#pr_ma').value,$('#pr_fa').value].filter(Boolean).length+($('#pr_sf').checked?1:0);$('#pr_fn').textContent=nf_?'· '+nf_+(nf_==1?' activo':' activos'):'';$('#pr_fbn').textContent=nf_||'';$('#pr_fb').classList.toggle('on',!!nf_)}
+    {const cnt={};S.productos.forEach(p=>{const g=famGrupo(p.familia)||'Otras familias';cnt[g]=(cnt[g]||0)+1});const ord=[...FAMILIAS.map(x=>x[0]),'Otras familias'].filter(g=>cnt[g]);
+     $('#pr_gr').innerHTML=`<button class="${S.prG?'alt':''}" data-prg="">Todas</button>`+ord.map(g=>`<button class="${S.prG==g?'':'alt'}" data-prg="${esc(g)}">${esc(g)}</button>`).join('');
+     $$('#pr_gr [data-prg]').forEach(b=>b.onclick=()=>{S.prG=b.dataset.prg;draw()})}
     const V=sel.slice(0,150);
     $('#pr_t').innerHTML='<tr><th>Foto</th><th>Producto</th><th class="n">Costo</th><th class="n">Mayorista</th><th class="n">Minorista</th><th class="n">Gastronomía</th><th class="n">Ganás (may.)</th><th>Bulto</th><th>Último cambio</th></tr>'+
       V.map(p=>{const id=p.producto_id,c=nuevo[id]??+p.costo/(ppz(id)||1),pm=precio(c,'mayorista',p.familia),u=ult[id];
@@ -1438,6 +1456,10 @@ SDMP-01279	8.900</pre>
         <td class="pult${u?'':' vac'}"><small>${u?'Último cambio: '+fd(u.fecha)+' · '+(u.costo_anterior>0?(u.costo_nuevo>=u.costo_anterior?'+':'')+pctf((u.costo_nuevo/u.costo_anterior-1)*100):'nuevo'):''}</small></td></tr>`}).join('')+
       (sel.length>V.length?`<tr><td colspan="9"><small>Se muestran 150 de ${sel.length}. El aumento por porcentaje se aplica a los ${sel.length}.</small></td></tr>`:'')+
       (sel.length?'':'<tr><td colspan="9">'+vacioHTML('No hay productos con ese filtro.','tag')+'</td></tr>');
+    if(!$('#pr_fb').onclick){$('#pr_fb').onclick=()=>{const d=$('#pr_fd');d.classList.toggle('vis');d.open=d.classList.contains('vis')};
+      $('#pr_masb').onclick=()=>{const m=document.createElement('div');m.className='modal';document.body.appendChild(m);m.innerHTML='<div class="mc"><div class="bh"><h3>Más opciones</h3><button class="alt" id="pm_x">Cerrar</button></div><div class="pm-l"></div></div>';
+        m.onclick=e=>{if(e.target==m)m.remove()};m.querySelector('#pm_x').onclick=()=>m.remove();
+        $$('#pr_masc .masc>button').forEach(o=>{const c=o.cloneNode(true);c.removeAttribute('id');c.removeAttribute('onclick');c.onclick=()=>{m.remove();o.click()};m.querySelector('.pm-l').appendChild(c)})}}
     $('#pr_t').onclick=e=>{if(e.target.closest('input,select,button,img,a'))return;const tr=e.target.closest('tr.prw');if(tr)tr.classList.toggle('ab')};
     $$('#pr_t [data-ft]').forEach(b=>b.onclick=()=>fotoProducto(b.dataset.ft,()=>{draw()},()=>sel.filter(x=>!S.min[x.producto_id]?.foto).map(x=>x.producto_id)));
     const gb=async id=>{const u=Math.max(1,Math.round(+$(`.ub[data-id="${id}"]`).value||1)),t=$(`.tb[data-id="${id}"]`).value;
@@ -7189,6 +7211,7 @@ const ICP={home:'<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path
  back:'<path d="M19 12H5M12 19l-7-7 7-7"/>',
  pencil:'<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>',
  down:'<path d="m6 9 6 6 6-6"/>',
+ sliders:'<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>',
  calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
  scale:'<path d="M12 3v18M5 21h14M4 7h16"/><path d="m4 7-2.5 6a3 3 0 0 0 5 0zM20 7l-2.5 6a3 3 0 0 0 5 0z"/>',
  gauge:'<path d="M4 18a9 9 0 1 1 16 0"/><path d="m12 14 4-5"/>',
