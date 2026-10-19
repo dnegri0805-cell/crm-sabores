@@ -686,7 +686,7 @@ label.xlup{display:inline-flex;align-items:center;gap:6px;padding:11px 16px;bord
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-19.3';
+const VERSION='2026-10-19.4';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -795,7 +795,7 @@ async function cargarStock(){
     todo(()=>sb.from('productos').select('*').order('id'))]);
   S.stockOk=!st.error;S.stock={};S.inv=false;
   for(const r of st.data||[]){S.stock[r.producto_id]={f:+r.fisico||0,r:+r.reservado||0,d:r.disponible!=null?+r.disponible:(+r.fisico||0)-(+r.reservado||0)};if(+r.fisico)S.inv=true}
-  S.min={};S.bultoOk=(mi.data||[]).some(r=>'unidades_bulto' in r);for(const r of mi.data||[])S.min[r.id]={pw:!!r.por_peso,pk:r.peso_pieza!=null?+r.peso_pieza:null,pp:r.por_peso&&+r.peso_pieza>0?+r.peso_pieza:0,m:+r.stock_minimo||0,a:r.activo!==false,pv:r.proveedor_id,b:Math.max(1,+r.unidades_bulto||1),tb:r.tipo_bulto||'Caja',iva:r.alicuota_iva!=null?+r.alicuota_iva:21,foto:r.foto||'',uc:r.ultimo_conteo||null,cf:r.codigo_fabricante||'',nv:!!r.nuevo_hasta&&r.nuevo_hasta>=diaLocal(new Date()),nvh:r.nuevo_hasta||null,pvp:r.pvp!=null?+r.pvp:null,sb:!!r.solo_bulto,ud:+r.unidades_display||0,bp:+r.bultos_pallet||0};
+  S.min={};S.bultoOk=(mi.data||[]).some(r=>'unidades_bulto' in r);for(const r of mi.data||[])S.min[r.id]={cf:String(r.codigo_fabricante||'').trim(),pw:!!r.por_peso,pk:r.peso_pieza!=null?+r.peso_pieza:null,pp:r.por_peso&&+r.peso_pieza>0?+r.peso_pieza:0,m:+r.stock_minimo||0,a:r.activo!==false,pv:r.proveedor_id,b:Math.max(1,+r.unidades_bulto||1),tb:r.tipo_bulto||'Caja',iva:r.alicuota_iva!=null?+r.alicuota_iva:21,foto:r.foto||'',uc:r.ultimo_conteo||null,cf:r.codigo_fabricante||'',nv:!!r.nuevo_hasta&&r.nuevo_hasta>=diaLocal(new Date()),nvh:r.nuevo_hasta||null,pvp:r.pvp!=null?+r.pvp:null,sb:!!r.solo_bulto,ud:+r.unidades_display||0,bp:+r.bultos_pallet||0};
   await fotosCatFallback();actualizarFotosCat();
 }
 /* Productos sin foto guardada: usan la del catálogo (por código) para mostrarse, sin guardarla */
@@ -842,7 +842,11 @@ const norm=t=>String(t??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLo
 /* La lista "especial" se usa para gastronomía (restaurantes, pizzerías, hoteles): solo cambia el nombre que se muestra */
 const nomL=l=>l=='especial'?'gastronomía':l;
 const coincide=(texto,q)=>{const t=norm(texto);return norm(q).split(/\s+/).filter(Boolean).every(w=>t.includes(w))};
-const txtProd=p=>p.descripcion+' '+p.codigo+' '+(p.marca||'')+' '+(p.familia||'');
+const txtProd=p=>p.descripcion+' '+p.codigo+' '+(p.marca||'')+' '+(p.familia||'')+(S.min&&S.min[p.producto_id]?.cf?' '+S.min[p.producto_id].cf:'');
+/* producto por código propio o del proveedor (código de fabricante); si hay varios, prefiere los de ese proveedor */
+const normCod=x=>String(x||'').toUpperCase().replace(/[^A-Z0-9]/g,'').replace(/^0+(?=\d)/,'');
+function prodPorCodProv(t,pv){const k=normCod(t);if(k.length<3||!/\d/.test(k))return null;let L=S.productos.filter(p=>normCod(p.codigo)==k||(S.min&&normCod(S.min[p.producto_id]?.cf)==k));
+  if(pv&&L.length>1){const L2=L.filter(p=>S.min[p.producto_id]?.pv==pv);if(L2.length)L=L2}return L[0]||null}
 
 /* ---------- Promociones ---------- */
 S.promos=[];
@@ -2949,7 +2953,10 @@ function cCuenta(){
       <label class="f">Percepción IVA<input id="f_pi" type="number" step="0.01" min="0" value="0"></label>
       <label class="f">Percepción IIBB<input id="f_pb" type="number" step="0.01" min="0" value="0"></label>
       <label class="f">Otras percepciones<input id="f_pe" type="number" step="0.01" min="0" value="0"></label>
-    </div><p><small>Total: <b id="f_tot">${$m(0)}</b> · vence a ${pv.dias_pago||0} días</small></p><button id="f_g">Guardar factura</button>
+    </div><details class="plg" id="f_pd"><summary>📦 Productos que vinieron en la factura <small>(opcional: entran al stock)</small></summary>
+      <p><small>Escribí <b>tu código, el código del proveedor</b> o el nombre. Al guardar la factura se arma la compra y te abre la recepción para confirmar: ahí entra al stock.</small></p>
+      <div class="conscan"><input id="f_q" placeholder="Código del proveedor, tu código o nombre" autocomplete="off" enterkeyhint="done"></div><div id="f_r"></div><div id="f_its"></div></details>
+    <p><small>Total: <b id="f_tot">${$m(0)}</b> · vence a ${pv.dias_pago||0} días</small></p><button id="f_g">Guardar factura</button>
     <h3>Registrar pago</h3><div class="g"><input id="g_i" type="number" step="0.01" min="0" placeholder="Importe"><select id="g_m"><option>transferencia</option><option>efectivo</option><option>cheque</option><option>echeq</option><option>otro</option></select><input id="g_r" placeholder="Referencia (N° transf., cheque…)"></div><div id="g_x"></div>
     <button id="g_g">Registrar pago</button>
     <h3>Facturas</h3><table><tr><th>Comprobante</th><th>Fecha</th><th>Vence</th><th>OC</th><th>Total</th></tr>${(f.data||[]).map(x=>`<tr><td>${x.tipo} ${esc(x.numero)}</td><td>${fd(x.fecha)}</td><td>${fd(x.vencimiento)}</td><td>${x.orden_id||'—'}</td><td>${x.tipo=='NC'?'−':''}${$m(x.total)}</td></tr>`).join('')||'<tr><td colspan="5">No hay facturas cargadas.</td></tr>'}</table>
@@ -2957,14 +2964,31 @@ function cCuenta(){
     const perc=()=>(+$('#f_pi').value||0)+(+$('#f_pb').value||0)+(+$('#f_pe').value||0),tot=()=>(+$('#f_ne').value||0)+(+$('#f_iv').value||0)+perc();
     ['#f_ne','#f_iv','#f_pe','#f_pi','#f_pb'].forEach(k=>$(k).oninput=()=>$('#f_tot').textContent=$m(tot()));
     $('#f_ne').onchange=()=>{if(!$('#f_iv').value&&$('#f_t').value=='A'){$('#f_iv').value=(+$('#f_ne').value*0.21).toFixed(2);$('#f_tot').textContent=$m(tot())}};
+    const FI=[];const pintaFI=()=>{$('#f_its').innerHTML=FI.length?`<div class="tw"><table class="fi-t"><tr><th>Producto</th><th class="n">Cant.</th><th class="n">Costo c/u (sin IVA)</th><th></th></tr>${FI.map((x,i)=>`<tr><td>${esc(x.p.descripcion)}<br><small>${esc(x.p.codigo)}${S.min[x.p.producto_id]?.cf?' · prov. '+esc(S.min[x.p.producto_id].cf):''}</small></td>
+        <td class="n"><input data-fiq="${i}" inputmode="decimal" value="${nf(x.q)}" style="width:70px;margin:0"></td><td class="n"><input data-fic="${i}" inputmode="decimal" value="${x.c?nf(Math.round(x.c*100)/100):''}" style="width:110px;margin:0"></td><td><a class="lnk" data-fix="${i}">✕</a></td></tr>`).join('')}</table></div>
+        <p><small>${FI.length} ${FI.length==1?'producto':'productos'} · neto ${$m(FI.reduce((a,x)=>a+x.q*(x.c||0),0))}</small> <a class="lnk" id="f_usa">Usar como neto de la factura</a></p>`:'';
+      $$('#f_its [data-fiq]').forEach(e=>e.onchange=()=>{FI[+e.dataset.fiq].q=numAR(e.value)||0;pintaFI()});$$('#f_its [data-fic]').forEach(e=>e.onchange=()=>{FI[+e.dataset.fic].c=numAR(e.value)||0;pintaFI()});
+      $$('#f_its [data-fix]').forEach(a=>a.onclick=()=>{FI.splice(+a.dataset.fix,1);pintaFI()});
+      $('#f_usa')&&($('#f_usa').onclick=()=>{const ne=Math.round(FI.reduce((a,x)=>a+x.q*(x.c||0),0)*100)/100;$('#f_ne').value=ne;if($('#f_t').value=='A')$('#f_iv').value=(ne*0.21).toFixed(2);$('#f_tot').textContent=$m(tot())})};
+    const agFI=pp=>{if(!pp)return;const e=FI.find(x=>x.p.producto_id==pp.producto_id);if(e)e.q+=1;else FI.push({p:pp,q:1,c:+pp.costo>0?+pp.costo*(ppz(pp.producto_id)||1):0});pintaFI();setTimeout(()=>{const l=$$('#f_its [data-fiq]');const k=FI.findIndex(x=>x.p.producto_id==pp.producto_id);l[k]&&(l[k].focus(),l[k].select())},50)};
+    buscador('#f_q','#f_r',agFI,pp=>S.min[pp.producto_id]?.cf?`<small>· prov. ${esc(S.min[pp.producto_id].cf)}</small>`:'');
+    $('#f_q').onkeydown=e=>{if(e.key!='Enter')return;e.preventDefault();const pp=prodPorCodProv($('#f_q').value,id);if(pp){$('#f_q').value='';$('#f_r').innerHTML='';agFI(pp)}else{const r=$('#f_r .r');r?r.click():toast('No encontré ese código.',1)}};
     $('#f_g').onclick=async()=>{const n=$('#f_n').value.trim();if(!n||!(tot()>0))return toast('Completá número e importes de la factura.',1);
+      if(FI.some(x=>!(x.q>0)))return toast('Hay un producto sin cantidad.',1);
       const v=new Date($('#f_f').value+'T12:00');v.setDate(v.getDate()+(pv.dias_pago||0));
       const fila={proveedor_id:id,tipo:$('#f_t').value,numero:n,fecha:$('#f_f').value,vencimiento:v.toISOString().slice(0,10),
         orden_id:+$('#f_o').value||null,neto:+$('#f_ne').value||0,iva:+$('#f_iv').value||0,percepciones:+perc().toFixed(2),perc_iva:+$('#f_pi').value||0,perc_iibb:+$('#f_pb').value||0};
-      let{error}=await sb.from('facturas_proveedor').insert(fila);
-      if(error&&/perc_i/.test(error.message)){delete fila.perc_iva;delete fila.perc_iibb;({error}=await sb.from('facturas_proveedor').insert(fila))}
-      if(error)return toast(error.code=='23505'?'Esa factura ya estaba cargada.':error.message,1);
-      toast('Factura guardada.');$('#a_p').onchange()};
+      $('#f_g').disabled=true;
+      let{data:fx,error}=await sb.from('facturas_proveedor').insert(fila).select('id').single();
+      if(error&&/perc_i/.test(error.message)){delete fila.perc_iva;delete fila.perc_iibb;({data:fx,error}=await sb.from('facturas_proveedor').insert(fila).select('id').single())}
+      if(error){$('#f_g').disabled=false;return toast(error.code=='23505'?'Esa factura ya estaba cargada.':error.message,1)}
+      if(FI.length&&!fila.orden_id){const{data:o,error:e1}=await sb.from('ordenes_compra').insert({proveedor_id:id,estado:'enviada',observaciones:'Factura '+fila.tipo+' '+n}).select('*,proveedores(razon_social)').single();
+        if(e1){$('#f_g').disabled=false;$('#a_p').onchange();return toast('La factura se guardó, pero no se pudo armar la compra: '+e1.message,1)}
+        const{error:e2}=await sb.from('ordenes_compra_items').insert(FI.map(x=>({orden_id:o.id,producto_id:x.p.producto_id,cantidad:x.q,costo_unitario:x.c||0})));
+        if(e2){await sb.from('ordenes_compra').delete().eq('id',o.id);$('#f_g').disabled=false;$('#a_p').onchange();return toast('La factura se guardó, pero no se pudieron cargar los productos: '+e2.message,1)}
+        if(fx?.id)await sb.from('facturas_proveedor').update({orden_id:o.id}).eq('id',fx.id);
+        toast('Factura guardada. Confirmá la recepción para que entre al stock.');irA('compras',{sub:'ordenes'});setTimeout(()=>recibir(o),1200);return}
+      toast(FI.length?'Factura guardada. Tiene orden de compra vinculada: la mercadería entra al recibir esa orden.':'Factura guardada.');$('#a_p').onchange()};
     $('#g_m').onchange=()=>extrasPago('#g_x',$('#g_m').value,'pago',{imp:'#g_i'});$('#g_m').onchange();
     $('#g_g').onclick=async()=>{const imp=+$('#g_i').value;if(!(imp>0))return toast('Poné el importe del pago.',1);
       const chq=document.querySelector('[name=xp_ch]:checked')?.value,cs=$('#xp_cs')?.selectedOptions[0];
@@ -8527,13 +8551,15 @@ async function facturaFoto(){const{data:PV}=await sb.from('proveedores').select(
   const draw=()=>{m.innerHTML=`<div class="mc"><div class="bh"><h3>🧾 Factura del proveedor por foto</h3><button class="alt" id="ff_x">Cerrar</button></div>
     <p><small>Elegí el proveedor y sacale una foto a la factura (derecha, con buena luz). El CRM lee cada renglón (cantidad, producto y precio), lo busca en tus productos y te arma la compra para recibirla. Revisá todo antes de confirmar.</small></p>
     <div class="g"><select id="ff_p"><option value="">Proveedor…</option>${(PV||[]).map(p=>`<option value="${p.id}" ${S.ffPv==p.id?'selected':''}>${esc(p.razon_social)}</option>`).join('')}</select><label class="alt btnl" style="cursor:pointer;text-align:center" id="ff_l">📷 Foto de la factura<input type="file" id="ff_f" accept="image/*" hidden></label></div><p id="ff_s"></p>
-    ${R.length?`<div class="tw"><table><tr><th>Lo que leí</th><th>Producto</th><th class="n">Cant.</th><th class="n">Costo c/u</th></tr>${R.map((r,i)=>`<tr class="${r.sel?'':'mal'}"><td><small>${esc(r.t)}</small></td><td><select data-ffs="${i}" style="margin:0;max-width:220px">${r.op.map(o=>`<option value="${o.p.producto_id}" ${r.sel==o.p.producto_id?'selected':''}>${esc(o.p.descripcion)}</option>`).join('')}<option value="" ${r.sel?'':'selected'}>— No cargar —</option></select></td>
+    ${R.length?`<div class="tw"><table><tr><th>Lo que leí</th><th>Producto</th><th class="n">Cant.</th><th class="n">Costo c/u</th></tr>${R.map((r,i)=>`<tr class="${r.sel?'':'mal'}"><td><small>${esc(r.t)}</small>${r.cod?'<br><small class="ok">✓ por código</small>':''}</td><td><select data-ffs="${i}" style="margin:0;max-width:220px">${r.op.map(o=>`<option value="${o.p.producto_id}" ${r.sel==o.p.producto_id?'selected':''}>${esc(o.p.descripcion)}</option>`).join('')}<option value="" ${r.sel?'':'selected'}>— No cargar —</option></select></td>
       <td class="n"><input data-ffq="${i}" inputmode="decimal" value="${r.q}" style="width:70px;margin:0"></td><td class="n"><input data-ffc="${i}" inputmode="decimal" value="${r.pu}" style="width:100px;margin:0"></td></tr>`).join('')}</table></div>
       <p><small>${R.filter(r=>r.sel).length} de ${R.length} renglones con producto. Total: <b>${$m(R.filter(r=>r.sel).reduce((a,r)=>a+r.q*r.pu,0))}</b></small></p><button id="ff_ok">Crear la compra y recibirla</button>`:''}</div>`;
     const q=s=>m.querySelector(s);q('#ff_x').onclick=()=>m.remove();q('#ff_p').onchange=e=>S.ffPv=e.target.value;
     m.querySelectorAll('[data-ffs]').forEach(s=>s.onchange=()=>{R[+s.dataset.ffs].sel=s.value||null});m.querySelectorAll('[data-ffq]').forEach(e=>e.onchange=()=>{R[+e.dataset.ffq].q=numAR(e.value)||0;draw()});m.querySelectorAll('[data-ffc]').forEach(e=>e.onchange=()=>{R[+e.dataset.ffc].pu=numAR(e.value)||0;draw()});
     q('#ff_f').onchange=async()=>{const f=q('#ff_f').files[0];if(!f)return;const s=q('#ff_s');s.textContent='Leyendo la factura…';
-      try{const t=await ocrImagen(f,p=>s.textContent='Leyendo la factura… '+p+' %');R=t.split('\n').map(lineaFactura).filter(Boolean).map(x=>{const op=buscarProd(x.t).slice(0,6);return{...x,op,sel:op[0]?.p.producto_id||null}});
+      try{const t=await ocrImagen(f,p=>s.textContent='Leyendo la factura… '+p+' %');const pvF=q('#ff_p').value||S.ffPv;R=t.split('\n').map(l=>{let hit=null,ll=l;for(const w of l.trim().split(/\s+/).slice(0,2)){if(/[.,]\d{2}$/.test(w))continue;const pp=prodPorCodProv(w,pvF);if(pp){hit=pp;ll=l.replace(w,' ');break}}
+          const x=lineaFactura(ll);if(x&&hit)x.hit=hit;return x}).filter(Boolean)
+        .map(x=>{const op=x.hit?[{p:x.hit,s:9},...buscarProd(x.t).filter(o=>o.p.producto_id!=x.hit.producto_id).slice(0,5)]:buscarProd(x.t).slice(0,6);return{...x,op,sel:op[0]?.p.producto_id||null,cod:!!x.hit}});
         if(!R.length){s.textContent='No encontré renglones con precio. Probá con otra foto más derecha y con más luz.';return}draw();toast('Revisá cada renglón y corregí lo que haga falta.')}catch(e){s.textContent='No se pudo leer la foto: '+(e.message||e)}};
     const ok=q('#ff_ok');if(ok)ok.onclick=async()=>{const pv=q('#ff_p').value,L=R.filter(r=>r.sel&&r.q>0);if(!pv)return toast('Elegí el proveedor.',1);if(!L.length)return toast('No hay renglones con producto.',1);ok.disabled=true;
       const{data:o,error}=await sb.from('ordenes_compra').insert({proveedor_id:pv,estado:'enviada',observaciones:'Cargada desde la foto de la factura'}).select('*,proveedores(razon_social)').single();if(error){ok.disabled=false;return toast(error.message,1)}
