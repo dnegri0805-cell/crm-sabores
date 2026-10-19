@@ -678,6 +678,7 @@ html.oscuro .rci{background:#18202f;border-color:#273246}
 .ped-acc button[data-edp]{display:inline-flex;align-items:center;gap:4px}
 .mas .masc .pcan{color:var(--er,#b3261e);border-color:#f0c8c4}
 #v>*:has(details[open]>.masc),.cab:has(details[open]>.masc){position:relative;z-index:40}
+label.xlup{display:inline-flex;align-items:center;gap:6px;padding:11px 16px;border:1px solid #dcc9ce;border-radius:12px;background:#fff;color:var(--m);font-weight:600;cursor:pointer}html.oscuro label.xlup{background:transparent;color:#e9b9c5;border-color:#4a3440}
 </style>
 </head>
 <body>
@@ -685,7 +686,7 @@ html.oscuro .rci{background:#18202f;border-color:#273246}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-19.1';
+const VERSION='2026-10-19.3';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -1031,7 +1032,10 @@ async function vStock(){
     <div class="tw"><table id="s_t"></table></div>
     <div class="g" style="margin-top:10px"><input id="s_mot" placeholder="Motivo (opcional, ej.: inventario inicial)"></div>
     <button id="s_g">Guardar cambios</button> <span id="s_n"></span></div>
-  <details class="box" id="s_imp"><summary><b>Cargar muchos productos de una vez (pegar desde Excel)</b></summary>
+  <details class="box" id="s_imp"><summary><b>Cargar muchos productos de una vez (planilla de Excel)</b></summary>
+    <p><b>Lo más fácil:</b> bajá la planilla con todos tus productos, completá la columna <b>Cantidad</b> con lo que contaste (los que dejes vacíos no se tocan) y subila de nuevo.</p>
+    <div class="fc-acc"><button id="s_xd">📥 Descargar planilla con mis productos</button><label class="xlup">📤 Subir planilla completada<input type="file" id="s_xu" accept=".xlsx,.xls,.csv" hidden></label></div>
+    <p><small>O, si preferís, copiá las filas desde Excel y pegalas abajo:</small></p>
     <p><small>Armá en Excel o Google Sheets una planilla con estas columnas, en este orden y sin títulos: <b>Código</b> · <b>Cantidad contada</b> · <b>Mínimo</b> (opcional). Seleccioná las filas, copialas y pegalas acá.</small></p>
     <pre class="ej">SDMP-00594	24	6
 SDMP-01279	10	2
@@ -1076,15 +1080,22 @@ SDMP-01281	36</pre>
     err?toast('No se pudo guardar: '+err.message,1):toast('Cambios guardados: '+ok+(ok==1?' dato actualizado.':' datos actualizados.'))};
   /* Pegar desde Excel */
   let plan=null;
+  $('#s_xd').onclick=()=>planillaStock().catch(e=>toast('No se pudo armar la planilla: '+(e.message||e),1));
+  $('#s_xu').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{
+      if(!window.XLSX){toast('Leyendo la planilla…');await cargarScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js')}
+      const wb=XLSX.read(await f.arrayBuffer(),{type:'array'}),ws=wb.Sheets[wb.SheetNames.find(n=>/stock|conteo|inventario/i.test(n))||wb.SheetNames[0]];
+      const F=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''});
+      $('#s_pg').value=F.map(r=>[r[0],r[1],r[2]].map(x=>typeof x=='number'?String(x).replace('.',','):String(x??'').trim())).filter(r=>r[0]&&(r[1]!==''||r[2]!=='')).map(r=>r.join('\t')).join('\n');
+      $('#s_imp').open=true;$('#s_rev').click();$('#s_res').scrollIntoView({behavior:'smooth',block:'center'})}catch(er){toast('No pude leer la planilla: '+(er.message||er),1)}};
   $('#s_rev').onclick=()=>{const porCod={};for(const p of S.productos)porCod[String(p.codigo).trim().toUpperCase()]=p;
     const ok=[],mal=[];
-    for(const raw of $('#s_pg').value.split(/\r?\n/)){const l=raw.trim();if(!l)continue;
-      const c=l.split(/\t|;/).map(x=>x.trim());const p=porCod[(c[0]||'').toUpperCase()];
+    let vac=0;for(const raw of $('#s_pg').value.split(/\r?\n/)){const l=raw.trim();if(!l)continue;
+      const c=l.split(/\t|;/).map(x=>x.trim());if(/^c[oó]d/i.test(c[0]||''))continue;if((c[1]||'')===''&&(c[2]||'')===''){vac++;continue}const p=porCod[(c[0]||'').toUpperCase()];
       const num=x=>x===undefined||x===''?null:Number(String(x).replace(/\./g,'').replace(',','.'));
       const q=num(c[1]),m=num(c[2]);
       if(!p)mal.push(l+' → no encontré ese código');else if(q===null&&m===null||[q,m].some(v=>v!==null&&!(v>=0)))mal.push(l+' → cantidad no válida');else ok.push({p,q,m})}
     plan=ok;
-    $('#s_res').innerHTML=(ok.length?`<p><b>${ok.length}</b> ${ok.length==1?'producto listo':'productos listos'} para cargar.</p>`:'<p>No hay filas válidas.</p>')+
+    $('#s_res').innerHTML=(ok.length?`<p><b>${ok.length}</b> ${ok.length==1?'producto listo':'productos listos'} para cargar.${vac?` <small>(${vac} sin cantidad: no se tocan)</small>`:''}</p>`:'<p>No hay filas válidas.</p>')+
       (mal.length?`<p class="err">${mal.length} ${mal.length==1?'fila no se va a cargar':'filas no se van a cargar'}:</p><ul class="err">${mal.slice(0,10).map(x=>'<li>'+esc(x)+'</li>').join('')}</ul>${mal.length>10?'<small>Y '+(mal.length-10)+' más.</small>':''}`:'')+
       (ok.length?`<button id="s_ap">Cargar ${ok.length} ${ok.length==1?'producto':'productos'}</button>`:'');
     $('#s_ap')&&($('#s_ap').onclick=async()=>{$('#s_ap').disabled=true;$('#s_ap').textContent='Cargando…';
@@ -1094,6 +1105,25 @@ SDMP-01281	36</pre>
       if(err){$('#s_res').innerHTML='<p class="err">Se cargaron '+ok+' datos y después falló: '+esc(err.message)+'</p>';return}
       $('#s_pg').value='';$('#s_res').innerHTML='<p class="ok">Listo: '+plan.length+' productos cargados.</p>';toast('Planilla cargada.')})};
 }
+
+/* ---------- Planilla de conteo: todos los productos activos, para completar y volver a subir ---------- */
+async function planillaStock(){
+  if(!window.XLSX){toast('Armando la planilla…');await cargarScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js')}
+  const L=S.productos.filter(p=>S.min[p.producto_id]?.a!==false).sort((a,b)=>famCmp((a.familia||'').trim(),(b.familia||'').trim())||String(a.descripcion).localeCompare(String(b.descripcion),'es'));
+  const filas=[['Código','Cantidad','Mínimo','Producto','Familia','Se cuenta en','Stock actual','Mínimo actual']];
+  for(const p of L){const id=p.producto_id,k=esKg(id),z=ppz(id);filas.push([String(p.codigo||'').trim(),'','',p.descripcion,(p.familia||'').trim(),k?'kilos':z?'piezas':'unidades',S.inv?+(stk(id).f||0):'',+(S.min[id]?.m||0)||''])}
+  const ws=XLSX.utils.aoa_to_sheet(filas);ws['!cols']=[{wch:13},{wch:10},{wch:9},{wch:52},{wch:30},{wch:12},{wch:12},{wch:13}];ws['!autofilter']={ref:'A1:H'+filas.length};ws['!freeze']={xSplit:0,ySplit:1};
+  const ay=XLSX.utils.aoa_to_sheet([['Planilla de conteo · Sabores de mi País'],[''],['Cómo se usa'],
+    ['1. En la hoja «Stock», escribí en la columna B (Cantidad) lo que hay en el depósito de cada producto.'],
+    ['2. Si querés que el CRM te avise cuándo reponer, escribí el Mínimo en la columna C.'],
+    ['3. Los productos que dejes vacíos no se tocan.'],
+    ['4. Quesos y fiambres por peso: poné los kilos (ej.: 12,5). Los que tienen peso de pieza se cuentan en piezas.'],
+    ['5. Guardá el archivo y en el CRM andá a Stock → Cargar muchos productos de una vez → «Subir planilla completada».'],
+    ['6. El CRM te muestra cuántos productos va a cargar y recién ahí confirmás.'],[''],
+    ['No cambies los códigos de la columna A: con eso el CRM sabe qué producto es.'],['Planilla armada el '+new Date().toLocaleString('es-AR')+' con '+L.length+' productos activos.']]);ay['!cols']=[{wch:110}];
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Stock');XLSX.utils.book_append_sheet(wb,ay,'Cómo se usa');
+  const nom='Planilla de conteo '+new Date().toLocaleDateString('es-AR').replace(/\//g,'-')+'.xlsx',blob=new Blob([XLSX.write(wb,{type:'array',bookType:'xlsx'})],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nom;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000);toast('Planilla descargada: '+L.length+' productos.')}
 
 /* ---------- Copia de seguridad en Excel ---------- */
 const BK_TABLAS=[['Clientes','clientes'],['Productos y precios','precios_productos'],['Productos (ficha)','productos'],['Stock','stock'],['Movimientos de stock','movimientos_stock'],
