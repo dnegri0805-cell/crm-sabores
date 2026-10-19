@@ -685,7 +685,7 @@ html.oscuro .rci{background:#18202f;border-color:#273246}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-18.28';
+const VERSION='2026-10-19.1';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 (function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
   if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -9232,9 +9232,9 @@ function iconizar(raiz){try{(raiz||document).querySelectorAll('button,summary,a.
   t.nodeValue=t.nodeValue.slice(m[0].length);const w=document.createElement('span');w.className='ici';w.innerHTML=IC(EMO_IC[m[1]],17);b.insertBefore(w,t)})}catch(e){}}
 /* Tablas como tarjetas en el celular (Caja, Stock, Reportes) */
 function tarjetizar(){try{if(!matchMedia('(max-width:640px)').matches)return;
-  const sel=(['caja','stock','reportes','compras'].includes(S.tab)||(S.tab=='clientes'&&S.cs=='dormidos')?'#v table:not(.tcard):not(#pr_t):not(#p_i):not(.morc),':'')+'.modal table:not(.tcard)';
-  document.querySelectorAll(sel).forEach(t=>{const filas=[...t.rows];if(filas.length<2)return;const h=[...filas[0].cells];if(!h.length||h[0].tagName!='TH')return;const N=h.map(x=>x.textContent.trim());
-    filas.slice(1).forEach(r=>{if(r.cells.length<2)return;r.classList.add('tcr');if(!r.cells[0].textContent.trim())r.cells[0].classList.add('tc-ico');[...r.cells].forEach((c,i)=>{if(N[i]&&!c.hasAttribute('data-l'))c.setAttribute('data-l',N[i])})});t.classList.add('tcard')})}catch(e){}}
+  const sel=(['caja','stock','reportes','compras'].includes(S.tab)||(S.tab=='clientes'&&S.cs=='dormidos')?'#v table:not(#pr_t):not(#p_i):not(.morc),':'')+'.modal table';
+  document.querySelectorAll(sel).forEach(t=>{const filas=[...t.rows];if(filas.length<2||(t.classList.contains('tcard')&&!filas.slice(1).some(r=>!r.classList.contains('tcr')&&r.cells.length>1)))return;const h=[...filas[0].cells];if(!h.length||h[0].tagName!='TH')return;const N=h.map(x=>x.textContent.trim());
+    filas.slice(1).forEach(r=>{if(r.cells.length<2||r.classList.contains('tcr'))return;r.classList.add('tcr');if(!r.cells[0].textContent.trim())r.cells[0].classList.add('tc-ico');[...r.cells].forEach((c,i)=>{if(N[i]&&!c.hasAttribute('data-l'))c.setAttribute('data-l',N[i])})});t.classList.add('tcard')})}catch(e){}}
 function cerrarX(){document.querySelectorAll('.modal .bh button:not(.xcl)').forEach(b=>{if(b.textContent.trim()!=='Cerrar')return;b.classList.add('xcl');b.setAttribute('aria-label','Cerrar');b.title='Cerrar';b.innerHTML='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>'})}
 function titulosIc(){document.querySelectorAll('.modal h3,.modal h2,#v h2,#v h3').forEach(h=>{const t=h.firstChild;if(!t||t.nodeType!==3)return;const m=t.nodeValue.match(EMO_RE);if(!m)return;t.nodeValue=t.nodeValue.slice(m[0].length);const w=document.createElement('span');w.className='ici ich';w.innerHTML=IC(EMO_IC[m[1]],20);h.insertBefore(w,t)})}
 function ceros(){document.querySelectorAll('.kp .num').forEach(n=>n.classList.toggle('cero',/^\s*(\$\s*)?0(,00)?\s*$/.test(n.textContent)))}
