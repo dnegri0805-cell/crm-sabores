@@ -1461,7 +1461,7 @@ const cliDocNom=c=>{const nf=(c.nombre_fantasia||'').trim(),rs=String(c.razon_so
 const dirLinda=c=>{const cap=t=>t.toLowerCase().replace(/(^|\s)([a-záéíóúñü])/g,(m,a,b)=>a+b.toUpperCase()).replace(/ (De|Del|Y)\b/g,x=>x.toLowerCase());
   return (dirCompleta(c)||'').split(/,\s*/).map(x=>/^(CABA|CP .*)$/i.test(x)?x.toUpperCase().replace(/^CP/,'CP'):(x===x.toUpperCase()&&/[A-ZÑ]{3}/.test(x)?cap(x):x)).join(', ').replace(/^Av /,'Av. ').replace(/, CABA, Buenos Aires/,', CABA')};
 const docCss=()=>{const pie=['Sabores de mi País','Distribuidora de alimentos',S.telEmp?'WhatsApp '+S.telEmp:''].filter(Boolean).join(' · ').replace(/["\\]/g,'');
-  return `@page{margin:14mm 12mm 18mm}
+  return `@page{size:A4;margin:14mm 12mm 18mm}
   body{font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   h1{letter-spacing:-.01em}
   table:has(th){border-collapse:separate!important;border-spacing:0!important;border:1px solid #e6e1d8!important;border-radius:10px;overflow:hidden}
@@ -3294,7 +3294,7 @@ async function datosOP(n){const[o,i,v,r]=await Promise.all([sb.from('ordenes_pag
 async function pdfOP(n){const w=window.open('','_blank');if(!w)return toast('Permití las ventanas emergentes para generar el PDF.',1);w.document.write('<p style="font:16px system-ui;margin:32px">Armando la orden de pago…</p>');
   let D;try{D=await datosOP(n)}catch(e){w.close();return toast(e.message,1)}const{o,p,I,V,R,E}=D,aplic=I.reduce((a,x)=>a+ +x.importe,0),cuenta=+o.total-aplic;
   w.document.open();w.document.write(`<html><head><meta charset="utf-8"><title>Orden de pago ${o.id} - ${esc(p.razon_social||'')}</title><style>${docBaseCss()}</style><style>${docCss()}</style></head><body>
-  <p class="ayuda">Para guardarla en PDF: en la ventana de impresión elegí <b>Guardar como PDF</b> como destino.</p>
+  <p class="ayuda">Para guardarla en PDF: en la ventana de impresión elegí <b>Guardar como PDF</b> como destino.</p>${E.cuit&&E.dom?'':'<p class="ayuda">Falta tu CUIT o domicilio en el encabezado: cargalos en Compras → Órdenes de pago → Datos y retenciones.</p>'}
   <div class="top"><div>${logoImg()}<h1>${esc(E.rs||'Sabores de mi País')}</h1>${emisorHTML(E)}</div><div class="n"><div class="doc-t">ORDEN DE PAGO</div><b>N° ${opNum(o.id)}</b><br>Fecha: ${fd(o.fecha)}${o.anulada?'<br><b style="color:#d92d20">ANULADA</b>':''}</div></div>
   <div class="cab"><b>Pagamos a:</b> ${esc(p.razon_social||'')}${p.cuit?' · <b>CUIT</b> '+esc(cuitFmt(p.cuit)):''}${p.domicilio?'<br><b>Domicilio:</b> '+esc(p.domicilio)+(p.ciudad?', '+esc(p.ciudad):''):''}</div>
   ${I.length?`<h3>Comprobantes que se cancelan</h3><table><tr><th>Comprobante</th><th>Fecha</th><th class="n">Total</th><th class="n">Se paga</th></tr>${I.map(x=>`<tr><td>Factura ${x.facturas_proveedor?.tipo||''} ${esc(x.facturas_proveedor?.numero||'')}</td><td>${fd(x.facturas_proveedor?.fecha)}</td><td class="n">${$m(x.facturas_proveedor?.total)}</td><td class="n">${$m(x.importe)}</td></tr>`).join('')}${cuenta>0.004?`<tr><td colspan="3">A cuenta</td><td class="n">${$m(cuenta)}</td></tr>`:''}</table>`:'<p>Pago a cuenta.</p>'}
