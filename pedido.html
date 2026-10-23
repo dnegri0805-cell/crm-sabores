@@ -420,10 +420,10 @@ function iconizar(){try{document.querySelectorAll('button,.kgp,.fln,.sbt,.cc,.ki
 {let pend=0;new MutationObserver(()=>{if(pend)return;pend=1;requestAnimationFrame(()=>{pend=0;iconizar()})}).observe(document.documentElement,{childList:true,subtree:true})}
 
 const blP=p=>new RegExp('(^|\\D)'+p.b+'\\s*kg','i').test(p.d||'')?p.tb+' '+p.b+' kg':p.tb+' × '+p.b;
-const VERSION='2026-10-12.34';
-/* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
-(function(){try{const u=new URL(location.href);fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(h=>{const m=h.match(/const VERSION='([^']+)'/);
-  if(m&&m[1]!==VERSION&&u.searchParams.get('v')!==m[1]){u.searchParams.set('v',m[1]);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
+const VERSION='2026-10-23.1';
+/* Siempre la última versión: mira version.json (unos pocos bytes) y si hay una más nueva, recarga sola */
+(function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.pedido;
+  if(v&&v!==VERSION&&u.searchParams.get('v')!==v){u.searchParams.set('v',v);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
 const sb=supabase.createClient('https://ggfqdkgqtpnkvxoykoty.supabase.co','sb_publishable_kfvkZgS8FewPabohJrKf9Q_UDyEcQiR',{auth:{persistSession:false}});
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -535,13 +535,22 @@ async function iniciar(){
   if(token&&!PUB)sb.rpc('entrega_cliente',{p_token:token}).then(async({data})=>{if(!data)return;for(let k=0;!C&&k<60;k++)await new Promise(r=>setTimeout(r,250));if(!C)return;if(Array.isArray(data.feriados))FER=data.feriados;if(Array.isArray(data.dias)&&data.dias.length)C.dias=data.dias.map(Number);if(+data.minimo>(+C.minimo||0))C.minimo=+data.minimo;if(typeof lista=='function'&&P.length)lista()},()=>{});
   cargarEst();sb.rpc('pesables').then(({data})=>{if(data&&typeof data=='object'&&Object.keys(data).length){PZ=Object.fromEntries(Object.entries(data).map(([k,v])=>[k,+v||0]));if(P.length&&!BIO&&typeof lista=='function')lista()}},()=>{});
   if(PUB)sb.rpc('opiniones_publicas').then(({data})=>{if(Array.isArray(data)&&data.length){OPI=data;if(BIO&&C)vistaBio();else if(typeof lista=='function'&&P.length)lista()}},()=>{});
+  if(typeof catalogoFotos=='function')catalogoFotos(); /* las fotos se bajan al mismo tiempo que los precios */
   if(PUB){const a={};if(REF)a.p_ref=REF;if(RUB)a.p_rubro=RUB;const{data,error}=Object.keys(a).length?await sb.rpc('catalogo_publico',a):await sb.rpc('catalogo_publico');
     if(error){$('#hc').textContent='';$('#m').innerHTML=`<div class="msg"><h2>Catálogo no disponible</h2><p class="err">${esc(/catalogo_publico/.test(error.message)?'El catálogo todavía no está activado.':error.message)}</p></div>`;return}
     C=data;P=(data.productos||[]).filter(p=>p.p>0);await completarFotos(P);prepararP(P);hayFotos=P.some(p=>p.img);armarCombos();cargarCarrito();
   cargarSeg();setInterval(cargarSeg,120000);cargarFaq();grpRefrescar();chkNoEstoy();votCargar();sb.rpc('garantia_info').then(({data})=>{if(data&&data.activa){GAR=data;if(P.length&&$('#l'))lista()}},()=>{});if(BIO)return vistaBio();
     document.title='Catálogo · Sabores de mi País';$('#hc').textContent=(C.rubro?'Catálogo para '+C.rubro.toLowerCase():'Catálogo de productos')+' · precios con IVA';pintar();return}
   if(!token){$('#hc').textContent='';$('#m').innerHTML='<div class="msg"><h2>Falta el link</h2><p>Abrí el link que te mandamos por WhatsApp para ver tu catálogo.</p></div>';return}
-  const{data,error}=await sb.rpc('catalogo_cliente',{p_token:token});
+  /* Arranque rápido: si el cliente ya abrió el catálogo en este celular, se muestra al instante y los precios se actualizan enseguida */
+  const CK='cat_'+token,fresco=sb.rpc('catalogo_cliente',{p_token:token});let c0=null;try{c0=JSON.parse(localStorage.getItem(CK)||'null')}catch(e){}
+  const guardarCat=d=>{try{localStorage.setItem(CK,JSON.stringify({t:Date.now(),d}))}catch(e){try{localStorage.removeItem(CK)}catch(x){}}};
+  let data,error;
+  if(c0&&c0.d&&Date.now()-c0.t<3*864e5){data=c0.d;
+    fresco.then(async({data:d,error:e})=>{if(e||!d)return;guardarCat(d);const nP=(d.productos||[]).filter(p=>p.p>0);await completarFotos(nP);prepararP(nP);
+      C=d;P=nP;hayFotos=P.some(p=>p.img);armarCombos();if($('#l')&&typeof lista=='function'&&!document.querySelector('.modal'))lista();if(typeof barra=='function')try{barra()}catch(x){}
+      if($('#hc'))$('#hc').textContent=C.cliente+' · precios lista '+C.lista},()=>{})}
+  else{({data,error}=await fresco);if(data)guardarCat(data)}
   if(error){$('#hc').textContent='';$('#m').innerHTML=`<div class="msg"><h2>No pudimos abrir tu catálogo</h2><p class="err">${esc(error.message)}</p></div>`;return}
   C=data;P=(data.productos||[]).filter(p=>p.p>0);await completarFotos(P);prepararP(P);hayFotos=P.some(p=>p.img);armarCombos();cargarCarrito();
   cargarSeg();setInterval(cargarSeg,120000);cargarFaq();grpRefrescar();chkNoEstoy();votCargar();sb.rpc('garantia_info').then(({data})=>{if(data&&data.activa){GAR=data;if(P.length&&$('#l'))lista()}},()=>{});

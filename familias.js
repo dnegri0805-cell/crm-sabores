@@ -136,7 +136,10 @@ const famExpandir=t=>{let s=famSinT(t)+' ';for(const[re,r]of ABREV)s=s.replace(r
 function famPorDescripcion(d){const s=famExpandir(d);for(const[f,re]of FAM_REGLAS)if(re.test(s))return f;return ''}
 /* Índice del catálogo de fotos (fotos/catalogo/catalogo.json): [código, descripción, archivo, familia] */
 let FAM_CAT=null;
-async function catalogoFotos(){if(FAM_CAT)return FAM_CAT;
+/* Se baja una sola vez aunque la pidan varias partes al mismo tiempo */
+let FAM_CAT_P=null;
+function catalogoFotos(){if(FAM_CAT)return Promise.resolve(FAM_CAT);return FAM_CAT_P=FAM_CAT_P||catalogoFotos0()}
+async function catalogoFotos0(){
   try{const r=await fetch('fotos/catalogo/catalogo.json',{cache:'no-cache'});const L=r.ok?await r.json():[];
     const porCod={};for(const[c,d,f,fa]of L){const k=String(c||'').trim().replace(/^0+/,'');if(k)(porCod[k]=porCod[k]||[]).push({c:k,d,img:'fotos/catalogo/'+f+'.webp',fa})}
     FAM_CAT={L,porCod}}catch(e){FAM_CAT={L:[],porCod:{}}}
