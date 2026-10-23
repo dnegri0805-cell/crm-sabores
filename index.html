@@ -915,7 +915,9 @@ async function init(){
   if(location.hash=='#tablero')return tablero();
   if(location.hash=='#cola'){S.tab='ventas';S.vs='cola';try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
   irAtajo();
-  shell();huellaArranque();programarManana();llegueArranque();
+  if(!location.hash&&!new URLSearchParams(location.search).get('ir')){try{const P=JSON.parse(sessionStorage.getItem('crm_pantalla')||'null');
+    if(P&&Date.now()-P.t<12*3600e3&&P.n&&P.n.tab){['tab','vs','sub','cs','ct'].forEach(k=>{if(P.n[k]!=null)S[k]=P.n[k]});if(P.n.fc)S._fcVolver=P.n.fc}}catch(e){}}
+  shell();if(S._fcVolver){const cl=S.clientes.find(x=>x.id==S._fcVolver);S._fcVolver=null;if(cl&&S.tab=='clientes')try{fichaCliente(cl)}catch(e){}}huellaArranque();programarManana();llegueArranque();
 }
 function shell(){
   app.innerHTML=`<header><b><a id="hback" class="hback" onclick="volver()" title="Volver a la pantalla anterior" aria-label="Volver" hidden>${IC('back',22)}</a>${MARCA.logo?`<img class="hlogo" src="${MARCA.logo}" alt="Sabores de mi País"><span class="hn">Sabores de mi País</span>`:'Sabores de mi País'}</b><nav>${tabsMenu().pri.map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${nomTab(t)}</a>`).join('')}${tabsMenu().sec.length?`<a data-mas="1" class="${tabsMenu().sec.includes(S.tab)?'on':''}">${tabsMenu().sec.includes(S.tab)?nomTab(S.tab)+' ▾':'Más ▾'}</a>`:''}</nav><span><a class="hbt" onclick="buscarTodo()" title="Buscar (Ctrl+K)" aria-label="Buscar">${IC('search',22)}</a><a class="hbt" onclick="ayuda()" title="Ayuda de esta pantalla (?)" aria-label="Ayuda">${IC('help',22)}</a><a class="hbt" onclick="vistaCfg()" title="Letra, colores y avisos">Aa</a><details class="umenu"><summary title="${esc(S.perfil.nombre)}" aria-label="Mi usuario">${esc((S.perfil.nombre||'?').trim().charAt(0).toUpperCase())}</summary><div class="umc"><b>${esc(S.perfil.nombre)}</b><small>${S.perfil.rol=='dueno'?'Dueño':esc(S.perfil.rol)} · versión ${VERSION}</small><button class="alt" onclick="out()">Salir</button></div></details></span></header><main id="v"></main>`;
@@ -957,7 +959,7 @@ async function vManual(){const v=$('#v');v.innerHTML='<p>Cargando manual…</p>'
 /* Supabase devuelve como máximo 1000 filas por pedido: esto trae todas, de a tandas */
 async function todo(armar){let out=[],i=0;for(;;){const{data,error}=await armar().range(i,i+999);if(error)return{data:out,error};out=out.concat(data);if(data.length<1000)return{data:out,error:null};i+=1000}}
 /* Auto-actualización: si hay una versión nueva publicada, recarga sola (evita ver la versión vieja guardada en el celular) */
-const APP_V='2026-10-17-1620';
+const APP_V='2026-10-23-1940';
 async function chequearVersion(){try{const r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});const t=await r.text(),m=t.match(/const APP_V='([^']+)'/);
   if(m&&m[1]!==APP_V){const k='recarga_'+m[1];if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,'1');location.replace(location.pathname+'?v='+m[1]+location.hash)}}catch(e){}}
 chequearVersion();document.addEventListener('visibilitychange',()=>{if(document.visibilityState=='visible')chequearVersion()});
@@ -2370,7 +2372,13 @@ async function vPedidos(){
     $('#p_ob').value=E.observaciones||'';$('#p_fe').value=(E.fecha_entrega||E.entrega)||'';
     if(c)elegir(c).then(async()=>{const{data:I}=await sb.from('pedido_items').select('*').eq('pedido_id',E.id);S.items.length=0;
       for(const it of I||[]){const p=S.productos.find(x=>x.producto_id==it.producto_id);if(!p)continue;const x={p,q:+it.cantidad};if(it.precio_manual)x.mp=+it.precio_unitario;S.items.push(x)}drawI()})}
-  if(S.preCli){const c=S.preCli;S.preCli=null;elegir(c).then(()=>{if(S.preRep){S.preRep=null;const b=$('#p_ru');if(b)b.click();else toast('Es su primer pedido: no hay nada para repetir.')}});if(S.preItems){for(const id of S.preItems){const p=S.productos.find(x=>x.producto_id==id);if(p)add(p,bul(id)?.n||1)}S.preItems=null;setTimeout(drawI,50)}}else $('#p_cq').focus();
+  if(S.preCli){const c=S.preCli;S.preCli=null;elegir(c).then(()=>{if(S.preRep){S.preRep=null;const b=$('#p_ru');if(b)b.click();else toast('Es su primer pedido: no hay nada para repetir.')}});if(S.preItems){for(const id of S.preItems){const p=S.productos.find(x=>x.producto_id==id);if(p)add(p,bul(id)?.n||1)}S.preItems=null;setTimeout(drawI,50)}}else{$('#p_cq').focus();
+    const B=leerBorr(),c=B&&S.clientes.find(x=>x.id==B.c);
+    if(c&&!S.edPed){const d=document.createElement('div');d.className='box';d.id='p_borr';d.style.cssText='border:2px solid '+MARCA.c+';margin-bottom:10px';
+      d.innerHTML=`<p style="margin:0 0 8px">📝 Tenés un pedido sin terminar de <b>${esc(c.nombre_fantasia||tituloCaso(c.razon_social))}</b> (${B.i.length} producto${B.i.length==1?'':'s'}).</p><div class="fc-acc"><button id="pb_s">Seguir con ese pedido</button><button class="alt" id="pb_d">Descartarlo</button></div>`;
+      $('#p_cq').before(d);
+      d.querySelector('#pb_d').onclick=()=>{borrarBorr();d.remove()};
+      d.querySelector('#pb_s').onclick=()=>{d.remove();elegir(c).then(()=>{S.items=[];for(const x of B.i){const p=S.productos.find(y=>y.producto_id==x.id);if(!p)continue;const it={p,q:+x.q};if(x.mp!=null)it.mp=+x.mp;if(x.cb)it.cb=x.cb;S.items.push(it)}drawI()})}}}
   $('#p_g').onclick=async()=>{const c=cli();if(!c||!S.items.length)return toast('Elegí un cliente y agregá productos.',1);
     const sub=S.items.reduce((a,i)=>a+pi(i).pu*i.q,0),pe=escalaDe(sub),cu=S.pcup?.pct||0,nv=S.pniv?.pct||0,fac=(1-pe/100)*(1-nv/100)*(1-cu/100);
     const agOff=()=>{const ag={};for(const i of S.items){const P=pi(i),k=i.p.producto_id,a=ag[k]=ag[k]||{q:0,t:0,l:new Set()};a.q+=i.q;a.t+=P.pu*i.q;if(i.mp!=null&&!i.cb)a.mp=1;if(P.r)a.l.add(P.r.nombre+' (−'+nf(P.r.descuento_pct)+' %)');if(P.lab)a.l.add(P.lab)}
@@ -2388,7 +2396,7 @@ async function vPedidos(){
     const{error:e2}=await sb.from('pedido_items').insert(Object.entries(ag).map(([k,a])=>{const x={pedido_id:o.id,producto_id:k,cantidad:a.q,precio_unitario:Math.round(a.t/a.q*fac*100)/100};if(a.l.size)x.promo=[...a.l].join(' + ');if(a.mp)x.precio_manual=true;return x}));
     if(e2){$('#p_g').disabled=false;return toast(sqlX(e2)?'Falta correr pedidos-extra.sql en Supabase (te lo avisa el Inicio).':'El pedido N° '+o.numero+' quedó sin productos: '+e2.message,1)}
     if(cu&&!ED)await sb.from('cupones_usos').insert({codigo:S.pcup.codigo,cliente_id:c.id,pedido_id:o.id});
-    if(!ED)await marcarDebidos(o.numero).catch(()=>{});S.edPed=null;okAnim('Pedido N° '+o.numero+(ED?' actualizado':' guardado'));await cargarStock();vPedidos()};
+    if(!ED)await marcarDebidos(o.numero).catch(()=>{});S.edPed=null;borrarBorr();okAnim('Pedido N° '+o.numero+(ED?' actualizado':' guardado'));await cargarStock();vPedidos()};
   $('#p_cuo').onclick=async()=>{const k=$('#p_cu').value.trim().toUpperCase();if(!k){S.pcup=null;$('#p_cum').textContent='';return drawI()}
     const c=cli();if(!c)return toast('Elegí primero el cliente.',1);const sub=S.items.reduce((a,i)=>a+pi(i).pu*i.q,0);
     const{data,error}=await sb.rpc('validar_cupon',{p_token:c.token_pedidos||'',p_codigo:k,p_monto:sub*(1-escalaDe(sub)/100)});
@@ -9689,6 +9697,18 @@ addEventListener('popstate',e=>{
   if(S.tab!='inicio'){navIr({tab:'inicio'});try{history.pushState({nav:navSnap(),d:0},'')}catch(x){}navBtn()}
 });
 {const _shell=shell;shell=function(){_shell.apply(this,arguments);navSync()}}
+/* Si el celular cierra la página en segundo plano, al volver retoma la misma pantalla y el pedido que estabas cargando */
+const BORR_K='ped_borrador';
+function leerBorr(){try{const B=JSON.parse(localStorage.getItem(BORR_K)||'null');if(!B||Date.now()-B.t>24*3600e3||!(B.i||[]).length)return null;return B}catch(e){return null}}
+function borrarBorr(){try{localStorage.removeItem(BORR_K)}catch(e){}}
+function guardarBorr(){try{if(S.tab!='pedidos'||S.edPed||!S.pcli||!(S.items||[]).length||!document.getElementById('p_i'))return;
+  localStorage.setItem(BORR_K,JSON.stringify({t:Date.now(),c:S.pcli.id,i:S.items.map(x=>({id:x.p.producto_id,q:x.q,mp:x.mp??null,cb:x.cb||null}))}))}catch(e){}}
+function guardarPantalla(){try{if(S.perfil)sessionStorage.setItem('crm_pantalla',JSON.stringify({t:Date.now(),n:navSnap()}))}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(document.hidden){guardarBorr();guardarPantalla()}});
+addEventListener('pagehide',()=>{guardarBorr();guardarPantalla()});
+document.addEventListener('click',()=>setTimeout(()=>{guardarBorr();guardarPantalla()},0),true);
+document.addEventListener('change',()=>setTimeout(guardarBorr,0),true);
+document.addEventListener('input',()=>setTimeout(guardarBorr,300),true);
 document.addEventListener('click',()=>setTimeout(navSync,0),true);
 document.addEventListener('change',()=>setTimeout(navSync,0),true);
 
