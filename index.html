@@ -915,8 +915,8 @@ async function init(){
   if(location.hash=='#tablero')return tablero();
   if(location.hash=='#cola'){S.tab='ventas';S.vs='cola';try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
   irAtajo();
-  if(!location.hash&&!new URLSearchParams(location.search).get('ir')){try{const P=JSON.parse(sessionStorage.getItem('crm_pantalla')||'null');
-    if(P&&Date.now()-P.t<12*3600e3&&P.n&&P.n.tab){['tab','vs','sub','cs','ct'].forEach(k=>{if(P.n[k]!=null)S[k]=P.n[k]});if(P.n.fc)S._fcVolver=P.n.fc}}catch(e){}}
+  if(!location.hash&&!new URLSearchParams(location.search).get('ir')){try{const P=JSON.parse(localStorage.getItem('crm_pantalla')||'null');
+    if(P&&Date.now()-P.t<3*3600e3&&P.n&&P.n.tab){['tab','vs','sub','cs','ct'].forEach(k=>{if(P.n[k]!=null)S[k]=P.n[k]});if(P.n.fc)S._fcVolver=P.n.fc}}catch(e){}}
   shell();if(S._fcVolver){const cl=S.clientes.find(x=>x.id==S._fcVolver);S._fcVolver=null;if(cl&&S.tab=='clientes')try{fichaCliente(cl)}catch(e){}}huellaArranque();programarManana();llegueArranque();
 }
 function shell(){
@@ -959,7 +959,7 @@ async function vManual(){const v=$('#v');v.innerHTML='<p>Cargando manual…</p>'
 /* Supabase devuelve como máximo 1000 filas por pedido: esto trae todas, de a tandas */
 async function todo(armar){let out=[],i=0;for(;;){const{data,error}=await armar().range(i,i+999);if(error)return{data:out,error};out=out.concat(data);if(data.length<1000)return{data:out,error:null};i+=1000}}
 /* Auto-actualización: si hay una versión nueva publicada, recarga sola (evita ver la versión vieja guardada en el celular) */
-const APP_V='2026-10-23-1940';
+const APP_V='2026-10-23-1945';
 async function chequearVersion(){try{const r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});const t=await r.text(),m=t.match(/const APP_V='([^']+)'/);
   if(m&&m[1]!==APP_V){const k='recarga_'+m[1];if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,'1');location.replace(location.pathname+'?v='+m[1]+location.hash)}}catch(e){}}
 chequearVersion();document.addEventListener('visibilitychange',()=>{if(document.visibilityState=='visible')chequearVersion()});
@@ -9703,7 +9703,7 @@ function leerBorr(){try{const B=JSON.parse(localStorage.getItem(BORR_K)||'null')
 function borrarBorr(){try{localStorage.removeItem(BORR_K)}catch(e){}}
 function guardarBorr(){try{if(S.tab!='pedidos'||S.edPed||!S.pcli||!(S.items||[]).length||!document.getElementById('p_i'))return;
   localStorage.setItem(BORR_K,JSON.stringify({t:Date.now(),c:S.pcli.id,i:S.items.map(x=>({id:x.p.producto_id,q:x.q,mp:x.mp??null,cb:x.cb||null}))}))}catch(e){}}
-function guardarPantalla(){try{if(S.perfil)sessionStorage.setItem('crm_pantalla',JSON.stringify({t:Date.now(),n:navSnap()}))}catch(e){}}
+function guardarPantalla(){try{if(S.perfil)localStorage.setItem('crm_pantalla',JSON.stringify({t:Date.now(),n:navSnap()}))}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden){guardarBorr();guardarPantalla()}});
 addEventListener('pagehide',()=>{guardarBorr();guardarPantalla()});
 document.addEventListener('click',()=>setTimeout(()=>{guardarBorr();guardarPantalla()},0),true);
