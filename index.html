@@ -794,6 +794,39 @@ main#v:has(#s_cn),main#v:has(#pr_cnt){max-width:1200px}
 
 .ktodo{display:inline-block;margin-top:6px;font-size:13px}
 </style>
+
+<style id="guia-visual">
+/* ===== Guía visual: un color = un significado, dos formas de botón, mismas esquinas ===== */
+:root{--er:#d92d20;--warn-bg:#fff4d6;--warn:#8a5300;--rad:14px;--rad-s:10px;--borde:#e3e6ec}
+html.oscuro{--borde:#2c3850}
+/* Esquinas */
+.box,.kp>.box,.modal .mc,.sheet{border-radius:var(--rad)}
+.box{border-color:var(--borde)}
+input,select,textarea{border-radius:var(--rad-s);border-color:#cfd4de}
+html.oscuro input,html.oscuro select,html.oscuro textarea{border-color:#2c3850}
+td input,td select{border-radius:8px}
+/* Botones: rectángulo redondeado para acciones; las píldoras quedan para filtros y chips */
+button,.btn,a.btn{border-radius:var(--rad-s)}
+td button,.ptools button{border-radius:var(--rad-s)}
+/* Rojo = deuda o problema (más vivo, distinto del bordó de los botones) */
+.mora,td.mora,.num.mora,.kp .alerta .num,#k3 .num,.mven.mora{color:var(--er)!important}
+.box.alerta,#k3{border-color:var(--er)!important}
+.b-mora30{background:#fde4e1;color:var(--er)}
+/* Ámbar = atención */
+.b-pendiente,.b-visitado{background:var(--warn-bg);color:var(--warn)}
+/* Prueba = violeta, para no confundir con un aviso */
+.badge.b-prueba,.b-prueba{background:#efe9fb!important;color:#5b3a9a!important}
+html:not(.oscuro) .prb-bar{background:#f6f2fd;border-color:#d8ccf2;color:#4a2f80}html.oscuro .prb-bar{background:#241c38;border-color:#4a3a70;color:#d8ccf2}
+/* Inicio: lo único lleno de color es "Nuevo pedido" */
+html:not(.oscuro) #k1,html:not(.oscuro) .kphoy #k1{background:#fff!important;border-color:var(--borde)!important;color:inherit}
+html.oscuro #k1,html.oscuro .kphoy #k1{background:#18202f!important;border-color:#273246!important}
+#k1 .lab,.kphoy #k1 .lab,#k1 .det,.kphoy #k1 .det{color:#6a7184!important}
+html:not(.oscuro) #k1 .num{color:var(--m)!important}html.oscuro #k1 .num{color:#f0c3cf!important}
+html #k1 .num.cero{color:#9aa1b2!important}html.oscuro #k1 .num.cero,html:not(.oscuro) #k1 .num.cero{color:#9aa1b2!important}
+/* Íconos grandes de las tarjetas (antes emojis) */
+.ici-big{display:flex;justify-content:center;color:inherit}
+button:not(.alt)>.ici-big{color:#fff}
+</style>
 </head>
 <body>
 <div id="app"><div class="splash"><img src="logo.png" alt="Sabores de mi País"><i></i></div></div><div id="t"></div>
@@ -9420,7 +9453,8 @@ document.addEventListener('change',()=>setTimeout(navSync,0),true);
 const EMO_IC={"⚠️": "alert", "⚠": "alert", "💡": "bulb", "🗒️": "note", "👥": "users", "🔔": "bell", "📊": "chart", "☰": "menu", "🙋": "user", "🍦": "building", "🇨🇳": "globe", "🧑‍🍳": "star", "🎙": "mic", "🧺": "box", "📌": "pin", "🔍": "search", "📆": "calendar", "🗳️": "check", "🧊": "box", "🏪": "building", "🎟️": "tag", "📢": "megaphone", "🎯": "flag", "📜": "doc", "🔜": "calendar", "🥇": "star", "💰": "bank", "💲": "tag", "📋": "doc", "📲": "chat", "🖨️": "print", "🛒": "cart", "📞": "phone", "✅": "check", "🖼️": "image", "📄": "doc", "📷": "camera", "📍": "pin", "⚖️": "scale", "🧾": "receipt", "🚚": "truck", "⚡": "bolt", "📣": "megaphone", "🗓️": "calendar", "📈": "chart", "🔁": "repeat", "🧺": "box", "💬": "chat", "⚙️": "gear", "⬇️": "download", "🔎": "search", "📅": "calendar", "🏷️": "tag", "📸": "camera", "👀": "eye", "📦": "box", "🩺": "gauge", "🧹": "sparkle", "📖": "book", "📂": "folder", "🤖": "gear", "✏️": "pencil", "✍️": "pencil", "💸": "cash", "🎤": "mic", "🚀": "send", "🔓": "lock", "🔪": "cut", "🛠️": "gear", "📉": "chart", "🌡️": "gauge", "🏠": "home", "🗂️": "folder", "💵": "cash", "💾": "download", "🧮": "calc", "📝": "pencil", "♻️": "repeat", "🚦": "gauge", "💳": "card", "🏦": "bank", "🤝": "calendar", "🗺️": "map", "🚐": "truck", "🧭": "map", "🔗": "globe", "⏰": "clock", "🕐": "clock", "🚶": "pin", "🎁": "gift", "⭐": "star", "👑": "star", "🏆": "star", "🏅": "star", "✨": "sparkle", "📱": "phone", "🔒": "lock", "🔐": "lock", "🏭": "building", "🎙️": "mic", "🌐": "globe", "📒": "book", "🥜": "tag", "📊": "bars", "🚩": "flag", "🏖️": "sun", "🧽": "sparkle", "📥": "inbox", "🗑️": "trash", "🧲": "user", "🔮": "chart", "🅰️": "bars", "🧪": "calc", "💼": "card", "📺": "chart", "🏁": "flag", "🆘": "flag", "⚔️": "flag", "🌱": "sparkle", "👋": "user", "🔳": "box", "📇": "user", "📆": "calendar", "🛍️": "cart", "🔔": "star", "👍": "check", "👎": "flag", "🎲": "gift", "🙏": "check", "🔥": "star", "📵": "phone", "⏳": "clock", "⏹️": "box", "▶️": "send", "🚪": "send", "🎨": "image", "🍝": "star", "🧀": "tag"};
 const EMO_RE=new RegExp('^\\s*('+Object.keys(EMO_IC).sort((a,b)=>b.length-a.length).map(e=>e.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')\\uFE0F?\\s+');
 function iconizar(raiz){try{(raiz||document).querySelectorAll('button,summary,a.btn,a.lnk,label,.chip,small,p,li,th,.lab,span.badge,option').forEach(b=>{if(b.tagName=='OPTION'){const m=b.textContent.match(EMO_RE);if(m)b.textContent=b.textContent.slice(m[0].length);return}if(b.closest('textarea,pre,.wa-prev,.msg,.prev'))return;const t=b.firstChild;if(!t||t.nodeType!==3)return;const m=t.nodeValue.match(EMO_RE);if(!m)return;
-  t.nodeValue=t.nodeValue.slice(m[0].length);const w=document.createElement('span');w.className='ici';w.innerHTML=IC(EMO_IC[m[1]],17);b.insertBefore(w,t)})}catch(e){}}
+  t.nodeValue=t.nodeValue.slice(m[0].length);const w=document.createElement('span');w.className='ici';w.innerHTML=IC(EMO_IC[m[1]],17);b.insertBefore(w,t)});
+  (raiz||document).querySelectorAll('button>span:first-child:not(.ici)').forEach(sp=>{if(sp.childElementCount)return;const x=sp.textContent.trim(),n=EMO_IC[x]||EMO_IC[x.replace(/\uFE0F/g,'')]||EMO_IC[x+'\uFE0F'];if(!n||!ICP[n])return;sp.className='ici ici-big';sp.innerHTML=IC(n,26)})}catch(e){}}
 /* Tablas como tarjetas en el celular (Caja, Stock, Reportes) */
 function tarjetizar(){try{if(!matchMedia('(max-width:640px)').matches)return;
   const sel=(['caja','stock','reportes','compras'].includes(S.tab)||(S.tab=='clientes'&&S.cs=='dormidos')?'#v table:not(#pr_t):not(#p_i):not(.morc),':'')+'.modal table';
