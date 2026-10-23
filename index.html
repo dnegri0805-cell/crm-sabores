@@ -2410,7 +2410,9 @@ async function facturarPedido(o){
   if(!(o.total>0)){toast('El pedido no tiene importe.',1);return null}
   const{data:ya}=await sb.from('facturas_venta').select('tipo,numero').eq('pedido_id',o.id).limit(1);
   if(ya?.length){toast('Este pedido ya tiene la factura '+ya[0].tipo+' N° '+ya[0].numero+'.',1);return null}
-  const tipo=c.condicion_iva=='responsable_inscripto'?'A':'B';
+  const E=await datosEmisor(),ri=/responsable\s*inscripto/i.test(E.iva||'');
+  /* Monotributo o exento: siempre Factura C. Responsable Inscripto: A a otro RI, B al resto. */
+  const tipo=!ri?'C':c.condicion_iva=='responsable_inscripto'?'A':'B';
   const{data:u}=await sb.from('facturas_venta').select('numero').eq('tipo',tipo).order('numero',{ascending:false}).limit(1);
   const v=new Date();v.setDate(v.getDate()+(c.condicion_pago_dias||0));
   const{data:f,error}=await sb.from('facturas_venta').insert({tipo,numero:(u?.[0]?.numero||0)+1,cliente_id:c.id,pedido_id:o.id,vencimiento:diaLocal(v),total:o.total}).select().single();
@@ -3173,7 +3175,7 @@ const OP_SQL='<div class="aviso">Para usar las órdenes de pago falta correr <b>
 const MEDIOS_VAL={transferencia:'Transferencia',deposito:'Depósito',efectivo:'Efectivo',echeq:'eCheq',cheque:'Cheque',tarjeta:'Tarjeta',otro:'Otro'};
 const IMPUESTOS=['IIBB','Ganancias','IVA','SUSS','Otro'];
 const opNum=n=>'0001-'+String(n).padStart(8,'0');
-async function datosEmisor(){if(S.emisor)return S.emisor;S.emisor=await cfgJ('datos_emisor',{rs:'Sabores de mi País',cuit:'',iva:'Responsable Inscripto',iibb:'',dom:''});return S.emisor}
+async function datosEmisor(){if(S.emisor)return S.emisor;S.emisor=await cfgJ('datos_emisor',{rs:'Sabores de mi País',cuit:'',iva:'Monotributo',iibb:'',dom:''});return S.emisor}
 const emisorHTML=E=>`<div style="font-size:12px;color:#5b6274;margin-top:4px">${esc(E.rs||'Sabores de mi País')}${E.cuit?' · CUIT '+esc(cuitFmt(E.cuit)):''}${E.iva?' · '+esc(E.iva):''}${E.iibb?'<br>IIBB '+esc(E.iibb):''}${E.dom?' · '+esc(E.dom):''}</div>`;
 /* Detalle legible de un valor (para pantalla, PDF y WhatsApp) */
 const valDet=v=>[v.endosado?'endosado de la cartera':'',v.banco?'Banco '+v.banco:'',v.numero?'N° '+v.numero:'',v.fecha_pago?'paga el '+fd(v.fecha_pago):'',v.titular?'de '+v.titular:'',v.cuit?'CUIT '+cuitFmt(v.cuit):'',v.referencia?'Ref. '+v.referencia:'',v.cuenta_id&&S.ctasN?.[v.cuenta_id]?'cuenta '+S.ctasN[v.cuenta_id]:''].filter(Boolean).join(' · ');
