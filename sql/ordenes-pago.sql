@@ -389,5 +389,7 @@ grant execute on function public.anular_orden_pago(bigint) to authenticated;
 grant execute on function public.registrar_recibo(jsonb) to authenticated;
 grant execute on function public.anular_recibo(bigint) to authenticated;
 grant select on public.v_facturas_proveedor_estado to authenticated;
+grant select, insert, update, delete on public.ordenes_pago, public.op_imputaciones, public.comprobante_valores to authenticated;
+grant all on public.ordenes_pago, public.op_imputaciones, public.comprobante_valores to service_role;
 
 notify pgrst, 'reload schema';

@@ -855,7 +855,7 @@ html.oscuro .vrow,html.oscuro .rrow{background:#18202f}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-23.2';
+const VERSION='2026-10-23.3';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -3168,6 +3168,7 @@ function cCuenta(){
 }
 /* ======================= ÓRDENES DE PAGO Y RECIBOS DETALLADOS ======================= */
 /* Lo que necesitan: sql/ordenes-pago.sql (una sola vez en Supabase) */
+const opErr=e=>e&&(e.code=='42P01'||e.code=='PGRST205'||/does not exist|schema cache/.test(e.message||''))?OP_SQL:'<p class="err">No se pudo leer: '+esc(e?.message||'error')+'</p>';
 const OP_SQL='<div class="aviso">Para usar las órdenes de pago falta correr <b>ordenes-pago.sql</b> en Supabase (SQL Editor) una sola vez. Después recargá la página.</div>';
 const MEDIOS_VAL={transferencia:'Transferencia',deposito:'Depósito',efectivo:'Efectivo',echeq:'eCheq',cheque:'Cheque',tarjeta:'Tarjeta',otro:'Otro'};
 const IMPUESTOS=['IIBB','Ganancias','IVA','SUSS','Otro'];
@@ -3226,7 +3227,7 @@ async function formOP(){const box=$('#op_f'),id=$('#op_p').value;if(!id){box.inn
   const[f,s,C,H,ag]=await Promise.all([sb.from('v_facturas_proveedor_estado').select('*').eq('proveedor_id',id).gt('pendiente',0.004).order('fecha'),
     sb.from('v_saldo_proveedores').select('*').eq('proveedor_id',id).maybeSingle(),cargarCuentas(),
     sb.from('cheques').select('*').eq('tipo','recibido').eq('estado','en_cartera').order('fecha_pago'),cfgJ('agente_retencion',{iibb:{on:false,jur:'',al:0,min:0},gan:{on:false,al:2,min:0,reg:''}})]);
-  if(f.error){box.innerHTML=OP_SQL;return}
+  if(f.error){box.innerHTML=opErr(f.error);return}
   const F=f.data||[];const{data:FN}=F.length?await sb.from('facturas_proveedor').select('id,neto').in('id',F.map(x=>x.factura_id)):{data:[]};
   const neto=id=>+(FN||[]).find(x=>x.id==id)?.neto||0;
   box.innerHTML=`<p class="op-sal">Le debés <b>${$m(s.data?.saldo)}</b>${F.length?` · ${F.length} ${F.length==1?'factura pendiente':'facturas pendientes'}`:''}</p>
@@ -3278,7 +3279,7 @@ async function formOP(){const box=$('#op_f'),id=$('#op_p').value;if(!id){box.inn
 }
 async function listaOP(){const box=$('#op_l');if(!box)return;const id=$('#op_p')?.value;
   let q=sb.from('ordenes_pago').select('*,proveedores(razon_social)').order('id',{ascending:false}).limit(40);if(id&&!S.opTodas)q=q.eq('proveedor_id',id);
-  const{data,error}=await q;if(error){box.innerHTML=OP_SQL;return}
+  const{data,error}=await q;if(error){box.innerHTML=opErr(error);return}
   box.innerHTML=data.length?`<div class="opl">${data.map(o=>`<div class="opi ${o.anulada?'anul':''}"><div class="opi-t"><b>OP N° ${o.id}</b> <small>${fd(o.fecha)}</small>${o.anulada?' <span class="badge b-cancelado">Anulada</span>':''}<br><small>${esc(o.proveedores?.razon_social||'')}${+o.total_retenciones>0?' · retenciones '+$m(o.total_retenciones):''}</small></div><b class="opi-m">${$m(o.total)}</b>
     <span class="opi-b"><button class="alt" data-opp="${o.id}" aria-label="PDF" title="PDF">${IC('doc',18)}</button><button class="alt wa" data-opw="${o.id}" aria-label="WhatsApp" title="Mandar por WhatsApp">${IC('chat',18)}</button>${+o.total_retenciones>0&&!o.anulada?`<button class="alt" data-opc="${o.id}" title="Certificados de retención">${IC('receipt',18)}</button>`:''}${!o.anulada?`<button class="alt" data-opa="${o.id}" aria-label="Anular" title="Anular">${IC('x',18)}</button>`:''}</span></div>`).join('')}</div>`:vacioHTML('Todavía no hay órdenes de pago. Cuando le pagues a un proveedor, hacela acá arriba: queda numerada y con todo el detalle.','doc');
   $$('#op_l [data-opp]').forEach(b=>b.onclick=()=>pdfOP(+b.dataset.opp));$$('#op_l [data-opw]').forEach(b=>b.onclick=()=>waOP(+b.dataset.opw));$$('#op_l [data-opc]').forEach(b=>b.onclick=()=>certRetOP(+b.dataset.opc));
