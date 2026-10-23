@@ -745,6 +745,30 @@ h3 .ic{vertical-align:-3px;color:var(--m);margin-right:2px}
 @media(max-width:640px){#v .box>button:not(.alt):not(.qb):not(.chip){width:100%}}
 .pcod{white-space:nowrap}
 
+/* Segunda pasada: encabezados, tarjetas de números, cobranza, vacíos, desplegables */
+@media(max-width:640px){
+ #v>.bh{row-gap:10px}
+ #v>.bh>.fc-acc,#v>.bh:first-child>.fc-acc{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto!important;gap:6px;scrollbar-width:none;margin:0 -16px!important;padding:2px 40px 2px 16px!important;flex:0 0 calc(100% + 32px);min-width:0;max-width:calc(100% + 32px);-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);mask-image:linear-gradient(90deg,#000 85%,transparent)}
+ #v>.bh>.fc-acc::-webkit-scrollbar{display:none}
+ #v>.bh>.fc-acc>button,#v>.bh>.fc-acc>details>summary{flex:none;white-space:nowrap;border-radius:999px!important;padding:8px 15px!important;font-size:14.5px!important;margin:0!important;width:auto!important}
+ #v>.bh>h2{flex:1 1 100%;min-width:0}
+ #v>.bh>button{border-radius:999px!important;padding:8px 15px!important;font-size:14.5px!important;margin:0!important}
+ .kp .lab{font-size:11.5px!important;letter-spacing:.03em!important;line-height:1.25}
+ table.morc td.macc{display:grid!important;grid-template-columns:1.1fr 1.2fr .8fr 1.1fr;gap:6px;white-space:normal!important}
+ table.morc td.macc button{width:100%;margin:0!important;padding:8px 4px!important;font-size:14px}
+}
+#rv_f:empty{display:none}
+tr.vrow td{border:0!important;background:transparent!important;padding:8px 0!important}
+tr.vrow .vacio{margin:0}
+.box.chk-solo{background:none!important;border:0!important;padding:0!important;box-shadow:none!important;margin-bottom:0}
+.box.chk-solo:empty{display:none}
+#pr_cnt{white-space:nowrap;flex:none}
+@media(max-width:640px){#v>.bh>button{font-size:14px!important;padding:7px 13px!important}}
+.box details:not(.plg):not(.mas):not(.fc-plg):not(.fc-dat):not(.fc-mas):not(.prf)>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:6px}
+.box details:not(.plg):not(.mas):not(.fc-plg):not(.fc-dat):not(.fc-mas):not(.prf)>summary::-webkit-details-marker{display:none}
+.box details:not(.plg):not(.mas):not(.fc-plg):not(.fc-dat):not(.fc-mas):not(.prf)>summary::before{content:"";width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);margin:0 4px 0 2px;transition:transform .15s;flex:none;opacity:.7}
+.box details[open]:not(.plg):not(.mas):not(.fc-plg):not(.fc-dat):not(.fc-mas):not(.prf)>summary::before{transform:rotate(45deg)}
+
 /* Pedidos de prueba */
 .prb-l{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;margin:8px 0;border:1px dashed #d9b8c1;border-radius:12px;background:#fdf7f8;cursor:pointer}
 .prb-l input{width:20px;height:20px;margin:2px 0 0;flex:none;accent-color:var(--m)}
@@ -1956,7 +1980,7 @@ async function copiarTabla(head,rows){const t=aTabla(head,rows);
   catch(e){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('Tabla copiada: pegala en Excel con Ctrl+V.')}}
 async function vReportes(){
   S.rp=(typeof S.rp=='string'&&PERIODOS.some(x=>x[0]==S.rp))?S.rp:'mes';
-  $('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Reportes de ventas</h2><button class="alt" onclick="descargarBackup()">💾 Descargar todo en Excel</button><button class="alt" onclick="informeMes(prompt('¿De qué mes? (AAAA-MM)',mesHoy())||mesHoy())">📄 Informe del mes</button></div>
+  $('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Reportes de ventas</h2><button class="alt" onclick="descargarBackup()">💾 Descargar Excel</button><button class="alt" onclick="informeMes(prompt('¿De qué mes? (AAAA-MM)',mesHoy())||mesHoy())">📄 Informe del mes</button></div>
   <div class="sub" id="rp_p">${PERIODOS.map(([k,t])=>`<button class="${S.rp==k?'':'alt'}" data-rp="${k}">${t}</button>`).join('')}</div>
   <p><small>Cuenta los pedidos aprobados en adelante (no incluye los que esperan aprobación ni los cancelados).</small></p>
   <div class="kp">
@@ -2358,7 +2382,7 @@ async function listaPedidos(){
         :(sig?`<button data-sig="${o.id}">${sig[1]}</button>`:'');
       const fb=cerr?'':(f?`<span class="fac">${IC('receipt',14)} Factura ${f.tipo} N° ${f.numero}</span>`:(o.estado=='pendiente'?'':`<button data-fa="${o.id}">Facturar</button>`));
       return `<div class="ped est-${o.estado}">
-        <div class="ped-top"><div class="ped-q"><a class="cli" data-fc="${o.cliente_id}">${esc(o.clientes?nomVis(o.clientes):"Cliente")}</a><small>N° ${o.numero}${o.creado_en?' · '+cuandoTxt(o.creado_en):''}</small></div><span class="tot">${$m0(o.total)}${+o.costo_envio>0?'<br><small>incluye envío '+$m(o.costo_envio)+'</small>':''}</span></div>${(o.fecha_entrega||o.entrega)||o.observaciones?`<div class="ped-nota"><small>${(o.fecha_entrega||o.entrega)?IC('calendar',14)+' Entregar el '+fd((o.fecha_entrega||o.entrega)):''}${(o.fecha_entrega||o.entrega)&&o.observaciones?' · ':''}${o.observaciones?IC('note',14)+' '+esc(o.observaciones):''}</small></div>`:''}
+        <div class="ped-top"><div class="ped-q"><a class="cli" data-fc="${o.cliente_id}">${esc(o.clientes?nomVis(o.clientes):"Cliente")}</a><small>N° ${o.numero}${o.creado_en?' · '+cuandoTxt(o.creado_en):''}</small></div><span class="tot">${$m0(o.total)}${+o.costo_envio>0?'<br><small>incluye envío '+$m0(o.costo_envio)+'</small>':''}</span></div>${(o.fecha_entrega||o.entrega)||o.observaciones?`<div class="ped-nota"><small>${(o.fecha_entrega||o.entrega)?IC('calendar',14)+' Entregar el '+fd((o.fecha_entrega||o.entrega)):''}${(o.fecha_entrega||o.entrega)&&o.observaciones?' · ':''}${o.observaciones?IC('note',14)+' '+esc(o.observaciones):''}</small></div>`:''}
         <div class="ped-acc"><span class="badge b-${o.estado}">${EST_TXT[o.estado]||o.estado}</span>${o.es_prueba?'<span class="badge b-prueba">Prueba</span>':''}${o.origen=='online'?'<span class="badge b-online">Online</span>':''}${o.grupo?'<span class="badge b-online">Grupo '+esc(o.grupo)+'</span>':''}${o.cliente_ausente?'<span class="badge b-cancelado">Avisó que no va a estar</span>':''}${fb}<span class="ped-br"></span>${prin}
           ${['pendiente','aprobado'].includes(o.estado)&&!f?`<button class="alt" data-edp="${o.id}">${IC('plus',16)} Agregar productos</button>`:''}<button class="alt wa pwa" data-w="${o.id}" aria-label="WhatsApp">${IC('chat',18)}</button><details class="mas pmas"><summary>Más ▾</summary><div class="masc"><button class="alt" data-pdf="${o.id}">🖨️ Imprimir</button>${S.prbOk?`<button class="alt" data-prb="${o.id}" data-v="${o.es_prueba?0:1}">${o.es_prueba?'Ya no es de prueba':'🧪 Marcar como prueba'}</button>`:''}${['pendiente','aprobado'].includes(o.estado)&&!f?`<button class="alt" data-edp="${o.id}">✏️ Editar</button>`:''}${['pendiente','cancelado'].includes(o.estado)?'':`<button class="alt" data-rm="${o.id}">Remito</button>`}${['aprobado','en_preparacion','listo'].includes(o.estado)?`<button class="alt" data-flt="${o.id}">📦 Faltó algo</button>`:''}${o.foto_remito?`<button class="alt" data-vr="${o.id}">🧾 Firmado</button>`:''}${o.firma?`<button class="alt" data-rm="${o.id}">✍️ Firmado</button>`:''}${['en_reparto','entregado'].includes(o.estado)&&!o.firma?`<button class="alt" data-fi="${o.id}">✍️ Firma</button>`:''}${['en_reparto','entregado'].includes(o.estado)?`<button class="alt wa" data-av="${o.id}">📲 Avisar</button>`:''}${o.estado=='entregado'?`<button class="alt" data-dv="${o.id}">Devolución</button>`:''}${o.estado=='cancelado'?`<button class="alt" data-rea="${o.id}">♻️ Reactivar</button>`:`<button class="alt pcan" data-can="${o.id}">${IC('trash',16)} Cancelar pedido</button>`}${!f&&!cerr&&o.estado!='entregado'&&+o.costo_envio>0?`<button class="alt" data-eb="${o.id}" data-ev="1">🚚 Bonificar envío</button>`:''}${!f&&!cerr&&o.estado!='entregado'&&o.envio_bonificado&&envioDe(+o.total)>0?`<button class="alt" data-eb="${o.id}" data-ev="0">🚚 Cobrar envío</button>`:''}
           <select data-e="${o.id}" aria-label="Cambiar estado"><option value="">Cambiar estado…</option>${ESTADOS.filter(e=>e!=o.estado).map(e=>`<option value="${e}">${e=='cancelado'?'Cancelar pedido':'Pasar a: '+EST_TXT[e]}</option>`).join('')}</select></div></details></div>${['pendiente','aprobado'].includes(o.estado)?`<div class="ped-ins" data-ins="${o.id}"></div>`:''}</div>`}).join('')
@@ -2689,7 +2713,7 @@ async function morosos(){
     <td class="mcli">${avatar(g.c)}<a class="lnk" data-fc="${g.id}">${esc(nomVis(g.c))}</a><br><small>${g.F.length} ${g.F.length==1?'factura':'facturas'}${g.c.telefono?'':' · sin teléfono'}</small>${promTxt(g.id)}</td>
     <td class="n mdebe" data-l="Debe">${$m(g.t)}</td><td class="n mven ${g.v?'mora':''}" data-l="Vencido">${g.v?$m(g.v):'—'}${recargoG(g.F,g.id)>0?`<br><small>+ recargo ${$m(recargoG(g.F,g.id))}<br><a class="lnk" data-rgp="${g.id}">perdonar o cobrado</a></small>`:''}</td><td class="mmor">${g.mora?`<span class="badge ${g.mora>30?'b-mora30':'b-pendiente'}">${g.mora} días</span>`:'<span class="badge b-entregado">Al día</span>'}</td>
     <td class="mav"><small>${sinAvisos?'—':'Aviso: '+hace(ult[g.id])}</small></td>
-    <td class="macc" style="white-space:nowrap"><button class="alt wa" data-mw="${g.id}">WhatsApp</button> <button class="alt" data-mp="${g.id}">PDF</button> <button class="alt" data-mc="${g.id}">Cobrar</button> <button class="alt" data-mpr="${g.id}">🤝 Promesa</button></td></tr>`).join('')}</table></div>`
+    <td class="macc" style="white-space:nowrap"><button data-mc="${g.id}">Cobrar</button> <button class="alt wa" data-mw="${g.id}">WhatsApp</button> <button class="alt" data-mp="${g.id}">PDF</button> <button class="alt" data-mpr="${g.id}">Promesa</button></td></tr>`).join('')}</table></div>`
     :vacioHTML(S.morF=='vencidos'?'Nadie te debe plata vencida 👍':'Nadie te debe nada 👍','check');
   const gr=id=>V.find(g=>g.id==id);
   $$('#mo_l [data-fc]').forEach(a=>a.onclick=()=>{S.tab='clientes';shell();fichaCliente(S.clientes.find(c=>c.id==a.dataset.fc))});
@@ -2782,7 +2806,7 @@ async function vReparto(){
   const elegidos=()=>S.rvSel.map(id=>data.find(o=>o.id==id)).filter(Boolean);
   const draw=()=>{
     const E=elegidos(),resto=data.filter(o=>!S.rvSel.includes(o.id));
-    const fila=(o,i)=>{const c=cl(o);return `<div class="ped rv-ped est-${o.estado}"><div class="ped-top">${i!=null?`<b class="parada">${i+1}</b>`:(c.id?avatar(c,'rv-av'):'')}<div class="ped-q"><span class="cli">${esc(c.id?nomVis(c):c.razon_social)}</span><small>N° ${o.numero}${o.entrega?' · Entregar '+(o.entrega==diaLocal(new Date())?'hoy':fd(o.entrega)):''}</small></div><span class="tot">${$m0(o.total)}${+o.costo_envio>0?'<br><small>incluye envío '+$m(o.costo_envio)+'</small>':''}</span></div>
+    const fila=(o,i)=>{const c=cl(o);return `<div class="ped rv-ped est-${o.estado}"><div class="ped-top">${i!=null?`<b class="parada">${i+1}</b>`:(c.id?avatar(c,'rv-av'):'')}<div class="ped-q"><span class="cli">${esc(c.id?nomVis(c):c.razon_social)}</span><small>N° ${o.numero}${o.entrega?' · Entregar '+(o.entrega==diaLocal(new Date())?'hoy':fd(o.entrega)):''}</small></div><span class="tot">${$m0(o.total)}${+o.costo_envio>0?'<br><small>incluye envío '+$m0(o.costo_envio)+'</small>':''}</span></div>
       <div class="rv-dir">${IC('pin',15)} ${esc(c.domicilio||'Sin domicilio cargado')} · ${nf(bultos(o))} u.</div><div class="ped-acc"><span class="badge b-${o.estado}">${EST_TXT[o.estado]}</span>
       ${i!=null?`<button class="alt qb" data-up="${o.id}" ${i==0?'disabled':''} aria-label="Subir">↑</button><button class="alt qb" data-dn="${o.id}" ${i==E.length-1?'disabled':''} aria-label="Bajar">↓</button><button class="alt" data-q="${o.id}">Sacar</button>`:`<button data-a="${o.id}">Agregar al reparto</button>`}
       ${o.estado=='en_reparto'?`<button class="alt" data-ent="${o.id}">Entregado</button><button class="alt" data-fr="${o.id}">📷 Remito</button><button class="alt wa" data-avs="${o.id}">📲</button>`:''}</div></div>`};
@@ -2914,7 +2938,7 @@ async function cSugerencia(){
 /* Órdenes de compra */
 async function cOrdenes(){
   S.oc=[];
-  $('#cv').innerHTML=`<div class="box"><b>Nueva orden de compra</b><div class="g" style="margin-top:8px">${provSel('o_p')}<input id="o_f" type="date" title="Fecha de entrega esperada"></div>
+  $('#cv').innerHTML=`<div class="box"><b>Nueva orden de compra</b><div class="g ncf" style="margin-top:8px"><label class="f">Proveedor${provSel('o_p')}</label><label class="f">Entrega esperada<input id="o_f" type="date"></label></div>
   <div class="conscan"><input id="o_q" placeholder="Buscar producto por nombre o código">${btnScan('o_sc')}</div><div id="o_r"></div><table id="o_i"></table><p><b id="o_t"></b></p>
   <input id="o_o" placeholder="Observaciones (opcional)"><button id="o_g">Guardar orden</button></div>
   <div id="rx"></div><h3>Órdenes</h3><table id="ol"></table>`;
@@ -2953,7 +2977,7 @@ async function cOrdenes(){
       ?`<select data-e="${o.id}">${['borrador','enviada','anulada'].map(e=>`<option value="${e}" ${e==o.estado?'selected':''}>${OC_TXT[e]}</option>`).join('')}</select>`
       :`<span class="tag ${o.estado}">${OC_TXT[o.estado]}</span>`;
     return `<tr><td>${o.id}</td><td>${fd(o.fecha)}</td><td>${esc(o.proveedores?.razon_social)}</td><td>${$m(o.total)}</td><td>${est}</td>
-      <td style="white-space:nowrap">${cerrada?'':`<button data-r="${o.id}">Recibir</button> `}<button class="alt" data-pr="${o.id}">Imprimir</button> <button class="alt wa" data-ow="${o.id}">WhatsApp</button></td></tr>`}).join('')||'<tr><td colspan="6">Todavía no hay órdenes.</td></tr>');
+      <td style="white-space:nowrap">${cerrada?'':`<button data-r="${o.id}">Recibir</button> `}<button class="alt" data-pr="${o.id}">Imprimir</button> <button class="alt wa" data-ow="${o.id}">WhatsApp</button></td></tr>`}).join('')||'<tr class="vrow"><td colspan="6">'+vacioHTML('Todavía no hay órdenes de compra.','box')+'</td></tr>');
   $$('#ol [data-e]').forEach(s=>s.onchange=async()=>{
     if(s.value=='anulada'&&!confirm('¿Anular la orden N° '+s.dataset.e+'?'))return cOrdenes();
     const{error}=await sb.from('ordenes_compra').update({estado:s.value}).eq('id',s.dataset.e);error?toast(error.message,1):(toast('Estado actualizado.'),cOrdenes())});
@@ -7961,7 +7985,7 @@ async function configPendiente(){const[g,z,t,d,a]=await Promise.all([cfgJ('gasto
     ['💲 Costos de todos los productos',S.productos.filter(p=>!(+p.costo>0)).length==0,'revisionDatos()']]}
 async function chequeoInicio(){const box=$('#chk');if(!box||S.perfil.rol!='dueno')return;let oc=false;try{oc=localStorage.getItem('chk_oc')==diaLocal(new Date())}catch(e){}
   const[F,C]=await Promise.all([sqlFaltantes(),configPendiente()]),pend=C.filter(x=>!x[1]);if(!F.length&&(!pend.length||oc)){box.innerHTML='';return}
-  box.innerHTML=`<div class="box ${F.length?'alerta':''}">${F.length?`<h3 style="margin:0 0 6px">🩺 Falta correr ${F.length==1?'1 archivo':F.length+' archivos'} en Supabase</h3><p><small>Sin esto, algunas pantallas no andan. Para cada uno: tocá <b>Copiar</b>, después <b>Abrir Supabase</b>, pegá (Ctrl + V) y tocá <b>Run</b>. Corrélos en este orden.</small></p>
+  box.innerHTML=`<div class="box ${F.length?'alerta':'chk-solo'}">${F.length?`<h3 style="margin:0 0 6px">🩺 Falta correr ${F.length==1?'1 archivo':F.length+' archivos'} en Supabase</h3><p><small>Sin esto, algunas pantallas no andan. Para cada uno: tocá <b>Copiar</b>, después <b>Abrir Supabase</b>, pegá (Ctrl + V) y tocá <b>Run</b>. Corrélos en este orden.</small></p>
     ${F.map(f=>`<div class="vi" style="align-items:center"><b style="flex:1">${esc(f)}</b><button class="alt" data-csq="${esc(f)}">📋 Copiar</button><a class="alt btnl" href="${SUPA_SQL}" target="_blank" rel="noopener">Abrir Supabase</a></div>`).join('')}<p><small>Cuando termines, recargá esta página.</small></p>`:''}
     ${pend.length&&!oc?`<details class="plg"><summary>⚙️ Configuración del sistema: ${C.length-pend.length} de ${C.length} lista · tocá para ver</summary>${pend.map(([t,ok,f])=>`<div class="vi" style="align-items:center;padding:4px 0"><span style="flex:1">${t}</span><button class="alt" onclick="${f}">Ir</button></div>`).join('')}<p><a class="lnk" id="chk_oc">Ocultar hasta mañana</a></p></details>`:''}</div>`;
   $$('#chk [data-csq]').forEach(b=>b.onclick=()=>copiarSQL(b.dataset.csq,b));$('#chk_oc')&&($('#chk_oc').onclick=()=>{try{localStorage.setItem('chk_oc',diaLocal(new Date()))}catch(e){}chequeoInicio()})}
