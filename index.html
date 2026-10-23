@@ -1065,7 +1065,7 @@ async function vInicio(){
     sb.from('facturas_proveedor').select('*,proveedores(razon_social)').lte('vencimiento',lim7).order('vencimiento').limit(50)]);
   // 1 facturado hoy y en el mes
   if(fv.error)fallo('k1',fv.error);else{
-    let h=0,nh=0,m=0;for(const f of fv.data){const d=fechaDe(f);if(!d)continue;const k=diaLocal(d);const t=Number(f.total||0);if(k==hoy){h+=t;nh++}if(k.slice(0,7)==mes)m+=t}
+    let h=0,nh=0,m=0;for(const f of fv.data){if(f.anulada)continue;const d=fechaDe(f);if(!d)continue;const k=diaLocal(d);const t=Number(f.total||0);if(k==hoy){h+=t;nh++}if(k.slice(0,7)==mes)m+=t}
     kp('k1',$m(h),nh+(nh==1?' factura':' facturas')+' · en el mes '+$m(m))}
   // 2 pedidos pendientes
   if(pe.error){fallo('k2',pe.error);$('#t1').innerHTML='<p class="err">'+esc(pe.error.message)+'</p>'}else{
