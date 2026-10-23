@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
 <title>Hacé tu pedido · Sabores de mi País</title>
 <style>
-:root{--m:#7b2d3e;--m2:#f6e9ec;--n:#17213a;--g:#f4f2f3;--l:#e2dde0;--t:#1c2333;--mu:#6a7184;--ok:#1d7a46;--er:#b3261e}
+:root{--m:#7b2d3e;--m2:#f6e9ec;--n:#17213a;--g:#f4f2f3;--l:#e2dde0;--t:#1c2333;--mu:#6a7184;--ok:#1d7a46;--er:#d92d20}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{margin:0}
@@ -146,7 +146,7 @@ body.foco #l .card>*{grid-column:2;margin-bottom:6px}
 body.foco #l .card>.ph{grid-column:1;grid-row:1 / span 12;align-self:start;border:1px solid var(--l);background:#fff;margin:0}
 body.foco #l .card .cn{font-size:16px;font-weight:600;-webkit-line-clamp:3;min-height:0;line-height:1.3}
 body.foco #l .card .cp{font-size:24px;font-weight:800;white-space:nowrap}body.foco #l .card .cq input{min-width:0;width:56px;flex:1}body.foco #l .card .cp small.kg{display:block;font-size:13px;font-weight:500;margin-top:4px}
-body.foco #l .card .cq{margin-top:4px}body.foco #l .card .cq .ag{height:50px;border-radius:12px;font-size:18px;background:var(--rojo)}
+body.foco #l .card .cq{margin-top:4px}body.foco #l .card .cq .ag{height:50px;border-radius:12px;font-size:18px;background:var(--m)}
 body.foco #l .card .cq .mn,body.foco #l .card .cq .ms{height:50px;min-width:46px;flex:none}
 body.foco #l .card .fab{display:none}
 body.foco #l .card .rib,body.foco #l .card .nuevo{grid-column:1}
@@ -286,7 +286,7 @@ body.foco .sto,body.foco .sgb,body.foco #rep,body.foco #alta,body.foco .opi,body
 .opi{margin:16px 0}.opi h3{margin:0 0 8px}.opl{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x mandatory}.op{flex:0 0 240px;scroll-snap-align:start;background:#fff;border-radius:16px;padding:12px;box-shadow:var(--sombra)}.op p{margin:6px 0;font-size:14px}.op small{color:var(--mu)}.op .es{color:#e0a100;letter-spacing:2px}
 
 /* estilo app: ficha, etiquetas, buscador, hora de corte */
-.nuevo.top{background:#e0322b}.card .ph{cursor:pointer}.card .cn[data-fi]{cursor:pointer}
+.nuevo.top{background:var(--m)}.card .ph{cursor:pointer}.card .cn[data-fi]{cursor:pointer}
 .busca{position:sticky}.sgq{position:absolute;left:0;right:0;top:62px;z-index:7;background:#fff;border:1px solid var(--l);border-radius:16px;box-shadow:0 12px 30px rgba(23,33,58,.18);padding:6px;max-height:60vh;overflow:auto}
 .sgq .sgi{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;border-radius:12px;padding:7px 8px;text-align:left;font-size:14px;color:inherit;min-height:0}
 .sgq .sgi:hover,.sgq .sgi:active{background:var(--crema,#fbf6ee)}.sgq .sgi img,.sgq .sgi i{width:40px;height:40px;flex:none;object-fit:contain;border-radius:8px;background:#fff;display:grid;place-items:center;font-style:normal;font-size:18px}
@@ -339,6 +339,7 @@ body.foco #l .card .cp .cp-v{font-size:32px}
 .tabs button{display:flex;align-items:center;justify-content:center;gap:8px}
 .card .avi{position:absolute;z-index:2;top:6px;right:6px;width:32px;height:32px;border-radius:50%;border:0;padding:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.92);color:#8a8290;box-shadow:0 2px 6px rgba(0,0,0,.15);cursor:pointer}
 .card .avi.on{color:#1d7a46}
+body.foco .card .avi{width:26px;height:26px;top:4px;right:4px}body.foco .card .avi svg{width:14px;height:14px}
 .card .ph .icf{display:none}.card .ph.sinf{display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--fc,#7a2a3a) 10%,#fff)}.card .ph.sinf .icf{display:block}
 .card{display:flex;flex-direction:column}.card .cq{margin-top:auto}
 .pic button{background:var(--m);color:#fff;font-weight:700;border-radius:999px;padding:9px 18px;border:0}
