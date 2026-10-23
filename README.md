@@ -15,3 +15,7 @@ https://dnegri0805-cell.github.io/crm-sabores/
 ## Versiones (arranque rápido)
 La app se abre desde la copia guardada en el celular (`sw.js`) y mira `version.json` para saber si hay una versión nueva.
 Cada vez que se publica un cambio en `index.html` o `pedido.html`, subir su `VERSION` y poner el mismo valor en `version.json` (`crm` o `pedido`).
+
+## Órdenes de pago y recibos detallados
+Correr una vez `sql/ordenes-pago.sql` en Supabase. Agrega: órdenes de pago numeradas (Compras → Órdenes de pago), pago escalonado por factura,
+valores con detalle (eCheq, cheques de cartera, transferencias por cuenta), retenciones sufridas y practicadas, certificados y anulación.

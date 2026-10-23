@@ -830,6 +830,24 @@ button:not(.alt)>.ici-big{color:#fff}
 .cl-bt.lp{color:var(--m)}
 .lp-rap{display:flex;flex-direction:column;gap:4px;margin:6px 0 12px}.lp-rap button{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:#1a8f4c;color:#fff;border:0;padding:12px}.lp-rap small{color:#6a7184}
 .fc-big:has(#fc_ml){display:grid!important;grid-template-columns:repeat(3,1fr);gap:8px}.fc-big:has(#fc_ml)>#fc_np{grid-column:1/-1}.fc-big:has(#fc_ml)>*{min-width:0;padding-left:4px;padding-right:4px;white-space:nowrap;font-size:14px}
+
+/* Órdenes de pago y recibos detallados */
+.op-sal{margin:10px 0}.op-h{margin:16px 0 6px;display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.op-fac{border:1px solid var(--borde,#e3e6ec);border-radius:var(--rad-s,10px);overflow:hidden;margin:8px 0}
+.op-acc{padding:8px 12px;background:var(--g);font-size:13px}
+.op-fr{display:grid;grid-template-columns:auto 1fr auto;gap:4px 10px;align-items:center;padding:10px 12px;border-top:1px solid var(--borde,#e3e6ec);margin:0;cursor:pointer}
+.op-fr input[type=checkbox]{width:20px;height:20px;margin:0}.op-fn{display:flex;flex-direction:column}.op-fn small{color:#6a7184}.op-fp{text-align:right;white-space:nowrap;font-weight:600}.op-fp small{display:block;font-weight:400;color:#6a7184;font-size:11px}
+.op-fi{grid-column:2/-1;margin:0;text-align:right}.op-fi:disabled{display:none}
+.vrow,.rrow{border:1px solid var(--borde,#e3e6ec);border-radius:var(--rad-s,10px);padding:10px;margin:0 0 8px;background:#fff}
+html.oscuro .vrow,html.oscuro .rrow{background:#18202f}
+.vr-top{display:grid;grid-template-columns:1.3fr 1fr auto;gap:8px;align-items:center}.vr-top>*{margin:0}.vr-det .g{margin-top:8px}.vr-det small{display:block;margin-top:6px}
+.v_x,.r_x{padding:8px 10px}.r_x{margin-top:8px}
+.op-ret{margin:12px 0;border:1px dashed var(--borde,#e3e6ec);border-radius:var(--rad-s,10px);padding:8px 12px}.op-ret summary{cursor:pointer;font-weight:600;padding:4px 0}.op-ret summary small{font-weight:400;color:#6a7184}
+.op-tot{background:var(--g);border-radius:var(--rad-s,10px);padding:10px 12px;margin:12px 0}.op-tot>div{display:flex;justify-content:space-between;padding:2px 0}.op-tot .op-tt{border-top:1px solid var(--borde,#e3e6ec);margin-top:4px;padding-top:6px;font-size:17px}.op-tot p{margin:6px 0 0;font-size:13px}
+.op-ir{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:14px 0}
+.opl{display:flex;flex-direction:column}.opi{display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--borde,#e3e6ec)}.opi.anul{opacity:.55}.opi-m{font-size:16px}.opi-b{grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap}.opi-b button{padding:6px 10px}
+.kpp{margin:8px 0}
+@media(min-width:900px){#v .sub{flex-wrap:wrap!important;overflow:visible!important;-webkit-mask:none!important;mask:none!important}}
 </style>
 </head>
 <body>
@@ -837,7 +855,7 @@ button:not(.alt)>.ici-big{color:#fff}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
 <script>
-const VERSION='2026-10-23.1';
+const VERSION='2026-10-23.2';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -2665,43 +2683,20 @@ function vCobranza(){setTimeout(()=>{if(S.preCob&&$('#k_c')){$('#k_c').value=S.p
     const F=f.data||[];let PP=null;try{const{data:pc}=await sb.from('config_app').select('valor').eq('clave','pronto_pago').maybeSingle();PP=JSON.parse(pc?.valor||'null')}catch(e){}
     const hoyC=diaLocal(new Date()),ppOk=x=>PP&&+PP.pct>0&&x.fecha&&diaLocal(new Date(new Date(String(x.fecha).slice(0,10)+'T12:00').getTime()+PP.dias*864e5))>=hoyC;
     $('#k_s').innerHTML=`<p>Saldo: <b>${$m(s.data?.saldo)}</b> <small>(facturado ${$m(s.data?.facturado)} · cobrado ${$m(s.data?.cobrado)})</small></p>
-    <table><tr><th>Factura</th><th>Vence</th><th>Mora</th><th>Pendiente</th></tr>${F.map(x=>`<tr><td>${x.tipo} ${x.numero}</td><td>${fd(x.vencimiento)}</td><td>${x.dias_mora?x.dias_mora+' días':'—'}</td><td>${$m(x.pendiente)}${ppOk(x)?`<br><button class="alt" data-ppf="${x.factura_id}" title="Descuento por pronto pago">💸 −${nf(PP.pct)} % pronto pago (${$m(x.pendiente*PP.pct/100)})</button>`:''}</td></tr>`).join('')||'<tr><td colspan="4">No tiene facturas pendientes.</td></tr>'}</table>
-    <div class="g"><label class="f">Importe a cobrar<input id="k_i" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0,00">${+s.data?.saldo>0?`<a class="lnk ktodo" onclick="const i=$('#k_i');i.value=${(+s.data.saldo).toFixed(2)};i.dispatchEvent(new Event('input',{bubbles:true}))">Cobrar todo (${$m(s.data.saldo)})</a>`:''}</label><label class="f">Medio de pago<select id="k_m"><option value="transferencia">Transferencia</option><option value="efectivo">Efectivo</option><option value="cheque">Cheque</option><option value="echeq">eCheq</option><option value="tarjeta">Tarjeta</option><option value="otro">Otro</option></select></label></div><div id="k_x"></div>
-    <div id="k_split"></div><p class="ksp-acc"><a class="lnk" id="k_add">+ Dividir pago</a> <small id="k_falta"></small></p>
-    <button id="k_g">Registrar cobro</button><div id="k_ok"></div><h3>Últimos recibos</h3>
-    <div class="rcl">${recUn(r.data||[]).map(x=>`<div class="rci"><div class="rci-t"><b>Recibo N° ${x.numero}</b><small>${fd(x.fecha)} · ${esc(x.medio)}</small></div><b class="rci-m">${$m(x.importe)}</b><span class="rci-b"><button class="alt wa" data-rw="${x.numero}" aria-label="WhatsApp">${IC('chat',18)}</button><button class="alt" data-rp="${x.numero}" aria-label="PDF">${IC('doc',18)}</button></span></div>`).join('')||'<p><small>Todavía no hay recibos.</small></p>'}</div>`;
+    ${F.some(ppOk)?`<div class="fc-acc kpp">${F.filter(ppOk).map(x=>`<button class="alt" data-ppf="${x.factura_id}" title="Descuento por pronto pago">Pronto pago ${x.tipo} ${x.numero}: −${nf(PP.pct)} % (${$m(x.pendiente*PP.pct/100)})</button>`).join('')}</div>`:''}
+    <div id="k_fd"></div><div id="k_ok"></div><h3>Últimos recibos</h3>
+    <div class="rcl">${recUn(r.data||[]).map(x=>`<div class="rci"><div class="rci-t"><b>Recibo N° ${x.numero}</b><small>${fd(x.fecha)} · ${esc(x.medio)}</small></div><b class="rci-m">${$m(x.importe)}</b><span class="rci-b"><button class="alt wa" data-rw="${x.numero}" aria-label="WhatsApp">${IC('chat',18)}</button><button class="alt" data-rp="${x.numero}" aria-label="PDF">${IC('doc',18)}</button>${['dueno','administracion'].includes(S.perfil.rol)?`<button class="alt" data-ran="${x.numero}" aria-label="Anular recibo" title="Anular recibo">${IC('x',18)}</button>`:''}</span></div>`).join('')||'<p><small>Todavía no hay recibos.</small></p>'}</div>`;
     const cli=S.clientes.find(c=>c.id==id),rec=n=>(r.data||[]).find(x=>x.numero==n);
     $$('#k_s [data-ppf]').forEach(b=>b.onclick=async()=>{const x=F.find(y=>y.factura_id==b.dataset.ppf);if(!confirm('¿Aplicar '+nf(PP.pct)+' % de descuento por pronto pago a la factura '+x.tipo+' '+x.numero+'? Se hace una nota de crédito por '+$m(x.pendiente*PP.pct/100)+'.'))return;
       const{data,error}=await sb.rpc('descuento_pronto_pago',{p_factura:x.factura_id});if(error)return toast(/descuento_pronto_pago/.test(error.message)?'Falta correr ventas-crecer.sql en Supabase.':error.message,1);
-      toast('Nota de crédito N° '+data.numero+' por '+$m(data.descuento)+'. Ahora cobrá '+$m(data.resta)+'.');await $('#k_c').onchange();$('#k_i').value=(+data.resta).toFixed(2)});
+      toast('Nota de crédito N° '+data.numero+' por '+$m(data.descuento)+'. Ahora cobrá '+$m(data.resta)+'.');await $('#k_c').onchange();setTimeout(()=>{const i=document.querySelector('#k_v .v_i');if(i){i.value=(+data.resta).toFixed(2);i.dispatchEvent(new Event('input'))}},300)});
     $$('#k_s [data-rw]').forEach(b=>b.onclick=()=>reciboWA(rec(b.dataset.rw),cli));
     $$('#k_s [data-rp]').forEach(b=>b.onclick=()=>reciboPDF(rec(b.dataset.rp),cli));
+    $$('#k_s [data-ran]').forEach(b=>b.onclick=async()=>{if(!confirm('¿Anular el recibo N° '+b.dataset.ran+'?\n\nVuelve la deuda del cliente, se borran sus retenciones y los movimientos del banco, y sus cheques quedan anulados.'))return;
+      const{error}=await sb.rpc('anular_recibo',{p_numero:+b.dataset.ran});if(error)return toast(/anular_recibo/.test(error.message)?'Falta correr ordenes-pago.sql en Supabase.':error.message,1);toast('Recibo anulado.');$('#k_c').onchange();morosos()});
     if(S.recNuevo){const n=S.recNuevo;S.recNuevo=null;const x=rec(n);if(x){$('#k_ok').innerHTML=`<div class="aviso okb"><b>Recibo N° ${n} registrado.</b> Mandale el comprobante al cliente: <button class="alt wa" id="k_w">WhatsApp</button> <button class="alt" id="k_p">PDF</button></div>`;
       $('#k_w').onclick=()=>reciboWA(x,cli);$('#k_p').onclick=()=>reciboPDF(x,cli)}}
-    $('#k_m').onchange=()=>extrasPago('#k_x',$('#k_m').value,'cobro');$('#k_m').onchange();
-    /* Dividir pago: varias formas de pago con su importe, un recibo por cada una */
-    const totPend=F.reduce((a,x)=>a+Number(x.pendiente||0),0);
-    const partes=()=>[{imp:+$('#k_i').value||0,med:$('#k_m').value,main:1},...[...document.querySelectorAll('#k_split .ksp')].map(r=>({imp:+r.querySelector('.k_ii').value||0,med:r.querySelector('.k_mm').value}))];
-    const falta=()=>{const t=partes().reduce((a,x)=>a+x.imp,0),d=+(totPend-t).toFixed(2),hay=document.querySelector('#k_split .ksp');
-      $('#k_falta').innerHTML=!hay&&!t?'':`Total ${$m(t)}${totPend>0?(d>0.004?` · <b class="mora">falta ${$m(d)}</b>`:d<-0.004?` · sobra ${$m(-d)} (queda a cuenta)`:' · <b style="color:var(--ok)">justo</b>'):''}`};
-    $('#k_i').oninput=falta;
-    $('#k_add').onclick=()=>{const usados=partes().map(x=>x.med);const d=document.createElement('div');d.className='g ksp';
-      d.innerHTML=`<input type="number" step="0.01" min="0" class="k_ii" placeholder="Importe"><select class="k_mm"><option>efectivo</option><option>transferencia</option><option>tarjeta</option><option>otro</option></select><button class="alt k_del" aria-label="Quitar">✕</button>`;
-      $('#k_split').appendChild(d);const t=partes().reduce((a,x)=>a+x.imp,0),r=+(totPend-t).toFixed(2);if(r>0)d.querySelector('.k_ii').value=r;
-      const lib=['efectivo','transferencia','tarjeta','otro'].find(m=>!usados.includes(m));if(lib)d.querySelector('.k_mm').value=lib;
-      d.querySelector('.k_ii').oninput=falta;d.querySelector('.k_del').onclick=()=>{d.remove();falta()};$('#k_add').textContent='+ Otra forma de pago';falta();d.querySelector('.k_ii').focus()};
-    $('#k_g').onclick=async()=>{const P=partes().filter(x=>x.imp>0);if(!P.length||!(P[0].imp>0))return toast('Poné el importe a cobrar.',1);
-      if($('#ch_fp')&&!$('#ch_fp').value)return toast('Poné la fecha de pago del cheque.',1);
-      if(P.length>1&&!confirm('Se registra un cobro de '+$m(P.reduce((a,x)=>a+x.imp,0))+' en un solo recibo: '+P.map(x=>x.med+' '+$m(x.imp)).join(' + ')+'. ¿Seguimos?'))return;
-      $('#k_g').disabled=true;const pend=F.map(x=>({id:x.factura_id,p:Number(x.pendiente||0)}));const recs=[];let aCuenta=0;
-      for(const x of P){const medio=x.med=='echeq'?'cheque':x.med;let rest=x.imp;const imp=[];
-        for(const f of pend){if(rest<=0)break;if(f.p<=0.004)continue;const a=Math.min(rest,f.p);imp.push({factura_id:f.id,importe:+a.toFixed(2)});f.p=+(f.p-a).toFixed(2);rest=+(rest-a).toFixed(2)}
-        const{data,error}=await sb.rpc('registrar_cobranza',{p_cliente:id,p_importe:x.imp,p_medio:medio,p_imputaciones:imp,...(recs.length?{p_observacion:'Parte del recibo N° '+recs[0]}:{})});
-        if(error){$('#k_g').disabled=false;toast((recs.length?'Se registraron '+recs.length+' de '+P.length+'. ':'')+error.message,1);break}
-        if(x.main)await extrasGuardar('cobro',x.imp,'Cobro recibo N° '+data+' · '+nomCli(id),{cliente:id,ref:'Recibo N° '+data});
-        recs.push(data);aCuenta+=rest}
-      if(!recs.length)return;
-      (okAnim('Cobro registrado'),toast('Recibo N° '+recs[0]+' registrado'+(recs.length>1?' ('+recs.length+' formas de pago)':'')+(aCuenta>0.004?'. Quedan '+$m(aCuenta)+' a cuenta.':'.')));S.recNuevo=recs[0];$('#k_c').onchange();morosos()}};
+    formCobroDet(F,id,+s.data?.saldo||0)};
 }
 
 /* Extras contables al cobrar, pagar o cargar gastos (solo dueño): cuenta bancaria y cheques */
@@ -2808,9 +2803,10 @@ function resumenPDF(g){const c=g.c,w=window.open('','_blank');if(!w)return toast
 
 /* ---------- Recibo de cobro: WhatsApp y PDF ---------- */
 /* Pago dividido: el recibo principal junta sus partes (una por forma de pago) en un solo comprobante */
-const recUn=RR=>{const pt={};RR.forEach(x=>{const m=/^Parte del recibo N° (\d+)/.exec(x.observacion||'');if(m)(pt[m[1]]=pt[m[1]]||[]).push(x)});
-  return RR.filter(x=>!/^Parte del recibo N°/.test(x.observacion||'')).map(x=>pt[x.numero]?{...x,importe:+x.importe+pt[x.numero].reduce((a,y)=>a+Number(y.importe||0),0),medio:[x,...pt[x.numero]].map(y=>y.medio).join(' + ')}:x)};
-async function reciboUnido(x){if(!x||x.ids)return x;try{const{data:P}=await sb.from('recibos').select('*').eq('observacion','Parte del recibo N° '+x.numero).eq('anulado',false);
+const PARTE_RE=/^(?:Retenciones · )?Parte del recibo N° (\d+)/,medioRec=y=>/^Retenciones/.test(y.observacion||'')?'retenciones':y.medio;
+const recUn=RR=>{const pt={};RR.forEach(x=>{const m=PARTE_RE.exec(x.observacion||'');if(m)(pt[m[1]]=pt[m[1]]||[]).push(x)});
+  return RR.filter(x=>!PARTE_RE.test(x.observacion||'')).map(x=>pt[x.numero]?{...x,importe:+x.importe+pt[x.numero].reduce((a,y)=>a+Number(y.importe||0),0),medio:[x,...pt[x.numero]].map(medioRec).join(' + ')}:{...x,medio:medioRec(x)})};
+async function reciboUnido(x){if(!x||x.ids)return x;try{const{data:P}=await sb.from('recibos').select('*').in('observacion',['Parte del recibo N° '+x.numero,'Retenciones · Parte del recibo N° '+x.numero]).eq('anulado',false);
   if(!P||!P.length)return x;const T=[x,...P];return{...x,importe:T.reduce((a,y)=>a+Number(y.importe||0),0),medio:T.map(y=>y.medio+' '+$m(y.importe)).join(' + '),ids:T.map(y=>y.id)}}catch(e){return x}}
 async function datosRecibo(x,c){
   const[sa,im]=await Promise.all([sb.from('saldos_clientes').select('saldo').eq('cliente_id',c.id).maybeSingle(),
@@ -2821,8 +2817,8 @@ async function datosRecibo(x,c){
   const aplicado=fac.reduce((a,f)=>a+f.imp,0),cuenta=Math.max(0,Number(x.importe)-aplicado);
   return{saldo:sa.data?Number(sa.data.saldo):null,fac,cuenta:fac.length&&cuenta>0.005?cuenta:0}}
 async function reciboWA(x,c){if(!x||!c)return;const w=window.open('','_blank');x=await reciboUnido(x);
-  const d=await datosRecibo(x,c);
-  const txt=`*Sabores de mi País*\nRecibo de cobro N° ${x.numero} · ${fd(x.fecha)}\n${c.razon_social}\n\nRecibimos *${$m(x.importe)}* (${x.medio}).`+
+  const d=await datosRecibo(x,c),dd=await detalleRecibo(x);
+  const txt=`*Sabores de mi País*\nRecibo de cobro N° ${x.numero} · ${fd(x.fecha)}\n${c.razon_social}\n\nRecibimos *${$m(x.importe)}*${dd.V.length||dd.R.length?':':' ('+x.medio+').'}`+(dd.V.length?'\n'+dd.V.map(v=>`• ${MEDIOS_VAL[v.medio]||v.medio} ${$m(v.importe)}${valDet(v)?' ('+valDet(v)+')':''}`).join('\n'):'')+(dd.R.length?'\n'+dd.R.map(y=>`• Retención ${y.impuesto}${y.jurisdiccion?' '+y.jurisdiccion:''} ${$m(y.importe)}${y.comprobante?' (cert. '+y.comprobante+')':''}`).join('\n'):'')+
     (d.fac.length?'\n\nAplicado a:\n'+d.fac.map(f=>`• ${f.t}: ${$m(f.imp)}`).join('\n')+(d.cuenta?`\n• A cuenta: ${$m(d.cuenta)}`:''):'')+
     (d.saldo!=null?`\n\n${d.saldo>0.005?'Saldo pendiente: *'+$m(d.saldo)+'*':d.saldo<-0.005?'Saldo a favor: *'+$m(-d.saldo)+'*':'*Su cuenta queda al día.*'}`:'')+'\n\n¡Gracias!';
   const tel=telWA(c.telefono),url='https://wa.me/'+tel+'?text='+encodeURIComponent(txt);
@@ -2830,16 +2826,21 @@ async function reciboWA(x,c){if(!x||!c)return;const w=window.open('','_blank');x
   if(!tel)toast('Este cliente no tiene teléfono cargado: elegí el contacto en WhatsApp.')}
 async function reciboPDF0(x,c){if(!x||!c)return;const w=window.open('','_blank');x=await reciboUnido(x);if(!w)return toast('Permití las ventanas emergentes para generar el PDF.',1);
   w.document.write('<p style="font:16px system-ui;margin:32px">Armando el recibo…</p>');
-  const d=await datosRecibo(x,c);
+  const d=await datosRecibo(x,c),dd=await detalleRecibo(x),E=await datosEmisor();
   if(tkW()){w.document.open();w.document.write(ticketDoc('Recibo '+x.numero,tkReciboCuerpo(x,c,d)));w.document.close();return}
-  w.document.open();w.document.write(`<html><head><meta charset="utf-8"><title>Recibo ${x.numero} - ${esc(c.razon_social)}</title><style>body{font:14px system-ui,Segoe UI,sans-serif;margin:32px;color:#1c2333;max-width:720px}h1{color:${MARCA.c};margin:0}.top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid ${MARCA.c};padding-bottom:12px}table{width:100%;border-collapse:collapse;margin:16px 0}th,td{border-bottom:1px solid #ccc;padding:6px;text-align:left}.n{text-align:right;white-space:nowrap}.imp{font-size:22px;font-weight:700;margin:16px 0}.saldo{background:#f3f4f7;padding:10px 12px;border-radius:6px}.firma{margin-top:56px;border-top:1px solid #1c2333;width:240px;padding-top:4px;text-align:center}.ayuda{background:#f6e9ec;padding:10px;border-radius:6px}@media print{.ayuda{display:none}}</style><style>${docCss()}</style></head><body>
+  const ret=dd.R.reduce((a,y)=>a+ +y.importe,0);
+  w.document.open();w.document.write(`<html><head><meta charset="utf-8"><title>Recibo ${x.numero} - ${esc(c.razon_social)}</title><style>${docBaseCss()}</style><style>${docCss()}</style></head><body>
   <p class="ayuda">Para guardarlo en PDF: en la ventana de impresión elegí <b>Guardar como PDF</b> como destino.</p>
-  <div class="top"><div>${logoImg()}<h1>Sabores de mi País</h1><div>Recibo de cobro</div></div><div class="n"><b>Recibo N° ${x.numero}</b><br>${fd(x.fecha)}</div></div>
-  <p><b>Recibimos de:</b> ${cliDocNom(c)}${c.cuit?'<br><b>CUIT:</b> '+esc(cuitFmt(c.cuit)):''}${dirCompleta(c)?'<br><b>Domicilio:</b> '+esc(dirLinda(c)):''}</p>
-  <p class="imp">${$m(x.importe)} <small style="font-size:14px;font-weight:400">· ${esc(x.medio)}</small></p>
-  ${d.fac.length?`<table><tr><th>Aplicado a</th><th class="n">Importe</th></tr>${d.fac.map(f=>`<tr><td>${esc(f.t)}</td><td class="n">${$m(f.imp)}</td></tr>`).join('')}${d.cuenta?`<tr><td>A cuenta</td><td class="n">${$m(d.cuenta)}</td></tr>`:''}</table>`:''}
+  <div class="top"><div>${logoImg()}<h1>${esc(E.rs||'Sabores de mi País')}</h1>${emisorHTML(E)}</div><div class="n"><div class="doc-t">RECIBO</div><b>N° ${opNum(x.numero)}</b><br>Fecha: ${fd(x.fecha)}</div></div>
+  <div class="cab"><b>Recibimos de:</b> ${cliDocNom(c)}${c.cuit?'<br><b>CUIT:</b> '+esc(cuitFmt(c.cuit)):''}${dirCompleta(c)?'<br><b>Domicilio:</b> '+esc(dirLinda(c)):''}</div>
+  <p>La suma de <b>pesos ${enLetras(+x.importe)}</b>${d.fac.length?' en cancelación de:':'.'}</p>
+  ${d.fac.length?`<table><tr><th>Comprobante</th><th class="n">Importe</th></tr>${d.fac.map(f=>`<tr><td>${esc(f.t)}</td><td class="n">${$m(f.imp)}</td></tr>`).join('')}${d.cuenta?`<tr><td>A cuenta</td><td class="n">${$m(d.cuenta)}</td></tr>`:''}</table>`:''}
+  ${dd.V.length?`<h3>Valores recibidos</h3><table><tr><th>Medio</th><th>Detalle</th><th class="n">Importe</th></tr>${dd.V.map(v=>`<tr><td>${MEDIOS_VAL[v.medio]||esc(v.medio)}</td><td>${esc(valDet(v))||'—'}</td><td class="n">${$m(v.importe)}</td></tr>`).join('')}<tr class="st"><td colspan="2">Total valores</td><td class="n">${$m(+x.importe-ret)}</td></tr></table>`:`<p><b>Forma de pago:</b> ${esc(x.medio)}</p>`}
+  ${dd.R.length?`<h3>Retenciones sufridas</h3><table><tr><th>Impuesto</th><th>Jurisdicción / régimen</th><th>Certificado</th><th class="n">Importe</th></tr>${dd.R.map(y=>`<tr><td>${esc(y.impuesto)}</td><td>${esc([y.jurisdiccion,y.regimen].filter(Boolean).join(' · '))||'—'}</td><td>${esc(y.comprobante||'—')}</td><td class="n">${$m(y.importe)}</td></tr>`).join('')}<tr class="st"><td colspan="3">Total retenciones</td><td class="n">${$m(ret)}</td></tr></table>`:''}
+  <p class="imp">Total recibido: ${$m(x.importe)}</p>${x.observacion&&!/^(Retenciones|Parte del)/.test(x.observacion)?`<p><b>Observación:</b> ${esc(x.observacion)}</p>`:''}
   ${d.saldo!=null?`<p class="saldo">${d.saldo>0.005?'Saldo pendiente de la cuenta: <b>'+$m(d.saldo)+'</b>':d.saldo<-0.005?'Saldo a favor del cliente: <b>'+$m(-d.saldo)+'</b>':'<b>La cuenta queda al día.</b>'}</p>`:''}
-  <div class="firma">Firma y aclaración</div>
+  ${dd.V.some(v=>v.medio=='echeq'||v.medio=='cheque')?'<p style="font-size:12px;color:#5b6274">Los cheques y eCheq se reciben salvo buen cobro.</p>':''}
+  <div class="firmas"><div>Firma y aclaración<br><small>${esc(E.rs||'Sabores de mi País')}</small></div></div>
   <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close()}
 
 /* ---------- Hoja de reparto ---------- */
@@ -2914,12 +2915,12 @@ const provSel=(id,sel)=>`<select id="${id}"><option value="">Elegí un proveedor
 const prodNom=id=>S.productos.find(p=>p.producto_id==id)?.descripcion||('Producto '+id);
 
 async function vCompras(){
-  $('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Compras</h2><button class="alt" onclick="facturaFoto()">🧾 Factura por foto</button></div><div class="sub">${[['ordenes','Órdenes de compra'],['sugerencia','Sugerencia de compra'],['mejor','🏷️ Mejor proveedor'],['costos','📈 Historial de costos'],['proveedores','Proveedores'],['cuenta','Facturas y pagos']].map(([k,t])=>`<button class="${S.sub==k?'':'alt'}" data-s="${k}">${t}</button>`).join('')}</div><div id="cv"><span class="skl" role="status" aria-label="Cargando"></span></div>`;
+  $('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Compras</h2><button class="alt" onclick="facturaFoto()">🧾 Factura por foto</button></div><div class="sub">${[['ordenes','Órdenes de compra'],['cuenta','Facturas'],['pagos','Órdenes de pago'],['proveedores','Proveedores'],['sugerencia','Sugerencia de compra'],['mejor','🏷️ Mejor proveedor'],['costos','📈 Historial de costos']].map(([k,t])=>`<button class="${S.sub==k?'':'alt'}" data-s="${k}">${t}</button>`).join('')}</div><div id="cv"><span class="skl" role="status" aria-label="Cargando"></span></div>`;
   $$('[data-s]').forEach(b=>b.onclick=()=>{S.sub=b.dataset.s;vCompras()});
   const{data,error}=await sb.from('proveedores').select('*').eq('activo',true).order('razon_social');
   if(error){$('#cv').innerHTML='<p class="err">No se pudo leer Compras: '+esc(error.message)+'<br>¿Ya corriste compras.sql en Supabase?</p>';return}
   S.prov=data;
-  ({costos:cHistCostos,mejor:cMejorProv,ordenes:cOrdenes,sugerencia:cSugerencia,proveedores:cProveedores,cuenta:cCuenta})[S.sub]();
+  ({costos:cHistCostos,mejor:cMejorProv,ordenes:cOrdenes,sugerencia:cSugerencia,proveedores:cProveedores,cuenta:cCuenta,pagos:cOrdenesPago})[S.sub]();
 }
 
 /* Unificar proveedores repetidos (el mismo proveedor cargado con varios nombres) */
@@ -3111,6 +3112,7 @@ function cCuenta(){
       sb.from('facturas_proveedor').select('*').eq('proveedor_id',id).order('fecha',{ascending:false}).limit(15),
       sb.from('pagos_proveedor').select('*').eq('proveedor_id',id).order('fecha',{ascending:false}).limit(10),
       sb.from('ordenes_compra').select('id,fecha,total').eq('proveedor_id',id).neq('estado','anulada').order('id',{ascending:false}).limit(20)]);
+    const{data:FE}=await sb.from('v_facturas_proveedor_estado').select('factura_id,pendiente').eq('proveedor_id',id);const queda=fid=>{const x=(FE||[]).find(y=>y.factura_id==fid);return x?+x.pendiente:null};
     if(s.error)return $('#a_s').innerHTML='<p class="err">'+esc(s.error.message)+'</p>';
     const hoy=new Date().toISOString().slice(0,10);
     $('#a_s').innerHTML=`<p>Le debés: <b>${$m(s.data?.saldo)}</b> <small>(facturado ${$m(s.data?.facturado)} · pagado ${$m(s.data?.pagado)})</small></p>
@@ -3128,10 +3130,10 @@ function cCuenta(){
       <p><small>Escribí <b>tu código, el código del proveedor</b> o el nombre. Al guardar la factura se arma la compra y te abre la recepción para confirmar: ahí entra al stock.</small></p>
       <div class="conscan"><input id="f_q" placeholder="Código del proveedor, tu código o nombre" autocomplete="off" enterkeyhint="done"></div><div id="f_r"></div><div id="f_its"></div></details>
     <p><small>Total: <b id="f_tot">${$m(0)}</b> · vence a ${pv.dias_pago||0} días</small></p><button id="f_g">Guardar factura</button>
-    <h3>Registrar pago</h3><div class="g"><input id="g_i" type="number" step="0.01" min="0" placeholder="Importe"><select id="g_m"><option>transferencia</option><option>efectivo</option><option>cheque</option><option>echeq</option><option>otro</option></select><input id="g_r" placeholder="Referencia (N° transf., cheque…)"></div><div id="g_x"></div>
-    <button id="g_g">Registrar pago</button>
-    <h3>Facturas</h3><table><tr><th>Comprobante</th><th>Fecha</th><th>Vence</th><th>OC</th><th>Total</th></tr>${(f.data||[]).map(x=>`<tr><td>${x.tipo} ${esc(x.numero)}</td><td>${fd(x.fecha)}</td><td>${fd(x.vencimiento)}</td><td>${x.orden_id||'—'}</td><td>${x.tipo=='NC'?'−':''}${$m(x.total)}</td></tr>`).join('')||'<tr><td colspan="5">No hay facturas cargadas.</td></tr>'}</table>
-    <h3>Pagos</h3><table>${(g.data||[]).map(x=>`<tr><td>${fd(x.fecha)}</td><td>${x.medio}</td><td>${esc(x.referencia)}</td><td>${$m(x.importe)}</td></tr>`).join('')||'<tr><td>Todavía no hay pagos.</td></tr>'}</table>`;
+    <div class="aviso op-ir"><div><b>¿Le vas a pagar?</b><br><small>Hacé una orden de pago: elegís qué facturas cancelás, con qué le pagás (transferencia, eCheq, cheques de la cartera…) y queda numerada con todo el detalle.</small></div><button id="g_op">${IC('doc',16)} Hacer orden de pago</button></div>
+    <h3>Facturas</h3><table><tr><th>Comprobante</th><th>Fecha</th><th>Vence</th><th>OC</th><th class="n">Total</th>${FE?'<th class="n">Queda</th>':''}</tr>${(f.data||[]).map(x=>`<tr><td>${x.tipo} ${esc(x.numero)}</td><td>${fd(x.fecha)}</td><td>${fd(x.vencimiento)}</td><td>${x.orden_id||'—'}</td><td class="n">${x.tipo=='NC'?'−':''}${$m(x.total)}</td>${FE?`<td class="n">${x.tipo=='NC'?'—':queda(x.id)==null?'—':queda(x.id)<=0.004?'<span class="badge b-entregado">Pagada</span>':$m(queda(x.id))}</td>`:''}</tr>`).join('')||'<tr><td colspan="6">No hay facturas cargadas.</td></tr>'}</table>
+    <h3>Pagos</h3><table>${(g.data||[]).map(x=>`<tr><td>${fd(x.fecha)}</td><td>${MEDIOS_VAL[x.medio]||(x.medio=='retencion'?'Retención':x.medio)}</td><td>${esc(x.referencia)}${x.orden_pago_id?` <a class="lnk" data-gop="${x.orden_pago_id}">ver</a>`:''}</td><td class="n">${$m(x.importe)}</td></tr>`).join('')||'<tr><td>Todavía no hay pagos.</td></tr>'}</table>`;
+    $$('#a_s [data-gop]').forEach(a=>a.onclick=()=>pdfOP(+a.dataset.gop));
     const perc=()=>(+$('#f_pi').value||0)+(+$('#f_pb').value||0)+(+$('#f_pe').value||0),tot=()=>(+$('#f_ne').value||0)+(+$('#f_iv').value||0)+perc();
     ['#f_ne','#f_iv','#f_pe','#f_pi','#f_pb'].forEach(k=>$(k).oninput=()=>$('#f_tot').textContent=$m(tot()));
     $('#f_ne').onchange=()=>{if(!$('#f_iv').value&&$('#f_t').value=='A'){$('#f_iv').value=(+$('#f_ne').value*0.21).toFixed(2);$('#f_tot').textContent=$m(tot())}};
@@ -3160,16 +3162,238 @@ function cCuenta(){
         if(fx?.id)await sb.from('facturas_proveedor').update({orden_id:o.id}).eq('id',fx.id);
         toast('Factura guardada. Confirmá la recepción para que entre al stock.');irA('compras',{sub:'ordenes'});setTimeout(()=>recibir(o),1200);return}
       toast(FI.length?'Factura guardada. Tiene orden de compra vinculada: la mercadería entra al recibir esa orden.':'Factura guardada.');$('#a_p').onchange()};
-    $('#g_m').onchange=()=>extrasPago('#g_x',$('#g_m').value,'pago',{imp:'#g_i'});$('#g_m').onchange();
-    $('#g_g').onclick=async()=>{const imp=+$('#g_i').value;if(!(imp>0))return toast('Poné el importe del pago.',1);
-      const chq=document.querySelector('[name=xp_ch]:checked')?.value,cs=$('#xp_cs')?.selectedOptions[0];
-      const ref=$('#g_r').value.trim()||(chq=='cartera'&&cs?'Cheque endosado '+cs.textContent.split(' · ').slice(1,2).join(''):chq=='propio'&&$('#ch_n')?.value?'Cheque propio N° '+$('#ch_n').value:null);
-      const{error}=await sb.from('pagos_proveedor').insert({proveedor_id:id,importe:imp,medio:$('#g_m').value,referencia:ref});
-      if(error)return toast(error.message,1);
-      await extrasGuardar('pago',imp,'Pago a '+(pv.razon_social||'proveedor')+(ref?' · '+ref:''),{prov:id,provNom:pv.razon_social,ref});toast('Pago de '+$m(imp)+' registrado.');$('#a_p').onchange()};
+    $('#g_op').onclick=()=>{S.provSel=id;S.sub='pagos';vCompras()};
   };
   if(S.provSel)$('#a_p').onchange();
 }
+/* ======================= ÓRDENES DE PAGO Y RECIBOS DETALLADOS ======================= */
+/* Lo que necesitan: sql/ordenes-pago.sql (una sola vez en Supabase) */
+const OP_SQL='<div class="aviso">Para usar las órdenes de pago falta correr <b>ordenes-pago.sql</b> en Supabase (SQL Editor) una sola vez. Después recargá la página.</div>';
+const MEDIOS_VAL={transferencia:'Transferencia',deposito:'Depósito',efectivo:'Efectivo',echeq:'eCheq',cheque:'Cheque',tarjeta:'Tarjeta',otro:'Otro'};
+const IMPUESTOS=['IIBB','Ganancias','IVA','SUSS','Otro'];
+const opNum=n=>'0001-'+String(n).padStart(8,'0');
+async function datosEmisor(){if(S.emisor)return S.emisor;S.emisor=await cfgJ('datos_emisor',{rs:'Sabores de mi País',cuit:'',iva:'Responsable Inscripto',iibb:'',dom:''});return S.emisor}
+const emisorHTML=E=>`<div style="font-size:12px;color:#5b6274;margin-top:4px">${esc(E.rs||'Sabores de mi País')}${E.cuit?' · CUIT '+esc(cuitFmt(E.cuit)):''}${E.iva?' · '+esc(E.iva):''}${E.iibb?'<br>IIBB '+esc(E.iibb):''}${E.dom?' · '+esc(E.dom):''}</div>`;
+/* Detalle legible de un valor (para pantalla, PDF y WhatsApp) */
+const valDet=v=>[v.endosado?'endosado de la cartera':'',v.banco?'Banco '+v.banco:'',v.numero?'N° '+v.numero:'',v.fecha_pago?'paga el '+fd(v.fecha_pago):'',v.titular?'de '+v.titular:'',v.cuit?'CUIT '+cuitFmt(v.cuit):'',v.referencia?'Ref. '+v.referencia:'',v.cuenta_id&&S.ctasN?.[v.cuenta_id]?'cuenta '+S.ctasN[v.cuenta_id]:''].filter(Boolean).join(' · ');
+async function nombresCuentas(){if(S.ctasN)return S.ctasN;const{data}=await sb.from('cuentas').select('id,nombre');S.ctasN={};for(const c of data||[])S.ctasN[c.id]=c.nombre;return S.ctasN}
+
+/* ---------- Filas de valores y retenciones (las usan la orden de pago y el recibo) ---------- */
+function filaValor(modo,C,H,pre={}){const d=document.createElement('div');d.className='vrow';
+  const medios=modo=='pago'?['transferencia','efectivo','echeq','cheque','cartera','deposito','otro']:['transferencia','echeq','cheque','efectivo','deposito','tarjeta','otro'];
+  const nom={...MEDIOS_VAL,cartera:'De la cartera (endosar)',echeq:modo=='pago'?'eCheq propio':'eCheq',cheque:modo=='pago'?'Cheque propio':'Cheque'};
+  d.innerHTML=`<div class="vr-top"><select class="v_m">${medios.map(m=>`<option value="${m}" ${pre.medio==m?'selected':''}>${nom[m]}</option>`).join('')}</select><input class="v_i" type="number" step="0.01" min="0" inputmode="decimal" placeholder="Importe" value="${pre.importe||''}"><button type="button" class="alt v_x" aria-label="Quitar este valor" title="Quitar">${IC('x',16)}</button></div><div class="vr-det"></div>`;
+  const det=()=>{const m=d.querySelector('.v_m').value,box=d.querySelector('.vr-det'),act=(C||[]).filter(c=>c.activa);
+    const cta=lab=>act.length?`<label class="f">${lab}<select class="v_cta"><option value="">— No anotar en bancos —</option>${optCuentas(C,act.length==1?act[0].id:'')}</select></label>`:'';
+    d.querySelector('.v_i').readOnly=m=='cartera';
+    if(m=='cartera'){box.innerHTML=(H||[]).length?`<label class="f">Cheque<select class="v_ch">${H.map(x=>`<option value="${x.id}" data-i="${x.importe}">${$m(x.importe)} · ${x.echeq?'eCheq':'Cheque'} ${esc(x.banco||'')} ${x.numero?'N° '+esc(x.numero):''} · cobra ${fd(x.fecha_pago)}${x.cliente_id?' · de '+esc(nomCli(x.cliente_id)):''}</option>`).join('')}</select></label>`:'<small class="mora">No tenés cheques en la cartera.</small>';
+      const s=box.querySelector('.v_ch');const pon=()=>{d.querySelector('.v_i').value=s?s.selectedOptions[0].dataset.i:'';d.dispatchEvent(new Event('cambio',{bubbles:true}))};if(s)s.onchange=pon;pon();return}
+    if(m=='echeq'||m=='cheque')box.innerHTML=`<div class="g">${modo=='cobro'?`<label class="f">Librador (quién lo firma)<input class="v_tit" value="${esc(pre.titular||'')}"></label><label class="f">CUIT del librador<input class="v_cuit" inputmode="numeric"></label>`:''}
+      <label class="f">Banco<input class="v_ban"></label><label class="f">N° de ${m=='echeq'?'eCheq':'cheque'}<input class="v_num"></label><label class="f">Fecha de pago<input type="date" class="v_fp" value="${diaLocal(new Date(Date.now()+30*864e5))}"></label>${modo=='pago'?cta('Cuenta de donde sale'):''}</div>`;
+    else if(m=='transferencia'||m=='deposito')box.innerHTML=`<div class="g">${cta(modo=='pago'?'¿De qué cuenta salió?':'¿A qué cuenta entró?')}<label class="f">N° de operación<input class="v_ref"></label></div>`;
+    else if(m=='otro'||m=='tarjeta')box.innerHTML=`<div class="g"><label class="f">Detalle<input class="v_ref"></label></div>`;
+    else box.innerHTML=''};
+  d.querySelector('.v_m').onchange=()=>{det();d.dispatchEvent(new Event('cambio',{bubbles:true}))};d.querySelector('.v_i').oninput=()=>d.dispatchEvent(new Event('cambio',{bubbles:true}));
+  d.querySelector('.v_x').onclick=()=>{const p=d.parentNode;d.remove();p&&p.dispatchEvent(new Event('cambio',{bubbles:true}))};det();return d}
+function leerValor(d){const q=c=>d.querySelector(c),m=q('.v_m').value,v={medio:m=='cartera'?'echeq':m,importe:+q('.v_i').value||0};
+  if(m=='cartera'){v.cheque_id=q('.v_ch')?.value||null;v.medio=q('.v_ch')?.selectedOptions[0]?.textContent.includes('eCheq')?'echeq':'cheque';v._cartera=1}
+  for(const[k,c]of[['cuenta_id','.v_cta'],['banco','.v_ban'],['numero','.v_num'],['fecha_pago','.v_fp'],['referencia','.v_ref'],['titular','.v_tit'],['cuit','.v_cuit']]){const e=q(c);if(e&&e.value.trim())v[k]=e.value.trim()}
+  return v}
+function filaRet(modo,pre={}){const d=document.createElement('div');d.className='rrow';
+  d.innerHTML=`<div class="g"><label class="f">Impuesto<select class="r_imp">${IMPUESTOS.map(x=>`<option ${pre.impuesto==x?'selected':''}>${x}</option>`).join('')}</select></label>
+    <label class="f">Jurisdicción<input class="r_jur" placeholder="Ej.: CABA, Buenos Aires" value="${esc(pre.jurisdiccion||'')}"></label>
+    <label class="f">Régimen<input class="r_reg" placeholder="opcional" value="${esc(pre.regimen||'')}"></label>
+    ${modo=='pago'?`<label class="f">Base sujeta<input class="r_base" type="number" step="0.01" inputmode="decimal" value="${pre.base||''}"></label><label class="f">Alícuota %<input class="r_al" type="number" step="0.01" inputmode="decimal" value="${pre.alicuota||''}"></label>`:`<label class="f">N° de certificado<input class="r_cert"></label>`}
+    <label class="f">Importe retenido<input class="r_i" type="number" step="0.01" min="0" inputmode="decimal" value="${pre.importe||''}"></label></div><button type="button" class="alt r_x" aria-label="Quitar retención">${IC('x',16)} Quitar</button>`;
+  const fire=()=>d.dispatchEvent(new Event('cambio',{bubbles:true}));
+  const calc=()=>{const b=+d.querySelector('.r_base')?.value||0,a=+d.querySelector('.r_al')?.value||0;if(b>0&&a>0)d.querySelector('.r_i').value=(Math.round(b*a)/100).toFixed(2);fire()};
+  d.querySelector('.r_base')&&(d.querySelector('.r_base').oninput=calc);d.querySelector('.r_al')&&(d.querySelector('.r_al').oninput=calc);d.querySelector('.r_i').oninput=fire;
+  d.querySelector('.r_x').onclick=()=>{const p=d.parentNode;d.remove();p&&p.dispatchEvent(new Event('cambio',{bubbles:true}))};return d}
+function leerRet(d){const q=c=>d.querySelector(c)?.value?.trim()||'';const r={impuesto:q('.r_imp'),jurisdiccion:q('.r_jur'),regimen:q('.r_reg'),importe:+q('.r_i')||0};
+  if(q('.r_base'))r.base=+q('.r_base');if(q('.r_al'))r.alicuota=+q('.r_al');if(q('.r_cert'))r.certificado=q('.r_cert');return r}
+
+/* ======================= ORDEN DE PAGO (Compras) ======================= */
+async function cOrdenesPago(){
+  const cv=$('#cv');cv.innerHTML=`<div class="box"><div class="bh"><h3>Nueva orden de pago</h3><button class="alt" id="op_cfg">${IC('gear',16)} Datos y retenciones</button></div>${provSel('op_p',S.provSel)}<div id="op_f"></div></div><div class="box"><div class="bh"><h3>Órdenes de pago</h3><label class="chk" style="margin:0"><input type="checkbox" id="op_todas" ${S.opTodas?'checked':''}> Todos los proveedores</label></div><div id="op_l"><span class="skl" role="status" aria-label="Cargando"></span></div></div>`;
+  $('#op_cfg').onclick=configEmisor;
+  $('#op_todas').onchange=e=>{S.opTodas=e.target.checked;listaOP()};
+  $('#op_p').onchange=()=>{S.provSel=$('#op_p').value;formOP();listaOP()};
+  formOP();listaOP();
+}
+async function formOP(){const box=$('#op_f'),id=$('#op_p').value;if(!id){box.innerHTML='<p><small>Elegí el proveedor para ver las facturas que le debés.</small></p>';return}
+  box.innerHTML='<span class="skl" role="status" aria-label="Cargando"></span>';
+  const pv=S.prov.find(p=>p.id==id);
+  const[f,s,C,H,ag]=await Promise.all([sb.from('v_facturas_proveedor_estado').select('*').eq('proveedor_id',id).gt('pendiente',0.004).order('fecha'),
+    sb.from('v_saldo_proveedores').select('*').eq('proveedor_id',id).maybeSingle(),cargarCuentas(),
+    sb.from('cheques').select('*').eq('tipo','recibido').eq('estado','en_cartera').order('fecha_pago'),cfgJ('agente_retencion',{iibb:{on:false,jur:'',al:0,min:0},gan:{on:false,al:2,min:0,reg:''}})]);
+  if(f.error){box.innerHTML=OP_SQL;return}
+  const F=f.data||[];const{data:FN}=F.length?await sb.from('facturas_proveedor').select('id,neto').in('id',F.map(x=>x.factura_id)):{data:[]};
+  const neto=id=>+(FN||[]).find(x=>x.id==id)?.neto||0;
+  box.innerHTML=`<p class="op-sal">Le debés <b>${$m(s.data?.saldo)}</b>${F.length?` · ${F.length} ${F.length==1?'factura pendiente':'facturas pendientes'}`:''}</p>
+    ${F.length?`<div class="op-fac"><div class="op-acc"><a class="lnk" id="op_tod">Marcar todas</a> · <a class="lnk" id="op_ven">Solo las vencidas</a> · <a class="lnk" id="op_nin">Ninguna</a></div>
+    ${F.map(x=>`<label class="op-fr"><input type="checkbox" data-of="${x.factura_id}"><span class="op-fn"><b>${x.tipo} ${esc(x.numero)}</b><small>${fd(x.fecha)} · vence ${fd(x.vencimiento)}${+x.dias_vencida>0?` · <span class="mora">vencida hace ${x.dias_vencida} ${x.dias_vencida==1?'día':'días'}</span>`:''}${x.estado=='parcial'?' · pagada en parte':''}</small></span><span class="op-fp"><small>Queda</small> ${$m(x.pendiente)}</span><input class="op-fi" data-oi="${x.factura_id}" type="number" step="0.01" min="0" inputmode="decimal" placeholder="A pagar" disabled></label>`).join('')}</div>`:'<p><small>No tiene facturas pendientes. Igual podés hacer un pago a cuenta.</small></p>'}
+    <h4 class="op-h">Con qué le pagás</h4><div id="op_v"></div><button type="button" class="alt" id="op_va">${IC('plus',16)} Agregar otro valor</button>
+    <details class="op-ret" ${ag.iibb.on||ag.gan.on?'open':''}><summary>Retenciones que le practicás <small>${ag.iibb.on||ag.gan.on?'(sos agente de retención)':'(solo si sos agente de retención)'}</small></summary><div id="op_r"></div><button type="button" class="alt" id="op_ra">${IC('plus',16)} Agregar retención</button>${ag.iibb.on||ag.gan.on?' <button type="button" class="alt" id="op_rc">Calcular según tu configuración</button>':''}</details>
+    <label class="f">Observación<input id="op_o" placeholder="Ej.: pago parcial acordado con Juan"></label>
+    <div class="op-tot" id="op_t"></div>
+    <button id="op_g">Emitir orden de pago</button><div id="op_ok"></div>`;
+  const V=$('#op_v'),R=$('#op_r');
+  V.appendChild(filaValor('pago',C,H.data||[]));
+  $('#op_va').onclick=()=>{V.appendChild(filaValor('pago',C,H.data||[],{importe:falta()>0?falta().toFixed(2):''}));tot()};
+  $('#op_ra').onclick=()=>{R.appendChild(filaRet('pago',{jurisdiccion:ag.iibb.jur}));tot()};
+  const elegidas=()=>[...box.querySelectorAll('[data-of]:checked')].map(c=>{const i=box.querySelector(`[data-oi="${c.dataset.of}"]`);return{factura_id:+c.dataset.of,importe:+i.value||0}}).filter(x=>x.importe>0);
+  const sumF=()=>elegidas().reduce((a,x)=>a+x.importe,0),sumV=()=>[...V.children].map(leerValor).reduce((a,x)=>a+x.importe,0),sumR=()=>[...R.children].map(leerRet).reduce((a,x)=>a+x.importe,0);
+  const falta=()=>+(sumF()-sumV()-sumR()).toFixed(2);
+  const tot=()=>{const a=sumF(),v=sumV(),r=sumR(),d=+(a-v-r).toFixed(2);
+    $('#op_t').innerHTML=`<div><span>Facturas elegidas</span><b>${$m(a)}</b></div><div><span>Valores</span><b>${$m(v)}</b></div>${r?`<div><span>Retenciones</span><b>${$m(r)}</b></div>`:''}<div class="op-tt"><span>Total de la orden</span><b>${$m(v+r)}</b></div>${a||v||r?`<p class="${d>0.004?'mora':''}">${d>0.004?'Faltan '+$m(d)+' para cubrir las facturas elegidas':d<-0.004?'Sobran '+$m(-d)+': quedan a cuenta (se aplican a las facturas más viejas)':'Justo: cubre las facturas elegidas'}</p>`:''}`};
+  box.addEventListener('cambio',tot);V.addEventListener('cambio',tot);R.addEventListener('cambio',tot);
+  const marca=(c,on)=>{c.checked=on;const i=box.querySelector(`[data-oi="${c.dataset.of}"]`);i.disabled=!on;i.value=on?(+F.find(x=>x.factura_id==c.dataset.of).pendiente).toFixed(2):''};
+  $$('#op_f [data-of]').forEach(c=>c.onchange=()=>{marca(c,c.checked);sugerirValor();tot()});
+  $$('#op_f [data-oi]').forEach(i=>i.oninput=tot);
+  const sugerirValor=()=>{const r=V.children[0];if(V.children.length==1&&r&&r.querySelector('.v_m').value!='cartera'){r.querySelector('.v_i').value=(sumF()-sumR())>0?(sumF()-sumR()).toFixed(2):''}};
+  $('#op_tod')&&($('#op_tod').onclick=()=>{$$('#op_f [data-of]').forEach(c=>marca(c,true));sugerirValor();tot()});
+  $('#op_ven')&&($('#op_ven').onclick=()=>{$$('#op_f [data-of]').forEach(c=>marca(c,+F.find(x=>x.factura_id==c.dataset.of).dias_vencida>0));sugerirValor();tot()});
+  $('#op_nin')&&($('#op_nin').onclick=()=>{$$('#op_f [data-of]').forEach(c=>marca(c,false));sugerirValor();tot()});
+  /* Sugerencia de retenciones según la configuración del agente (siempre se pueden corregir a mano) */
+  $('#op_rc')&&($('#op_rc').onclick=()=>{const E=elegidas();if(!E.length)return toast('Primero marcá qué facturas pagás.',1);
+    const base=+E.reduce((a,x)=>{const fx=F.find(y=>y.factura_id==x.factura_id);return a+neto(x.factura_id)*(x.importe/(+fx.total||1))},0).toFixed(2);R.innerHTML='';
+    if(ag.iibb.on&&base>=(+ag.iibb.min||0))R.appendChild(filaRet('pago',{impuesto:'IIBB',jurisdiccion:ag.iibb.jur,base,alicuota:ag.iibb.al,importe:(Math.round(base*ag.iibb.al)/100).toFixed(2)}));
+    if(ag.gan.on){const b=+(base-(+ag.gan.min||0)).toFixed(2);if(b>0)R.appendChild(filaRet('pago',{impuesto:'Ganancias',regimen:ag.gan.reg,base:b,alicuota:ag.gan.al,importe:(Math.round(b*ag.gan.al)/100).toFixed(2)}))}
+    if(!R.children.length)toast('Con estos importes no corresponde retener (no llega al mínimo).');sugerirValor();tot()});
+  tot();
+  $('#op_g').onclick=async()=>{const vals=[...V.children].map(leerValor).filter(x=>x.importe>0),rets=[...R.children].map(leerRet).filter(x=>x.importe>0),imps=elegidas();
+    if(!vals.length&&!rets.length)return toast('Poné con qué le pagás (importe de la transferencia, cheque…).',1);
+    if(vals.some(v=>(v.medio=='echeq'||v.medio=='cheque')&&!v._cartera&&!v.fecha_pago))return toast('Poné la fecha de pago del cheque.',1);
+    if(vals.some(v=>v._cartera&&!v.cheque_id))return toast('Elegí el cheque de la cartera.',1);
+    const d=falta();if(d>0.004&&!confirm('Lo que pagás no cubre las facturas elegidas (faltan '+$m(d)+'). Bajá el importe de alguna factura o agregá otro valor.\n\n¿Querés emitirla igual? Se aplica hasta donde alcance.'))return;
+    if(d>0.004){let resto=sumV()+sumR();for(const x of imps){const a=Math.min(resto,x.importe);x.importe=+a.toFixed(2);resto-=a}}
+    $('#op_g').disabled=true;
+    const{data,error}=await sb.rpc('registrar_orden_pago',{p:{proveedor_id:id,observacion:$('#op_o').value.trim(),imputaciones:imps.filter(x=>x.importe>0),valores:vals.map(({_cartera,...v})=>v),retenciones:rets}});
+    $('#op_g').disabled=false;
+    if(error)return toast(/registrar_orden_pago/.test(error.message)?'Falta correr ordenes-pago.sql en Supabase.':error.message,1);
+    okAnim('Orden de pago N° '+data.id);
+    S.opNueva=data.id;formOP();listaOP()};
+  if(S.opNueva){const n=S.opNueva;S.opNueva=null;$('#op_ok').innerHTML=`<div class="aviso okb"><b>Orden de pago N° ${n} emitida.</b> <button class="alt" id="op_pdf">${IC('doc',16)} PDF</button> <button class="alt wa" id="op_wa">${IC('chat',16)} Mandar al proveedor</button></div>`;
+    $('#op_pdf').onclick=()=>pdfOP(n);$('#op_wa').onclick=()=>waOP(n)}
+}
+async function listaOP(){const box=$('#op_l');if(!box)return;const id=$('#op_p')?.value;
+  let q=sb.from('ordenes_pago').select('*,proveedores(razon_social)').order('id',{ascending:false}).limit(40);if(id&&!S.opTodas)q=q.eq('proveedor_id',id);
+  const{data,error}=await q;if(error){box.innerHTML=OP_SQL;return}
+  box.innerHTML=data.length?`<div class="opl">${data.map(o=>`<div class="opi ${o.anulada?'anul':''}"><div class="opi-t"><b>OP N° ${o.id}</b> <small>${fd(o.fecha)}</small>${o.anulada?' <span class="badge b-cancelado">Anulada</span>':''}<br><small>${esc(o.proveedores?.razon_social||'')}${+o.total_retenciones>0?' · retenciones '+$m(o.total_retenciones):''}</small></div><b class="opi-m">${$m(o.total)}</b>
+    <span class="opi-b"><button class="alt" data-opp="${o.id}" aria-label="PDF" title="PDF">${IC('doc',18)}</button><button class="alt wa" data-opw="${o.id}" aria-label="WhatsApp" title="Mandar por WhatsApp">${IC('chat',18)}</button>${+o.total_retenciones>0&&!o.anulada?`<button class="alt" data-opc="${o.id}" title="Certificados de retención">${IC('receipt',18)}</button>`:''}${!o.anulada?`<button class="alt" data-opa="${o.id}" aria-label="Anular" title="Anular">${IC('x',18)}</button>`:''}</span></div>`).join('')}</div>`:vacioHTML('Todavía no hay órdenes de pago. Cuando le pagues a un proveedor, hacela acá arriba: queda numerada y con todo el detalle.','doc');
+  $$('#op_l [data-opp]').forEach(b=>b.onclick=()=>pdfOP(+b.dataset.opp));$$('#op_l [data-opw]').forEach(b=>b.onclick=()=>waOP(+b.dataset.opw));$$('#op_l [data-opc]').forEach(b=>b.onclick=()=>certRetOP(+b.dataset.opc));
+  $$('#op_l [data-opa]').forEach(b=>b.onclick=async()=>{if(!confirm('¿Anular la orden de pago N° '+b.dataset.opa+'?\n\nSe deshace todo: vuelve la deuda con el proveedor, los cheques endosados vuelven a la cartera, los cheques propios quedan anulados y se borran los movimientos del banco.'))return;
+    const{error}=await sb.rpc('anular_orden_pago',{p_id:+b.dataset.opa});if(error)return toast(error.message,1);toast('Orden de pago anulada.');formOP();listaOP()})}
+async function datosOP(n){const[o,i,v,r]=await Promise.all([sb.from('ordenes_pago').select('*,proveedores(*)').eq('id',n).single(),
+    sb.from('op_imputaciones').select('*').eq('orden_pago_id',n),sb.from('comprobante_valores').select('*').eq('orden_pago_id',n).order('id'),
+    sb.from('retenciones').select('*').eq('orden_pago_id',n).order('id')]);
+  if(o.error)throw o.error;await nombresCuentas();
+  const fids=(i.data||[]).map(x=>x.factura_id);if(fids.length){const{data:FP}=await sb.from('facturas_proveedor').select('id,tipo,numero,fecha,total').in('id',fids);for(const x of i.data)x.facturas_proveedor=(FP||[]).find(y=>y.id==x.factura_id)||null}const s=await sb.from('v_saldo_proveedores').select('saldo').eq('proveedor_id',o.data.proveedor_id).maybeSingle();
+  return{o:o.data,p:o.data.proveedores||{},I:i.data||[],V:v.data||[],R:r.data||[],saldo:s.data?+s.data.saldo:null,E:await datosEmisor()}}
+async function pdfOP(n){const w=window.open('','_blank');if(!w)return toast('Permití las ventanas emergentes para generar el PDF.',1);w.document.write('<p style="font:16px system-ui;margin:32px">Armando la orden de pago…</p>');
+  let D;try{D=await datosOP(n)}catch(e){w.close();return toast(e.message,1)}const{o,p,I,V,R,E}=D,aplic=I.reduce((a,x)=>a+ +x.importe,0),cuenta=+o.total-aplic;
+  w.document.open();w.document.write(`<html><head><meta charset="utf-8"><title>Orden de pago ${o.id} - ${esc(p.razon_social||'')}</title><style>${docBaseCss()}</style><style>${docCss()}</style></head><body>
+  <p class="ayuda">Para guardarla en PDF: en la ventana de impresión elegí <b>Guardar como PDF</b> como destino.</p>
+  <div class="top"><div>${logoImg()}<h1>${esc(E.rs||'Sabores de mi País')}</h1>${emisorHTML(E)}</div><div class="n"><div class="doc-t">ORDEN DE PAGO</div><b>N° ${opNum(o.id)}</b><br>Fecha: ${fd(o.fecha)}${o.anulada?'<br><b style="color:#d92d20">ANULADA</b>':''}</div></div>
+  <div class="cab"><b>Pagamos a:</b> ${esc(p.razon_social||'')}${p.cuit?' · <b>CUIT</b> '+esc(cuitFmt(p.cuit)):''}${p.domicilio?'<br><b>Domicilio:</b> '+esc(p.domicilio)+(p.ciudad?', '+esc(p.ciudad):''):''}</div>
+  ${I.length?`<h3>Comprobantes que se cancelan</h3><table><tr><th>Comprobante</th><th>Fecha</th><th class="n">Total</th><th class="n">Se paga</th></tr>${I.map(x=>`<tr><td>Factura ${x.facturas_proveedor?.tipo||''} ${esc(x.facturas_proveedor?.numero||'')}</td><td>${fd(x.facturas_proveedor?.fecha)}</td><td class="n">${$m(x.facturas_proveedor?.total)}</td><td class="n">${$m(x.importe)}</td></tr>`).join('')}${cuenta>0.004?`<tr><td colspan="3">A cuenta</td><td class="n">${$m(cuenta)}</td></tr>`:''}</table>`:'<p>Pago a cuenta.</p>'}
+  ${V.length?`<h3>Valores entregados</h3><table><tr><th>Medio</th><th>Detalle</th><th class="n">Importe</th></tr>${V.map(x=>`<tr><td>${MEDIOS_VAL[x.medio]||x.medio}</td><td>${esc(valDet(x))||'—'}</td><td class="n">${$m(x.importe)}</td></tr>`).join('')}<tr class="st"><td colspan="2">Total valores</td><td class="n">${$m(o.total_valores)}</td></tr></table>`:''}
+  ${R.length?`<h3>Retenciones practicadas</h3><table><tr><th>Impuesto</th><th>Jurisdicción / régimen</th><th class="n">Base</th><th class="n">Alícuota</th><th>Certificado</th><th class="n">Importe</th></tr>${R.map(x=>`<tr><td>${esc(x.impuesto)}</td><td>${esc([x.jurisdiccion,x.regimen].filter(Boolean).join(' · '))||'—'}</td><td class="n">${x.base?$m(x.base):'—'}</td><td class="n">${x.alicuota?nf(x.alicuota)+' %':'—'}</td><td>${esc(x.comprobante||'')}</td><td class="n">${$m(x.importe)}</td></tr>`).join('')}<tr class="st"><td colspan="5">Total retenciones</td><td class="n">${$m(o.total_retenciones)}</td></tr></table>`:''}
+  <p class="imp">Total de la orden: ${$m(o.total)}</p><p class="letras">Son pesos ${enLetras(+o.total)}.</p>
+  ${o.observacion?`<p><b>Observación:</b> ${esc(o.observacion)}</p>`:''}
+  ${D.saldo!=null?`<p class="saldo">${D.saldo>0.005?'Saldo pendiente con '+esc(p.razon_social||'el proveedor')+' después de este pago: <b>'+$m(D.saldo)+'</b>':D.saldo<-0.005?'Saldo a nuestro favor: <b>'+$m(-D.saldo)+'</b>':'Con este pago la cuenta queda <b>al día</b>.'}</p>`:''}
+  <div class="firmas"><div>Entregó<br><small>${esc(E.rs||'Sabores de mi País')}</small></div><div>Recibí conforme<br><small>Firma, aclaración y DNI</small></div></div>
+  <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close()}
+async function waOP(n){const w=window.open('','_blank');let D;try{D=await datosOP(n)}catch(e){w&&w.close();return toast(e.message,1)}const{o,p,I,V,R}=D;
+  const t=`*${esc(D.E.rs||'Sabores de mi País')}*\nOrden de pago N° ${opNum(o.id)} · ${fd(o.fecha)}\n\nHola${p.contacto?' '+String(p.contacto).split(' ')[0]:''}! Te pasamos el detalle del pago:`+
+    (I.length?'\n\nFacturas que se cancelan:\n'+I.map(x=>`• ${x.facturas_proveedor?.tipo||''} ${x.facturas_proveedor?.numero||''}: ${$m(x.importe)}`).join('\n'):'')+
+    (V.length?'\n\nValores:\n'+V.map(x=>`• ${MEDIOS_VAL[x.medio]||x.medio} ${$m(x.importe)}${valDet(x)?' ('+valDet(x)+')':''}`).join('\n'):'')+
+    (R.length?'\n\nRetenciones:\n'+R.map(x=>`• ${x.impuesto}${x.jurisdiccion?' '+x.jurisdiccion:''} ${$m(x.importe)} (certificado ${x.comprobante})`).join('\n'):'')+
+    `\n\n*Total: ${$m(o.total)}*`+(D.saldo!=null?(D.saldo>0.005?`\nSaldo pendiente: ${$m(D.saldo)}`:'\nLa cuenta queda al día.'):'')+'\n\n¡Gracias!';
+  const url='https://wa.me/'+telWA(p.telefono||'')+'?text='+encodeURIComponent(t);if(w)w.location.href=url;else location.href=url;if(!telWA(p.telefono||''))toast('Este proveedor no tiene teléfono cargado: elegí el contacto en WhatsApp.')}
+/* Certificado de retención (uno por cada retención practicada en la orden) */
+async function certRetOP(n){const w=window.open('','_blank');if(!w)return toast('Permití las ventanas emergentes.',1);let D;try{D=await datosOP(n)}catch(e){w.close();return toast(e.message,1)}const{o,p,R,E}=D;
+  w.document.write(`<html><head><meta charset="utf-8"><title>Certificados de retención OP ${o.id}</title><style>${docBaseCss()}.cert{page-break-after:always;border:1px solid #ccc;padding:18px;border-radius:8px;margin-bottom:18px}.cert:last-child{page-break-after:auto}</style><style>${docCss()}</style></head><body><p class="ayuda">Un certificado por cada retención. Para guardarlos en PDF elegí <b>Guardar como PDF</b>.</p>
+  ${R.map(x=>`<div class="cert"><div class="top"><div>${logoImg(70)}<h1 style="font-size:20px">${esc(E.rs||'Sabores de mi País')}</h1>${emisorHTML(E)}</div><div class="n"><div class="doc-t">CERTIFICADO DE RETENCIÓN</div><b>N° ${esc(x.comprobante)}</b><br>Fecha: ${fd(x.fecha)}</div></div>
+    <table><tr><th>Impuesto</th><td>${esc(x.impuesto)}${x.jurisdiccion?' · '+esc(x.jurisdiccion):''}</td></tr>${x.regimen?`<tr><th>Régimen</th><td>${esc(x.regimen)}</td></tr>`:''}
+    <tr><th>Sujeto retenido</th><td>${esc(p.razon_social||'')}${p.cuit?' · CUIT '+esc(cuitFmt(p.cuit)):''}</td></tr><tr><th>Comprobante de pago</th><td>Orden de pago N° ${opNum(o.id)}</td></tr>
+    <tr><th>Base sujeta a retención</th><td>${x.base?$m(x.base):'—'}</td></tr><tr><th>Alícuota</th><td>${x.alicuota?nf(x.alicuota)+' %':'—'}</td></tr><tr><th>Importe retenido</th><td><b>${$m(x.importe)}</b></td></tr></table>
+    ${E.cuit?'':'<p class="ayuda">Cargá tu CUIT en Compras → Órdenes de pago → Datos y retenciones para que salga en el certificado.</p>'}<div class="firmas"><div>Firma del agente de retención</div></div></div>`).join('')}
+  <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close()}
+/* Tus datos para los comprobantes + configuración de agente de retención */
+async function configEmisor(){const E=await datosEmisor(),A=await cfgJ('agente_retencion',{iibb:{on:false,jur:'',al:0,min:0},gan:{on:false,al:2,min:0,reg:''}});
+  const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  m.innerHTML=`<div class="mc"><div class="bh"><h3>Datos para los comprobantes</h3><button class="alt" id="ce_x">Cerrar</button></div>
+    <p><small>Salen arriba en los recibos, órdenes de pago y certificados.</small></p><div class="g">
+    <label class="f">Razón social<input id="ce_rs" value="${esc(E.rs||'')}"></label><label class="f">CUIT<input id="ce_cu" inputmode="numeric" value="${esc(E.cuit||'')}"></label>
+    <label class="f">Condición de IVA<input id="ce_iv" value="${esc(E.iva||'')}"></label><label class="f">N° de Ingresos Brutos<input id="ce_ib" value="${esc(E.iibb||'')}"></label>
+    <label class="f" style="grid-column:1/-1">Domicilio<input id="ce_do" value="${esc(E.dom||'')}"></label></div>
+    <h4 style="margin:14px 0 4px">Si sos agente de retención</h4><p><small>Hoy no hace falta. Si algún día te designan, activalo y el CRM te sugiere la retención en cada orden de pago (siempre la podés corregir).</small></p>
+    <label class="chk"><input type="checkbox" id="ag_ib" ${A.iibb.on?'checked':''}> Retengo Ingresos Brutos</label><div class="g"><label class="f">Jurisdicción<input id="ag_ij" value="${esc(A.iibb.jur||'')}" placeholder="Ej.: CABA"></label><label class="f">Alícuota %<input id="ag_ia" type="number" step="0.01" value="${A.iibb.al||''}"></label><label class="f">Mínimo de base<input id="ag_im" type="number" step="0.01" value="${A.iibb.min||''}"></label></div>
+    <label class="chk"><input type="checkbox" id="ag_gn" ${A.gan.on?'checked':''}> Retengo Ganancias</label><div class="g"><label class="f">Régimen<input id="ag_gr" value="${esc(A.gan.reg||'')}" placeholder="Ej.: 078 Compraventa de bienes"></label><label class="f">Alícuota %<input id="ag_ga" type="number" step="0.01" value="${A.gan.al||''}"></label><label class="f">Mínimo no sujeto<input id="ag_gm" type="number" step="0.01" value="${A.gan.min||''}"></label></div>
+    <p><small>Las alícuotas y mínimos los define tu contador según tu designación.</small></p><button id="ce_g">Guardar</button></div>`;
+  const q=x=>m.querySelector(x);q('#ce_x').onclick=()=>m.remove();m.onclick=e=>{if(e.target===m)m.remove()};
+  q('#ce_g').onclick=async()=>{const e={rs:q('#ce_rs').value.trim(),cuit:q('#ce_cu').value.replace(/\D/g,''),iva:q('#ce_iv').value.trim(),iibb:q('#ce_ib').value.trim(),dom:q('#ce_do').value.trim()};
+    const a={iibb:{on:q('#ag_ib').checked,jur:q('#ag_ij').value.trim(),al:+q('#ag_ia').value||0,min:+q('#ag_im').value||0},gan:{on:q('#ag_gn').checked,reg:q('#ag_gr').value.trim(),al:+q('#ag_ga').value||0,min:+q('#ag_gm').value||0}};
+    const[r1,r2]=await Promise.all([guardaCfgJ('datos_emisor',e),guardaCfgJ('agente_retencion',a)]);if(r1.error||r2.error)return toast((r1.error||r2.error).message,1);
+    S.emisor=e;m.remove();toast('Guardado.');if($('#op_f'))formOP()}}
+/* Estilos comunes de los comprobantes impresos */
+const docBaseCss=()=>`body{font:14px system-ui,Segoe UI,sans-serif;margin:32px;color:#1c2333;max-width:760px}h1{color:${MARCA.c};margin:0;font-size:24px}h3{margin:18px 0 6px;font-size:15px;color:#3d4458}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border-bottom:2px solid ${MARCA.c};padding-bottom:12px}.doc-t{font-weight:800;letter-spacing:.06em;color:${MARCA.c}}.cab{margin:14px 0;line-height:1.5}table{width:100%;border-collapse:collapse;margin:6px 0 10px}th,td{border-bottom:1px solid #d6d9e0;padding:6px;text-align:left;vertical-align:top}th{background:#f3f4f7;font-size:12px;text-transform:uppercase;letter-spacing:.03em;color:#5b6274}.n{text-align:right;white-space:nowrap}tr.st td{font-weight:700;border-top:2px solid #1c2333}.imp{font-size:22px;font-weight:700;margin:16px 0 2px}.letras{margin:0 0 12px;color:#5b6274;font-style:italic}.saldo{background:#f3f4f7;padding:10px 12px;border-radius:6px}.firmas{display:flex;justify-content:space-between;gap:24px;margin-top:64px}.firmas>div{border-top:1px solid #1c2333;width:260px;padding-top:4px;text-align:center}.ayuda{background:#f6e9ec;padding:10px;border-radius:6px}@media print{.ayuda{display:none}body{margin:0}}`;
+/* Importe en letras (para recibos y órdenes de pago) */
+function enLetras(n){const U=['','uno','dos','tres','cuatro','cinco','seis','siete','ocho','nueve','diez','once','doce','trece','catorce','quince','dieciséis','diecisiete','dieciocho','diecinueve','veinte','veintiuno','veintidós','veintitrés','veinticuatro','veinticinco','veintiséis','veintisiete','veintiocho','veintinueve'],
+  D=['','','','treinta','cuarenta','cincuenta','sesenta','setenta','ochenta','noventa'],C=['','ciento','doscientos','trescientos','cuatrocientos','quinientos','seiscientos','setecientos','ochocientos','novecientos'];
+  const c3=x=>{if(x==100)return 'cien';const c=Math.floor(x/100),r=x%100;let t=C[c];if(r){t+=(t?' ':'')+(r<30?U[r]:D[Math.floor(r/10)]+(r%10?' y '+U[r%10]:''))}return t};
+  const ent=Math.floor(Math.abs(n)),cent=Math.round((Math.abs(n)-ent)*100);if(!ent)return 'cero con '+String(cent).padStart(2,'0')+'/100';
+  const mill=Math.floor(ent/1e6),miles=Math.floor(ent%1e6/1000),res=ent%1000;let t='';
+  if(mill)t+=(mill==1?'un millón':c3l(mill)+' millones');if(miles)t+=(t?' ':'')+(miles==1?'mil':c3l(miles)+' mil');if(res)t+=(t?' ':'')+c3(res);
+  function c3l(x){return c3(x).replace(/veintiuno$/,'veintiún').replace(/uno$/,'un')}
+  return t+' con '+String(cent).padStart(2,'0')+'/100'}
+
+/* ======================= RECIBO DETALLADO (Cobranza) ======================= */
+/* Formulario de "Registrar un cobro": facturas, varios valores (eCheq con sus datos) y retenciones, en un solo recibo */
+async function formCobroDet(F,id,saldo){const box=$('#k_fd');if(!box)return;
+  const[C]=await Promise.all([cargarCuentas()]);
+  box.innerHTML=`${F.length?'':'<p><small>No tiene facturas pendientes: lo que cobres queda a cuenta.</small></p>'}${F.length?`<div class="op-fac"><div class="op-acc"><small>Facturas que cancela (se aplica a las más viejas primero)</small></div>${F.map(x=>`<label class="op-fr"><input type="checkbox" data-kf="${x.factura_id}" checked><span class="op-fn"><b>${x.tipo} ${x.numero}</b><small>vence ${fd(x.vencimiento)}${x.dias_mora?` · <span class="mora">${x.dias_mora} ${x.dias_mora==1?'día':'días'} de mora</span>`:''}</small></span><span class="op-fp">${$m(x.pendiente)}</span></label>`).join('')}</div>`:''}
+    <h4 class="op-h">Qué te pagó ${saldo>0?`<a class="lnk ktodo" id="k_todo">Cobrar todo (${$m(saldo)})</a>`:''}</h4><div id="k_v"></div><button type="button" class="alt" id="k_va">${IC('plus',16)} Otra forma de pago</button>
+    <details class="op-ret" id="k_rd"><summary>Retenciones que te hizo <small>(empresas grandes: IIBB, Ganancias, IVA, SUSS)</small></summary><div id="k_rt"></div><button type="button" class="alt" id="k_ra">${IC('plus',16)} Agregar retención</button></details>
+    <label class="f">Observación<input id="k_obs" placeholder="Ej.: Orden de pago del cliente N° 4455"></label>
+    <div class="op-tot" id="k_t"></div><button id="k_g2">Registrar cobro</button>`;
+  const V=$('#k_v'),R=$('#k_rt');V.appendChild(filaValor('cobro',C,[]));
+  const sumV=()=>[...V.children].map(leerValor).reduce((a,x)=>a+x.importe,0),sumR=()=>[...R.children].map(leerRet).reduce((a,x)=>a+x.importe,0);
+  const elegidas=()=>F.filter(x=>box.querySelector(`[data-kf="${x.factura_id}"]`)?.checked);
+  const totF=()=>elegidas().reduce((a,x)=>a+ +x.pendiente,0);
+  const tot=()=>{const v=sumV(),r=sumR(),t=v+r,d=+(totF()-t).toFixed(2);
+    $('#k_t').innerHTML=t?`<div><span>Valores</span><b>${$m(v)}</b></div>${r?`<div><span>Retenciones</span><b>${$m(r)}</b></div>`:''}<div class="op-tt"><span>Total del recibo</span><b>${$m(t)}</b></div><p class="${d>0.004?'mora':''}">${totF()>0?(d>0.004?'Quedan '+$m(d)+' pendientes de las facturas marcadas':d<-0.004?'Sobran '+$m(-d)+': quedan a cuenta':'Cancela justo las facturas marcadas'):'Queda a cuenta'}</p>`:''};
+  [box,V,R].forEach(x=>x.addEventListener('cambio',tot));$$('#k_fd [data-kf]').forEach(c=>c.onchange=tot);
+  $('#k_va').onclick=()=>{const f=+(totF()-sumV()-sumR()).toFixed(2);V.appendChild(filaValor('cobro',C,[],{importe:f>0?f.toFixed(2):''}));tot()};
+  $('#k_ra').onclick=()=>{R.appendChild(filaRet('cobro'));tot()};
+  $('#k_todo')&&($('#k_todo').onclick=()=>{const i=V.children[0]?.querySelector('.v_i');if(i){i.value=Math.max(0,saldo-sumR()-([...V.children].slice(1).map(leerValor).reduce((a,x)=>a+x.importe,0))).toFixed(2);tot()}});
+  tot();
+  $('#k_g2').onclick=async()=>{const vals=[...V.children].map(leerValor).filter(x=>x.importe>0),rets=[...R.children].map(leerRet).filter(x=>x.importe>0);
+    if(!vals.length&&!rets.length)return toast('Poné el importe que te pagó.',1);
+    if(vals.some(v=>(v.medio=='echeq'||v.medio=='cheque')&&!v.fecha_pago))return toast('Poné la fecha de pago del cheque.',1);
+    let resto=vals.reduce((a,x)=>a+x.importe,0)+rets.reduce((a,x)=>a+x.importe,0);const imps=[];
+    for(const f of elegidas()){if(resto<=0.004)break;const a=Math.min(resto,+f.pendiente);imps.push({factura_id:f.factura_id,importe:+a.toFixed(2)});resto=+(resto-a).toFixed(2)}
+    $('#k_g2').disabled=true;
+    const{data,error}=await sb.rpc('registrar_recibo',{p:{cliente_id:id,observacion:$('#k_obs').value.trim(),imputaciones:imps,valores:vals.map(({_cartera,...v})=>v),retenciones:rets}});
+    $('#k_g2').disabled=false;
+    if(error){if(/registrar_recibo/.test(error.message)&&!rets.length)return cobroViejo(id,F,vals);return toast(/registrar_recibo/.test(error.message)?'Para cargar retenciones falta correr ordenes-pago.sql en Supabase.':error.message,1)}
+    okAnim('Cobro registrado');toast('Recibo N° '+data.numero+' registrado'+(data.a_cuenta>0.004?'. Quedan '+$m(data.a_cuenta)+' a cuenta.':'.'));S.recNuevo=data.numero;$('#k_c').onchange();morosos()};
+}
+/* Si todavía no se corrió ordenes-pago.sql: cobra como antes (un recibo por forma de pago) */
+async function cobroViejo(id,F,vals){const pend=F.map(x=>({id:x.factura_id,p:+x.pendiente||0}));const recs=[];
+  for(const x of vals){const medio=x.medio=='echeq'?'cheque':x.medio=='deposito'?'transferencia':x.medio;let rest=x.importe;const imp=[];
+    for(const f of pend){if(rest<=0)break;if(f.p<=0.004)continue;const a=Math.min(rest,f.p);imp.push({factura_id:f.id,importe:+a.toFixed(2)});f.p=+(f.p-a).toFixed(2);rest=+(rest-a).toFixed(2)}
+    const{data,error}=await sb.rpc('registrar_cobranza',{p_cliente:id,p_importe:x.importe,p_medio:medio,p_imputaciones:imp,...(recs.length?{p_observacion:'Parte del recibo N° '+recs[0]}:{})});
+    if(error){toast(error.message,1);break}
+    if(S.perfil.rol=='dueno'){if((x.medio=='echeq'||x.medio=='cheque')&&x.fecha_pago)await sb.from('cheques').insert({tipo:'recibido',estado:'en_cartera',echeq:x.medio=='echeq',numero:x.numero||null,banco:x.banco||null,librador:x.titular||nomCli(id),cuit_librador:x.cuit||null,importe:x.importe,fecha_pago:x.fecha_pago,cliente_id:id,notas:'Recibo N° '+(recs[0]||data)});
+      else if(x.cuenta_id)await movCuenta(x.cuenta_id,x.importe,'Cobro recibo N° '+(recs[0]||data)+' · '+nomCli(id),'cobro','Recibo N° '+(recs[0]||data))}
+    recs.push(data)}
+  if(!recs.length)return;okAnim('Cobro registrado');toast('Recibo N° '+recs[0]+' registrado.');S.recNuevo=recs[0];$('#k_c').onchange();morosos()}
+/* Detalle de valores y retenciones de un recibo (para el PDF y WhatsApp) */
+async function detalleRecibo(x){try{const[v,r]=await Promise.all([sb.from('comprobante_valores').select('*').in('recibo_id',x.ids||[x.id]).order('id'),sb.from('retenciones').select('*').in('recibo_id',x.ids||[x.id]).order('id')]);
+  await nombresCuentas();return{V:v.error?[]:v.data||[],R:r.error?[]:r.data||[]}}catch(e){return{V:[],R:[]}}}
+
 /* ======================= FOTOS DE PRODUCTOS ======================= */
 function achicarFoto(file,max=800){return new Promise((ok,mal)=>{const r=new FileReader();r.onerror=()=>mal(new Error('No se pudo leer la foto'));
   r.onload=()=>{const im=new Image();im.onerror=()=>mal(new Error('Ese archivo no es una imagen.'));im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height)),w=Math.round(im.width*k),h=Math.round(im.height*k);
@@ -7571,10 +7795,11 @@ async function tareasInicio(){const box=$('#tari');if(!box)return;await generarR
 
 /* ---------- 10. Cierre del día ---------- */
 async function cierreDia(d){d=d||diaLocal(new Date());const ini=new Date(tsAR(d)).toISOString(),fin=new Date(new Date(tsAR(d)).getTime()+864e5).toISOString();
-  const[re,ga,pp,ne,en,ab,me,ta]=await Promise.all([todo(()=>sb.from('recibos').select('importe,medio,cliente_id').eq('anulado',false).gte('fecha',ini).lt('fecha',fin)),todo(()=>sb.from('gastos').select('importe,descripcion,medio').eq('fecha',d)),
+  const[re,ga,pp,ne,en,ab,me,ta]=await Promise.all([todo(()=>sb.from('recibos').select('importe,medio,cliente_id,observacion').eq('anulado',false).gte('fecha',ini).lt('fecha',fin)),todo(()=>sb.from('gastos').select('importe,descripcion,medio').eq('fecha',d)),
     todo(()=>sb.from('pagos_proveedor').select('importe,medio').eq('fecha',d)),todo(()=>sb.from('pedidos').select('total').neq('estado','cancelado').gte('creado_en',ini).lt('creado_en',fin)),
     todo(()=>sb.from('pedidos').select('total,numero').eq('estado','entregado').gte('entregado_en',ini).lt('entregado_en',fin)),sb.from('pedidos').select('numero,total,estado,cliente_id').in('estado',['en_reparto','listo']),
     sb.from('mermas').select('costo').gte('fecha',ini).lt('fecha',fin),sb.from('tareas').select('titulo').eq('hecha',false).lte('fecha',d)]);
+  if(re.data)re.data=re.data.filter(x=>!/^(Nota de crédito|Retenciones)/.test(x.observacion||''));if(pp.data)pp.data=pp.data.filter(x=>x.medio!='retencion');
   const s=L=>(L||[]).reduce((a,x)=>a+(+x.importe||+x.total||+x.costo||0),0),pm={};for(const r of re.data||[])pm[r.medio]=(pm[r.medio]||0)+(+r.importe||0);
   const ef=(pm.efectivo||0)-s((ga.data||[]).filter(x=>!x.medio||x.medio=='efectivo'))-s((pp.data||[]).filter(x=>x.medio=='efectivo'));
   const SR=(ab.data||[]).filter(o=>o.estado=='en_reparto'),m=document.createElement('div');m.className='modal';document.body.appendChild(m);
@@ -8713,7 +8938,7 @@ async function comprobantesBox(){if(!$('#mor'))return;if(!$('#cmp'))$('#mor').in
     const m=document.createElement('div');m.className='modal';m.innerHTML=`<div class="mc" style="text-align:center"><img src="${r.imagen}" alt="Comprobante" style="max-width:100%;max-height:75vh;border-radius:8px"><div class="fc-acc" style="justify-content:center;margin-top:8px"><button class="alt" id="cpi_x">Cerrar</button></div></div>`;document.body.appendChild(m);m.querySelector('#cpi_x').onclick=()=>m.remove()});
   box.querySelectorAll('[data-cpd]').forEach(a=>a.onclick=()=>{if(confirm('¿Descartar este comprobante?'))est(a.dataset.cpd,'descartado')});
   box.querySelectorAll('[data-cpr]').forEach(b=>b.onclick=async()=>{const x=data.find(z=>String(z.id)==b.dataset.cpr);$('#k_c').value=x.cliente_id;await $('#k_c').onchange();
-    setTimeout(()=>{if($('#k_i')&&+x.monto)$('#k_i').value=+x.monto;if($('#k_m'))$('#k_m').value='transferencia';$('#k_sel').scrollIntoView({behavior:'smooth'})},400);est(x.id,'registrado');toast('Completá y confirmá el cobro abajo.')})}
+    setTimeout(()=>{{const i=document.querySelector('#k_v .v_i');if(i&&+x.monto){i.value=+x.monto;i.dispatchEvent(new Event('input'))}}$('#k_sel').scrollIntoView({behavior:'smooth'})},400);est(x.id,'registrado');toast('Completá y confirmá el cobro abajo.')})}
 
 /* ---------- 2. Aviso "mañana te llevamos tu pedido" ---------- */
 async function colaExtra24(add,ok,hoy,lk){const man=diaLocal(new Date(Date.now()+864e5));
@@ -9216,9 +9441,9 @@ async function ctIVA(){
 /* ---------- Retenciones y percepciones ---------- */
 async function ctRet(){
   $('#ct').innerHTML=selMes()+'<div id="rr"><span class="skl" role="status" aria-label="Cargando"></span></div>';onMes(ctRet);
-  const[a,b]=mesRango(S.ctMes);const r=await todo(()=>sb.from('retenciones').select('*').gte('fecha',a).lt('fecha',b).order('fecha',{ascending:false}));
+  const[a,b]=mesRango(S.ctMes);let r=await todo(()=>sb.from('retenciones').select('*,proveedores(razon_social)').gte('fecha',a).lt('fecha',b).order('fecha',{ascending:false}));if(r.error)r=await todo(()=>sb.from('retenciones').select('*').gte('fecha',a).lt('fecha',b).order('fecha',{ascending:false}));
   if(r.error){$('#rr').innerHTML=SQL_FALTA;return}
-  const tot={};for(const x of r.data)tot[x.impuesto]=(tot[x.impuesto]||0)+Number(x.importe);
+  const TIPO_RET={retencion:'Te retuvieron',percepcion:'Percepción',practicada:'Retuviste vos'};const tot={};for(const x of r.data){const k=(x.tipo=='practicada'?'Retuviste vos · ':x.tipo=='percepcion'?'Percepciones · ':'Te retuvieron · ')+x.impuesto+(x.jurisdiccion?' '+x.jurisdiccion:'');tot[k]=(tot[k]||0)+Number(x.importe)}
   $('#rr').innerHTML=`<div class="dos fc2"><div class="box"><h3>Cargar certificado</h3><p><small>Retenciones que te hacen tus clientes al pagarte, o percepciones que no estén en una factura de proveedor.</small></p><div class="g">
     <label class="f">Fecha<input type="date" id="rt_f" value="${diaLocal(new Date())}"></label>
     <label class="f">Tipo<select id="rt_t"><option value="retencion">Retención (al cobrar)</option><option value="percepcion">Percepción</option></select></label>
@@ -9231,8 +9456,8 @@ async function ctRet(){
     <button id="rt_g">Guardar</button></div>
   <div class="box"><h3>Total de ${mesNom(S.ctMes)}</h3>${Object.keys(tot).length?`<table>${Object.entries(tot).map(([k,v])=>`<tr><td>${k}</td><td class="n"><b>${$m(v)}</b></td></tr>`).join('')}</table>`:'<p><small>No hay certificados cargados este mes.</small></p>'}
     <p><small>Las percepciones que vienen en las facturas de proveedores se suman solas en la pestaña IVA.</small></p></div></div>
-  <div class="box"><div class="bh"><h3>Certificados del mes</h3><button class="alt" id="rt_cp">Copiar para Excel</button></div>${r.data.length?`<div class="tscroll"><table><tr><th>Fecha</th><th>Tipo</th><th>Impuesto</th><th>Cliente</th><th>Certificado</th><th class="n">Importe</th><th></th></tr>
-    ${r.data.map(x=>`<tr><td>${fd(x.fecha)}</td><td>${x.tipo=='retencion'?'Retención':'Percepción'}</td><td>${x.impuesto}${x.jurisdiccion?' <small>'+esc(x.jurisdiccion)+'</small>':''}</td><td>${x.cliente_id?esc(nomCli(x.cliente_id)):'—'}</td><td>${esc(x.comprobante||'')}</td><td class="n">${$m(x.importe)}</td><td><a class="lnk" data-rb="${x.id}">Borrar</a></td></tr>`).join('')}</table></div>`:'<p><small>Sin certificados.</small></p>'}</div>`;
+  <div class="box"><div class="bh"><h3>Certificados del mes</h3><button class="alt" id="rt_cp">Copiar para Excel</button></div>${r.data.length?`<div class="tscroll"><table><tr><th>Fecha</th><th>Tipo</th><th>Impuesto</th><th>Cliente / proveedor</th><th>Certificado</th><th class="n">Importe</th><th></th></tr>
+    ${r.data.map(x=>`<tr><td>${fd(x.fecha)}</td><td>${TIPO_RET[x.tipo]||x.tipo}</td><td>${x.impuesto}${x.jurisdiccion?' <small>'+esc(x.jurisdiccion)+'</small>':''}</td><td>${x.cliente_id?esc(nomCli(x.cliente_id)):x.proveedores?.razon_social?esc(x.proveedores.razon_social):'—'}</td><td>${esc(x.comprobante||'')}${x.notas&&/^(Recibo|OP) N°/.test(x.notas)?' <small>'+esc(x.notas)+'</small>':''}</td><td class="n">${$m(x.importe)}</td><td>${x.recibo_id||x.orden_pago_id?'<small title="Se borra anulando el recibo o la orden de pago">—</small>':`<a class="lnk" data-rb="${x.id}">Borrar</a>`}</td></tr>`).join('')}</table></div>`:'<p><small>Sin certificados.</small></p>'}</div>`;
   const upd=()=>{$('#rt_dl').hidden=!($('#rt_t').value=='retencion'&&$('#rt_c').value)};$('#rt_t').onchange=upd;$('#rt_c').onchange=upd;upd();
   $('#rt_g').onclick=async()=>{const imp=+$('#rt_m').value;if(!(imp>0))return toast('Poné el importe.',1);const cli=$('#rt_c').value||null;
     $('#rt_g').disabled=true;
