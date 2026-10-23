@@ -791,6 +791,8 @@ main#v:has(#s_cn),main#v:has(#pr_cnt){max-width:1200px}
 .g:has(>#s_q),.g:has(>.conscan #s_q){display:flex!important;flex-wrap:wrap;align-items:center;gap:8px 20px}
 .g>.conscan:has(#s_q){flex:0 1 420px}
 }
+
+.ktodo{display:inline-block;margin-top:6px;font-size:13px}
 </style>
 </head>
 <body>
@@ -2621,7 +2623,7 @@ function vCobranza(){setTimeout(()=>{if(S.preCob&&$('#k_c')){$('#k_c').value=S.p
     const hoyC=diaLocal(new Date()),ppOk=x=>PP&&+PP.pct>0&&x.fecha&&diaLocal(new Date(new Date(String(x.fecha).slice(0,10)+'T12:00').getTime()+PP.dias*864e5))>=hoyC;
     $('#k_s').innerHTML=`<p>Saldo: <b>${$m(s.data?.saldo)}</b> <small>(facturado ${$m(s.data?.facturado)} · cobrado ${$m(s.data?.cobrado)})</small></p>
     <table><tr><th>Factura</th><th>Vence</th><th>Mora</th><th>Pendiente</th></tr>${F.map(x=>`<tr><td>${x.tipo} ${x.numero}</td><td>${fd(x.vencimiento)}</td><td>${x.dias_mora?x.dias_mora+' días':'—'}</td><td>${$m(x.pendiente)}${ppOk(x)?`<br><button class="alt" data-ppf="${x.factura_id}" title="Descuento por pronto pago">💸 −${nf(PP.pct)} % pronto pago (${$m(x.pendiente*PP.pct/100)})</button>`:''}</td></tr>`).join('')||'<tr><td colspan="4">No tiene facturas pendientes.</td></tr>'}</table>
-    <div class="g"><input id="k_i" type="number" step="0.01" min="0" placeholder="Importe a cobrar"><select id="k_m"><option>transferencia</option><option>efectivo</option><option>cheque</option><option value="echeq">eCheq</option><option>tarjeta</option><option>otro</option></select></div><div id="k_x"></div>
+    <div class="g"><label class="f">Importe a cobrar<input id="k_i" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0,00">${+s.data?.saldo>0?`<a class="lnk ktodo" onclick="const i=$('#k_i');i.value=${(+s.data.saldo).toFixed(2)};i.dispatchEvent(new Event('input',{bubbles:true}))">Cobrar todo (${$m(s.data.saldo)})</a>`:''}</label><label class="f">Medio de pago<select id="k_m"><option value="transferencia">Transferencia</option><option value="efectivo">Efectivo</option><option value="cheque">Cheque</option><option value="echeq">eCheq</option><option value="tarjeta">Tarjeta</option><option value="otro">Otro</option></select></label></div><div id="k_x"></div>
     <div id="k_split"></div><p class="ksp-acc"><a class="lnk" id="k_add">+ Dividir pago</a> <small id="k_falta"></small></p>
     <button id="k_g">Registrar cobro</button><div id="k_ok"></div><h3>Últimos recibos</h3>
     <div class="rcl">${recUn(r.data||[]).map(x=>`<div class="rci"><div class="rci-t"><b>Recibo N° ${x.numero}</b><small>${fd(x.fecha)} · ${esc(x.medio)}</small></div><b class="rci-m">${$m(x.importe)}</b><span class="rci-b"><button class="alt wa" data-rw="${x.numero}" aria-label="WhatsApp">${IC('chat',18)}</button><button class="alt" data-rp="${x.numero}" aria-label="PDF">${IC('doc',18)}</button></span></div>`).join('')||'<p><small>Todavía no hay recibos.</small></p>'}</div>`;
@@ -2728,7 +2730,7 @@ async function morosos(){
     :vacioHTML(S.morF=='vencidos'?'Nadie te debe plata vencida 👍':'Nadie te debe nada 👍','check');
   const gr=id=>V.find(g=>g.id==id);
   $$('#mo_l [data-fc]').forEach(a=>a.onclick=()=>{S.tab='clientes';shell();fichaCliente(S.clientes.find(c=>c.id==a.dataset.fc))});
-  $$('#mo_l [data-mc]').forEach(b=>b.onclick=()=>{$('#k_c').value=b.dataset.mc;$('#k_c').onchange();$('#k_sel').scrollIntoView({behavior:'smooth'})});
+  $$('#mo_l [data-mc]').forEach(b=>b.onclick=async()=>{$('#k_c').value=b.dataset.mc;try{await $('#k_c').onchange()}catch(e){}setTimeout(()=>{const k=$('#k_sel');if(k){k.style.scrollMarginTop='72px';k.scrollIntoView({behavior:'smooth',block:'start'})}},80)});
   $$('#mo_l [data-mp]').forEach(b=>b.onclick=()=>resumenPDF(gr(b.dataset.mp)));
   $$('#mo_l [data-mpr]').forEach(b=>b.onclick=()=>{const g=gr(b.dataset.mpr);promesaNueva(g.id,g.v||g.t,morosos)});
   $$('#mo_l [data-rgp]').forEach(a=>a.onclick=()=>{const g=gr(a.dataset.rgp);recargoPerdonar(g.id,recargoG(g.F,g.id),morosos)});
