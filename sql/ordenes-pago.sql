@@ -126,6 +126,7 @@ select o.id as factura_id, o.proveedor_id, o.tipo, o.numero, o.fecha, o.vencimie
             else 'impaga' end as estado,
        greatest(current_date - o.vencimiento, 0) as dias_vencida
   from o join cred c on c.proveedor_id = o.proveedor_id;
+alter view public.v_facturas_proveedor_estado set (security_invoker = on);
 
 -- ---------- 6. Registrar una orden de pago (todo o nada) ----------
 create or replace function public.registrar_orden_pago(p jsonb)
