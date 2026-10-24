@@ -989,7 +989,7 @@ async function vManual(){const v=$('#v');v.innerHTML='<p>Cargando manual…</p>'
 /* Supabase devuelve como máximo 1000 filas por pedido: esto trae todas, de a tandas */
 async function todo(armar){let out=[],i=0;for(;;){const{data,error}=await armar().range(i,i+999);if(error)return{data:out,error};out=out.concat(data);if(data.length<1000)return{data:out,error:null};i+=1000}}
 /* Auto-actualización: si hay una versión nueva publicada, recarga sola (evita ver la versión vieja guardada en el celular) */
-const APP_V='2026-10-24-1400b';
+const APP_V='2026-10-24-1400c';
 async function chequearVersion(){try{const r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});const t=await r.text(),m=t.match(/const APP_V='([^']+)'/);
   if(m&&m[1]!==APP_V){const k='recarga_'+m[1];if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,'1');location.replace(location.pathname+'?v='+m[1]+location.hash)}}catch(e){}}
 chequearVersion();document.addEventListener('visibilitychange',()=>{if(document.visibilityState=='visible')chequearVersion()});
@@ -3221,7 +3221,8 @@ const MEDIOS_VAL={transferencia:'Transferencia',deposito:'Depósito',efectivo:'E
 const IMPUESTOS=['IIBB','Ganancias','IVA','SUSS','Otro'];
 const opNum=n=>'0001-'+String(n).padStart(8,'0');
 async function datosEmisor(){if(S.emisor)return S.emisor;S.emisor=await cfgJ('datos_emisor',{rs:'Sabores de mi País',cuit:'',iva:'Monotributo',iibb:'',dom:''});return S.emisor}
-const emisorHTML=E=>`<div style="font-size:12px;color:#5b6274;margin-top:4px">${esc(E.rs||'Sabores de mi País')}${E.cuit?' · CUIT '+esc(cuitFmt(E.cuit)):''}${E.iva?' · '+esc(E.iva):''}${E.iibb?'<br>IIBB '+esc(E.iibb):''}${E.dom?' · '+esc(E.dom):''}</div>`;
+const emisorHTML=E=>{const rs=String(E.rs||'').trim(),P=[/^sabores de mi pa[ií]s$/i.test(rs)?'':esc(rs),E.cuit?'CUIT '+esc(cuitFmt(E.cuit)):'',E.iva?esc(E.iva):'',E.dom?esc(E.dom):''].filter(Boolean);
+  return `<div style="font-size:12px;color:#5b6274;margin-top:4px">${P.join(' · ')}${E.iibb?'<br>IIBB '+esc(E.iibb):''}</div>`};
 /* Detalle legible de un valor (para pantalla, PDF y WhatsApp) */
 const valDet=v=>[v.endosado?'endosado de la cartera':'',v.banco?'Banco '+v.banco:'',v.numero?'N° '+v.numero:'',v.fecha_pago?'paga el '+fd(v.fecha_pago):'',v.titular?'de '+v.titular:'',v.cuit?'CUIT '+cuitFmt(v.cuit):'',v.referencia?'Ref. '+v.referencia:'',v.cuenta_id&&S.ctasN?.[v.cuenta_id]?'cuenta '+S.ctasN[v.cuenta_id]:''].filter(Boolean).join(' · ');
 async function nombresCuentas(){if(S.ctasN)return S.ctasN;const{data}=await sb.from('cuentas').select('id,nombre');S.ctasN={};for(const c of data||[])S.ctasN[c.id]=c.nombre;return S.ctasN}
