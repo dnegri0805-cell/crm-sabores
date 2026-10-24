@@ -263,6 +263,10 @@ body{zoom:var(--z,1)}
 .sub button{flex:none;white-space:nowrap;border-radius:999px;padding:7px 15px;font-size:14px;font-weight:600;line-height:1.2}
 .sub button.alt{background:#fff;color:#3c4458;border:1px solid var(--l)}
 .sub button:not(.alt){background:var(--m);color:#fff;border:1px solid var(--m)}
+.sub.tabs{gap:0!important;border-bottom:1px solid #e4dfd8;margin:0 0 14px!important;padding:0!important}
+.sub.tabs button,.sub.tabs button.alt,.sub.tabs button:not(.alt){background:transparent!important;border:0!important;border-bottom:3px solid transparent!important;border-radius:0!important;color:#6a7184!important;padding:10px 12px 9px!important;font-weight:600;box-shadow:none!important}
+.sub.tabs button:not(.alt){color:var(--m)!important;border-bottom-color:var(--m)!important}
+html.oscuro .sub.tabs{border-bottom-color:#3a3f4d}html.oscuro .sub.tabs button.alt{color:#a9afbd!important}
 button.alt{border-color:#dcc9ce}
 button.alt:hover{background:#faf5f6;filter:none}
 .cl-card{border-color:#ebe6df;box-shadow:0 1px 2px rgba(23,33,58,.04)}
@@ -967,7 +971,7 @@ async function vManual(){const v=$('#v');v.innerHTML='<p>Cargando manual…</p>'
 /* Supabase devuelve como máximo 1000 filas por pedido: esto trae todas, de a tandas */
 async function todo(armar){let out=[],i=0;for(;;){const{data,error}=await armar().range(i,i+999);if(error)return{data:out,error};out=out.concat(data);if(data.length<1000)return{data:out,error:null};i+=1000}}
 /* Auto-actualización: si hay una versión nueva publicada, recarga sola (evita ver la versión vieja guardada en el celular) */
-const APP_V='2026-10-24-0230';
+const APP_V='2026-10-24-0235';
 async function chequearVersion(){try{const r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});const t=await r.text(),m=t.match(/const APP_V='([^']+)'/);
   if(m&&m[1]!==APP_V){const k='recarga_'+m[1];if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,'1');location.replace(location.pathname+'?v='+m[1]+location.hash)}}catch(e){}}
 chequearVersion();document.addEventListener('visibilitychange',()=>{if(document.visibilityState=='visible')chequearVersion()});
@@ -1629,7 +1633,7 @@ const inicCli=c=>{const w=nomVis(c).replace(/\b(SRL|SA|SAS|SH)\b/gi,'').trim().s
 const avatar=(c,cls='')=>`<span class="cl-ini ${cls}" style="background:${famCol(famCli(c))}">${esc(inicCli(c))}</span>`;
 function vClientes(){
   S.cs=S.cs||'lista';
-  const subs=`<div class="sub">${[['lista','Clientes'],['agenda','Agenda de visitas'],['mapa','Mapa'],['dormidos','Dormidos'],['prospectos','Prospectos'],['fijos','Pedidos fijos']].map(([k,t])=>`<button class="${S.cs==k?'':'alt'}" data-cs2="${k}">${t}</button>`).join('')}</div>`;
+  const subs=`<div class="sub tabs">${[['lista','Clientes'],['agenda','Agenda de visitas'],['mapa','Mapa'],['dormidos','Dormidos'],['prospectos','Prospectos'],['fijos','Pedidos fijos']].map(([k,t])=>`<button class="${S.cs==k?'':'alt'}" data-cs2="${k}">${t}</button>`).join('')}</div>`;
   if(S.cs!='lista'){$('#v').innerHTML=`${cabClientes()}${subs}<div id="cs"><span class="skl" role="status" aria-label="Cargando"></span></div>`;$$('[data-cs2]').forEach(b=>b.onclick=()=>{S.cs=b.dataset.cs2;vClientes()});enlazarCab();
     return ({agenda:vAgenda,prospectos:vProspectos,fijos:vFijos,dormidos:vDormidos,mapa:vMapa})[S.cs]()}
   $('#v').innerHTML=`${cabClientes()}${subs}<div class="cl-pega"><input id="q" type="search" placeholder="Buscar cliente o CUIT"><div class="sub" id="cfam"></div></div><div id="ct"></div>`;
