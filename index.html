@@ -967,7 +967,7 @@ async function vManual(){const v=$('#v');v.innerHTML='<p>Cargando manual…</p>'
 /* Supabase devuelve como máximo 1000 filas por pedido: esto trae todas, de a tandas */
 async function todo(armar){let out=[],i=0;for(;;){const{data,error}=await armar().range(i,i+999);if(error)return{data:out,error};out=out.concat(data);if(data.length<1000)return{data:out,error:null};i+=1000}}
 /* Auto-actualización: si hay una versión nueva publicada, recarga sola (evita ver la versión vieja guardada en el celular) */
-const APP_V='2026-10-24-0215';
+const APP_V='2026-10-24-0220';
 async function chequearVersion(){try{const r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});const t=await r.text(),m=t.match(/const APP_V='([^']+)'/);
   if(m&&m[1]!==APP_V){const k='recarga_'+m[1];if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,'1');location.replace(location.pathname+'?v='+m[1]+location.hash)}}catch(e){}}
 chequearVersion();document.addEventListener('visibilitychange',()=>{if(document.visibilityState=='visible')chequearVersion()});
@@ -7380,9 +7380,9 @@ async function pesarPedido(o){const{data,error}=await sb.from('pedido_items').se
   const LT=await lotesDe([...new Set(I.map(i=>i.producto_id))]).catch(()=>({})),hoyP=diaLocal(new Date()),dv=x=>Math.round((new Date(x+'T12:00')-new Date(hoyP+'T12:00'))/864e5),
     lote=i=>{const v=(LT[i.producto_id]||[])[0];if(!v)return'';const n=dv(v.vence);return`<br><small class="${n<=7?'mora':''}">📅 Usá primero la que vence el <b>${fd(v.vence)}</b>${v.lote?' ('+esc(v.lote)+')':''}${n<0?' · ¡ya venció!':''}</small>`};
   const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
-  m.innerHTML=`<div class="mc"><div class="bh"><h3>⚖️ Pesar pedido N° ${o.numero}</h3><button class="alt" id="ps_x">Cerrar</button></div><p><small>${esc(c.razon_social||'')}. Escribí el <b>peso real</b> de cada renglón (el de la etiqueta de cada pieza). Si son varias piezas podés poner los pesos separados por +, por ejemplo <b>3,52 + 3,61</b>.</small></p>
+  m.innerHTML=`<div class="mc"><div class="bh"><h3>⚖️ Pesar pedido N° ${o.numero}</h3><button class="alt" id="ps_x">Cerrar</button></div><p><small><b>${esc(nomVis(c)||c.razon_social||'')}</b> · Escribí el peso de la etiqueta. Si son varias piezas, sumalas con +: <b>3,52 + 3,61</b>.</small></p>
     <div class="tw"><table><tr><th>Producto</th><th class="n">Pedido</th><th class="n">Peso real</th><th class="n">Importe</th></tr>${I.map((i,k)=>`<tr><td>${esc(nomProd(i.producto_id))}<br><small>${$m(pk(i))}/kg · estimado ${kgTxt(est(i))}</small>${lote(i)}</td><td class="n">${kgm(i)?kgTxt(+i.cantidad):nf(i.cantidad)}</td>
-      <td class="n"><input data-pk="${k}" inputmode="decimal" placeholder="${nf(est(i))}" value="${i.peso_real!=null?String(i.peso_real).replace('.',','):''}" style="width:120px"><br><small data-pkt="${k}"></small></td><td class="n" data-pki="${k}">${$m(+i.cantidad*+i.precio_unitario)}</td></tr>`).join('')}</table></div>
+      <td class="n"><input data-pk="${k}" inputmode="decimal" placeholder="Peso en kg" value="${i.peso_real!=null?String(i.peso_real).replace('.',','):''}" style="width:120px"><br><small data-pkt="${k}"></small></td><td class="n" data-pki="${k}">${$m(+i.cantidad*+i.precio_unitario)}</td></tr>`).join('')}</table></div>
     <p id="ps_t"></p><div class="fc-acc"><button id="ps_g">Guardar pesos</button></div></div>`;
   const calc=()=>{let a=0,b=0;I.forEach((i,k)=>{const t=m.querySelector(`[data-pk="${k}"]`).value,kg=sumaKg(t),old=+i.cantidad*+i.precio_unitario,nv=kg>0?pk(i)*kg:old;a+=old;b+=nv;
       m.querySelector(`[data-pkt="${k}"]`).textContent=kg>0&&/[+\s;]/.test(t.trim())?'= '+kgTxt(kg):'';m.querySelector(`[data-pki="${k}"]`).innerHTML=kg>0?`<b>${$m(nv)}</b>${Math.abs(nv-old)>.5?`<br><small class="${nv>old?'sube':'baja'}">${nv>old?'+':'−'}${$m(Math.abs(nv-old))}</small>`:''}`:$m(old)});
