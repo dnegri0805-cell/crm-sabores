@@ -73,11 +73,21 @@ self.addEventListener('fetch', e => {
 // Aviso de pedido nuevo con el CRM cerrado (lo manda el servidor)
 self.addEventListener('push', e => {
   let d = {}; try { d = e.data ? e.data.json() : {}; } catch (x) { d = { texto: e.data && e.data.text() }; }
-  e.waitUntil(self.registration.showNotification(d.titulo || '🛒 ¡Pedido nuevo!', {
-    body: d.texto || 'Entró un pedido.', icon: 'icon-crm-192.png', badge: 'icon-crm-192.png',
-    vibrate: [500, 200, 500, 200, 500], tag: 'crm-pedido', renotify: true, requireInteraction: true,
-    data: { url: d.url || './index.html?ir=porAprobar' }
-  }));
+  // Deja constancia de que el aviso llegó al celular (para revisar si algo falla)
+  const log = async (ok, det) => { try { const sub = await self.registration.pushManager.getSubscription();
+    await fetch('https://ggfqdkgqtpnkvxoykoty.supabase.co/rest/v1/rpc/push_recibido', { method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: 'sb_publishable_kfvkZgS8FewPabohJrKf9Q_UDyEcQiR' },
+      body: JSON.stringify({ p_endpoint: sub ? sub.endpoint : '', p_ok: ok, p_detalle: det || null }) }); } catch (x) {} };
+  e.waitUntil((async () => {
+    try {
+      await self.registration.showNotification(d.titulo || '🛒 ¡Pedido nuevo!', {
+        body: d.texto || 'Entró un pedido.', icon: 'icon-crm-192.png', badge: 'icon-crm-192.png',
+        vibrate: [500, 200, 500, 200, 500], tag: 'crm-pedido', renotify: true, requireInteraction: true,
+        data: { url: d.url || './index.html?ir=porAprobar' }
+      });
+      await log(true, 'mostrada · permiso ' + (self.Notification ? Notification.permission : '?'));
+    } catch (x) { await log(false, String(x && x.message || x)); }
+  })());
 });
 self.addEventListener('notificationclick', e => {
   e.notification.close();
