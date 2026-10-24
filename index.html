@@ -989,7 +989,7 @@ async function vManual(){const v=$('#v');v.innerHTML='<p>Cargando manual…</p>'
 /* Supabase devuelve como máximo 1000 filas por pedido: esto trae todas, de a tandas */
 async function todo(armar){let out=[],i=0;for(;;){const{data,error}=await armar().range(i,i+999);if(error)return{data:out,error};out=out.concat(data);if(data.length<1000)return{data:out,error:null};i+=1000}}
 /* Auto-actualización: si hay una versión nueva publicada, recarga sola (evita ver la versión vieja guardada en el celular) */
-const APP_V='2026-10-24-1400c';
+const APP_V='2026-10-24-1405';
 async function chequearVersion(){try{const r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});const t=await r.text(),m=t.match(/const APP_V='([^']+)'/);
   if(m&&m[1]!==APP_V){const k='recarga_'+m[1];if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,'1');location.replace(location.pathname+'?v='+m[1]+location.hash)}}catch(e){}}
 chequearVersion();document.addEventListener('visibilitychange',()=>{if(document.visibilityState=='visible')chequearVersion()});
@@ -2555,7 +2555,7 @@ async function enviarWA(o){
   const it=await itemsPedido(o);if(!it){w&&w.close();return}
   const c=S.clientes.find(x=>x.id==o.cliente_id)||{};
   const tot=it.reduce((a,i)=>a+i.st,0);
-  const txt=`*Sabores de mi País*\nPedido N° ${o.numero} · ${c.razon_social||''}\n\n`+it.map(i=>`• ${i.qt} x ${i.d} — ${$m(i.st)}${i.pr?' _('+i.pr+')_':''}`).join('\n')+(+o.costo_envio>0?`\n• 🚚 Envío — ${$m(o.costo_envio)}`:'')+`\n\n*Total: ${$m(o.total||tot)}*`+(S.linkMP?'\n\n💳 Podés pagarlo con Mercado Pago:\n'+S.linkMP:'')+`\n\n¡Gracias por tu compra!`;
+  const txt=`¡Hola ${nomCorto(c)}! 👋 Te paso el detalle de tu pedido N° ${o.numero}:\n\n`+it.map(i=>`• ${i.qt} x ${i.d} — ${$m(i.st)}${i.pr?' _('+i.pr+')_':''}`).join('\n')+(+o.costo_envio>0?`\n• 🚚 Envío — ${$m(o.costo_envio)}`:'')+`\n\n*Total: ${$m(o.total||tot)}*`+(S.linkMP?'\n\n💳 Podés pagarlo con Mercado Pago:\n'+S.linkMP:'')+`\n\n¡Gracias por tu compra! 🙌\n_Sabores de mi País_`;
   const tel=telWA(c.telefono),url='https://wa.me/'+tel+'?text='+encodeURIComponent(txt);
   if(w)w.location.href=url;else location.href=url;
   if(!tel)toast('Este cliente no tiene teléfono cargado: elegí el contacto en WhatsApp.')
@@ -2826,8 +2826,8 @@ async function morosos(){
 function avisoWA(g,tono,pago){const c=g.c,hoy=new Date().toLocaleDateString('es-AR');
   const lin=g.F.map(f=>`• Factura ${f.tipo} N° ${f.numero} · vence ${fd(f.vencimiento)}${f.dias_mora>0?' ('+f.dias_mora+' días vencida)':''}: ${$m(f.pendiente)}`).join('\n');
   const intro=tono=='firme'
-    ?`Hola, te escribimos de *Sabores de mi País*. Tu cuenta tiene ${g.v?'*'+$m(g.v)+' vencidos*':'saldo pendiente'} y necesitamos regularizarla a la brevedad.`
-    :`¡Hola! ¿Cómo estás? Te escribimos de *Sabores de mi País* para pasarte el resumen de tu cuenta al ${hoy}.`;
+    ?`Hola ${nomCorto(c)}, te escribimos de *Sabores de mi País*. Tu cuenta tiene ${g.v?'*'+$m(g.v)+' vencidos*':'saldo pendiente'} y necesitamos regularizarla a la brevedad.`
+    :`¡Hola ${nomCorto(c)}! ¿Cómo estás? Te paso el resumen de tu cuenta en *Sabores de mi País* al ${hoy}.`;
   const cierre=tono=='firme'
     ?`Por favor, coordiná el pago o avisanos la fecha en que lo vas a hacer. Si ya pagaste, mandanos el comprobante y lo imputamos.`
     :`Cuando puedas, avisanos cómo vas a abonar. Si ya pagaste, mandanos el comprobante así lo registramos. ¡Gracias!`;
