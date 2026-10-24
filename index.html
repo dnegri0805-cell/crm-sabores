@@ -971,7 +971,7 @@ async function vManual(){const v=$('#v');v.innerHTML='<p>Cargando manual…</p>'
 /* Supabase devuelve como máximo 1000 filas por pedido: esto trae todas, de a tandas */
 async function todo(armar){let out=[],i=0;for(;;){const{data,error}=await armar().range(i,i+999);if(error)return{data:out,error};out=out.concat(data);if(data.length<1000)return{data:out,error:null};i+=1000}}
 /* Auto-actualización: si hay una versión nueva publicada, recarga sola (evita ver la versión vieja guardada en el celular) */
-const APP_V='2026-10-24-0235';
+const APP_V='2026-10-24-0240';
 async function chequearVersion(){try{const r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});const t=await r.text(),m=t.match(/const APP_V='([^']+)'/);
   if(m&&m[1]!==APP_V){const k='recarga_'+m[1];if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,'1');location.replace(location.pathname+'?v='+m[1]+location.hash)}}catch(e){}}
 chequearVersion();document.addEventListener('visibilitychange',()=>{if(document.visibilityState=='visible')chequearVersion()});
@@ -9303,7 +9303,7 @@ const esNC=t=>/^NC/i.test(String(t||''));
 const nomCli=id=>{const c=S.clientes.find(c=>c.id==id);return c?nomVis(c):'Cliente'};
 /* Nombre para mostrar: el del negocio si está cargado; si no, la razón social prolija (las facturas y remitos siguen con la razón social) */
 const tituloCaso=t=>String(t||'').toLowerCase().replace(/(^|[\s(\-\/])([a-záéíóúñü])/g,(m,a,b)=>a+b.toUpperCase()).replace(/\b(Srl|Sa|Sas|Sh)\b/g,x=>x.toUpperCase()).replace(/\b(De|Del|La|Las|Los|Y|E)\b/g,(x,g,off)=>off?x.toLowerCase():x);
-const nomVis=c=>(c?.nombre_fantasia||'').trim()||tituloCaso(c?.razon_social)||'Cliente';
+const nomVis=c=>{const nf=(c?.nombre_fantasia||'').trim();return (nf&&nf===nf.toUpperCase()&&/[A-ZÑÁÉÍÓÚ]{3}/.test(nf)?tituloCaso(nf):nf)||tituloCaso(c?.razon_social)||'Cliente'};
 const nomProd=id=>S.productos.find(p=>p.producto_id==id)?.descripcion||'Producto';
 const cuitCli=id=>S.clientes.find(c=>c.id==id)?.cuit||'';
 
