@@ -43,3 +43,11 @@ select cron.schedule('respaldo-nocturno', '0 6 * * *', 'select respaldo.hacer_co
 
 -- Primera copia ahora mismo, para probar
 select respaldo.hacer_copia() as tablas_copiadas;
+
+-- Para que el CRM muestre en Inicio cuándo fue la última copia automática
+create or replace function public.ultima_copia_auto() returns timestamptz
+language sql stable security definer set search_path to respaldo, public as $$
+  select max(creado_en) from respaldo.copias
+$$;
+revoke all on function public.ultima_copia_auto() from public, anon;
+grant execute on function public.ultima_copia_auto() to authenticated;

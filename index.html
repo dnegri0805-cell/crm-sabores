@@ -989,7 +989,7 @@ async function vManual(){const v=$('#v');v.innerHTML='<p>Cargando manual…</p>'
 /* Supabase devuelve como máximo 1000 filas por pedido: esto trae todas, de a tandas */
 async function todo(armar){let out=[],i=0;for(;;){const{data,error}=await armar().range(i,i+999);if(error)return{data:out,error};out=out.concat(data);if(data.length<1000)return{data:out,error:null};i+=1000}}
 /* Auto-actualización: si hay una versión nueva publicada, recarga sola (evita ver la versión vieja guardada en el celular) */
-const APP_V='2026-10-24-1350';
+const APP_V='2026-10-24-1345b';
 async function chequearVersion(){try{const r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});const t=await r.text(),m=t.match(/const APP_V='([^']+)'/);
   if(m&&m[1]!==APP_V){const k='recarga_'+m[1];if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,'1');location.replace(location.pathname+'?v='+m[1]+location.hash)}}catch(e){}}
 chequearVersion();document.addEventListener('visibilitychange',()=>{if(document.visibilityState=='visible')chequearVersion()});
@@ -1377,10 +1377,13 @@ async function dolarModal(){const m=document.createElement('div');m.className='m
       const{error}=await sb.rpc('fijar_costo_usd',{p_producto:p.producto_id,p_usd:Math.round(c/d*10000)/10000});if(error)return toast(error.message,1);toast('Agregado a la lista de dólares.');pinta()})};
   m.innerHTML='<div class="mc"><p><span class="skl" role="status" aria-label="Cargando"></span></p></div>';pinta()}
 async function cajaBackup(){const b=$('#bk');if(!b)return;
-  const{data}=await sb.from('config_app').select('valor').eq('clave','ultima_copia').maybeSingle();
-  const u=data?.valor,dias=u?Math.floor((Date.now()-new Date(u))/864e5):null,mal=dias==null||dias>=7;
-  b.innerHTML=mal?`<div class="box alerta bkbox"><span class="bkic">${IC('download',22)}</span><div style="flex:1;min-width:0"><b>${dias==null?'Todavía no hiciste ninguna copia de seguridad':'Hace '+dias+' días que no hacés copia de seguridad'}</b><br><small>Si algo se borra, solo se recupera con tu copia. Lleva un minuto.</small></div><button id="bk_d">Hacer la copia ahora</button><a class="lnk" id="bk_s">🩺 Estado del sistema</a></div>`
-    :`<p class="bkp"><small>💾 Última copia de seguridad: ${fd(u)}${dias?' (hace '+dias+(dias==1?' día':' días')+')':' (hoy)'}.</small> <a class="lnk" id="bk_d">Hacer otra</a> · <a class="lnk" id="bk_s">🩺 Estado del sistema</a></p>`;
+  const[{data},au]=await Promise.all([sb.from('config_app').select('valor').eq('clave','ultima_copia').maybeSingle(),sb.rpc('ultima_copia_auto').then(r=>r,()=>({}))]);
+  const u=data?.valor,dias=u?Math.floor((Date.now()-new Date(u))/864e5):null,A=au?.data,dA=A?Math.floor((Date.now()-new Date(A))/864e5):null,
+    /* Con la copia automática al día, la descargada solo se pide una vez por mes */
+    mal=dA!=null&&dA<2?(dias==null||dias>=30):(dias==null||dias>=7),
+    autoTxt=A?(dA<2?'✅ Copia automática: '+(dA==0?'hoy':'ayer')+' a las '+new Date(A).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}):'⚠️ La copia automática no corre desde el '+fd(A)):'';
+  b.innerHTML=mal?`<div class="box alerta bkbox"><span class="bkic">${IC('download',22)}</span><div style="flex:1;min-width:0"><b>${dias==null?'Todavía no hiciste ninguna copia de seguridad':'Hace '+dias+' días que no hacés copia de seguridad'}</b><br><small>${autoTxt?autoTxt+'. ':''}Conviene tener también una copia guardada en tu equipo. Lleva un minuto.</small></div><button id="bk_d">Hacer la copia ahora</button><a class="lnk" id="bk_s">🩺 Estado del sistema</a></div>`
+    :`<p class="bkp"><small>${autoTxt?autoTxt+'<br>':''}💾 Copia en tu equipo: ${fd(u)}${dias?' (hace '+dias+(dias==1?' día':' días')+')':' (hoy)'}.</small> <a class="lnk" id="bk_d">Hacer otra</a> · <a class="lnk" id="bk_s">🩺 Estado del sistema</a></p>`;
   $('#bk_d').onclick=descargarBackup;$('#bk_s').onclick=estadoSistema}
 async function descargarBackup(){
   const m=document.createElement('div');m.className='modal';m.innerHTML=`<div class="mc"><h3>Copia de seguridad</h3><p id="bk_e">Preparando…</p><div class="barra"><i id="bk_b"></i></div></div>`;document.body.appendChild(m);
