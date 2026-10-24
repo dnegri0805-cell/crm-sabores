@@ -572,6 +572,7 @@ html,body{overflow-x:clip}
   table.tcard tr.tcr td:first-child{grid-column:1/-1;font-weight:600}
   table.tcard tr.tcr td[data-l]:not(:first-child)::before{content:attr(data-l);display:block;font-size:11px;color:#8a90a0;text-transform:uppercase;letter-spacing:.03em}
   table.tcard tr.tcr td:empty{display:none}
+@media(max-width:640px){#ct .kp:not(.kp2){display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important}#ct .kp .box{margin:0!important;padding:12px!important}#ct .kp .num{font-size:21px!important}}
 @media(max-width:640px){.cj-kp{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important}.cj-kp .box{margin:0!important;padding:12px!important}.cj-kp .num{font-size:22px!important}
   .cj-nav{flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none;gap:6px!important}.cj-nav::-webkit-scrollbar{display:none}.cj-nav>*{flex:none}.cj-nav button{padding:8px 12px!important}}
 .s-fil{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 2px}.s-fil .chk{margin:0!important;display:inline-flex!important;align-items:center;gap:6px;border:1px solid var(--l);border-radius:999px;padding:6px 12px;font-size:14px;background:#fff}.s-fil .chk:has(input:checked){border-color:var(--m);background:#f7eef1;color:var(--m);font-weight:600}.s-fil .chk input{width:16px!important;height:16px;margin:0!important}
@@ -988,7 +989,7 @@ async function vManual(){const v=$('#v');v.innerHTML='<p>Cargando manual…</p>'
 /* Supabase devuelve como máximo 1000 filas por pedido: esto trae todas, de a tandas */
 async function todo(armar){let out=[],i=0;for(;;){const{data,error}=await armar().range(i,i+999);if(error)return{data:out,error};out=out.concat(data);if(data.length<1000)return{data:out,error:null};i+=1000}}
 /* Auto-actualización: si hay una versión nueva publicada, recarga sola (evita ver la versión vieja guardada en el celular) */
-const APP_V='2026-10-24-1335';
+const APP_V='2026-10-24-1345';
 async function chequearVersion(){try{const r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});const t=await r.text(),m=t.match(/const APP_V='([^']+)'/);
   if(m&&m[1]!==APP_V){const k='recarga_'+m[1];if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,'1');location.replace(location.pathname+'?v='+m[1]+location.hash)}}catch(e){}}
 chequearVersion();document.addEventListener('visibilitychange',()=>{if(document.visibilityState=='visible')chequearVersion()});
@@ -9327,21 +9328,22 @@ const cuitCli=id=>S.clientes.find(c=>c.id==id)?.cuit||'';
 function vContable(){
   if(S.perfil.rol!='dueno'){$('#v').innerHTML='<p>Solo el dueño puede ver esta sección.</p>';return}
   S.ct=S.ct||'resultados';S.ctMes=S.ctMes||mesHoy();
-  $('#v').innerHTML=`<h2>Contable</h2><div class="sub ctsub">${CT_SUBS.map(([k,t])=>`<button class="${S.ct==k?'':'alt'}" data-ct="${k}">${t}</button>`).join('')}</div><div id="ct"><span class="skl" role="status" aria-label="Cargando"></span></div>`;
+  $('#v').innerHTML=`<h2>Contable</h2><div class="sub ctsub tabs ct-pg">${CT_SUBS.map(([k,t])=>`<button class="${S.ct==k?'':'alt'}" data-ct="${k}">${t}</button>`).join('')}</div><div id="ct"><span class="skl" role="status" aria-label="Cargando"></span></div>`;
   $$('[data-ct]').forEach(b=>b.onclick=()=>{S.ct=b.dataset.ct;vContable()});
   ({resultados:ctResultados,rentab:ctRentab,iva:ctIVA,ret:ctRet,cheques:ctCheques,bancos:ctBancos,flujo:ctFlujo,stockv:ctStockV,contador:ctContador})[S.ct]();
 }
-function selMes(fn){return `<div class="mesbar"><button class="alt" id="ms_a" aria-label="Mes anterior">←</button><input type="month" id="ms_m" value="${S.ctMes}"><button class="alt" id="ms_s" aria-label="Mes siguiente">→</button><b>${mesNom(S.ctMes)}</b></div>`}
+function selMes(fn){return `<div class="mesbar"><button class="alt" id="ms_a" aria-label="Mes anterior">←</button><input type="month" id="ms_m" value="${S.ctMes}"><button class="alt" id="ms_s" aria-label="Mes siguiente">→</button></div>`}
 function onMes(fn){$('#ms_a').onclick=()=>{S.ctMes=mesMas(S.ctMes,-1);fn()};$('#ms_s').onclick=()=>{S.ctMes=mesMas(S.ctMes,1);fn()};$('#ms_m').onchange=e=>{if(e.target.value){S.ctMes=e.target.value;fn()}}}
 
 /* Ventas (pedidos aprobados en adelante) con neto sin IVA y costo */
 async function ctPedidos(desde,hasta){
+  const E=await datosEmisor().catch(()=>({}));S.ctMono=!/responsable\s*inscripto/i.test(E.iva||'');
   const base='id,numero,total,estado,cliente_id,creado_en,descuento_pct';
   let r=await todo(()=>sb.from('pedidos').select(base+',pedido_items(producto_id,cantidad,precio_unitario,costo_unitario)').not('estado','in','(pendiente,cancelado)').gte('creado_en',tsAR(desde)).lt('creado_en',tsAR(hasta)).order('numero'));
   if(r.error)r=await todo(()=>sb.from('pedidos').select(base+',pedido_items(producto_id,cantidad,precio_unitario)').not('estado','in','(pendiente,cancelado)').gte('creado_en',tsAR(desde)).lt('creado_en',tsAR(hasta)).order('numero'));
   if(r.error)throw r.error;
   return r.data.map(o=>{const I=o.pedido_items||[],bruto=I.reduce((a,i)=>a+Number(i.cantidad||0)*Number(i.precio_unitario||0),0),k=bruto>0?Number(o.total||bruto)/bruto:1;
-    let neto=0,costo=0,sinC=false;const items=I.map(i=>{const q=Number(i.cantidad||0),a=alic(i.producto_id),v=q*Number(i.precio_unitario||0)*k,n=v/(1+a/100);
+    let neto=0,costo=0,sinC=false;const items=I.map(i=>{const q=Number(i.cantidad||0),a=S.ctMono?0:alic(i.producto_id),v=q*Number(i.precio_unitario||0)*k,n=v/(1+a/100);
       const cu=i.costo_unitario!=null?Number(i.costo_unitario):costoAct(i.producto_id),c=cu>0?q*cu/(1+a/100):0;if(!(cu>0))sinC=true;neto+=n;costo+=c;return{id:i.producto_id,q,v,n,c,sc:!(cu>0)}});
     return{...o,_d:diaLocal(o.creado_en),neto,costo,sinC,items}})}
 
@@ -9356,26 +9358,26 @@ async function ctResultados(){
     const v=V.reduce((a,o)=>a+o.neto,0),c=V.reduce((a,o)=>a+o.costo,0),ga=g.reduce((a,x)=>a+Number(x.importe||0),0);return{m,v,c,mb:v-c,g:ga,r:v-c-ga,sinC:V.some(o=>o.sinC),n:V.length,G:g}});
   const{data:NCR}=await sb.from('notas_credito').select('fecha,items,repuesto').gte('fecha',d0).lt('fecha',d1);
   for(const n of NCR||[]){const x=R.find(r=>r.m==String(n.fecha).slice(0,7));if(!x)continue;
-    for(const it of n.items||[]){const al=alic(it.id),q=Number(it.q);x.v-=q*Number(it.pu)/(1+al/100);if(n.repuesto)x.c-=q*Number(it.cu||costoAct(it.id))/(1+al/100)}x.mb=x.v-x.c;x.r=x.v-x.c-x.g;x.nc=(x.nc||0)+1}
+    for(const it of n.items||[]){const al=S.ctMono?0:alic(it.id),q=Number(it.q);x.v-=q*Number(it.pu)/(1+al/100);if(n.repuesto)x.c-=q*Number(it.cu||costoAct(it.id))/(1+al/100)}x.mb=x.v-x.c;x.r=x.v-x.c-x.g;x.nc=(x.nc||0)+1}
   const a=R[5],b=R[4],cmp=(x,y)=>y>0&&x>0?`<small class="${x>=y?'sube':'baja'}">${x>=y?'▲':'▼'} ${pc1(Math.abs(x-y)/Math.abs(y))} vs mes anterior</small>`:'';
   const gc={};for(const x of a.G)gc[x.categoria]=(gc[x.categoria]||0)+Number(x.importe||0);const gC=Object.entries(gc).sort((x,y)=>y[1]-x[1]),gMax=Math.max(1,...gC.map(x=>x[1]));
   const maxAbs=Math.max(1,...R.map(x=>Math.abs(x.r)));
   $('#rs').innerHTML=`<div class="kp">
-    <div class="box"><span class="lab">Ventas sin IVA</span><span class="num">${$m(a.v)}</span><span class="det">${a.n} ${a.n==1?'pedido':'pedidos'} ${cmp(a.v,b.v)}</span></div>
+    <div class="box"><span class="lab">Ventas${S.ctMono?'':' sin IVA'}</span><span class="num">${$m(a.v)}</span><span class="det">${a.n} ${a.n==1?'pedido':'pedidos'} ${cmp(a.v,b.v)}</span></div>
     <div class="box"><span class="lab">Margen bruto</span><span class="num">${$m(a.mb)}</span><span class="det">${a.v?pc1(a.mb/a.v)+' de las ventas':'—'}</span></div>
     <div class="box"><span class="lab">Gastos</span><span class="num">${$m(a.g)}</span><span class="det">${a.G.length} ${a.G.length==1?'gasto cargado':'gastos cargados'}</span></div>
     <div class="box ${a.r<0?'alerta':'ok'}"><span class="lab">Ganancia del mes</span><span class="num">${$s(a.r)}</span><span class="det">${a.v?pc1(a.r/a.v)+' de las ventas ':''}${cmp(a.r,b.r)}</span></div></div>
   <div class="dos fc2">
     <div class="box"><h3>Estado de resultados · ${mesNom(S.ctMes)}</h3><table>
-      <tr><td>Ventas (sin IVA)</td><td class="n">${$m(a.v)}</td></tr>
-      <tr><td>− Costo de la mercadería vendida (sin IVA)${a.sinC?' <small class="mora">hay productos sin costo</small>':''}</td><td class="n">− ${$m(a.c)}</td></tr>
+      <tr><td>Ventas${S.ctMono?'':' (sin IVA)'}</td><td class="n">${$m(a.v)}</td></tr>
+      <tr><td>− Costo de la mercadería vendida${S.ctMono?'':' (sin IVA)'}${a.sinC?' <small class="mora">hay productos sin costo</small>':''}</td><td class="n">− ${$m(a.c)}</td></tr>
       <tr class="tot"><td><b>Margen bruto</b></td><td class="n"><b>${$m(a.mb)}</b></td></tr>
       ${gC.map(([k,v])=>`<tr><td>− ${esc(k)}</td><td class="n">− ${$m(v)}</td></tr>`).join('')||'<tr><td>− Gastos</td><td class="n">− '+$m(0)+'</td></tr>'}
       <tr class="tot"><td><b>Ganancia neta</b></td><td class="n ${a.r<0?'mora':''}"><b>${$s(a.r)}</b></td></tr></table>
-      <p><small>Ventas = pedidos aprobados en adelante, sin IVA. El costo es el de cada producto al momento de la venta, sin IVA. Los gastos se toman como se cargaron en Caja.</small></p></div>
+      <p><small>${S.ctMono?'Ventas = pedidos aprobados en adelante, con el precio que cobrás (sos monotributista, no se descuenta IVA). El costo es el que pagaste por cada producto.':'Ventas = pedidos aprobados en adelante, sin IVA. El costo es el de cada producto al momento de la venta, sin IVA.'} Los gastos se toman como se cargaron en Caja.</small></p></div>
     <div class="box"><h3>Ganancia de los últimos 6 meses</h3>${R.map(x=>`<div class="rbar"><span>${MESES[+x.m.slice(5)-1]+' '+x.m.slice(2,4)}</span><div class="rb"><i class="${x.r<0?'neg':''}" style="width:${(Math.abs(x.r)/maxAbs*100).toFixed(1)}%"></i></div><b class="${x.r<0?'mora':''}">${$s(x.r)}</b></div>`).join('')}
       ${gC.length?`<h3 style="margin-top:16px">Gastos de ${mesNom(S.ctMes)}</h3>${gC.map(([k,v])=>`<div class="gbar"><span>${esc(k)}</span><b>${$m(v)}</b><i style="width:${(v/gMax*100).toFixed(1)}%"></i></div>`).join('')}`:''}</div></div>
-  <div class="box"><div class="bh"><h3>Comparativo mensual</h3><button class="alt" id="rs_cp">Copiar para Excel</button></div><div class="tscroll"><table><tr><th>Mes</th><th class="n">Ventas s/IVA</th><th class="n">Costo</th><th class="n">Margen bruto</th><th class="n">Gastos</th><th class="n">Ganancia</th><th class="n">% s/ventas</th></tr>
+  <div class="box"><div class="bh"><h3>Comparativo mensual</h3><button class="alt" id="rs_cp">Copiar para Excel</button></div><div class="tscroll"><table><tr><th>Mes</th><th class="n">Ventas${S.ctMono?'':' s/IVA'}</th><th class="n">Costo</th><th class="n">Margen bruto</th><th class="n">Gastos</th><th class="n">Ganancia</th><th class="n">% s/ventas</th></tr>
     ${R.map(x=>`<tr><td style="white-space:nowrap">${mesNom(x.m).replace(/ de (\d{4})$/,' $1')}</td><td class="n">${$m(x.v)}</td><td class="n">${$m(x.c)}</td><td class="n">${$m(x.mb)}</td><td class="n">${$m(x.g)}</td><td class="n ${x.r<0?'mora':''}"><b>${$s(x.r)}</b></td><td class="n">${x.v?pc1(x.r/x.v):'—'}</td></tr>`).join('')}</table></div></div>`;
   $('#rs_cp').onclick=()=>copiarTabla(['Mes','Ventas sin IVA','Costo','Margen bruto','Gastos','Ganancia'],R.map(x=>[mesNom(x.m),xl(x.v),xl(x.c),xl(x.mb),xl(x.g),xl(x.r)]));
 }
@@ -9395,12 +9397,12 @@ async function ctRentab(){
   const L=Object.values(g).map(r=>({...r,gan:r.v-r.c,mg:r.v?(r.v-r.c)/r.v:0})).sort((x,y)=>y.gan-x.gan);
   const tv=L.reduce((s,r)=>s+r.v,0),tg=L.reduce((s,r)=>s+r.gan,0),col=S.rtV=='cli'?'Cliente':S.rtV=='prod'?'Producto':'Marca';
   const peor=L.filter(r=>r.v>0&&!r.sc).sort((x,y)=>x.mg-y.mg).slice(0,3);
-  $('#rt').innerHTML=`<div class="kp"><div class="box"><span class="lab">Ventas sin IVA</span><span class="num">${$m(tv)}</span><span class="det">${PERIODOS.find(x=>x[0]==S.rtP)[1]}</span></div>
+  $('#rt').innerHTML=`<div class="kp"><div class="box"><span class="lab">Ventas${S.ctMono?'':' sin IVA'}</span><span class="num">${$m(tv)}</span><span class="det">${PERIODOS.find(x=>x[0]==S.rtP)[1]}</span></div>
     <div class="box ok"><span class="lab">Ganancia bruta</span><span class="num">${$m(tg)}</span><span class="det">${tv?pc1(tg/tv)+' de margen promedio':'—'}</span></div>
     <div class="box"><span class="lab">${col} que más te deja</span><span class="num" style="font-size:18px">${L[0]?esc(L[0].n):'—'}</span><span class="det">${L[0]?$m(L[0].gan)+' de ganancia':''}</span></div>
     <div class="box"><span class="lab">Margen más bajo</span><span class="num" style="font-size:18px">${peor[0]?esc(peor[0].n):'—'}</span><span class="det">${peor[0]?pc1(peor[0].mg)+' de margen':''}</span></div></div>
   <div class="box"><div class="bh"><h3>Rentabilidad ${S.rtV=='cli'?'por cliente':S.rtV=='prod'?'por producto':'por marca'}</h3><button class="alt" id="rt_cp">Copiar para Excel</button></div>
-  ${L.length?`<div class="tscroll"><table><tr><th>${col}</th>${S.rtV=='prod'?'<th class="n">Unid.</th>':'<th class="n">Pedidos</th>'}<th class="n">Ventas s/IVA</th><th class="n">Costo</th><th class="n">Ganancia</th><th class="n">Margen</th><th class="n">% de la ganancia</th></tr>
+  ${L.length?`<div class="tscroll"><table><tr><th>${col}</th>${S.rtV=='prod'?'<th class="n">Unid.</th>':'<th class="n">Pedidos</th>'}<th class="n">Ventas${S.ctMono?'':' s/IVA'}</th><th class="n">Costo</th><th class="n">Ganancia</th><th class="n">Margen</th><th class="n">% de la ganancia</th></tr>
   ${L.slice(0,60).map(r=>`<tr><td>${esc(r.n)}${r.sc?' <small class="mora">sin costo</small>':''}</td><td class="n">${S.rtV=='prod'?nf(r.q):r.p.size}</td><td class="n">${$m(r.v)}</td><td class="n">${$m(r.c)}</td><td class="n"><b>${$s(r.gan)}</b></td><td class="n ${r.mg<0.1?'mora':''}">${pc1(r.mg)}</td><td class="n">${tg?pc1(r.gan/tg):'—'}</td></tr>`).join('')}</table></div>${L.length>60?`<small>Y ${L.length-60} más (se copian todos).</small>`:''}`:'<p><small>No hay ventas en este período.</small></p>'}
   <p><small>Ordenado por ganancia en pesos, no por cuánto compra. Margen en rojo = menos del 10 %.</small></p></div>`;
   $('#rt_cp').onclick=()=>copiarTabla([col,S.rtV=='prod'?'Unidades':'Pedidos','Ventas sin IVA','Costo','Ganancia','Margen %'],L.map(r=>[r.n,S.rtV=='prod'?r.q:r.p.size,xl(r.v),xl(r.c),xl(r.gan),(r.mg*100).toFixed(1).replace('.',',')]));
