@@ -33,7 +33,14 @@ header>span{display:flex;align-items:center;gap:2px}
 .ppal{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin:0 0 12px}.ppal button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:16px 6px;font-size:15px;font-weight:700;border-radius:14px;min-height:96px}.ppal button span{font-size:30px;line-height:1}.ppal button small{font-weight:400;font-size:12px;opacity:.85}
 .atsec{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}.atsec button{padding:6px 12px;font-size:13px}
 details.plg{margin:0 0 12px}details.plg>summary{cursor:pointer;font-weight:700;color:var(--m);padding:10px 12px;background:#fff;border:1px solid #e3e6ee;border-radius:10px;list-style:none}details.plg>summary::-webkit-details-marker{display:none}details.plg[open]>summary{margin-bottom:10px}
-@media(max-width:640px){.ppal{grid-template-columns:repeat(2,minmax(0,1fr))}.ppal button:first-child{grid-column:1/-1;min-height:80px}.ppal button:nth-child(6){grid-column:1/-1;min-height:64px;flex-direction:row;gap:10px}}
+@media(max-width:640px){.ppal{grid-template-columns:repeat(2,minmax(0,1fr))}.ppal button:first-child{grid-column:1/-1;min-height:80px}.ppal button:nth-child(6){grid-column:1/-1;min-height:64px;flex-direction:row;gap:10px}
+@media(max-width:640px){.ppal{gap:8px!important}
+  .ppal button{flex-direction:row!important;gap:10px!important;min-height:58px!important;padding:10px 12px!important;font-size:15px!important}
+  .ppal button.alt{justify-content:flex-start!important}
+  .ppal button span svg{width:24px;height:24px}
+  .ppal button:first-child{min-height:64px!important;font-size:17px!important}
+  .ppal button:first-child span svg{width:26px;height:26px}
+  .ppal button:nth-child(6){min-height:52px!important;justify-content:center!important}}}
 .cab{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}.cab h2{margin:0}.cab .acc{display:flex;gap:8px;align-items:center}.cab h2 small{font-size:14px;font-weight:400;color:#6a7184}
 .hback{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;flex:none;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;font-size:26px;line-height:1;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}.hback:active{background:rgba(255,255,255,.3)}.hback[hidden]{display:none}
 
@@ -971,7 +978,7 @@ async function vManual(){const v=$('#v');v.innerHTML='<p>Cargando manual…</p>'
 /* Supabase devuelve como máximo 1000 filas por pedido: esto trae todas, de a tandas */
 async function todo(armar){let out=[],i=0;for(;;){const{data,error}=await armar().range(i,i+999);if(error)return{data:out,error};out=out.concat(data);if(data.length<1000)return{data:out,error:null};i+=1000}}
 /* Auto-actualización: si hay una versión nueva publicada, recarga sola (evita ver la versión vieja guardada en el celular) */
-const APP_V='2026-10-24-0250';
+const APP_V='2026-10-24-0255';
 async function chequearVersion(){try{const r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});const t=await r.text(),m=t.match(/const APP_V='([^']+)'/);
   if(m&&m[1]!==APP_V){const k='recarga_'+m[1];if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,'1');location.replace(location.pathname+'?v='+m[1]+location.hash)}}catch(e){}}
 chequearVersion();document.addEventListener('visibilitychange',()=>{if(document.visibilityState=='visible')chequearVersion()});
