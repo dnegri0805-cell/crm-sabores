@@ -397,6 +397,7 @@ small>.skl,td>.skl{min-height:16px;border-radius:6px}
   #pr_t tr.prw td .cs{width:100%;max-width:none;padding:6px 8px}
   #pr_t tr.prw td.pbu{grid-column:1/-1}
   #pr_t tr.prw td.pult{grid-column:1/-1;color:#8a90a0}
+#pr_t tr.prw td.pfj{grid-column:1/-1}#pr_t tr.prw td .pf{width:100%;max-width:none;padding:6px 8px;text-align:left}#pr_t .pfh{display:block;color:#8a90a0;font-size:12px;margin-top:2px}
   .tw:has(#pr_t){overflow:visible}
   .box .bh>.acc{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 }
@@ -989,7 +990,7 @@ async function vManual(){const v=$('#v');v.innerHTML='<p>Cargando manual…</p>'
 /* Supabase devuelve como máximo 1000 filas por pedido: esto trae todas, de a tandas */
 async function todo(armar){let out=[],i=0;for(;;){const{data,error}=await armar().range(i,i+999);if(error)return{data:out,error};out=out.concat(data);if(data.length<1000)return{data:out,error:null};i+=1000}}
 /* Auto-actualización: si hay una versión nueva publicada, recarga sola (evita ver la versión vieja guardada en el celular) */
-const APP_V='2026-10-24-1405';
+const APP_V='2026-10-24-1610';
 async function chequearVersion(){try{const r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});const t=await r.text(),m=t.match(/const APP_V='([^']+)'/);
   if(m&&m[1]!==APP_V){const k='recarga_'+m[1];if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,'1');location.replace(location.pathname+'?v='+m[1]+location.hash)}}catch(e){}}
 chequearVersion();document.addEventListener('visibilitychange',()=>{if(document.visibilityState=='visible')chequearVersion()});
@@ -1786,16 +1787,16 @@ SDMP-01279	8.900</pre>
      $('#pr_gr').innerHTML=`<button class="${S.prG?'alt':''}" data-prg="">Todas</button>`+ord.map(g=>`<button class="${S.prG==g?'':'alt'}" data-prg="${esc(g)}">${esc(g)}</button>`).join('');
      $$('#pr_gr [data-prg]').forEach(b=>b.onclick=()=>{S.prG=b.dataset.prg;draw()})}
     const V=sel.slice(0,150);
-    $('#pr_t').innerHTML='<tr><th>Foto</th><th>Producto</th><th class="n">Costo</th><th class="n">Mayorista</th><th class="n">Minorista</th><th class="n">Gastronomía</th><th class="n">Ganás (may.)</th><th>Bulto</th><th>Último cambio</th></tr>'+
-      V.map(p=>{const id=p.producto_id,c=nuevo[id]??+p.costo/(ppz(id)||1),pm=precio(c,'mayorista',p.familia),u=ult[id];
+    $('#pr_t').innerHTML='<tr><th>Foto</th><th>Producto</th><th class="n">Costo</th><th class="n">Mayorista</th><th class="n">Precio fijo</th><th class="n">Minorista</th><th class="n">Gastronomía</th><th class="n">Ganás (may.)</th><th>Bulto</th><th>Último cambio</th></tr>'+
+      V.map(p=>{const id=p.producto_id,c=nuevo[id]??+p.costo/(ppz(id)||1),fj=+p.precio_fijo>0?+p.precio_fijo/(ppz(id)||1):0,pm=fj||precio(c,'mayorista',p.familia),u=ult[id];
         return `<tr class="prw${nuevo[id]!=null?' cambio':''}"><td class="fto">${S.min[id]?.foto?`<img src="${esc(S.min[id].foto)}" alt="" data-ft="${id}" loading="lazy">`:`<button class="alt" data-ft="${id}" aria-label="Cargar foto">📷</button>`}</td><td>${esc(p.descripcion)} <small class="pcod">${esc(p.codigo)}</small>${ppz(id)&&pm!=null?`<br><span class="badge">⚖️ precios por kg · pieza ≈ ${nf(ppz(id))} kg → ${$m(pm*ppz(id))}</span>`:''}</td>
         <td class="n" data-l="Costo"><input type="number" step="0.01" min="0" class="cs" data-id="${id}" value="${nuevo[id]??''}" placeholder="${p.costo!=null?nf(+p.costo/(ppz(id)||1)):'—'}"></td>
-        <td class="n pmay" data-l="Mayorista">${pm!=null?$m0(pm)+(bul(id)?.kg?'<small class="pkg">/kg</small>':''):'—'}${pm!=null&&!ppz(id)&&(S.min[id]?.b||1)>1?`<small class="pcaja">${esc(bulL(bul(id)))}: ${$m0(pm*S.min[id].b)}</small>`:''}</td><td class="n" data-l="Minorista">${precio(c,'minorista',p.familia)!=null?$m0(precio(c,'minorista',p.familia)):'—'}</td><td class="n" data-l="Gastronomía">${precio(c,'especial',p.familia)!=null?$m0(precio(c,'especial',p.familia)):'—'}</td>
+        <td class="n pmay" data-l="Mayorista">${pm!=null?$m0(pm)+(bul(id)?.kg?'<small class="pkg">/kg</small>':''):'—'}${pm!=null&&!ppz(id)&&(S.min[id]?.b||1)>1?`<small class="pcaja">${esc(bulL(bul(id)))}: ${$m0(pm*S.min[id].b)}</small>`:''}</td><td class="n pfj" data-l="Precio de venta fijo"><input type="text" inputmode="decimal" class="pf" data-id="${id}" value="${fj?String(Math.round(fj*100)/100).replace('.',','):''}" placeholder="Vacío = sale del costo y el margen"><small class="pfh">${fj?'📌 Fijo: no cambia aunque cambie el costo':'Escribí el precio mayorista que querés cobrar'}</small></td><td class="n" data-l="Minorista">${fj?$m0(+p.precio_minorista/(ppz(id)||1)):precio(c,'minorista',p.familia)!=null?$m0(precio(c,'minorista',p.familia)):'—'}</td><td class="n" data-l="Gastronomía">${fj?$m0(+p.precio_especial/(ppz(id)||1)):precio(c,'especial',p.familia)!=null?$m0(precio(c,'especial',p.familia)):'—'}</td>
         <td class="n" data-l="Ganás">${pm!=null?$m0(pm-c):'—'}</td>
         <td style="white-space:nowrap" data-l="Bulto" class="pbu"><select class="tb" data-id="${id}" aria-label="Tipo de bulto">${['Caja','Pack','Bolsa','Fardo','Display','Balde','Cuñete','Lata','Bidón','Paquete'].map(t=>`<option ${(S.min[id]?.tb||'Caja')==t?'selected':''}>${t}</option>`).join('')}</select> × <input type="number" min="1" step="1" class="ub" data-id="${id}" value="${S.min[id]?.b||1}" aria-label="Unidades por bulto"></td>
         <td class="pult${u?'':' vac'}"><small>${u?'Último cambio: '+fd(u.fecha)+' · '+(u.costo_anterior>0?(u.costo_nuevo>=u.costo_anterior?'+':'')+pctf((u.costo_nuevo/u.costo_anterior-1)*100):'nuevo'):''}</small></td></tr>`}).join('')+
-      (sel.length>V.length?`<tr><td colspan="9"><small>Se muestran 150 de ${sel.length}. El aumento por porcentaje se aplica a los ${sel.length}.</small></td></tr>`:'')+
-      (sel.length?'':'<tr><td colspan="9">'+vacioHTML('No hay productos con ese filtro.','tag')+'</td></tr>');
+      (sel.length>V.length?`<tr><td colspan="10"><small>Se muestran 150 de ${sel.length}. El aumento por porcentaje se aplica a los ${sel.length}.</small></td></tr>`:'')+
+      (sel.length?'':'<tr><td colspan="10">'+vacioHTML('No hay productos con ese filtro.','tag')+'</td></tr>');
     if(!$('#pr_fb').onclick){$('#pr_fb').onclick=()=>{const d=$('#pr_fd');d.classList.toggle('vis');d.open=d.classList.contains('vis')};
       $('#pr_masb').onclick=()=>{const m=document.createElement('div');m.className='modal';document.body.appendChild(m);m.innerHTML='<div class="mc"><div class="bh"><h3>Más opciones</h3><button class="alt" id="pm_x">Cerrar</button></div><div class="pm-l"></div></div>';
         m.onclick=e=>{if(e.target==m)m.remove()};m.querySelector('#pm_x').onclick=()=>m.remove();
@@ -1806,6 +1807,9 @@ SDMP-01279	8.900</pre>
       const{error}=await sb.rpc('fijar_bulto',{p_producto:id,p_unidades:u,p_tipo:t});if(error)return toast(error.message.includes('fijar_bulto')?'Corré bultos.sql en Supabase.':error.message,1);
       S.min[id]=Object.assign(S.min[id]||{},{b:u,tb:t});toast(u>1?'Bulto guardado: '+t+' × '+u+'.':'Se vende por unidad.')};
     $$('.ub').forEach(e=>e.onchange=()=>gb(e.dataset.id));$$('.tb').forEach(e=>e.onchange=()=>gb(e.dataset.id));
+    $$('#pr_t .pf').forEach(e=>e.onchange=async()=>{const id=e.dataset.id,n=numAR(e.value),z=ppz(id)||1;if(e.value.trim()!==''&&!(n>0))return toast('Escribí un precio mayor a cero, o dejalo vacío.',1);
+      const v=e.value.trim()===''?null:Math.round(n*z*100)/100;const{error}=await sb.from('productos').update({precio_fijo:v}).eq('id',id);if(error)return toast(error.message,1);
+      await recargarProductos();toast(v?'Precio fijo guardado: '+$m(n)+'. Minorista y gastronomía se ajustan en proporción.':'Listo: el precio vuelve a salir del costo y el margen.');draw()});
     $$('.cs').forEach(e=>e.onchange=()=>{const n=numAR(e.value);if(e.value===''||n===null)delete nuevo[e.dataset.id];else if(n>0)nuevo[e.dataset.id]=n;setTimeout(draw);upd()})};
   ['#pr_q','#pr_pv','#pr_ma','#pr_fa','#pr_sf'].forEach(k=>$(k)[k=='#pr_q'?'oninput':'onchange']=()=>{$('#pr_conf').innerHTML='';draw()});
   draw();
