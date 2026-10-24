@@ -58,8 +58,13 @@ self.addEventListener('fetch', e => {
       return red;
     })());
   }
-  if (/\.js$/.test(u.pathname)) { // familias.js: primero la red, la copia solo si no hay internet
-    e.respondWith(fetch(req).then(res => guardar(req, res)).catch(() => caches.match(req)));
+  if (/\.js$/.test(u.pathname)) { // familias.js: abre al instante con la copia y la actualiza en segundo plano
+    e.respondWith((async () => {
+      const copia = await caches.match(req);
+      const red = fetch(req).then(res => guardar(req, res));
+      if (copia) { e.waitUntil(red.catch(() => {})); return copia; }
+      return red.catch(() => caches.match(req));
+    })());
     return;
   }
   // version.json, manual.md, fotos: siempre a la red (el navegador usa su propia caché)
