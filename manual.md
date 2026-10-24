@@ -57,6 +57,8 @@ El envío se suma solo: **gratis desde $ 150.000**, si no **$ 15.000**. Para pro
 - **Precios:** tus productos con costo y precio de venta. Lo que cambies se ve al instante en los catálogos de tus clientes.
 - **Buscar:** por nombre o código, o escaneando el código de barras. Categorías: Todas, Fiambres, Quesos, Lácteos…
 - **Arriba:** **Catálogo**, **Aumentos** (cargar un aumento con fecha) y **Por peso** (fiambres y quesos que se cobran por kilo).
+- **Cambiar el precio de venta de un producto:** abrilo con la flechita y escribí el precio en **Precio de venta fijo**. Queda 📌 fijo aunque cambie el costo; borrando el número vuelve a salir del costo y el margen.
+- **Aumento por costo:** filtrá (por familia o proveedor) y usá **Más → Aumento por porcentaje**, o cambiá el **Costo** de cada producto y tocá **Guardar costos cambiados**.
 
 **Cargar las fotos que faltan** (los productos con foto salen primero en el catálogo del cliente):
 
