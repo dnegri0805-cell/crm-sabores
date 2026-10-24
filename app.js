@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-24.41';
+const VERSION='2026-10-24.42';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -4953,6 +4953,21 @@ async function vMiraron(){S.miD=S.miD||3;
     sb.from('contactos_clientes').insert({cliente_id:c.id,tipo:'whatsapp',detalle:'Miró el catálogo'}).then(()=>{})})}
 
 /* ---------- 5. Aviso al instante de pedidos online ---------- */
+/* ===== Avisos con el CRM cerrado (notificación push del servidor) ===== */
+const vapidBytes=x=>{const p='='.repeat((4-x.length%4)%4),b=atob((x+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from([...b].map(c=>c.charCodeAt(0)))};
+async function pushEstado(){try{if(!('PushManager' in window)||!navigator.serviceWorker)return 'no';const r=await navigator.serviceWorker.getRegistration();if(!r)return 'no';const s=await r.pushManager.getSubscription();return s?'si':'off'}catch(e){return 'no'}}
+async function activarPush(){try{
+  if(!('PushManager' in window)||!navigator.serviceWorker)return toast('Este navegador no permite avisos con la app cerrada. Abrí el CRM desde Chrome o instalalo como app.',1);
+  const per=await Notification.requestPermission();if(per!='granted')return toast('Tenés que permitir las notificaciones para recibir los avisos.',1);
+  const r=await navigator.serviceWorker.register('sw.js');await navigator.serviceWorker.ready;
+  const{data:k,error:e1}=await sb.rpc('push_clave_publica');if(e1||!k)return toast('No pude activar los avisos: '+(e1?.message||'falta la clave'),1);
+  let sub=await r.pushManager.getSubscription();if(!sub)sub=await r.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:vapidBytes(k)});
+  const j=sub.toJSON(),eq=(navigator.userAgentData?.platform||'')+' '+(/Android|iPhone|iPad|Windows|Mac/i.exec(navigator.userAgent)?.[0]||'');
+  const{error}=await sb.from('push_subs').upsert({endpoint:j.endpoint,p256dh:j.keys.p256dh,auth:j.keys.auth,equipo:eq.trim()||null},{onConflict:'endpoint'});
+  if(error)return toast('No pude guardar el aviso: '+error.message,1);
+  try{localStorage.setItem('push_ok','1')}catch(e){}okAnim('Avisos activados');setTimeout(()=>probarPush(true),900)}catch(e){toast('No pude activar los avisos: '+e.message,1)}}
+async function probarPush(silencio){const{error}=await sb.rpc('push_probar');if(error)return toast(error.message,1);if(!silencio)toast('Te mandé un aviso de prueba: en unos segundos te tiene que llegar la notificación.')}
+navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.ir=='porAprobar'&&S.perfil){S.tab='pedidos';S.pf='pendiente';shell()}});
 /* ===== Alarma de pedido nuevo (estilo PedidosYa): timbre que se repite hasta que lo atendés ===== */
 function ctxAlarma(){try{if(!S.ac)S.ac=new (window.AudioContext||window.webkitAudioContext)();if(S.ac.state=='suspended')S.ac.resume();return S.ac}catch(e){return null}}
 /* El navegador solo deja sonar después de un toque: se "desbloquea" el audio con el primer toque en el CRM */
@@ -7465,7 +7480,7 @@ async function configPendiente(){const[g,z,t,d,a]=await Promise.all([cfgJ('gasto
     ['📈 Gastos fijos del mes',(g.items||[]).some(x=>+x.m>0)||g.caja,'gananciaNeta()'],['🗺️ Días de entrega de cada zona',Object.values(z).some(x=>(x.dias||[]).length),'zonasReparto()'],
     ['🌡️ Cámaras para la temperatura',!!(t.camaras&&t.camaras.length),'temperatura()'],['🧭 Ubicación del depósito (para ordenar el recorrido)',d.lat!=null,"irA('reparto')"],
     ['🤖 Aprobación automática (decidí si la usás)','activa' in a,'autoAprobarCfg()'],['📍 Clientes ubicados en el mapa',S.clientes.filter(c=>c.lat!=null).length>=S.clientes.length*.8,'revisionDatos()'],
-    ['💲 Costos de todos los productos',S.productos.filter(p=>!(+p.costo>0)).length==0,'revisionDatos()']]}
+    ['💲 Costos de todos los productos',S.productos.filter(p=>!(+p.costo>0)).length==0,'revisionDatos()'],['📲 Avisos de pedidos con el CRM cerrado (en este celular)',(await pushEstado())!='off','activarPush()']]}
 async function chequeoInicio(){const box=$('#chk');if(!box||S.perfil.rol!='dueno')return;let oc=false;try{oc=localStorage.getItem('chk_oc')==diaLocal(new Date())}catch(e){}
   const[F,C]=await Promise.all([sqlFaltantes(),configPendiente()]),pend=C.filter(x=>!x[1]);if(!F.length&&(!pend.length||oc)){box.innerHTML='';return}
   box.innerHTML=`<div class="box ${F.length?'alerta':'chk-solo'}">${F.length?`<h3 style="margin:0 0 6px">🩺 Falta correr ${F.length==1?'1 archivo':F.length+' archivos'} en Supabase</h3><p><small>Sin esto, algunas pantallas no andan. Para cada uno: tocá <b>Copiar</b>, después <b>Abrir Supabase</b>, pegá (Ctrl + V) y tocá <b>Run</b>. Corrélos en este orden.</small></p>
@@ -7527,7 +7542,7 @@ function vistaCfg(){const p=prefV(),m=document.createElement('div');m.className=
     <h4>Colores</h4><div class="sub">${[['claro','☀️ Claro'],['oscuro','🌙 Oscuro'],['auto','Automático']].map(([k,t])=>`<button class="${(p.t||'claro')==k?'':'alt'}" data-vt="${k}">${t}</button>`).join('')}</div>
     <h4>🖨️ Imprimir a distancia</h4><p><small>Usá esto <b>en la PC del depósito</b>: queda como impresora y saca sola lo que mandes desde el celular.</small></p><button class="alt" id="vc_imp">🖨️ Usar este equipo como impresora del depósito</button>
     <h4>🧾 Impresora térmica (rollo)</h4><p><small>Si este equipo imprime en una térmica de tickets, los pedidos, recibos y etiquetas salen en formato rollo.</small></p><div class="sub">${[[0,'No uso'],[58,'58 mm'],[80,'80 mm']].map(([w,t])=>`<button class="${tkW()==w?'':'alt'}" data-tk="${w}">${t}</button>`).join('')}</div>
-    ${huellaHTML()}<h4>🔔 Avisos en este equipo</h4><p><button class="alt" type="button" onclick="document.querySelector('.modal')?.remove();alarmaPedido([{t:'🛒 Así suena un pedido nuevo (prueba)',tab:'pedidos'}])">🔔 Probar la alarma de pedido</button> <small>Subí el volumen multimedia del celular.</small></p><p><small>Te avisa con una notificación cuando entra un pedido online, un reclamo o un presupuesto aceptado, aunque estés en otra app. El CRM tiene que quedar abierto (en el celular, mejor instalado como app).</small></p>
+    ${huellaHTML()}<h4>📲 Avisos de pedidos con el CRM cerrado</h4><p><small>Te llega una notificación cada vez que entra un pedido, aunque el CRM esté cerrado y el celular bloqueado.</small></p><p id="push_box"><button type="button" onclick="activarPush()">📲 Activar en este celular</button> <a class="lnk" onclick="probarPush()">Mandarme un aviso de prueba</a></p><h4>🔔 Avisos en este equipo</h4><p><button class="alt" type="button" onclick="document.querySelector('.modal')?.remove();alarmaPedido([{t:'🛒 Así suena un pedido nuevo (prueba)',tab:'pedidos'}])">🔔 Probar la alarma de pedido</button> <small>Subí el volumen multimedia del celular.</small></p><p><small>Te avisa con una notificación cuando entra un pedido online, un reclamo o un presupuesto aceptado, aunque estés en otra app. El CRM tiene que quedar abierto (en el celular, mejor instalado como app).</small></p>
     ${ns=='no'?'<p><small>Este navegador no permite notificaciones.</small></p>':ns=='denied'?'<p><small>Bloqueaste las notificaciones para esta página: habilitalas en el candado de la barra de direcciones.</small></p>':`<button id="vc_n" class="${S.vivoBg&&ns=='granted'?'alt':''}">${S.vivoBg&&ns=='granted'?'🔕 Apagar avisos':'🔔 Activar avisos'}</button>`}</div>`;
   const q=s=>m.querySelector(s),sv=o=>{try{localStorage.setItem('pref_vista',JSON.stringify({...prefV(),...o}))}catch(e){}aplicarVista();m.remove();vistaCfg()};
   q('#vc_x').onclick=()=>m.remove();huellaBind(m);q('#vc_imp').onclick=()=>{m.remove();irA('impresora')};m.querySelectorAll('[data-vz]').forEach(b=>b.onclick=()=>sv({z:+b.dataset.vz}));m.querySelectorAll('[data-vt]').forEach(b=>b.onclick=()=>sv({t:b.dataset.vt}));m.querySelectorAll('[data-tk]').forEach(b=>b.onclick=()=>{try{localStorage.setItem('pref_ticket',JSON.stringify({w:+b.dataset.tk}))}catch(e){}m.remove();vistaCfg();toast(+b.dataset.tk?'Listo: imprime en rollo de '+b.dataset.tk+' mm.':'Listo: imprime en hoja A4.')});
@@ -7786,7 +7801,7 @@ function huellaArranque(){if(!huellaDe())return;bloquear();if(S._lockBind)return
 
 /* ---------- 7. Atajos en el ícono de la app ---------- */
 function irAtajo(){let ir=null;try{ir=new URLSearchParams(location.search).get('ir')}catch(e){}if(!ir)return;try{history.replaceState(null,'',location.pathname)}catch(e){}
-  const M={pedido:['pedidos'],cola:['ventas',{vs:'cola'}],reparto:['reparto'],cobrar:['cobranza'],manana:['inicio']},x=M[ir];if(!x)return;Object.assign(S,x[1]||{});S.tab=x[0];if(ir=='manana')setTimeout(()=>preparaManana(),700)}
+  const M={porAprobar:['pedidos',{pf:'pendiente'}],pedido:['pedidos'],cola:['ventas',{vs:'cola'}],reparto:['reparto'],cobrar:['cobranza'],manana:['inicio']},x=M[ir];if(!x)return;Object.assign(S,x[1]||{});S.tab=x[0];if(ir=='manana')setTimeout(()=>preparaManana(),700)}
 
 /* ---------- 8. Para mañana (resumen a la noche) ---------- */
 async function datosManana(){const man=diaLocal(new Date(Date.now()+864e5)),sf=p=>Promise.resolve(p).then(r=>r||{data:null},()=>({data:null}));

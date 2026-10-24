@@ -69,3 +69,22 @@ self.addEventListener('fetch', e => {
   }
   // version.json, manual.md, fotos: siempre a la red (el navegador usa su propia caché)
 });
+
+// Aviso de pedido nuevo con el CRM cerrado (lo manda el servidor)
+self.addEventListener('push', e => {
+  let d = {}; try { d = e.data ? e.data.json() : {}; } catch (x) { d = { texto: e.data && e.data.text() }; }
+  e.waitUntil(self.registration.showNotification(d.titulo || '🛒 ¡Pedido nuevo!', {
+    body: d.texto || 'Entró un pedido.', icon: 'icon-crm-192.png', badge: 'icon-crm-192.png',
+    vibrate: [500, 200, 500, 200, 500], tag: 'crm-pedido', renotify: true, requireInteraction: true,
+    data: { url: d.url || './index.html?ir=porAprobar' }
+  }));
+});
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const url = new URL((e.notification.data && e.notification.data.url) || './index.html', self.registration.scope).href;
+  e.waitUntil((async () => {
+    const L = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const c of L) if (c.url.includes('/crm-sabores/') && !c.url.includes('pedido.html') && 'focus' in c) { try { c.postMessage({ ir: 'porAprobar' }); } catch (x) {} return c.focus(); }
+    return self.clients.openWindow(url);
+  })());
+});
