@@ -990,7 +990,7 @@ async function vManual(){const v=$('#v');v.innerHTML='<p>Cargando manual…</p>'
 /* Supabase devuelve como máximo 1000 filas por pedido: esto trae todas, de a tandas */
 async function todo(armar){let out=[],i=0;for(;;){const{data,error}=await armar().range(i,i+999);if(error)return{data:out,error};out=out.concat(data);if(data.length<1000)return{data:out,error:null};i+=1000}}
 /* Auto-actualización: si hay una versión nueva publicada, recarga sola (evita ver la versión vieja guardada en el celular) */
-const APP_V='2026-10-24-1620';
+const APP_V='2026-10-24-1625';
 async function chequearVersion(){try{const r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});const t=await r.text(),m=t.match(/const APP_V='([^']+)'/);
   if(m&&m[1]!==APP_V){const k='recarga_'+m[1];if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,'1');location.replace(location.pathname+'?v='+m[1]+location.hash)}}catch(e){}}
 chequearVersion();document.addEventListener('visibilitychange',()=>{if(document.visibilityState=='visible')chequearVersion()});
@@ -5828,12 +5828,12 @@ async function vMiraron(){S.miD=S.miD||3;
 
 /* ---------- 5. Aviso al instante de pedidos online ---------- */
 function bip(){try{const a=new (window.AudioContext||window.webkitAudioContext)(),t=a.currentTime;[0,.18,.36].forEach((d,i)=>{const o=a.createOscillator(),g=a.createGain();o.frequency.value=[880,1175,1568][i];g.gain.setValueAtTime(.0001,t+d);g.gain.exponentialRampToValueAtTime(.3,t+d+.02);g.gain.exponentialRampToValueAtTime(.0001,t+d+.16);o.connect(g).connect(a.destination);o.start(t+d);o.stop(t+d+.17)})}catch(e){}}
-function avisosEnVivo(){if(S.vivo)return;S.vivo=true;let desde=new Date().toISOString();
+function avisosEnVivo(){if(S.vivo)return;S.vivo=true;sb.from('perfiles').select('id,nombre').then(({data})=>{S.vendNom={};for(const x of data||[])S.vendNom[x.id]=String(x.nombre||'').trim().split(/\s+/)[0]||'Tu vendedor'},()=>{});let desde=new Date().toISOString();
   const chk=async()=>{if(document.hidden&&!S.vivoBg)return;const ahora=new Date().toISOString();
-    const[pe,pw,rc]=await Promise.all([sb.from('pedidos').select('numero,total,cliente_id,origen').in('origen',['online','fijo']).gt('creado_en',desde).order('numero'),
+    const[pe,pw,rc]=await Promise.all([sb.from('pedidos').select('numero,total,cliente_id,origen,vendedor_id').or(['dueno','administracion'].includes(S.perfil.rol)?'origen.in.(online,fijo),vendedor_id.neq.'+S.perfil.id:'origen.in.(online,fijo)').gt('creado_en',desde).order('numero'),
       sb.from('presupuestos').select('numero,total,nombre,origen,estado').gt('creado_en',desde).in('estado',['aceptado']),
       sb.from('reclamos').select('cliente_id,tipo').gt('creado_en',desde)]);
-    desde=ahora;const N=[...(pe.data||[]).map(o=>({t:'🛒 Pedido online N° '+o.numero+' de '+(nomCli(o.cliente_id)||'un cliente')+' · '+$m(o.total),tab:'pedidos'})),
+    desde=ahora;const N=[...(pe.data||[]).map(o=>({t:(['online','fijo'].includes(o.origen)?'🛒 Pedido online N° ':'🧑‍💼 '+(S.vendNom?.[o.vendedor_id]||'Tu vendedor')+' cargó el pedido N° ')+o.numero+' de '+(nomCli(o.cliente_id)||'un cliente')+' · '+$m(o.total),tab:'pedidos'})),
       ...(rc.data||[]).map(r=>({t:'🆘 Reclamo de '+(nomCli(r.cliente_id)||'un cliente')+': '+r.tipo,tab:'ventas',vs:'reclamos'})),
       ...(pw.data||[]).map(p=>({t:(p.origen=='catalogo'?'🌐 Pedido desde el catálogo público: ':'📝 Aceptaron el presupuesto N° '+p.numero+' · ')+(p.nombre||'')+' '+$m(p.total),tab:'ventas'}))];
     if(!N.length)return;bip();
