@@ -837,7 +837,7 @@ button:not(.alt)>.ici-big{color:#fff}
 
 .cl-bt.lp{color:var(--m)}
 .lp-rap{display:flex;flex-direction:column;gap:4px;margin:6px 0 12px}.lp-rap button{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:#1a8f4c;color:#fff;border:0;padding:12px}.lp-rap small{color:#6a7184}
-.fc-big:has(#fc_ml){display:grid!important;grid-template-columns:repeat(3,1fr);gap:8px}.fc-big:has(#fc_ml)>#fc_np{grid-column:1/-1}.fc-big:has(#fc_ml)>*{min-width:0;padding-left:4px;padding-right:4px;white-space:nowrap;font-size:14px}
+.fc-big:has(#fc_ml){display:grid!important;grid-template-columns:repeat(3,1fr);gap:8px}.fc-big:has(#fc_ml)>#fc_np{grid-column:1/-1}.fc-big:has(#fc_ml)>*{min-width:0;padding-left:4px;padding-right:4px;white-space:nowrap;font-size:14px}.fc-big:has(#fc_ml)>*:not(#fc_np){display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding-top:9px!important;padding-bottom:9px!important;font-size:13.5px!important;line-height:1.1}.fc-big:has(#fc_ml)>*:not(#fc_np) svg{margin:0!important}
 
 /* Órdenes de pago y recibos detallados */
 .op-sal{margin:10px 0}.op-h{margin:16px 0 6px;display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
@@ -967,7 +967,7 @@ async function vManual(){const v=$('#v');v.innerHTML='<p>Cargando manual…</p>'
 /* Supabase devuelve como máximo 1000 filas por pedido: esto trae todas, de a tandas */
 async function todo(armar){let out=[],i=0;for(;;){const{data,error}=await armar().range(i,i+999);if(error)return{data:out,error};out=out.concat(data);if(data.length<1000)return{data:out,error:null};i+=1000}}
 /* Auto-actualización: si hay una versión nueva publicada, recarga sola (evita ver la versión vieja guardada en el celular) */
-const APP_V='2026-10-24-0210';
+const APP_V='2026-10-24-0215';
 async function chequearVersion(){try{const r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});const t=await r.text(),m=t.match(/const APP_V='([^']+)'/);
   if(m&&m[1]!==APP_V){const k='recarga_'+m[1];if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,'1');location.replace(location.pathname+'?v='+m[1]+location.hash)}}catch(e){}}
 chequearVersion();document.addEventListener('visibilitychange',()=>{if(document.visibilityState=='visible')chequearVersion()});
