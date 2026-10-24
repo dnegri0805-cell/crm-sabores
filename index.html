@@ -397,7 +397,7 @@ small>.skl,td>.skl{min-height:16px;border-radius:6px}
   #pr_t tr.prw td .cs{width:100%;max-width:none;padding:6px 8px}
   #pr_t tr.prw td.pbu{grid-column:1/-1}
   #pr_t tr.prw td.pult{grid-column:1/-1;color:#8a90a0}
-#pr_t tr.prw td.pfj{grid-column:1/-1}#pr_t tr.prw td .pf{width:100%;max-width:none;padding:6px 8px;text-align:left}#pr_t .pfh{display:block;color:#8a90a0;font-size:12px;margin-top:2px}
+#pr_t tr.prw td.pfj{grid-column:1/-1}#pr_t tr.prw td .pf{width:100%;max-width:none;padding:6px 8px;text-align:left}#pr_t .pfh{display:block;color:#8a90a0;font-size:12px;margin-top:2px}#pr_t .pfij,#pr_t .pmal{display:inline-block;margin-left:8px;font-size:12px;font-weight:700;border-radius:999px;padding:1px 8px;vertical-align:middle}#pr_t .pfij{background:#eef1f6;color:#3c4458}#pr_t .pmal{background:#fdecea;color:#c0392b}html.oscuro #pr_t .pfij{background:#273246;color:#c9cfdb}html.oscuro #pr_t .pmal{background:#3a1f22;color:#f19a91}
   .tw:has(#pr_t){overflow:visible}
   .box .bh>.acc{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 }
@@ -990,7 +990,7 @@ async function vManual(){const v=$('#v');v.innerHTML='<p>Cargando manual…</p>'
 /* Supabase devuelve como máximo 1000 filas por pedido: esto trae todas, de a tandas */
 async function todo(armar){let out=[],i=0;for(;;){const{data,error}=await armar().range(i,i+999);if(error)return{data:out,error};out=out.concat(data);if(data.length<1000)return{data:out,error:null};i+=1000}}
 /* Auto-actualización: si hay una versión nueva publicada, recarga sola (evita ver la versión vieja guardada en el celular) */
-const APP_V='2026-10-24-1610';
+const APP_V='2026-10-24-1615';
 async function chequearVersion(){try{const r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});const t=await r.text(),m=t.match(/const APP_V='([^']+)'/);
   if(m&&m[1]!==APP_V){const k='recarga_'+m[1];if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,'1');location.replace(location.pathname+'?v='+m[1]+location.hash)}}catch(e){}}
 chequearVersion();document.addEventListener('visibilitychange',()=>{if(document.visibilityState=='visible')chequearVersion()});
@@ -1714,7 +1714,7 @@ async function vPrecios(){
       <select id="pr_pv"><option value="">Todos los proveedores</option></select>
       <select id="pr_ma"><option value="">Todas las marcas</option></select>
       <select id="pr_fa"><option value="">Todas las familias</option></select>
-      <label class="chk"><input type="checkbox" id="pr_sf"> Solo sin foto</label></div></details>
+      <label class="chk"><input type="checkbox" id="pr_sf"> Solo sin foto</label><label class="chk"><input type="checkbox" id="pr_mb"> Solo margen bajo</label><label class="chk"><input type="checkbox" id="pr_fj"> Solo precio fijo</label></div></details>
     <details class="prf praum" id="pr_ad" hidden><summary>Aumento por porcentaje ${IC('down',14)}</summary><p><small>Sube (o baja, con −) el costo de <b>todos los productos que muestra el filtro</b>. Primero te muestra cómo queda.</small></p><div class="aum"><span>Aumentar costo</span><input id="pr_pct" type="number" step="0.1" placeholder="%"><span>%</span><button class="alt" id="pr_prev">Ver cómo queda</button></div></details>
     <div id="pr_conf"></div>
     <div class="tw"><table id="pr_t"></table></div>
@@ -1778,11 +1778,12 @@ SDMP-01279	8.900</pre>
   $('#pr_fa').innerHTML+=uniq('familia').sort(famCmp).map(x=>`<option>${esc(x)}</option>`).join('');
   const nuevo={};let sel=[];
   const filtrar=()=>{const q=$('#pr_q').value.toLowerCase().trim(),v=$('#pr_pv').value,m=$('#pr_ma').value,f=$('#pr_fa').value;
-    const sf=$('#pr_sf').checked;return S.productos.filter(p=>(!S.prG||(famGrupo(p.familia)||'Otras familias')==S.prG)&&(!q||coincide(txtProd(p),q))&&(!v||S.min[p.producto_id]?.pv==v)&&(!m||p.marca==m)&&(!f||p.familia==f)&&(!sf||!S.min[p.producto_id]?.foto))};
+    const sf=$('#pr_sf').checked,mb=$('#pr_mb').checked,fjo=$('#pr_fj').checked;return S.productos.filter(p=>(!mb||mgMay(p)!=null&&mgMay(p)<(S.margenMin??15)-0.5)&&(!fjo||+p.precio_fijo>0)&&(!S.prG||(famGrupo(p.familia)||'Otras familias')==S.prG)&&(!q||coincide(txtProd(p),q))&&(!v||S.min[p.producto_id]?.pv==v)&&(!m||p.marca==m)&&(!f||p.familia==f)&&(!sf||!S.min[p.producto_id]?.foto))};
+  const mgMay=p=>{const v=+p.precio_mayorista,c=+p.costo;return v>0&&c>0?(v-c)/v*100:null};
   const precio=(c,l,f)=>{const m=mgEf(l,f);return m!=null&&c>0?Math.round(c/(1-m/100)*100)/100:null};
   const upd=()=>{const n=Object.keys(nuevo).length;$('#pr_n').textContent=n?n+(n==1?' costo cambiado sin guardar':' costos cambiados sin guardar'):''};
   const draw=()=>{sel=filtrar();$('#pr_cnt').textContent=sel.length+(sel.length==1?' producto':' productos');
-    {const nf_=[$('#pr_pv').value,$('#pr_ma').value,$('#pr_fa').value].filter(Boolean).length+($('#pr_sf').checked?1:0);$('#pr_fn').textContent=nf_?'· '+nf_+(nf_==1?' activo':' activos'):'';$('#pr_fbn').textContent=nf_||'';$('#pr_fb').classList.toggle('on',!!nf_)}
+    {const nf_=[$('#pr_pv').value,$('#pr_ma').value,$('#pr_fa').value].filter(Boolean).length+($('#pr_sf').checked?1:0)+($('#pr_mb').checked?1:0)+($('#pr_fj').checked?1:0);$('#pr_fn').textContent=nf_?'· '+nf_+(nf_==1?' activo':' activos'):'';$('#pr_fbn').textContent=nf_||'';$('#pr_fb').classList.toggle('on',!!nf_)}
     {const cnt={};S.productos.forEach(p=>{const g=famGrupo(p.familia)||'Otras familias';cnt[g]=(cnt[g]||0)+1});const ord=[...FAMILIAS.map(x=>x[0]),'Otras familias'].filter(g=>cnt[g]);
      $('#pr_gr').innerHTML=`<button class="${S.prG?'alt':''}" data-prg="">Todas</button>`+ord.map(g=>`<button class="${S.prG==g?'':'alt'}" data-prg="${esc(g)}">${esc(g)}</button>`).join('');
      $$('#pr_gr [data-prg]').forEach(b=>b.onclick=()=>{S.prG=b.dataset.prg;draw()})}
@@ -1791,7 +1792,7 @@ SDMP-01279	8.900</pre>
       V.map(p=>{const id=p.producto_id,c=nuevo[id]??+p.costo/(ppz(id)||1),fj=+p.precio_fijo>0?+p.precio_fijo/(ppz(id)||1):0,pm=fj||precio(c,'mayorista',p.familia),u=ult[id];
         return `<tr class="prw${nuevo[id]!=null?' cambio':''}"><td class="fto">${S.min[id]?.foto?`<img src="${esc(S.min[id].foto)}" alt="" data-ft="${id}" loading="lazy">`:`<button class="alt" data-ft="${id}" aria-label="Cargar foto">📷</button>`}</td><td>${esc(p.descripcion)} <small class="pcod">${esc(p.codigo)}</small>${ppz(id)&&pm!=null?`<br><span class="badge">⚖️ precios por kg · pieza ≈ ${nf(ppz(id))} kg → ${$m(pm*ppz(id))}</span>`:''}</td>
         <td class="n" data-l="Costo"><input type="number" step="0.01" min="0" class="cs" data-id="${id}" value="${nuevo[id]??''}" placeholder="${p.costo!=null?nf(+p.costo/(ppz(id)||1)):'—'}"></td>
-        <td class="n pmay" data-l="Mayorista">${pm!=null?$m0(pm)+(bul(id)?.kg?'<small class="pkg">/kg</small>':''):'—'}${pm!=null&&!ppz(id)&&(S.min[id]?.b||1)>1?`<small class="pcaja">${esc(bulL(bul(id)))}: ${$m0(pm*S.min[id].b)}</small>`:''}</td><td class="n pfj" data-l="Precio de venta fijo"><input type="text" inputmode="decimal" class="pf" data-id="${id}" value="${fj?String(Math.round(fj*100)/100).replace('.',','):''}" placeholder="Vacío = sale del costo y el margen"><small class="pfh">${fj?'📌 Fijo: no cambia aunque cambie el costo':'Escribí el precio mayorista que querés cobrar'}</small></td><td class="n" data-l="Minorista">${fj?$m0(+p.precio_minorista/(ppz(id)||1)):precio(c,'minorista',p.familia)!=null?$m0(precio(c,'minorista',p.familia)):'—'}</td><td class="n" data-l="Gastronomía">${fj?$m0(+p.precio_especial/(ppz(id)||1)):precio(c,'especial',p.familia)!=null?$m0(precio(c,'especial',p.familia)):'—'}</td>
+        <td class="n pmay" data-l="Mayorista">${pm!=null?$m0(pm)+(bul(id)?.kg?'<small class="pkg">/kg</small>':''):'—'}${fj?'<span class="pfij">📌 Fijo</span>':''}${pm>0&&c>0&&(pm-c)/pm*100<(S.margenMin??15)-0.5?`<span class="pmal">⚠️ ganás ${nf(Math.round((pm-c)/pm*1000)/10)} %</span>`:''}${pm!=null&&!ppz(id)&&(S.min[id]?.b||1)>1?`<small class="pcaja">${esc(bulL(bul(id)))}: ${$m0(pm*S.min[id].b)}</small>`:''}</td><td class="n pfj" data-l="Precio de venta fijo"><input type="text" inputmode="decimal" class="pf" data-id="${id}" value="${fj?String(Math.round(fj*100)/100).replace('.',','):''}" placeholder="Vacío = sale del costo y el margen"><small class="pfh">${fj?'📌 Fijo: no cambia aunque cambie el costo':'Escribí el precio mayorista que querés cobrar'}</small></td><td class="n" data-l="Minorista">${fj?$m0(+p.precio_minorista/(ppz(id)||1)):precio(c,'minorista',p.familia)!=null?$m0(precio(c,'minorista',p.familia)):'—'}</td><td class="n" data-l="Gastronomía">${fj?$m0(+p.precio_especial/(ppz(id)||1)):precio(c,'especial',p.familia)!=null?$m0(precio(c,'especial',p.familia)):'—'}</td>
         <td class="n" data-l="Ganás">${pm!=null?$m0(pm-c):'—'}</td>
         <td style="white-space:nowrap" data-l="Bulto" class="pbu"><select class="tb" data-id="${id}" aria-label="Tipo de bulto">${['Caja','Pack','Bolsa','Fardo','Display','Balde','Cuñete','Lata','Bidón','Paquete'].map(t=>`<option ${(S.min[id]?.tb||'Caja')==t?'selected':''}>${t}</option>`).join('')}</select> × <input type="number" min="1" step="1" class="ub" data-id="${id}" value="${S.min[id]?.b||1}" aria-label="Unidades por bulto"></td>
         <td class="pult${u?'':' vac'}"><small>${u?'Último cambio: '+fd(u.fecha)+' · '+(u.costo_anterior>0?(u.costo_nuevo>=u.costo_anterior?'+':'')+pctf((u.costo_nuevo/u.costo_anterior-1)*100):'nuevo'):''}</small></td></tr>`}).join('')+
@@ -1811,7 +1812,7 @@ SDMP-01279	8.900</pre>
       const v=e.value.trim()===''?null:Math.round(n*z*100)/100;const{error}=await sb.from('productos').update({precio_fijo:v}).eq('id',id);if(error)return toast(error.message,1);
       await recargarProductos();toast(v?'Precio fijo guardado: '+$m(n)+'. Minorista y gastronomía se ajustan en proporción.':'Listo: el precio vuelve a salir del costo y el margen.');draw()});
     $$('.cs').forEach(e=>e.onchange=()=>{const n=numAR(e.value);if(e.value===''||n===null)delete nuevo[e.dataset.id];else if(n>0)nuevo[e.dataset.id]=n;setTimeout(draw);upd()})};
-  ['#pr_q','#pr_pv','#pr_ma','#pr_fa','#pr_sf'].forEach(k=>$(k)[k=='#pr_q'?'oninput':'onchange']=()=>{$('#pr_conf').innerHTML='';draw()});
+  ['#pr_q','#pr_pv','#pr_ma','#pr_fa','#pr_sf','#pr_mb','#pr_fj'].forEach(k=>$(k)[k=='#pr_q'?'oninput':'onchange']=()=>{$('#pr_conf').innerHTML='';draw()});
   draw();
   $('#pr_sc').onclick=()=>escanear('Buscar producto por código',p=>{$('#pr_q').value=p.codigo;$('#pr_conf').innerHTML='';draw();return '✔ '+p.descripcion+' · costo '+(p.costo?$m(p.costo):'sin cargar')});
   $('#pr_g').onclick=async()=>{const it=Object.entries(nuevo).map(([id,costo])=>({id,costo}));if(!it.length)return toast('No cambiaste ningún costo.',1);
