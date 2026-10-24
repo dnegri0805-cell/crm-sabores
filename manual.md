@@ -50,7 +50,7 @@ El envío se suma solo: **gratis desde $ 150.000**, si no **$ 15.000**. Para pro
 - **Nuevo cliente:** botón **+ Nuevo cliente** arriba (o desde Inicio).
 - **Ficha del cliente:** **Nuevo pedido** (con el cliente ya elegido), **Mandar lista** (WhatsApp con un saludo y su link personal para pedir), **WhatsApp**, **Llamar**, **Datos del cliente** con *Editar datos*, y **Notas** (con fecha quedan como tarea).
 - **Para que el saludo salga bien:** los mensajes saludan con el campo **Contacto** ("¡Hola Mariela!"). Si está vacío, usan el nombre del negocio. En la lista se ve el nombre de fantasía; las facturas y remitos salen con la razón social.
-- **Alguien nuevo te escribe:** mandale el **catálogo público** (precios mayoristas): https://dnegri0805-cell.github.io/crm-sabores/pedido.html?ver=catalogo — está en *Más → Ventas → Folletos y catálogo*. Si te compra, dalo de alta y desde ahí usá siempre **Mandar lista**.
+- **Alguien nuevo te escribe:** mandale el **catálogo público** (precios mayoristas): https://dnegri0805-cell.github.io/crm-sabores/pedido.html?ver=catalogo — está en *Más → Ventas → Folletos y catálogo*. Cuando pide, el CRM lo da de alta solo como cliente (o lo reconoce por el teléfono) y el pedido entra en **Pedidos → Por aprobar** con la nota *🌐 Catálogo · cliente nuevo*: completale los datos en su ficha y desde ahí usá siempre **Mandar lista**.
 
 ## 5. Precios y fotos
 
