@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-24.38';
+const VERSION='2026-10-24.39';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -299,7 +299,8 @@ async function vInicio(){
   {const b=$('#k2');if(b){b.style.cursor='pointer';b.title='Ver los pedidos por aprobar';b.onclick=()=>irPed('pendiente')}}
   $('#k6')&&($('#k6').onclick=()=>irA('clientes',{cs:'agenda',agD:Math.min(dvHoy,6)}));
   if(S.perfil.rol=='dueno'){cajaBackup();cajaDolar().catch(()=>{})}
-  herramientas();generarFijos();alertasMargen();objetivoMes();tocaInicio();fidelInicio().catch(()=>{});masInicio().catch(()=>{});crecerInicio().catch(()=>{});fielesInicio().catch(()=>{});servInicio().catch(()=>{});planInicio().catch(()=>{});colaInicio().catch(()=>{});resumenDia().catch(()=>{});tareasInicio().catch(()=>{});chequeoInicio().catch(()=>{});camionetaInicio().catch(()=>{});cuentasInicio().catch(()=>{});equiposInicio().catch(()=>{});comprobantesInicio().catch(()=>{});mananaInicio().catch(()=>{});miDia().catch(()=>{});ocSemanal().catch(()=>{});aplicarAumentosProg().catch(()=>{});sincronizarOff().catch(()=>{});metasInicio().catch(()=>{});empujonBox($('#empi')).catch(()=>{});avisosEnVivo();fechasInicio();
+  /* Primero los números del día; los avisos y tareas de abajo se cargan un instante después para que Inicio aparezca más rápido */
+  avisosEnVivo();setTimeout(()=>{herramientas();generarFijos();alertasMargen();objetivoMes();tocaInicio();fidelInicio().catch(()=>{});masInicio().catch(()=>{});crecerInicio().catch(()=>{});fielesInicio().catch(()=>{});servInicio().catch(()=>{});planInicio().catch(()=>{});colaInicio().catch(()=>{});resumenDia().catch(()=>{});tareasInicio().catch(()=>{});chequeoInicio().catch(()=>{});camionetaInicio().catch(()=>{});cuentasInicio().catch(()=>{});equiposInicio().catch(()=>{});comprobantesInicio().catch(()=>{});mananaInicio().catch(()=>{});miDia().catch(()=>{});ocSemanal().catch(()=>{});aplicarAumentosProg().catch(()=>{});sincronizarOff().catch(()=>{});metasInicio().catch(()=>{});empujonBox($('#empi')).catch(()=>{});fechasInicio();},700);
   const cli=id=>esc(S.clientes.find(c=>c.id==id)?.razon_social||'Cliente');
   const [fv,pe,fe,sp,fp]=await Promise.all([
     sb.from('facturas_venta').select('*').order('id',{ascending:false}).limit(500),
