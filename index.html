@@ -967,7 +967,7 @@ async function vManual(){const v=$('#v');v.innerHTML='<p>Cargando manual…</p>'
 /* Supabase devuelve como máximo 1000 filas por pedido: esto trae todas, de a tandas */
 async function todo(armar){let out=[],i=0;for(;;){const{data,error}=await armar().range(i,i+999);if(error)return{data:out,error};out=out.concat(data);if(data.length<1000)return{data:out,error:null};i+=1000}}
 /* Auto-actualización: si hay una versión nueva publicada, recarga sola (evita ver la versión vieja guardada en el celular) */
-const APP_V='2026-10-24-0155';
+const APP_V='2026-10-24-0200';
 async function chequearVersion(){try{const r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});const t=await r.text(),m=t.match(/const APP_V='([^']+)'/);
   if(m&&m[1]!==APP_V){const k='recarga_'+m[1];if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,'1');location.replace(location.pathname+'?v='+m[1]+location.hash)}}catch(e){}}
 chequearVersion();document.addEventListener('visibilitychange',()=>{if(document.visibilityState=='visible')chequearVersion()});
@@ -2366,6 +2366,7 @@ async function vPedidos(){
     const ids=[...new Set([...vis.map(c=>c.id),...(rp||[]).map(x=>x.cliente_id)])].slice(0,10);let L=ids.map(id=>S.clientes.find(c=>c.id==id)).filter(Boolean).slice(0,8),tit=vis.length?'Visitas de hoy y últimos clientes':'Últimos clientes';
     /* Si todavía no hay pedidos, muestra tus clientes para elegir con un toque */
     if(!L.length){L=S.clientes.filter(c=>c.activo!==false).sort((a,b)=>nomVis(a).localeCompare(nomVis(b),'es')).slice(0,8);tit='Tus clientes'}
+    else if(L.length<8){const ya=new Set(L.map(c=>c.id));L=L.concat(S.clientes.filter(c=>c.activo!==false&&!ya.has(c.id)).sort((a,b)=>nomVis(a).localeCompare(nomVis(b),'es')).slice(0,8-L.length));tit=vis.length?'Visitas de hoy y tus clientes':'Tus clientes'}
     const box=$('#p_rc');if(!box||!L.length||S.pcli)return;
     box.innerHTML=`<small>${tit}</small><div class="prc-l">${L.map(c=>`<button class="alt prc" data-rcid="${c.id}">${avatar(c)}<span>${esc(nomVis(c))}</span></button>`).join('')}</div>`;
     box.querySelectorAll('[data-rcid]').forEach(b=>b.onclick=()=>elegir(S.clientes.find(c=>c.id==b.dataset.rcid)))}catch(e){}})();
