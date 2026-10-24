@@ -990,7 +990,7 @@ async function vManual(){const v=$('#v');v.innerHTML='<p>Cargando manual…</p>'
 /* Supabase devuelve como máximo 1000 filas por pedido: esto trae todas, de a tandas */
 async function todo(armar){let out=[],i=0;for(;;){const{data,error}=await armar().range(i,i+999);if(error)return{data:out,error};out=out.concat(data);if(data.length<1000)return{data:out,error:null};i+=1000}}
 /* Auto-actualización: si hay una versión nueva publicada, recarga sola (evita ver la versión vieja guardada en el celular) */
-const APP_V='2026-10-24-1615';
+const APP_V='2026-10-24-1620';
 async function chequearVersion(){try{const r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});const t=await r.text(),m=t.match(/const APP_V='([^']+)'/);
   if(m&&m[1]!==APP_V){const k='recarga_'+m[1];if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,'1');location.replace(location.pathname+'?v='+m[1]+location.hash)}}catch(e){}}
 chequearVersion();document.addEventListener('visibilitychange',()=>{if(document.visibilityState=='visible')chequearVersion()});
@@ -1815,7 +1815,7 @@ SDMP-01279	8.900</pre>
   ['#pr_q','#pr_pv','#pr_ma','#pr_fa','#pr_sf','#pr_mb','#pr_fj'].forEach(k=>$(k)[k=='#pr_q'?'oninput':'onchange']=()=>{$('#pr_conf').innerHTML='';draw()});
   draw();
   $('#pr_sc').onclick=()=>escanear('Buscar producto por código',p=>{$('#pr_q').value=p.codigo;$('#pr_conf').innerHTML='';draw();return '✔ '+p.descripcion+' · costo '+(p.costo?$m(p.costo):'sin cargar')});
-  $('#pr_g').onclick=async()=>{const it=Object.entries(nuevo).map(([id,costo])=>({id,costo}));if(!it.length)return toast('No cambiaste ningún costo.',1);
+  $('#pr_g').onclick=async()=>{const it=Object.entries(nuevo).map(([id,costo])=>({id,costo}));if(!it.length)return toast('No hay costos para guardar. El precio de venta fijo ya quedó guardado solo cuando lo escribiste.');
     const viejo=it.map(x=>{const p=S.productos.find(y=>y.producto_id==x.id);return p&&+p.costo>0?{id:x.id,costo:Math.round(+p.costo/(ppz(x.id)||1)*100)/100}:null}).filter(Boolean);
     $('#pr_g').disabled=true;const{data,error}=await sb.rpc('fijar_costos',{p_items:it});$('#pr_g').disabled=false;
     if(error)return toast(error.message,1);for(const k in nuevo)delete nuevo[k];await recargarProductos();vPrecios();toast((data||it.length)+' costos actualizados. Los precios ya cambiaron.');
