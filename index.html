@@ -572,6 +572,7 @@ html,body{overflow-x:clip}
   table.tcard tr.tcr td:first-child{grid-column:1/-1;font-weight:600}
   table.tcard tr.tcr td[data-l]:not(:first-child)::before{content:attr(data-l);display:block;font-size:11px;color:#8a90a0;text-transform:uppercase;letter-spacing:.03em}
   table.tcard tr.tcr td:empty{display:none}
+.s-fil{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 2px}.s-fil .chk{margin:0!important;display:inline-flex!important;align-items:center;gap:6px;border:1px solid var(--l);border-radius:999px;padding:6px 12px;font-size:14px;background:#fff}.s-fil .chk:has(input:checked){border-color:var(--m);background:#f7eef1;color:var(--m);font-weight:600}.s-fil .chk input{width:16px!important;height:16px;margin:0!important}
 @media(max-width:640px){#s_t.tcard tr.tcr{grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:4px 8px!important;padding:9px 12px!important}
   #s_t.tcard tr.tcr td:first-child{grid-column:1/-1!important;font-size:15px;line-height:1.25}
   #s_t.tcard tr.tcr td:nth-child(2),#s_t.tcard tr.tcr td:nth-child(3),#s_t.tcard tr.tcr td:nth-child(4){grid-column:span 2;font-size:15px}
@@ -985,7 +986,7 @@ async function vManual(){const v=$('#v');v.innerHTML='<p>Cargando manual…</p>'
 /* Supabase devuelve como máximo 1000 filas por pedido: esto trae todas, de a tandas */
 async function todo(armar){let out=[],i=0;for(;;){const{data,error}=await armar().range(i,i+999);if(error)return{data:out,error};out=out.concat(data);if(data.length<1000)return{data:out,error:null};i+=1000}}
 /* Auto-actualización: si hay una versión nueva publicada, recarga sola (evita ver la versión vieja guardada en el celular) */
-const APP_V='2026-10-24-1240';
+const APP_V='2026-10-24-1330';
 async function chequearVersion(){try{const r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});const t=await r.text(),m=t.match(/const APP_V='([^']+)'/);
   if(m&&m[1]!==APP_V){const k='recarga_'+m[1];if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,'1');location.replace(location.pathname+'?v='+m[1]+location.hash)}}catch(e){}}
 chequearVersion();document.addEventListener('visibilitychange',()=>{if(document.visibilityState=='visible')chequearVersion()});
@@ -1235,7 +1236,7 @@ function bajos(){return S.productos.map(p=>({p,d:stk(p.producto_id).d,m:S.min[p.
 async function vStock(){
   $('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Stock</h2><div class="fc-acc"><button id="s_cn">📋 Conteo por partes</button><button class="alt" onclick="conteoDia()">📦 Conteo del día</button><button class="alt" onclick="fraccionar()">🔪 Fraccionar</button><button class="alt" onclick="equipos()">🛠️ Equipos</button><button class="alt" onclick="merma()">📉 Merma</button><button class="alt" onclick="buscarLote()">🔎 Lotes</button><button class="alt" onclick="temperatura()">🌡️ Temperatura</button></div></div>
   <div class="box"><div class="g"><div class="conscan"><input id="s_q" placeholder="Buscar producto o código" autocomplete="off">${btnScan('s_sc')}</div>
-    <label class="chk"><input type="checkbox" id="s_b" ${S.soloBajo?'checked':''}> Solo bajo el mínimo</label><label class="chk"><input type="checkbox" id="s_kg" ${S.soloKg?'checked':''}> Solo quesos y fiambres</label></div><p id="s_kgr"></p>
+    <div class="s-fil"><label class="chk"><input type="checkbox" id="s_b" ${S.soloBajo?'checked':''}> Bajo el mínimo</label><label class="chk"><input type="checkbox" id="s_kg" ${S.soloKg?'checked':''}> Quesos y fiambres</label></div></div><p id="s_kgr"></p>
     <p><small>Poné en <b>Contado</b> lo que hay en el depósito y en <b>Mínimo</b> cuándo querés que te avise. Después, <b>Guardar cambios</b>.</small></p>
     <div class="tw"><table id="s_t"></table></div>
     <div class="g" style="margin-top:10px"><input id="s_mot" placeholder="Motivo (opcional, ej.: inventario inicial)"></div>
