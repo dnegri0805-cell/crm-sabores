@@ -978,7 +978,7 @@ async function vManual(){const v=$('#v');v.innerHTML='<p>Cargando manual…</p>'
 /* Supabase devuelve como máximo 1000 filas por pedido: esto trae todas, de a tandas */
 async function todo(armar){let out=[],i=0;for(;;){const{data,error}=await armar().range(i,i+999);if(error)return{data:out,error};out=out.concat(data);if(data.length<1000)return{data:out,error:null};i+=1000}}
 /* Auto-actualización: si hay una versión nueva publicada, recarga sola (evita ver la versión vieja guardada en el celular) */
-const APP_V='2026-10-24-0300';
+const APP_V='2026-10-24-0305';
 async function chequearVersion(){try{const r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});const t=await r.text(),m=t.match(/const APP_V='([^']+)'/);
   if(m&&m[1]!==APP_V){const k='recarga_'+m[1];if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,'1');location.replace(location.pathname+'?v='+m[1]+location.hash)}}catch(e){}}
 chequearVersion();document.addEventListener('visibilitychange',()=>{if(document.visibilityState=='visible')chequearVersion()});
@@ -1227,7 +1227,7 @@ function bajos(){return S.productos.map(p=>({p,d:stk(p.producto_id).d,m:S.min[p.
 /* ---------- Stock ---------- */
 async function vStock(){
   $('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Stock</h2><div class="fc-acc"><button id="s_cn">📋 Conteo por partes</button><button class="alt" onclick="conteoDia()">📦 Conteo del día</button><button class="alt" onclick="fraccionar()">🔪 Fraccionar</button><button class="alt" onclick="equipos()">🛠️ Equipos</button><button class="alt" onclick="merma()">📉 Merma</button><button class="alt" onclick="buscarLote()">🔎 Lotes</button><button class="alt" onclick="temperatura()">🌡️ Temperatura</button></div></div>
-  <div class="box"><div class="g"><div class="conscan"><input id="s_q" placeholder="Buscar producto por nombre o código" autocomplete="off">${btnScan('s_sc')}</div>
+  <div class="box"><div class="g"><div class="conscan"><input id="s_q" placeholder="Buscar producto o código" autocomplete="off">${btnScan('s_sc')}</div>
     <label class="chk"><input type="checkbox" id="s_b" ${S.soloBajo?'checked':''}> Solo bajo el mínimo</label><label class="chk"><input type="checkbox" id="s_kg" ${S.soloKg?'checked':''}> Solo quesos y fiambres</label></div><p id="s_kgr"></p>
     <p><small>Escribí en <b>Contado</b> lo que hay en el depósito y, si querés, el <b>Mínimo</b> para que te avise cuándo reponer. Después tocá <b>Guardar cambios</b>. La diferencia de stock queda registrada como ajuste.</small></p>
     <div class="tw"><table id="s_t"></table></div>
@@ -2948,7 +2948,7 @@ const provSel=(id,sel)=>`<select id="${id}"><option value="">Elegí un proveedor
 const prodNom=id=>S.productos.find(p=>p.producto_id==id)?.descripcion||('Producto '+id);
 
 async function vCompras(){
-  $('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Compras</h2><button class="alt" onclick="facturaFoto()">🧾 Factura por foto</button></div><div class="sub">${[['ordenes','Órdenes de compra'],['cuenta','Facturas'],['pagos','Órdenes de pago'],['proveedores','Proveedores'],['sugerencia','Sugerencia de compra'],['mejor','🏷️ Mejor proveedor'],['costos','📈 Historial de costos']].map(([k,t])=>`<button class="${S.sub==k?'':'alt'}" data-s="${k}">${t}</button>`).join('')}</div><div id="cv"><span class="skl" role="status" aria-label="Cargando"></span></div>`;
+  $('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Compras</h2><button class="alt" onclick="facturaFoto()">🧾 Factura por foto</button></div><div class="sub tabs">${[['ordenes','Órdenes de compra'],['cuenta','Facturas'],['pagos','Órdenes de pago'],['proveedores','Proveedores'],['sugerencia','Sugerencia de compra'],['mejor','🏷️ Mejor proveedor'],['costos','📈 Historial de costos']].map(([k,t])=>`<button class="${S.sub==k?'':'alt'}" data-s="${k}">${t}</button>`).join('')}</div><div id="cv"><span class="skl" role="status" aria-label="Cargando"></span></div>`;
   $$('[data-s]').forEach(b=>b.onclick=()=>{S.sub=b.dataset.s;vCompras()});
   const{data,error}=await sb.from('proveedores').select('*').eq('activo',true).order('razon_social');
   if(error){$('#cv').innerHTML='<p class="err">No se pudo leer Compras: '+esc(error.message)+'<br>¿Ya corriste compras.sql en Supabase?</p>';return}
@@ -3029,7 +3029,7 @@ async function cSugerencia(){
 async function cOrdenes(){
   S.oc=[];
   $('#cv').innerHTML=`<div class="box"><b>Nueva orden de compra</b><div class="g ncf" style="margin-top:8px"><label class="f">Proveedor${provSel('o_p')}</label><label class="f">Entrega esperada<input id="o_f" type="date"></label></div>
-  <div class="conscan"><input id="o_q" placeholder="Buscar producto por nombre o código">${btnScan('o_sc')}</div><div id="o_r"></div><table id="o_i"></table><p><b id="o_t"></b></p>
+  <div class="conscan"><input id="o_q" placeholder="Buscar producto o código">${btnScan('o_sc')}</div><div id="o_r"></div><table id="o_i"></table><p><b id="o_t"></b></p>
   <input id="o_o" placeholder="Observaciones (opcional)"><button id="o_g">Guardar orden</button></div>
   <div id="rx"></div><h3>Órdenes</h3><table id="ol"></table>`;
   const drawI=()=>{let t=0;
