@@ -821,8 +821,8 @@ td input,td select{border-radius:8px}
 button,.btn,a.btn{border-radius:var(--rad-s)}
 td button,.ptools button{border-radius:var(--rad-s)}
 /* Rojo = deuda o problema (más vivo, distinto del bordó de los botones) */
-.mora,td.mora,.num.mora,.kp .alerta .num,#k3 .num,.mven.mora{color:var(--er)!important}
-.box.alerta,#k3{border-color:var(--er)!important}
+.mora,td.mora,.num.mora,.kp .alerta .num,#k3.alerta .num,.mven.mora{color:var(--er)!important}
+.box.alerta,#k3.alerta{border-color:var(--er)!important}
 .b-mora30{background:#fde4e1;color:var(--er)}
 /* Ámbar = atención */
 .b-pendiente,.b-visitado{background:var(--warn-bg);color:var(--warn)}
@@ -971,7 +971,7 @@ async function vManual(){const v=$('#v');v.innerHTML='<p>Cargando manual…</p>'
 /* Supabase devuelve como máximo 1000 filas por pedido: esto trae todas, de a tandas */
 async function todo(armar){let out=[],i=0;for(;;){const{data,error}=await armar().range(i,i+999);if(error)return{data:out,error};out=out.concat(data);if(data.length<1000)return{data:out,error:null};i+=1000}}
 /* Auto-actualización: si hay una versión nueva publicada, recarga sola (evita ver la versión vieja guardada en el celular) */
-const APP_V='2026-10-24-0245';
+const APP_V='2026-10-24-0250';
 async function chequearVersion(){try{const r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});const t=await r.text(),m=t.match(/const APP_V='([^']+)'/);
   if(m&&m[1]!==APP_V){const k='recarga_'+m[1];if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,'1');location.replace(location.pathname+'?v='+m[1]+location.hash)}}catch(e){}}
 chequearVersion();document.addEventListener('visibilitychange',()=>{if(document.visibilityState=='visible')chequearVersion()});
@@ -1142,9 +1142,9 @@ async function vInicio(){
     <div class="box" id="k4"><span class="lab">Debés a proveedores</span><span class="num">…</span><span class="det"></span></div>
     <div class="box" id="k5"><span class="lab">Stock bajo</span><span class="num">…</span><span class="det"></span></div>
   </div>`;
-  $('#v').innerHTML=`<div class="bh ini-h" style="flex-wrap:wrap;gap:8px"><div><h2 style="margin:0">${hr<13?'Buen día':hr<20?'Buenas tardes':'Buenas noches'}${S.perfil.nombre?', '+esc(String(S.perfil.nombre).trim().split(/\s+/)[0]):''}</h2><small class="ini-f">${hoyD.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}</small></div>
+  $('#v').innerHTML=`<div class="bh ini-h" style="flex-wrap:wrap;gap:8px"><div><h2 style="margin:0">${hr<5?'Buenas noches':hr<13?'Buen día':hr<20?'Buenas tardes':'Buenas noches'}${S.perfil.nombre?', '+esc(String(S.perfil.nombre).trim().split(/\s+/)[0]):''}</h2><small class="ini-f">${hoyD.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}</small></div>
     ${dia?'':'<button class="alt" data-iv="dia">← Volver al inicio simple</button>'}</div>
-  ${dia?`${kpH}${principalesHTML(false)}`:`
+  ${dia?`${principalesHTML(false)}${kpH}`:`
   ${principalesHTML()}<div id="bk"></div><div id="dlr"></div><div id="chk"></div><div id="cmpi"></div><div id="cami"></div><div id="equi"></div><div id="doci"></div><div id="midia"></div><div id="mani"></div><div id="resd"></div><div id="tari"></div>
   <div class="herr" id="herr"></div>
   <div id="alm"></div>
