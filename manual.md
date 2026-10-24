@@ -9,6 +9,7 @@ Las funciones del CRM tal como quedaron, en el orden en que las usás en el día
 - **Si salís y volvés:** el CRM retoma la pantalla donde estabas (hasta 3 horas) y el pedido a medio cargar (hasta 24 horas).
 - **Barra de abajo:** Inicio · Pedidos · Clientes · Precios · **Más** (Compras, Ventas, Cobranza, Caja, Stock, Contable y este Manual).
 - **Arriba:** la lupa busca un cliente, un producto o un pedido desde cualquier pantalla; **?** abre la ayuda de la pantalla en la que estás; **Aa** cambia el tamaño de letra y el modo oscuro.
+- **Avisos de pedidos:** en **Aa → 📲 Activar en este celular** te llega una notificación por cada pedido nuevo, aunque el CRM esté cerrado. Con el CRM abierto, además suena un timbre que se repite hasta que tocás **Ver pedido** (probalo en **Aa → Probar la alarma**).
 - **Se actualiza solo:** cuando hay una mejora, la página se recarga sola. Si algo no aparece, cerrá y volvé a abrir.
 
 ## 2. Inicio
