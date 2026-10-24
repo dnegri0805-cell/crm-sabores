@@ -420,7 +420,7 @@ function iconizar(){try{document.querySelectorAll('button,.kgp,.fln,.sbt,.cc,.ki
 {let pend=0;new MutationObserver(()=>{if(pend)return;pend=1;requestAnimationFrame(()=>{pend=0;iconizar()})}).observe(document.documentElement,{childList:true,subtree:true})}
 
 const blP=p=>new RegExp('(^|\\D)'+p.b+'\\s*kg','i').test(p.d||'')?p.tb+' '+p.b+' kg':p.tb+' × '+p.b;
-const VERSION='2026-10-24.1';
+const VERSION='2026-10-24.2';
 /* Siempre la última versión: mira version.json (unos pocos bytes) y si hay una más nueva, recarga sola */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.pedido;
   if(v&&v!==VERSION&&u.searchParams.get('v')!==v){u.searchParams.set('v',v);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -487,7 +487,7 @@ const envioC=b=>C?.envio&&+C?.costo_envio>0&&b>0&&b<C.envio?+C.costo_envio:0;
 function progresoHTML(t,full){const e=escala(t),nx=proxEsc(t),out=[];
   if(nx){const pc=Math.min(100,t/nx.desde*100);out.push(`<div class="pg"><div class="pgt">${e?'<b class="ok">✓ '+nf(e)+' % de descuento</b> · ':''}Te faltan <b>${$m(nx.desde-t)}</b> para el <b>${nf(nx.pct)} % de descuento</b></div><div class="pgb"><i style="width:${pc}%"></i></div></div>`)}
   else if(e)out.push(`<div class="pg"><div class="pgt"><b class="ok">✓ Tenés ${nf(e)} % de descuento por monto</b></div></div>`);
-  if(C?.envio){const tf=t*(1-e/100);out.push(tf>=C.envio?`<div class="pg"><div class="pgt"><b class="ok">🚚 ¡Tenés envío gratis!</b></div></div>`:`<div class="pg"><div class="pgt">🚚 Te faltan <b>${$m(C.envio-tf)}</b> para el envío gratis${+C.costo_envio>0?' <small>(si no, el envío cuesta '+$m(C.costo_envio)+')</small>':''}</div><div class="pgb"><i style="width:${Math.min(100,tf/C.envio*100)}%"></i></div></div>`)}
+  if(C?.envio){const tf=t*(1-e/100);out.push(tf>=C.envio?`<div class="pg"><div class="pgt"><b class="ok">🚚 ¡Tenés envío gratis!</b></div></div>`:`<div class="pg"><div class="pgt">🚚 Te faltan <b>${$m(C.envio-tf)}</b> para el envío gratis</div><div class="pgb"><i style="width:${Math.min(100,tf/C.envio*100)}%"></i></div></div>`)}
   if(full&&!PUB&&C?.desafio&&+C.desafio.meta>0&&+C.llevas<+C.desafio.meta){const tf=t*(1-e/100),f=+C.desafio.meta-(+C.llevas||0)-tf;
     out.push(f<=0?`<div class="pg"><div class="pgt"><b class="ok">🎯 ¡Con este pedido llegás al desafío del mes y ganás ${nf(C.desafio.puntos)} puntos!</b></div></div>`
       :`<div class="pg"><div class="pgt">🎯 Desafío del mes: te faltan <b>${$m(f)}</b> para ganar <b>${nf(C.desafio.puntos)} puntos</b></div><div class="pgb"><i style="width:${Math.min(100,((+C.llevas||0)+tf)/C.desafio.meta*100)}%"></i></div></div>`)}
@@ -1138,7 +1138,7 @@ function revisar(){
   const draw=()=>{const I=Object.entries(car).filter(([id])=>prod(id));
     if(!I.length){cerrar();return}
     h.innerHTML=`<div class="c" role="dialog" aria-label="Tu pedido"><h2>${EDIT&&!PUB?'✏️ Modificando el pedido N° '+EDIT.n:'Tu pedido'}</h2>
-      ${I.map(([id,q])=>{const p=prod(id);return `<div class="it"><div>${esc(p.d)}<br><small>${$m(puP(p,q))} ${esKgP(id)?'el kg · '+nf(q)+' kg':'c/u'}${promoP(p,q)?' (−'+nf(promoP(p,q).pct)+' %)':''}${enB(p,q)?' · '+nf(q)+' u. = '+enB(p,q):''}</small></div><div class="n">${$m(puP(p,q)*q)}</div>
+      ${I.map(([id,q])=>{const p=prod(id);return `<div class="it"><div>${esc(p.d)}${q==1&&!esKgP(id)&&!promoP(p,q)?'':`<br><small>${$m(puP(p,q))} ${esKgP(id)?'el kg · '+nf(q)+' kg':'c/u'}${promoP(p,q)?' (−'+nf(promoP(p,q).pct)+' %)':''}${enB(p,q)?' · '+nf(q)+' u. = '+enB(p,q):''}</small>`}</div><div class="n">${$m(puP(p,q)*q)}</div>
         <div class="q"><button data-r="${id}" aria-label="Restar">−</button><input type="number" inputmode="numeric" min="0" value="${q}" data-i="${id}" aria-label="Cantidad"><button data-s="${id}" aria-label="Sumar">+</button><button class="x" data-x="${id}">Quitar</button></div></div>`}).join('')}
       ${(()=>{const O=olvidados();return O.length?`<div class="agt olv"><h3>🤔 ¿Te olvidaste de algo? <small style="color:var(--mu);font-weight:400">· lo que siempre llevás</small></h3><div class="agl">${O.map(x=>`<div class="sc">${x.p.img?`<img src="${esc(x.p.img)}" alt="" loading="lazy">`:`<span class="i0">${esc((x.p.d||'?')[0])}</span>`}<span>${esc(x.p.d)}</span><b>${$m(puP(x.p,x.q))}${esKgP(x.p.id)?'<small> /kg</small>':''}</b><button data-olv="${x.p.id}" data-n="${x.q}">+ ${nf(x.q)}${esKgP(x.p.id)?' kg':''}</button></div>`).join('')}</div></div>`:''})()}
       ${(()=>{const OI=new Set(olvidados().map(x=>String(x.p.id))),S=sugeridos().filter(p=>!OI.has(String(p.id)));return S.length?`<div class="agt"><h3>👉 Agregá también <small style="color:var(--mu);font-weight:400">· lo que otros llevan junto</small></h3><div class="agl">${S.map(p=>`<div class="sc">${p.img?`<img src="${esc(p.img)}" alt="" loading="lazy">`:`<span class="i0">${famIco(famDe(p))}</span>`}<span>${esc(p.d)}</span><b>${$m(puP(p,1))}</b><button data-ag="${p.id}">+ Agregar</button></div>`).join('')}</div></div>`:''})()}
