@@ -978,7 +978,7 @@ async function vManual(){const v=$('#v');v.innerHTML='<p>Cargando manual…</p>'
 /* Supabase devuelve como máximo 1000 filas por pedido: esto trae todas, de a tandas */
 async function todo(armar){let out=[],i=0;for(;;){const{data,error}=await armar().range(i,i+999);if(error)return{data:out,error};out=out.concat(data);if(data.length<1000)return{data:out,error:null};i+=1000}}
 /* Auto-actualización: si hay una versión nueva publicada, recarga sola (evita ver la versión vieja guardada en el celular) */
-const APP_V='2026-10-24-0255';
+const APP_V='2026-10-24-0300';
 async function chequearVersion(){try{const r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});const t=await r.text(),m=t.match(/const APP_V='([^']+)'/);
   if(m&&m[1]!==APP_V){const k='recarga_'+m[1];if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,'1');location.replace(location.pathname+'?v='+m[1]+location.hash)}}catch(e){}}
 chequearVersion();document.addEventListener('visibilitychange',()=>{if(document.visibilityState=='visible')chequearVersion()});
@@ -1693,7 +1693,7 @@ const numAR=x=>{x=String(x??'').trim().replace(/\$|\s/g,'');if(!x)return null;if
 async function vPrecios(){
   $('#v').innerHTML=`<div class="bh"><h2>Precios y márgenes</h2><div class="fc-acc"><button class="alt" onclick="window.open('catalogo.html','_blank')" title="Catálogo con precios">📒 Catálogo</button><button class="alt" onclick="aumentosProg()" title="Aumentos programados">📅 Aumentos</button><button class="alt" onclick="pesablesModal()" title="Productos por peso">⚖️ Por peso</button><button class="alt" id="pr_masb">Más</button></div></div>
   <div class="box prbox"><div hidden id="pr_masc"><div class="masc"><button class="alt" id="pr_ofam">🗂️ Ordenar por familias</button><button class="alt" id="pr_fcat">🖼️ Fotos del catálogo</button><button class="alt" id="pr_fjl">🥜 Fotos Maní JL</button><button class="alt" id="pr_fot">🔎 Fotos automáticas</button><button class="alt" id="pr_et">🏷️ Imprimir etiquetas del filtro</button><button class="alt" onclick="const d=document.getElementById('pr_ad');d.hidden=false;d.open=true;d.scrollIntoView({behavior:'smooth',block:'center'})">📈 Aumento por porcentaje</button></div></div>
-    <div class="pr-pega"><div class="pr-bus"><div class="conscan"><input id="pr_q" type="search" placeholder="Buscar por nombre o código" autocomplete="off">${btnScan('pr_sc')}</div><button class="alt pr-fb" id="pr_fb" aria-label="Filtros">${IC('sliders',20)}<i id="pr_fbn"></i></button></div>
+    <div class="pr-pega"><div class="pr-bus"><div class="conscan"><input id="pr_q" type="search" placeholder="Buscar producto o código" autocomplete="off">${btnScan('pr_sc')}</div><button class="alt pr-fb" id="pr_fb" aria-label="Filtros">${IC('sliders',20)}<i id="pr_fbn"></i></button></div>
     <div class="pr-fams"><div class="sub" id="pr_gr"></div></div><small class="prc" id="pr_cnt"></small></div>
     <details class="prf pr-fd" id="pr_fd"><summary>Filtros <span id="pr_fn"></span> ${IC('down',14)}</summary><div class="g">
       <select id="pr_pv"><option value="">Todos los proveedores</option></select>
