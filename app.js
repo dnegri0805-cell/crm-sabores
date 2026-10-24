@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-24.39';
+const VERSION='2026-10-24.40';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -1618,6 +1618,8 @@ async function listaPedidos(){
     let q=sb.from('pedidos').select('*,clientes(razon_social,nombre_fantasia)').order('numero',{ascending:false}).limit(30);
     if(S.pf=='abiertos')q=q.not('estado','in','(entregado,cancelado)');else if(S.pf!='todos')q=q.eq('estado',S.pf);
     const{data,error}=await q;if(error){$('#pl').innerHTML='<p class="err">'+esc(error.message)+'</p>';return}
+    /* Clientes nuevos (por ejemplo, dados de alta solos desde el catálogo) que todavía no están en la lista del celular */
+    {const fal=[...new Set(data.map(o=>o.cliente_id).filter(id=>id&&!S.clientes.some(c=>c.id==id)))];if(fal.length){const{data:NC}=await sb.from('clientes').select('*').in('id',fal);for(const c of NC||[])S.clientes.push(c);if(NC?.length){S.clientes.sort((a,b)=>String(a.razon_social).localeCompare(String(b.razon_social)));try{guardarCache()}catch(e){}}}}
     const ids=data.map(o=>o.id),fac={};
     if(ids.length){const{data:F}=await sb.from('facturas_venta').select('id,pedido_id,tipo,numero,cae').eq('anulada',false).in('pedido_id',ids);for(const f of F||[])fac[f.pedido_id]=f}
     $('#pl').innerHTML=data.length?data.map(o=>{const f=fac[o.id],sig=SIG[o.estado],cerr=o.estado=='cancelado';
@@ -1632,10 +1634,10 @@ async function listaPedidos(){
           <select data-e="${o.id}" aria-label="Cambiar estado"><option value="">Cambiar estado…</option>${ESTADOS.filter(e=>e!=o.estado).map(e=>`<option value="${e}">${e=='cancelado'?'Cancelar pedido':'Pasar a: '+EST_TXT[e]}</option>`).join('')}</select></div></details></div>${['pendiente','aprobado'].includes(o.estado)?`<div class="ped-ins" data-ins="${o.id}"></div>`:''}</div>`}).join('')
       :vacioHTML('No hay pedidos en esta lista.','cart');
     const ped=id=>data.find(x=>x.id==id);insightsPedidos(data).catch(()=>{});
-    $$('#pl [data-ap]').forEach(b=>b.onclick=async()=>{const o0=ped(b.dataset.ap);if((S.insG||{})[o0.id]<0&&!confirm('Con este pedido perdés plata ('+$m(S.insG[o0.id])+' después del reparto). ¿Lo aprobás igual?'))return;if(!await chequearCredito(S.clientes.find(c=>c.id==o0.cliente_id),o0.total))return;b.disabled=true;await agregarDebidos(o0);if(await cambiarEstado(ped(b.dataset.ap),'aprobado'))toast('Pedido N° '+ped(b.dataset.ap).numero+' aprobado.');cargar()});
+    $$('#pl [data-ap]').forEach(b=>b.onclick=async()=>{const o0=ped(b.dataset.ap);if((S.insG||{})[o0.id]<0&&!confirm('Con este pedido perdés plata ('+$m(S.insG[o0.id])+' después del reparto). ¿Lo aprobás igual?'))return;if(!await chequearCredito(S.clientes.find(c=>c.id==o0.cliente_id),o0.total))return;b.disabled=true;await agregarDebidos(o0);if(await cambiarEstado(ped(b.dataset.ap),'aprobado')){toast('Pedido N° '+ped(b.dataset.ap).numero+' aprobado.');modalAvisos([ped(b.dataset.ap)],'conf')}cargar()});
     $$('#pl [data-apf]').forEach(b=>b.onclick=async()=>{const o=ped(b.dataset.apf);if((S.insG||{})[o.id]<0&&!confirm('Con este pedido perdés plata ('+$m(S.insG[o.id])+' después del reparto). ¿Lo aprobás igual?'))return;if(!await chequearCredito(S.clientes.find(c=>c.id==o.cliente_id),o.total))return;b.disabled=true;await agregarDebidos(o);
       if(!await cambiarEstado(o,'aprobado'))return cargar();const f=await facturarPedido(o);
-      if(f)toast('Pedido N° '+o.numero+' aprobado y facturado: '+f.tipo+' N° '+f.numero+' por '+$m(f.total)+'.');cargar()});
+      if(f)toast('Pedido N° '+o.numero+' aprobado y facturado: '+f.tipo+' N° '+f.numero+' por '+$m(f.total)+'.');modalAvisos([o],'conf');cargar()});
     $$('#pl [data-sig]').forEach(b=>b.onclick=async()=>{b.disabled=true;const o=ped(b.dataset.sig),n=SIG[o.estado][0];
       if(await cambiarEstado(o,n)){toast('Pedido N° '+o.numero+': '+EST_TXT[n]+'.');if(n=='en_reparto')modalAvisos([o],'sale');if(n=='entregado')firmaRemito(o,()=>modalAvisos([o],'entrega'))}cargar()});
     $$('#pl [data-fa]').forEach(b=>b.onclick=async()=>{b.disabled=true;const o=ped(b.dataset.fa),f=await facturarPedido(o);
@@ -3105,7 +3107,7 @@ async function vMapa(){
 }
 
 /* ======================= AVISOS POR WHATSAPP Y FOTO DEL REMITO ======================= */
-function avisoPedidoWA(o,tipo){const c=S.clientes.find(x=>x.id==o.cliente_id)||{};if(o.id)sb.from('envios_auto').insert({clave:'est_'+o.id+'_'+(tipo=='sale'?'sale':'entrega'),tipo:'estado',cliente_id:o.cliente_id,detalle:'Aviso pedido N° '+o.numero}).then(()=>{},()=>{});
+function avisoPedidoWA(o,tipo){const c=S.clientes.find(x=>x.id==o.cliente_id)||{};if(tipo=='conf')return avisoConfirmado(o,c);if(o.id)sb.from('envios_auto').insert({clave:'est_'+o.id+'_'+(tipo=='sale'?'sale':'entrega'),tipo:'estado',cliente_id:o.cliente_id,detalle:'Aviso pedido N° '+o.numero}).then(()=>{},()=>{});
   const t=tipo=='sale'?`¡Hola! Te avisamos de *Sabores de mi País* que tu pedido N° ${o.numero} *ya salió* y hoy te lo llevamos. 🚚${c.condicion_pago_dias?'':'\nTotal a abonar: *'+$m(o.total)+'*'}${c.token_pedidos?'\n📍 Seguí la camioneta en vivo: '+linkPedidos(c)+'#seguir':''}`
     :`¡Hola! Te confirmamos que *entregamos tu pedido N° ${o.numero}* (${$m(o.total)}). ¡Gracias por tu compra! 🙌`+(S.linkMP&&!c.condicion_pago_dias?'\n\n💳 Si querés, pagalo con Mercado Pago:\n'+S.linkMP:'');
   const url=x=>'https://wa.me/'+telWA(c.telefono)+'?text='+encodeURIComponent(x);
@@ -3113,8 +3115,14 @@ function avisoPedidoWA(o,tipo){const c=S.clientes.find(x=>x.id==o.cliente_id)||{
   const w=window.open('','_blank');
   sb.from('encuestas').upsert({pedido_id:o.id,cliente_id:o.cliente_id},{onConflict:'pedido_id'}).select('token').single().then(({data,error})=>{if(error)S.sinEnc=true;
     const u=url(t+(data?.token?'\n\n⭐ ¿Cómo te atendimos? Calificanos con un toque (10 segundos):\n'+linkEnc(data.token):''));if(w)w.location.href=u;else window.open(u,'_blank')})}
+/* Aviso de pedido confirmado: si el cliente es nuevo (vino del catálogo), le pasa su link personal para los próximos pedidos */
+function avisoConfirmado(o,c){if(o.id)sb.from('envios_auto').insert({clave:'est_'+o.id+'_conf',tipo:'estado',cliente_id:o.cliente_id,detalle:'Pedido confirmado N° '+o.numero}).then(()=>{},()=>{});
+  const nuevo=/Catálogo/i.test(o.observaciones||'')||(c.origen=='catalogo'),ent=o.fecha_entrega||o.entrega;
+  const t=`¡Hola ${nomCorto(c)}! ✅ Tu pedido N° ${o.numero} de *Sabores de mi País* está *confirmado*.\nTotal: *${$m(o.total)}*${+o.costo_envio>0?' (incluye envío)':''}${ent?'\n📅 Te lo llevamos el '+new Date(ent+'T12:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'numeric'})+'.':''}`
+    +(c.token_pedidos?(nuevo?`\n\n📲 Este es *tu link personal* para tus próximos pedidos: ves tus precios, seguís tus pedidos y tu cuenta. Guardalo:\n${linkPedidos(c)}`:`\n\nSeguí tu pedido acá: ${linkPedidos(c)}`):'')+`\n\n¡Gracias por tu compra! 🙌`;
+  window.open('https://wa.me/'+telWA(c.telefono)+'?text='+encodeURIComponent(t),'_blank')}
 function modalAvisos(L,tipo){if(!L.length)return;const m=document.createElement('div');m.className='modal';
-  m.innerHTML=`<div class="mc"><h3>${tipo=='sale'?'Avisar a los clientes que su pedido salió':'Avisar la entrega'}</h3><p><small>Tocá cada uno: se abre WhatsApp con el mensaje listo.</small></p>
+  m.innerHTML=`<div class="mc"><h3>${tipo=='conf'?'¿Le avisás al cliente que su pedido está confirmado?':tipo=='sale'?'Avisar a los clientes que su pedido salió':'Avisar la entrega'}</h3><p><small>Tocá cada uno: se abre WhatsApp con el mensaje listo.</small></p>
     ${L.map(o=>{const c=S.clientes.find(x=>x.id==o.cliente_id)||{};return`<div class="bh" style="border-bottom:1px solid var(--l);padding:6px 0"><span>${esc(c.razon_social||'Cliente')} <small>· N° ${o.numero}${c.telefono?'':' · sin teléfono'}</small></span><button class="alt wa" data-aw="${o.id}">WhatsApp</button></div>`}).join('')}
     <button id="av_ok">Listo</button></div>`;
   document.body.appendChild(m);$('#av_ok').onclick=()=>m.remove();
