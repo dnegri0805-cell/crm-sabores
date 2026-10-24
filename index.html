@@ -572,6 +572,8 @@ html,body{overflow-x:clip}
   table.tcard tr.tcr td:first-child{grid-column:1/-1;font-weight:600}
   table.tcard tr.tcr td[data-l]:not(:first-child)::before{content:attr(data-l);display:block;font-size:11px;color:#8a90a0;text-transform:uppercase;letter-spacing:.03em}
   table.tcard tr.tcr td:empty{display:none}
+@media(max-width:640px){.cj-kp{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important}.cj-kp .box{margin:0!important;padding:12px!important}.cj-kp .num{font-size:22px!important}
+  .cj-nav{flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none;gap:6px!important}.cj-nav::-webkit-scrollbar{display:none}.cj-nav>*{flex:none}.cj-nav button{padding:8px 12px!important}}
 .s-fil{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 2px}.s-fil .chk{margin:0!important;display:inline-flex!important;align-items:center;gap:6px;border:1px solid var(--l);border-radius:999px;padding:6px 12px;font-size:14px;background:#fff}.s-fil .chk:has(input:checked){border-color:var(--m);background:#f7eef1;color:var(--m);font-weight:600}.s-fil .chk input{width:16px!important;height:16px;margin:0!important}
 @media(max-width:640px){#s_t.tcard tr.tcr{grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:4px 8px!important;padding:9px 12px!important}
   #s_t.tcard tr.tcr td:first-child{grid-column:1/-1!important;font-size:15px;line-height:1.25}
@@ -986,7 +988,7 @@ async function vManual(){const v=$('#v');v.innerHTML='<p>Cargando manual…</p>'
 /* Supabase devuelve como máximo 1000 filas por pedido: esto trae todas, de a tandas */
 async function todo(armar){let out=[],i=0;for(;;){const{data,error}=await armar().range(i,i+999);if(error)return{data:out,error};out=out.concat(data);if(data.length<1000)return{data:out,error:null};i+=1000}}
 /* Auto-actualización: si hay una versión nueva publicada, recarga sola (evita ver la versión vieja guardada en el celular) */
-const APP_V='2026-10-24-1330';
+const APP_V='2026-10-24-1335';
 async function chequearVersion(){try{const r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});const t=await r.text(),m=t.match(/const APP_V='([^']+)'/);
   if(m&&m[1]!==APP_V){const k='recarga_'+m[1];if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,'1');location.replace(location.pathname+'?v='+m[1]+location.hash)}}catch(e){}}
 chequearVersion();document.addEventListener('visibilitychange',()=>{if(document.visibilityState=='visible')chequearVersion()});
@@ -1942,7 +1944,7 @@ async function vCaja(){
   S.cjD=S.cjD||diaLocal(new Date());
   const d=S.cjD,dd=new Date(d+'T12:00'),mi=d.slice(0,7)+'-01',mf=diaLocal(new Date(dd.getFullYear(),dd.getMonth()+1,1));
   const titulo=dd.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
-  $('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Caja · ${titulo}</h2><div class="fc-acc"><button class="alt" id="cj_a" aria-label="Día anterior">←</button><input type="date" id="cj_d" value="${d}" style="width:auto;margin:0"><button class="alt" id="cj_s" aria-label="Día siguiente">→</button><button class="alt" id="cj_h">Hoy</button><button class="alt" onclick="cierreDia(S.cjD)">🧾 Cierre del día</button></div></div>
+  $('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Caja <small style="font-size:15px;font-weight:500;color:#6a7184">${titulo}</small></h2><div class="fc-acc cj-nav"><button class="alt" id="cj_a" aria-label="Día anterior">←</button><input type="date" id="cj_d" value="${d}" style="width:auto;margin:0"><button class="alt" id="cj_s" aria-label="Día siguiente">→</button><button class="alt" id="cj_h">Hoy</button><button class="alt" onclick="cierreDia(S.cjD)">🧾 Cierre del día</button></div></div>
   <div id="cj"><span class="skl" role="status" aria-label="Cargando"></span></div>`;
   const ir=x=>{S.cjD=x;vCaja()},mov=n=>{const t=new Date(d+'T12:00');t.setDate(t.getDate()+n);ir(diaLocal(t))};
   $('#cj_a').onclick=()=>mov(-1);$('#cj_s').onclick=()=>mov(1);$('#cj_h').onclick=()=>ir(diaLocal(new Date()));$('#cj_d').onchange=e=>e.target.value&&ir(e.target.value);
@@ -1975,7 +1977,7 @@ async function vCaja(){
   const gCat={};for(const x of ga.data||[])gCat[x.categoria]=(gCat[x.categoria]||0)+Number(x.importe);
   const gC=Object.entries(gCat).sort((a,b)=>b[1]-a[1]),gMax=Math.max(1,...gC.map(x=>x[1]));
   const nomMes=dd.toLocaleDateString('es-AR',{month:'long',year:'numeric'});
-  $('#cj').innerHTML=`<div class="kp">
+  $('#cj').innerHTML=`<div class="kp kp2 cj-kp">
     <div class="box ok"><span class="lab">Cobrado</span><span class="num">${$m(sum(R))}</span><span class="det">${Object.entries(cob).map(([k,v])=>(MED_TXT[k]||k)+' '+$m(v)).join(' · ')||'Sin cobros'}</span></div>
     <div class="box"><span class="lab">Pagado a proveedores</span><span class="num">${$m(sum(P))}</span><span class="det">${P.length} ${P.length==1?'pago':'pagos'}</span></div>
     <div class="box"><span class="lab">Gastos</span><span class="num">${$m(sum(G))}</span><span class="det">${G.length} ${G.length==1?'gasto':'gastos'}</span></div>
