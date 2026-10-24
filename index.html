@@ -630,10 +630,10 @@ html.oscuro input:focus,html.oscuro select:focus,html.oscuro textarea:focus{bord
 .ptools button{display:flex!important;flex-direction:column;align-items:center;gap:4px;padding:10px 4px!important;border-radius:12px!important;font-size:13.5px!important;margin:0!important;width:auto!important}
 .ptools .ic{color:var(--m)}
 .prc-row{margin:8px 0 2px}#p_rc:empty,#p_cr:empty,#p_edb:empty,#p_cb:empty,#p_i:empty,#p_av:empty,#p_sug:empty,#p_prbav:empty{display:none}.prc-row>small{color:#8a90a0;display:block;margin-bottom:6px}
-.prc-l{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}.prc-l::-webkit-scrollbar{display:none}
-.prc{flex:none;display:flex!important;flex-direction:column;align-items:center;gap:5px;width:78px;padding:8px 4px!important;border-radius:14px!important;font-size:12.5px!important}
-.prc .cl-ini{position:static;width:40px;height:40px;font-size:14px}
-.prc span{max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prc-l{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.prc{display:flex!important;flex-direction:row;align-items:center;justify-content:flex-start!important;gap:8px;min-width:0;padding:7px 10px 7px 7px!important;border-radius:12px!important;font-size:13.5px!important;text-align:left!important;line-height:1.2}
+.prc .cl-ini{position:static;width:32px;height:32px;font-size:12px;flex:none}
+.prc span{min-width:0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;word-break:break-word}
 
 /* Inicio: plegables y copia */
 .plg>summary{display:flex!important;align-items:center;gap:8px;color:#3c4458!important;font-weight:600!important;border-color:#ebe6df!important;border-radius:14px!important;padding:12px 14px!important}
@@ -959,7 +959,7 @@ async function vManual(){const v=$('#v');v.innerHTML='<p>Cargando manual…</p>'
 /* Supabase devuelve como máximo 1000 filas por pedido: esto trae todas, de a tandas */
 async function todo(armar){let out=[],i=0;for(;;){const{data,error}=await armar().range(i,i+999);if(error)return{data:out,error};out=out.concat(data);if(data.length<1000)return{data:out,error:null};i+=1000}}
 /* Auto-actualización: si hay una versión nueva publicada, recarga sola (evita ver la versión vieja guardada en el celular) */
-const APP_V='2026-10-24-0130';
+const APP_V='2026-10-24-0135';
 async function chequearVersion(){try{const r=await fetch(location.pathname+'?chk='+Date.now(),{cache:'no-store'});const t=await r.text(),m=t.match(/const APP_V='([^']+)'/);
   if(m&&m[1]!==APP_V){const k='recarga_'+m[1];if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,'1');location.replace(location.pathname+'?v='+m[1]+location.hash)}}catch(e){}}
 chequearVersion();document.addEventListener('visibilitychange',()=>{if(document.visibilityState=='visible')chequearVersion()});
@@ -2355,9 +2355,9 @@ async function vPedidos(){
   /* Clientes a mano: los que tienen visita hoy y los que pidieron hace poco */
   (async()=>{try{const dv=new Date().getDay()||7,vis=S.clientes.filter(c=>c.activo!==false&&(c.dias_visita||[]).includes(dv));
     const{data:rp}=await sb.from('pedidos').select('cliente_id').neq('estado','cancelado').order('numero',{ascending:false}).limit(60);
-    const ids=[...new Set([...vis.map(c=>c.id),...(rp||[]).map(x=>x.cliente_id)])].slice(0,10);let L=ids.map(id=>S.clientes.find(c=>c.id==id)).filter(Boolean),tit=vis.length?'Visitas de hoy y últimos clientes':'Últimos clientes';
+    const ids=[...new Set([...vis.map(c=>c.id),...(rp||[]).map(x=>x.cliente_id)])].slice(0,10);let L=ids.map(id=>S.clientes.find(c=>c.id==id)).filter(Boolean).slice(0,8),tit=vis.length?'Visitas de hoy y últimos clientes':'Últimos clientes';
     /* Si todavía no hay pedidos, muestra tus clientes para elegir con un toque */
-    if(!L.length){L=S.clientes.filter(c=>c.activo!==false).sort((a,b)=>nomVis(a).localeCompare(nomVis(b),'es')).slice(0,12);tit='Tus clientes'}
+    if(!L.length){L=S.clientes.filter(c=>c.activo!==false).sort((a,b)=>nomVis(a).localeCompare(nomVis(b),'es')).slice(0,8);tit='Tus clientes'}
     const box=$('#p_rc');if(!box||!L.length||S.pcli)return;
     box.innerHTML=`<small>${tit}</small><div class="prc-l">${L.map(c=>`<button class="alt prc" data-rcid="${c.id}">${avatar(c)}<span>${esc(nomVis(c))}</span></button>`).join('')}</div>`;
     box.querySelectorAll('[data-rcid]').forEach(b=>b.onclick=()=>elegir(S.clientes.find(c=>c.id==b.dataset.rcid)))}catch(e){}})();
