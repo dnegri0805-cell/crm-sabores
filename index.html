@@ -352,6 +352,14 @@ button.alt:hover{background:#f6f7f9;filter:none}
   .bnav a.on{color:var(--m);font-weight:700;background:#f7eef1}.bnav a.on span{filter:none;opacity:1}
   main#v{padding-bottom:84px}
   #t{bottom:76px;z-index:40}#snk{bottom:76px}#vivos{bottom:76px}
+#alarma{position:fixed;inset:0;z-index:200;background:rgba(18,24,40,.72);display:grid;place-items:center;padding:16px;animation:vivoIn .25s}
+#alarma .alc{background:#fff;border-radius:22px;padding:22px 20px;max-width:420px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+#alarma .alr{font-size:54px;line-height:1;animation:alRing 1s ease-in-out infinite}
+#alarma h2{margin:8px 0 12px;color:var(--m);font-size:26px}
+#alarma .ali{background:#faf5f6;border-radius:12px;padding:10px 12px;margin:6px 0;text-align:left;font-size:15px}
+#alarma button{display:block;width:100%;margin-top:12px;font-size:18px;padding:14px}
+@keyframes alRing{0%,100%{transform:rotate(0)}15%{transform:rotate(18deg)}30%{transform:rotate(-16deg)}45%{transform:rotate(12deg)}60%{transform:rotate(-8deg)}}
+html.oscuro #alarma .alc{background:#18202f}html.oscuro #alarma .ali{background:#232c3d}
   .pbar{bottom:62px}
 }
 .ic{display:inline-block;vertical-align:middle;flex:none}
@@ -885,6 +893,6 @@ html.oscuro .vrow,html.oscuro .rrow{background:#18202f}
 <div id="app"><div class="splash"><img src="logo.png" alt="Sabores de mi País"><i></i></div></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
-<script src="app.js?v=2026-10-24.40"></script>
+<script src="app.js?v=2026-10-24.41"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-24.40';
+const VERSION='2026-10-24.41';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -4953,6 +4953,22 @@ async function vMiraron(){S.miD=S.miD||3;
     sb.from('contactos_clientes').insert({cliente_id:c.id,tipo:'whatsapp',detalle:'Miró el catálogo'}).then(()=>{})})}
 
 /* ---------- 5. Aviso al instante de pedidos online ---------- */
+/* ===== Alarma de pedido nuevo (estilo PedidosYa): timbre que se repite hasta que lo atendés ===== */
+function ctxAlarma(){try{if(!S.ac)S.ac=new (window.AudioContext||window.webkitAudioContext)();if(S.ac.state=='suspended')S.ac.resume();return S.ac}catch(e){return null}}
+/* El navegador solo deja sonar después de un toque: se "desbloquea" el audio con el primer toque en el CRM */
+['click','touchstart','keydown'].forEach(ev=>document.addEventListener(ev,()=>ctxAlarma(),{once:true,passive:true,capture:true}));
+function timbre(){const a=ctxAlarma();if(!a)return;const t=a.currentTime;
+  [[0,988],[.16,1319],[.32,1568],[.62,988],[.78,1319],[.94,1568]].forEach(([d,f])=>{const o=a.createOscillator(),g=a.createGain();o.type='triangle';o.frequency.value=f;
+    g.gain.setValueAtTime(.0001,t+d);g.gain.exponentialRampToValueAtTime(.7,t+d+.02);g.gain.exponentialRampToValueAtTime(.0001,t+d+.15);o.connect(g).connect(a.destination);o.start(t+d);o.stop(t+d+.17)});
+  vibrar([400,150,400,150,400])}
+function pararAlarma(){clearInterval(S.alIv);S.alIv=null;$('#alarma')?.remove();try{navigator.serviceWorker?.getRegistration().then(r=>r&&r.getNotifications({tag:'crm-pedido'}).then(L=>L.forEach(n=>n.close())))}catch(e){}}
+function alarmaPedido(L){S.alarmaL=[...(S.alarmaL&&$('#alarma')?S.alarmaL:[]),...L];const T=S.alarmaL;
+  let d=$('#alarma');if(!d){d=document.createElement('div');d.id='alarma';document.body.appendChild(d)}
+  d.innerHTML=`<div class="alc"><div class="alr">🔔</div><h2>${T.length==1?'¡Pedido nuevo!':'¡'+T.length+' pedidos nuevos!'}</h2>
+    ${T.slice(0,4).map(x=>`<div class="ali"><b>${esc(x.t)}</b></div>`).join('')}${T.length>4?`<small>…y ${T.length-4} más</small>`:''}
+    <button id="al_ver">Ver pedido${T.length==1?'':'s'}</button><button class="alt" id="al_sil">Silenciar</button></div>`;
+  $('#al_ver').onclick=()=>{pararAlarma();S.alarmaL=[];S.tab='pedidos';S.pf='pendiente';shell()};$('#al_sil').onclick=()=>{pararAlarma();S.alarmaL=[]};
+  timbre();clearInterval(S.alIv);let n=0;S.alIv=setInterval(()=>{if(++n>40||!$('#alarma'))return pararAlarma();timbre()},3000)}
 function bip(){try{const a=new (window.AudioContext||window.webkitAudioContext)(),t=a.currentTime;[0,.18,.36].forEach((d,i)=>{const o=a.createOscillator(),g=a.createGain();o.frequency.value=[880,1175,1568][i];g.gain.setValueAtTime(.0001,t+d);g.gain.exponentialRampToValueAtTime(.3,t+d+.02);g.gain.exponentialRampToValueAtTime(.0001,t+d+.16);o.connect(g).connect(a.destination);o.start(t+d);o.stop(t+d+.17)})}catch(e){}}
 function avisosEnVivo(){if(S.vivo)return;S.vivo=true;sb.from('perfiles').select('id,nombre').then(({data})=>{S.vendNom={};for(const x of data||[])S.vendNom[x.id]=String(x.nombre||'').trim().split(/\s+/)[0]||'Tu vendedor'},()=>{});let desde=new Date().toISOString();
   const chk=async()=>{if(document.hidden&&!S.vivoBg)return;const ahora=new Date().toISOString();
@@ -4962,7 +4978,7 @@ function avisosEnVivo(){if(S.vivo)return;S.vivo=true;sb.from('perfiles').select(
     desde=ahora;const N=[...(pe.data||[]).map(o=>({t:(['online','fijo'].includes(o.origen)?'🛒 Pedido online N° ':'🧑‍💼 '+(S.vendNom?.[o.vendedor_id]||'Tu vendedor')+' cargó el pedido N° ')+o.numero+' de '+(nomCli(o.cliente_id)||'un cliente')+' · '+$m(o.total),tab:'pedidos'})),
       ...(rc.data||[]).map(r=>({t:'🆘 Reclamo de '+(nomCli(r.cliente_id)||'un cliente')+': '+r.tipo,tab:'ventas',vs:'reclamos'})),
       ...(pw.data||[]).map(p=>({t:(p.origen=='catalogo'?'🌐 Pedido desde el catálogo público: ':'📝 Aceptaron el presupuesto N° '+p.numero+' · ')+(p.nombre||'')+' '+$m(p.total),tab:'ventas'}))];
-    if(!N.length)return;bip();
+    if(!N.length)return;const NP=(pe.data||[]).length||(pw.data||[]).length;if(NP)alarmaPedido(N.filter(n=>n.tab=='pedidos'||/catálogo/i.test(n.t)));else bip();
     let box=$('#vivos');if(!box){box=document.createElement('div');box.id='vivos';document.body.appendChild(box)}
     const M=N.length>3?[...N.slice(0,2),{t:'…y '+(N.length-2)+' avisos más',tab:'pedidos'}]:N;
     for(const n of M){const d=document.createElement('div');d.className='vivo';d.innerHTML=`<b>${esc(n.t)}</b><button>Ver</button><a>✕</a>`;box.appendChild(d);
@@ -7504,14 +7520,14 @@ async function ayuda(){if(!S.manualMD){try{S.manualMD=await(await fetch('manual.
 const prefV=()=>{try{return JSON.parse(localStorage.getItem('pref_vista')||'{}')}catch(e){return{}}};
 function aplicarVista(){const p=prefV(),h=document.documentElement,osc=p.t=='oscuro'||(p.t=='auto'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);h.classList.toggle('oscuro',!!osc);h.style.setProperty('--z',p.z||1)}
 aplicarVista();try{S.vivoBg=localStorage.getItem('notif_on')=='1'}catch(e){}
-async function notificar(t,b){try{if(!window.Notification||Notification.permission!='granted')return;const r=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration();if(r)r.showNotification(t,{body:b,icon:'icon-192.png',badge:'icon-192.png',vibrate:[200,100,200],tag:'crm-'+Date.now()});else new Notification(t,{body:b,icon:'icon-192.png'})}catch(e){}}
+async function notificar(t,b){try{if(!window.Notification||Notification.permission!='granted')return;const r=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration();if(r)r.showNotification(t,{body:b,icon:'icon-192.png',badge:'icon-192.png',vibrate:[500,200,500,200,500],tag:'crm-pedido',renotify:true,requireInteraction:true});else new Notification(t,{body:b,icon:'icon-192.png'})}catch(e){}}
 function vistaCfg(){const p=prefV(),m=document.createElement('div');m.className='modal';document.body.appendChild(m);const ns=window.Notification?Notification.permission:'no';
   m.innerHTML=`<div class="mc"><div class="bh"><h3>Aa Cómo se ve</h3><button class="alt" id="vc_x">Cerrar</button></div><p><small>Se guarda en este equipo (podés tener letra grande en el celular y normal en la PC).</small></p>
     <h4>Tamaño de letra</h4><div class="sub">${[[1,'Normal'],[1.12,'Grande'],[1.25,'Muy grande']].map(([z,t])=>`<button class="${(p.z||1)==z?'':'alt'}" data-vz="${z}">${t}</button>`).join('')}</div>
     <h4>Colores</h4><div class="sub">${[['claro','☀️ Claro'],['oscuro','🌙 Oscuro'],['auto','Automático']].map(([k,t])=>`<button class="${(p.t||'claro')==k?'':'alt'}" data-vt="${k}">${t}</button>`).join('')}</div>
     <h4>🖨️ Imprimir a distancia</h4><p><small>Usá esto <b>en la PC del depósito</b>: queda como impresora y saca sola lo que mandes desde el celular.</small></p><button class="alt" id="vc_imp">🖨️ Usar este equipo como impresora del depósito</button>
     <h4>🧾 Impresora térmica (rollo)</h4><p><small>Si este equipo imprime en una térmica de tickets, los pedidos, recibos y etiquetas salen en formato rollo.</small></p><div class="sub">${[[0,'No uso'],[58,'58 mm'],[80,'80 mm']].map(([w,t])=>`<button class="${tkW()==w?'':'alt'}" data-tk="${w}">${t}</button>`).join('')}</div>
-    ${huellaHTML()}<h4>🔔 Avisos en este equipo</h4><p><small>Te avisa con una notificación cuando entra un pedido online, un reclamo o un presupuesto aceptado, aunque estés en otra app. El CRM tiene que quedar abierto (en el celular, mejor instalado como app).</small></p>
+    ${huellaHTML()}<h4>🔔 Avisos en este equipo</h4><p><button class="alt" type="button" onclick="document.querySelector('.modal')?.remove();alarmaPedido([{t:'🛒 Así suena un pedido nuevo (prueba)',tab:'pedidos'}])">🔔 Probar la alarma de pedido</button> <small>Subí el volumen multimedia del celular.</small></p><p><small>Te avisa con una notificación cuando entra un pedido online, un reclamo o un presupuesto aceptado, aunque estés en otra app. El CRM tiene que quedar abierto (en el celular, mejor instalado como app).</small></p>
     ${ns=='no'?'<p><small>Este navegador no permite notificaciones.</small></p>':ns=='denied'?'<p><small>Bloqueaste las notificaciones para esta página: habilitalas en el candado de la barra de direcciones.</small></p>':`<button id="vc_n" class="${S.vivoBg&&ns=='granted'?'alt':''}">${S.vivoBg&&ns=='granted'?'🔕 Apagar avisos':'🔔 Activar avisos'}</button>`}</div>`;
   const q=s=>m.querySelector(s),sv=o=>{try{localStorage.setItem('pref_vista',JSON.stringify({...prefV(),...o}))}catch(e){}aplicarVista();m.remove();vistaCfg()};
   q('#vc_x').onclick=()=>m.remove();huellaBind(m);q('#vc_imp').onclick=()=>{m.remove();irA('impresora')};m.querySelectorAll('[data-vz]').forEach(b=>b.onclick=()=>sv({z:+b.dataset.vz}));m.querySelectorAll('[data-vt]').forEach(b=>b.onclick=()=>sv({t:b.dataset.vt}));m.querySelectorAll('[data-tk]').forEach(b=>b.onclick=()=>{try{localStorage.setItem('pref_ticket',JSON.stringify({w:+b.dataset.tk}))}catch(e){}m.remove();vistaCfg();toast(+b.dataset.tk?'Listo: imprime en rollo de '+b.dataset.tk+' mm.':'Listo: imprime en hoja A4.')});
