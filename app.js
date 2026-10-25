@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-25.14';
+const VERSION='2026-10-25.15';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -3078,7 +3078,7 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
   const faltabaAlLunes=Math.max(0,cjObjMes-Math.round(cjAntesS)),objSem=semIni?Math.ceil(faltabaAlLunes*habSem/habDesdeSem):0;
   const hoyIdx=Math.max(semIni||1,dh+(dow==0?1:0)),habSemRest=semIni?Math.max(0,hab(Math.min(hoyIdx,semFin+1),semFin)):0,visSem=Math.max(1,Math.ceil(habSemRest/2)),faltaSem=Math.max(0,objSem-Math.round(cjS)),pcS=objSem?Math.min(1,cjS/objSem):0;
   const m0=n=>(n<0?'−':'')+'$ '+Math.round(Math.abs(n)).toLocaleString('es-AR'),obj=meta+fijos,pcG=Math.max(0,Math.min(1,mg/obj)),pcF=fijos>0?Math.min(1,fijos/obj):0,mes=mesNom(m).split(' ')[0],cubre=mg>=fijos,pocas=cj<3;
-  const mesC=mes.slice(0,3).toLowerCase(),semTit=semIni?(dow==0&&lun>hoy?'Semana que viene':'Esta semana')+` · ${semIni==semFin?semIni:semIni+'–'+semFin} ${mesC}`:'';
+  const mM=n=>n>=1e6?'$ '+(n/1e6).toLocaleString('es-AR',{maximumFractionDigits:2})+' M':m0(n),mesC=mes.slice(0,3).toLowerCase(),semTit=semIni?(dow==0&&lun>hoy?'Semana que viene':'Esta semana')+` · ${semIni==semFin?semIni:semIni+'–'+semFin} ${mesC}`:'';
   /* a quién visitar */
   const hoyS=diaLocal(hoy),dd=(x,y)=>Math.round((new Date(y+'T12:00')-new Date(x+'T12:00'))/864e5),act=S.clientes.filter(c=>c.activo!==false);
   const V=[];for(const c of act){const L=[...new Set(U[c.id]||[])].sort();
@@ -3090,10 +3090,10 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
   const pvV=Math.ceil(faltaSem/visSem),R=30,CI=2*Math.PI*R,ring=(f,t)=>`<svg class="mjr" viewBox="0 0 76 76" aria-hidden="true"><circle cx="38" cy="38" r="${R}" class="tr"/>${f>0?`<circle cx="38" cy="38" r="${R}" class="fl" stroke-dasharray="${(CI*f).toFixed(1)} ${CI.toFixed(1)}"/>`:''}<text x="38" y="43" text-anchor="middle">${t}</text></svg>`;
   const hero=faltaMg<=0?`<div class="mjh ok"><div><div class="ey">Objetivo de ${esc(mes.toLowerCase())}</div><div class="mjhn">Cumplido</div><div class="hs">Vas ${m0(limpio-meta)} arriba de la meta. Lo que sumes ya es extra.</div></div></div>`
     :semIni?`<div class="mjh">${ring(pcS,Math.round(pcS*100)+'%')}<div><div class="ey">${semTit}</div><div class="mjhn">${nf(Math.round(cjS))}<span> / ${nf(objSem)} cajas</span></div>
-      <div class="hs">${faltaSem>0?`${nf(pvV)} cajas por visita · ${visSem} visita${visSem==1?'':'s'}`:'Semana cumplida. Lo que sumes adelanta el mes.'}</div>${realista?'':'<span class="pill">Foco: cubrir gastos</span>'}${foco&&pocas?'<span class="pill">65 y 85 g</span>':''}</div></div>`
+      <div class="hs">${faltaSem>0?`${nf(pvV)} cajas por visita · ${visSem} visita${visSem==1?'':'s'}`:'Semana cumplida. Lo que sumes adelanta el mes.'}</div>${realista?'':'<span class="pill">Foco: cubrir gastos</span>'}</div></div>`
     :`<div class="mjh"><div><div class="ey">${esc(mes)}</div><div class="mjhn">${nf(faltaCj)}<span> cajas por vender</span></div></div></div>`;
-  const aviso=realista?'':`<div class="mja"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5"/><path d="M10 9v5M10 6.2v.1"/></svg><span>La meta de ${m0(meta)} no da en ${esc(mes.toLowerCase())}: serían ${nf(Math.ceil(Math.max(0,cjMetaMes-cjAntesHoy)/visitas))} cajas por visita. ${cj>=cjGasMes?'Gastos ya cubiertos: lo que vendas es limpio.':'Este mes, cubrí los gastos; la meta grande va el mes que viene.'}</span></div>`;
-  const nota=faltaMg<=0?'':pocas?`Estimado con ${m0(mbCat)} de ganancia por caja${foco?' (65 y 85 g)':' (promedio de toda la línea)'}. <a class="lnk" id="mj_f">${foco?'Usar toda la línea':'Calcular con 65 y 85 g'}</a>${!cubre&&realista?` Con ${nf(Math.ceil((fijos-mg)/mb))} cajas cubrís los gastos.`:''}`
+  const aviso=realista?'':`<div class="mja"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5"/><path d="M10 9v5M10 6.2v.1"/></svg><span>La meta de ${m0(meta)} no llega en ${esc(mes.toLowerCase())}. ${cj>=cjGasMes?'Gastos ya cubiertos: lo que vendas es limpio.':'Este mes cubrí los gastos y la meta arranca el mes que viene.'}</span></div>`;
+  const nota=faltaMg<=0?'':pocas?`Estimado con ${m0(mbCat)} de ganancia por caja${foco?' (65 y 85 g)':' (promedio de toda la línea)'}.${!cubre&&realista?` Con ${nf(Math.ceil((fijos-mg)/mb))} cajas cubrís los gastos.`:''}`
       :`Cada caja te deja ${m0(mb)}. A este ritmo cerrás ${esc(mes.toLowerCase())} con <b class="${ok?'sube':'baja'}">${m0(proyLimpio)}</b> limpios.`;
   box.innerHTML=`<div class="box obj mj"><div class="mjtop"><div><div class="ey">Maní JL</div><div class="tt">${esc(mes)}</div></div><button class="mjmeta" id="mj_e" aria-label="Cambiar meta"><small>Meta limpia</small><b>${m0(meta)}</b><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16H4v-3z"/></svg></button></div>
     <div id="mj_h" role="button" tabindex="0" aria-expanded="${abierto}" style="cursor:pointer">${hero}</div>
@@ -3101,17 +3101,17 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
     <div id="mj_d"${abierto?'':' hidden'}>${aviso}
     <div class="mjsec"><div class="mjrow"><span class="ey">Mes</span><span class="mjg">${m0(mg)} <small>de ${m0(obj)} (meta + gastos)</small></span></div>
     <div class="obar mjb">${pcG>0?`<i style="width:${(pcG*100).toFixed(1)}%" class="${pcG>=1?'lleno':''}"></i>`:''}${pcF>0&&pcF<1?`<span class="gf" style="left:${(pcF*100).toFixed(1)}%"></span>`:''}</div>
-    ${pcF>0&&pcF<1?`<div class="mjl"><span style="left:${(pcF*100).toFixed(1)}%">${cubre?'Gastos cubiertos':'Gastos '+m0(fijos)}</span><span style="right:0">${m0(obj)}</span></div>`:''}
+    ${pcF>0&&pcF<1?`<div class="mjl"><span style="left:${(pcF*100).toFixed(1)}%">${cubre?'Gastos cubiertos':'Gastos '+m0(fijos)}</span></div>`:''}
     <div class="mjk"><div><small>Vendiste</small><b>${nf(Math.round(cj))}</b><small>cajas · ${cl.size} cliente${cl.size==1?'':'s'}</small></div>
       <div><small>Ganancia</small><b>${m0(mg)}</b><small>facturado ${m0(vta)}</small></div>
-      <div><small>Limpio</small>${limpio<0&&!(cj>0)?`<b style="color:var(--mu)">${m0(0)}</b><small>faltan ${m0(fijos)} para gastos</small>`:`<b class="${limpio<0?'baja':limpio>=meta?'sube':''}">${m0(limpio)}</b><small>${limpio<0?'faltan '+m0(-limpio)+' para gastos':Math.round(limpio/meta*100)+' % de la meta'}</small>`}</div></div>
-    ${nota?`<p class="mjn">${nota}</p>`:''}</div>
+      <div><small>Limpio</small>${limpio<0&&!(cj>0)?`<b style="color:var(--mu)">${m0(0)}</b><small>faltan ${mM(fijos)} p/ gastos</small>`:`<b class="${limpio<0?'baja':limpio>=meta?'sube':''}">${m0(limpio)}</b><small>${limpio<0?'faltan '+mM(-limpio)+' p/ gastos':Math.round(limpio/meta*100)+' % de la meta'}</small>`}</div></div>
+    ${nota?`<p class="mjn">${nota}</p>`:''}${pocas&&faltaMg>0&&[...ids].some(chico)?`<div class="mjseg"><span>Calcular con</span><div role="group"><button data-mjf="chicos" class="${foco?'on':''}">65 y 85 g</button><button data-mjf="todo" class="${foco?'':'on'}">Toda la línea</button></div></div>`:''}</div>
     <div class="mjsec mjv"><div class="mjrow"><span class="ey">A quién visitar</span>${VIS.length?`<small>${VIS.length} sugerido${VIS.length==1?'':'s'}</small>`:''}</div>
       ${VIS.length?VIS.map(x=>{const nm=String(x.c.razon_social||'Cliente');return`<div class="mjc"><span class="av">${esc(nm.trim()[0]||'?').toUpperCase()}</span><div><b>${esc(nm)}</b><small>${esc(x.why)}</small></div><button class="alt" data-mjp="${x.c.id}">Pedido</button></div>`}).join('')
         :'<p class="mjn">Cuando haya ventas, acá aparecen los clientes a los que les toca reponer JL y los que compran mucho y no lo llevan.</p>'}</div></div></div>`;
   const plegar=()=>{const d=$('#mj_d'),ab=d.hidden;d.hidden=!ab;try{localStorage.setItem('mj_abierto',ab?'1':'0')}catch(e){}$('#mj_h').setAttribute('aria-expanded',ab);$('#mj_t').innerHTML=(ab?'Ocultar detalle':'Ver detalle del mes')+' <span>'+(ab?'▴':'▾')+'</span>'};
   $('#mj_h').onclick=plegar;$('#mj_t').onclick=plegar;
-  const bf=$('#mj_f');if(bf)bf.onclick=async()=>{const{error}=await guardaCfgJ('mani_jl',{...C,foco:foco?'todo':'chicos'});error?toast(error.message,1):maniJLInicio()};
+  $$('#manijl [data-mjf]').forEach(bt=>bt.onclick=async e=>{e.stopPropagation();if(bt.classList.contains('on'))return;try{localStorage.setItem('mj_abierto','1')}catch(x){}const{error}=await guardaCfgJ('mani_jl',{...C,foco:bt.dataset.mjf});error?toast(error.message,1):maniJLInicio()});
   $$('#manijl [data-mjp]').forEach(bt=>bt.onclick=()=>{const x=VIS.find(y=>y.c.id==bt.dataset.mjp);S.preCli=x.c;S.preItems=x.it&&x.it.length?x.it:null;S.tab='pedidos';shell()});
   $('#mj_e').onclick=pedirMeta}
 
