@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-25.19';
+const VERSION='2026-10-25.20';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -2692,7 +2692,7 @@ async function vProspectos(){
     <td><b>${esc(x.nombre)}</b> ${!['cliente','no_interesado'].includes(x.estado)?badgeP(scP(x)):''}${x.rubro?' <small>· '+esc(x.rubro)+'</small>':''}<br><small>${esc([x.domicilio,x.zona].filter(Boolean).join(' · '))}${x.telefono?' · '+esc(x.telefono):''}${x.contacto?' · '+esc(x.contacto):''}</small>${x.observaciones?'<br><small><i>'+esc(x.observaciones)+'</i></small>':''}</td>
     <td><select data-pe="${x.id}" style="width:auto;margin:0">${Object.entries(EST_PR).map(([k,t])=>`<option value="${k}" ${(x.estado||'nuevo')==k?'selected':''}>${t}</option>`).join('')}</select></td>
     <td><input type="date" data-psf="${x.id}" value="${x.proximo_seguimiento||''}" style="width:auto;margin:0" class="${x.proximo_seguimiento&&x.proximo_seguimiento<=hoy&&!['cliente','no_interesado'].includes(x.estado)?'venc-in':''}"></td>
-    <td class="acc">${x.telefono?`<button class="alt wa" data-pw="${x.id}">WhatsApp</button> <button class="alt" data-prr="${x.id}" title="Respuestas rápidas">💬</button> `:''}${x.domicilio?`<button class="alt" data-pm="${x.id}">Mapa</button> `:''}<button class="alt" data-pn="${x.id}">Nota</button> ${x.estado!='cliente'?`${x.telefono?`<button data-px2="${x.id}" title="Alta y le mandamos su catálogo por WhatsApp">⚡ Alta exprés</button> `:''}<button class="alt" data-pc="${x.id}">Pasar a cliente</button>`:x.cliente_id?`<button class="alt" data-pfc="${x.cliente_id}">Ver ficha</button>`:''}</td></tr>`).join('')}</table></div>`:'<p><small>No hay prospectos en esta lista.</small></p>'}</div>`;
+    <td class="acc">${x.telefono?`<button class="alt wa" data-pw="${x.id}">WhatsApp</button> <button class="alt" data-prr="${x.id}" title="Respuestas rápidas">💬</button> `:''}${x.domicilio?`<button class="alt" data-pm="${x.id}">Mapa</button> `:''}<button class="alt" data-pdt="${x.id}">✏️ Editar</button> <button class="alt" data-pn="${x.id}">Nota</button> ${x.estado!='cliente'?`${x.telefono?`<button data-px2="${x.id}" title="Alta y le mandamos su catálogo por WhatsApp">⚡ Alta exprés</button> `:''}<button class="alt" data-pc="${x.id}">Pasar a cliente</button>`:x.cliente_id?`<button class="alt" data-pfc="${x.cliente_id}">Ver ficha</button>`:''}</td></tr>`).join('')}</table></div>`:'<p><small>No hay prospectos en esta lista.</small></p>'}</div>`;
   $$('[data-pf2]').forEach(b=>b.onclick=()=>{S.prF=b.dataset.pf2;vProspectos()});
   $('#pr_fr').onchange=e=>{S.prRub=e.target.value;vProspectos()};if($('#pr_fz'))$('#pr_fz').onchange=e=>{S.prZo=e.target.value;vProspectos()};
   $('#pr_ft').onchange=e=>{S.prTel=e.target.checked;vProspectos()};
@@ -2706,6 +2706,7 @@ async function vProspectos(){
   $$('#cs [data-pw]').forEach(b=>b.onclick=()=>{const x=P(b.dataset.pw);window.open('https://wa.me/'+telWA(x.telefono)+'?text='+encodeURIComponent(`¡Hola${x.contacto?' '+x.contacto:''}! Te escribo de *Sabores de mi País*, distribuidora de alimentos. Me gustaría pasarte nuestra lista de precios, ¿te interesa?`),'_blank');
     if(x.estado=='nuevo')upd(x.id,{estado:'contactado',ultimo_contacto:diaLocal(new Date())})});
   $$('#cs [data-pm]').forEach(b=>b.onclick=()=>window.open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(P(b.dataset.pm).domicilio),'_blank'));
+  $$('#cs [data-pdt]').forEach(b=>b.onclick=()=>editarProspecto(P(b.dataset.pdt),vProspectos));
   $$('#cs [data-pn]').forEach(b=>b.onclick=()=>{const x=P(b.dataset.pn),t=prompt('Nota sobre '+x.nombre+':',x.observaciones||'');if(t!==null)upd(x.id,{observaciones:t.trim()||null,ultimo_contacto:diaLocal(new Date())},'Nota guardada.')});
   $$('#cs [data-pfc]').forEach(b=>b.onclick=()=>fichaCliente(S.clientes.find(c=>c.id==b.dataset.pfc)));
   $('#pr_imp').onclick=()=>importarProspectos(vProspectos);$$('#cs [data-prr]').forEach(b=>b.onclick=()=>respuestasRapidas(P(b.dataset.prr)));
@@ -5490,6 +5491,28 @@ async function vPreventa(){const due=S.perfil.rol=='dueno';
       await sb.from('pedido_items').insert({pedido_id:o.id,producto_id:p.producto_id,cantidad:r.cantidad,precio_unitario:pr,promo:'Preventa'});await sb.from('reservas').update({pedido_id:o.id}).eq('id',r.id);n++}
     toast(n+' pedidos creados en Pedidos → Por aprobar.');vPreventa()})}
 
+/* Editar un prospecto: todos sus datos en una ventana */
+function editarProspecto(x,listo){const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  const v=k=>esc(x[k]??''),hoy=diaLocal(new Date());
+  m.innerHTML=`<div class="mc"><div class="bh"><h3 style="margin:0">✏️ Editar prospecto</h3><button class="alt" id="ep_x">Cerrar</button></div>
+    <div class="g"><label class="f">Nombre del negocio<input id="ep_n" value="${v('nombre')}"></label>
+    <label class="f">Tipo de negocio<input id="ep_r" value="${v('rubro')}"></label>
+    <label class="f">Teléfono / WhatsApp<input id="ep_t" type="tel" inputmode="tel" value="${v('telefono')}"></label>
+    <label class="f">Persona de contacto<input id="ep_c" value="${v('contacto')}" placeholder="Ej.: Carlos, el dueño"></label>
+    <label class="f">Dirección<input id="ep_d" value="${v('domicilio')}"></label>
+    <label class="f">Zona o barrio<input id="ep_z" value="${v('zona')}"></label>
+    <label class="f">Etapa<select id="ep_e">${Object.entries(EST_PR).map(([k,t])=>`<option value="${k}" ${(EST_PR[x.estado]?x.estado:'nuevo')==k?'selected':''}>${t}</option>`).join('')}</select></label>
+    <label class="f">Prioridad<select id="ep_p">${['alta','media','baja'].map(k=>`<option value="${k}" ${(x.prioridad||'media')==k?'selected':''}>${k[0].toUpperCase()+k.slice(1)}</option>`).join('')}</select></label>
+    <label class="f">Próximo seguimiento<input id="ep_f" type="date" value="${v('proximo_seguimiento')}" min="${hoy}"></label></div>
+    <label class="f">Notas<textarea id="ep_o" rows="4" placeholder="Qué te dijo, qué marcas trabaja, cuándo volver…">${v('observaciones')}</textarea></label>
+    <p style="display:flex;gap:8px;justify-content:flex-end;margin:12px 0 0"><button class="alt" id="ep_c2">Cancelar</button><button id="ep_g">Guardar</button></p></div>`;
+  const q=i=>m.querySelector(i),cerrar=()=>m.remove();q('#ep_x').onclick=cerrar;q('#ep_c2').onclick=cerrar;
+  q('#ep_g').onclick=async()=>{const nom=q('#ep_n').value.trim();if(!nom)return toast('Poné el nombre del negocio.',1);
+    const o={nombre:nom,rubro:q('#ep_r').value.trim()||null,telefono:q('#ep_t').value.trim()||null,contacto:q('#ep_c').value.trim()||null,domicilio:q('#ep_d').value.trim()||null,zona:q('#ep_z').value.trim()||null,estado:q('#ep_e').value,prioridad:q('#ep_p').value,proximo_seguimiento:q('#ep_f').value||null,observaciones:q('#ep_o').value.trim()||null,actualizado_en:new Date().toISOString()};
+    if(o.estado!=x.estado&&o.estado!='nuevo')o.ultimo_contacto=hoy;
+    q('#ep_g').disabled=true;const{error}=await sb.from('prospectos').update(o).eq('id',x.id);q('#ep_g').disabled=false;
+    if(error)return toast(error.message,1);toast('Prospecto guardado.');cerrar();listo&&listo()}}
+
 /* ---------- 10. Embudo de prospectos ---------- */
 const ETAPAS=[['nuevo','Nuevo'],['contactado','Contactado'],['visitado','Visitado'],['interesado','Interesado'],['cliente','Ya es cliente']];
 async function vEmbudo(){const{data,error}=await sb.from('prospectos').select('*').order('creado_en',{ascending:false}).limit(1000);if(error){$('#vs').innerHTML='<p class="err">'+esc(error.message)+'</p>';return}
@@ -5504,9 +5527,9 @@ async function vEmbudo(){const{data,error}=await sb.from('prospectos').select('*
   <div class="fc-acc" style="margin-bottom:8px"><button class="alt" id="em_imp">📋 Pegar una lista de prospectos</button></div>
   <div class="box"><h3>🧲 Embudo de prospectos</h3><p><small>Cada negocio que querés sumar pasa por etapas. Movelo con "→" cuando avanza. Los que llevan muchos días quietos en una etapa necesitan un empujón (o una muestra).</small></p>
     <div class="emf"><label class="f">Zona o barrio<select id="em_z"><option value="">Todas</option>${ZE.map(z=>`<option ${S.emZo==z?'selected':''}>${esc(z)}</option>`).join('')}</select></label><label class="f">Tipo de negocio<select id="em_r"><option value="">Todos</option>${RE.map(z=>`<option ${S.emRu==z?'selected':''}>${esc(z)}</option>`).join('')}</select></label></div>
-    <div class="emb">${ETAPAS.map(([k,t],i)=>`<div class="col"><div class="hd"><b>${t}</b> <span class="badge">${(G[k]||[]).length}</span></div>${(G[k]||[]).slice(0,S.emAll[k]?2000:40).map(x=>`<div class="cd ${dias(x)>14&&k!='cliente'?'viejo':''}"><details class="cdd"><summary><b>${esc(x.nombre)}</b></summary><div class="cdx">${x.domicilio?`<span>${IC('pin',14)} ${esc(x.domicilio)}${zoE(x)?' · '+esc(zoE(x)):''}</span>`:''}${x.telefono?`<span>${IC('phone',14)} <a class="lnk" href="tel:${esc(String(x.telefono).replace(/[^+\d]/g,''))}">${esc(x.telefono)}</a></span>`:''}${x.contacto?`<span>${IC('user',14)} ${esc(x.contacto)}</span>`:''}${x.observaciones?`<span class="ob">${esc(x.observaciones)}</span>`:''}${x.domicilio||x.lat?`<a class="lnk" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${x.lat&&x.lng?x.lat+','+x.lng:encodeURIComponent(x.domicilio+', '+(x.ciudad||'Buenos Aires'))}">${IC('map',14)} Cómo llegar</a>`:''}</div></details>${SCp&&k!='cliente'?' '+badgeP(SCp(x)):''}<small>${esc(x.rubro||'')}${x.rubro?' · ':''}${dias(x)} d en esta etapa</small>
+    <div class="emb">${ETAPAS.map(([k,t],i)=>`<div class="col"><div class="hd"><b>${t}</b> <span class="badge">${(G[k]||[]).length}</span></div>${(G[k]||[]).slice(0,S.emAll[k]?2000:40).map(x=>`<div class="cd ${dias(x)>14&&k!='cliente'?'viejo':''}"><details class="cdd"><summary><b>${esc(x.nombre)}</b></summary><div class="cdx">${x.domicilio?`<span>${IC('pin',14)} ${esc(x.domicilio)}${zoE(x)?' · '+esc(zoE(x)):''}</span>`:''}${x.telefono?`<span>${IC('phone',14)} <a class="lnk" href="tel:${esc(String(x.telefono).replace(/[^+\d]/g,''))}">${esc(x.telefono)}</a></span>`:''}${x.contacto?`<span>${IC('user',14)} ${esc(x.contacto)}</span>`:''}${x.observaciones?`<span class="ob">${esc(x.observaciones)}</span>`:''}${x.domicilio||x.lat?`<a class="lnk" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${x.lat&&x.lng?x.lat+','+x.lng:encodeURIComponent(x.domicilio+', '+(x.ciudad||'Buenos Aires'))}">${IC('map',14)} Cómo llegar</a>`:''}<a class="lnk" data-ed="${x.id}">${IC('pencil',14)} Editar datos</a></div></details>${SCp&&k!='cliente'?' '+badgeP(SCp(x)):''}<small>${esc(x.rubro||'')}${x.rubro?' · ':''}${dias(x)} d en esta etapa</small>
       <div>${x.telefono?`<a class="lnk" data-ew="${x.id}">WhatsApp</a> <a class="lnk" data-err="${x.id}">💬</a>`:''}${i<3?` <a class="lnk" data-em="${x.id}" data-e="${ETAPAS[i+1][0]}">→ ${ETAPAS[i+1][1]}</a>`:''}${i==3?` <a class="lnk" data-ec="${x.id}">→ Dar de alta</a>`:''}${k!='cliente'?` <a class="lnk" data-en="${x.id}">✕</a>`:''}</div></div>`).join('')}${(G[k]||[]).length>40&&!S.emAll[k]?`<button class="alt" data-emv="${k}" style="width:100%">Ver ${(G[k]||[]).length-40} más</button>`:''}</div>`).join('')}</div></div>`;
-  $('#em_z').onchange=e=>{S.emZo=e.target.value;vEmbudo()};$('#em_r').onchange=e=>{S.emRu=e.target.value;vEmbudo()};$$('#vs [data-emv]').forEach(b=>b.onclick=()=>{S.emAll[b.dataset.emv]=1;vEmbudo()});
+  $('#em_z').onchange=e=>{S.emZo=e.target.value;vEmbudo()};$('#em_r').onchange=e=>{S.emRu=e.target.value;vEmbudo()};$$('#vs [data-emv]').forEach(b=>b.onclick=()=>{S.emAll[b.dataset.emv]=1;vEmbudo()});$$('#vs [data-ed]').forEach(a=>a.onclick=()=>editarProspecto(data.find(y=>y.id==a.dataset.ed),vEmbudo));
   const P=id=>data.find(x=>x.id==id),upd=async(id,o)=>{const{error}=await sb.from('prospectos').update({...o,actualizado_en:new Date().toISOString()}).eq('id',id);if(error)return toast(error.message,1);vEmbudo()};
   $$('#vs [data-em]').forEach(a=>a.onclick=()=>upd(a.dataset.em,{estado:a.dataset.e,ultimo_contacto:diaLocal(new Date())}));
   $$('#vs [data-en]').forEach(a=>a.onclick=()=>{if(confirm('¿Marcar como "No le interesa"?'))upd(a.dataset.en,{estado:'no_interesado'})});
