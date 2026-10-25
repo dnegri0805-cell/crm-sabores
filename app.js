@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-25.6';
+const VERSION='2026-10-25.7';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -3061,7 +3061,7 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
   const hab=(d1,d2)=>{let n=0;for(let d=d1;d<=d2;d++)if(new Date(Y,M,d).getDay()!=0)n++;return n};
   const habTot=hab(1,dm),habPas=Math.max(1,hab(1,dh-1)+(hoy.getHours()>=14?1:0)),habRest=Math.max(1,hab(dh,dm)),visitas=Math.max(1,Math.round(habRest/2)),proyLimpio=mg/habPas*habTot-fijos,ok=proyLimpio>=meta;
   /* meta de la semana: lo que faltaba al empezar la semana, repartido en los días hábiles que quedaban del mes */
-  const cjObjMes=Math.ceil((meta+fijos)/mb),habSem=semIni?hab(semIni,semFin):0,habDesdeSem=semIni?Math.max(1,hab(semIni,dm)):1;
+  const LIMV=40,cjMetaMes=Math.ceil((meta+fijos)/mb),cjGasMes=Math.ceil(fijos/mb),cjAntesHoy=Math.round(cj-cjS),realista=faltaMg<=0||Math.max(0,cjMetaMes-cjAntesHoy)/visitas<=LIMV,cjObjMes=realista?cjMetaMes:Math.max(cjGasMes,Math.round(cj)),habSem=semIni?hab(semIni,semFin):0,habDesdeSem=semIni?Math.max(1,hab(semIni,dm)):1;
   const faltabaAlLunes=Math.max(0,cjObjMes-Math.round(cjAntesS)),objSem=semIni?Math.ceil(faltabaAlLunes*habSem/habDesdeSem):0;
   const hoyIdx=Math.max(semIni||1,dh+(dow==0?1:0)),habSemRest=semIni?Math.max(0,hab(Math.min(hoyIdx,semFin+1),semFin)):0,visSem=Math.max(1,Math.ceil(habSemRest/2)),faltaSem=Math.max(0,objSem-Math.round(cjS)),pcS=objSem?Math.min(1,cjS/objSem):0;
   const m0=n=>(n<0?'−':'')+'$ '+Math.round(Math.abs(n)).toLocaleString('es-AR'),obj=meta+fijos,pcG=Math.max(0,Math.min(1,mg/obj)),pcF=fijos>0?Math.min(1,fijos/obj):0,mes=mesNom(m).split(' ')[0],cubre=mg>=fijos,pocas=cj<3;
@@ -3075,15 +3075,16 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
   V.sort((x,y)=>y.pri-x.pri);const VIS=V.slice(0,6);
   const pasos=faltaMg<=0?'<b class="sube">¡Objetivo del mes cumplido! 🎉</b> Vas '+m0(limpio-meta)+' arriba.'
     :semIni?`<div class="mjsh"><span>${semTit}</span>${objSem&&cjS>=objSem?'<b class="sube">✓ Cumplida</b>':''}</div>
-      <div class="mjsn"><b>${nf(Math.round(cjS))}</b> <span>de ${nf(objSem)} cajas</span></div>
-      <div class="obar mjsb"><i style="width:${(pcS*100).toFixed(1)}%" class="${pcS>=1?'lleno':''}"></i></div>
+      <div class="mjsn"><b>${nf(Math.round(cjS))}</b> <span>de ${nf(objSem)} cajas${realista?'':' para cubrir gastos'}</span></div>
+      <div class="obar mjsb">${pcS>0?`<i style="width:${(pcS*100).toFixed(1)}%" class="${pcS>=1?'lleno':''}"></i>`:''}</div>
       <div class="mjsx">${faltaSem>0?`Faltan <b>${nf(faltaSem)}</b> · <b>${nf(Math.ceil(faltaSem/visSem))} cajas por visita</b> (${visSem} visita${visSem==1?'':'s'})`:'Ya hiciste las cajas de la semana. Todo lo que sumes adelanta la meta.'}</div>`
     :`Te faltan <b>${nf(faltaCj)} cajas</b> este mes.`;
+  const aviso=realista?'':`<div class="mja">Con ${visitas} visita${visitas==1?'':'s'} que quedan, los ${m0(meta)} de ${esc(mes.toLowerCase())} no dan (serían ${nf(Math.ceil(Math.max(0,cjMetaMes-cjAntesHoy)/visitas))} cajas por visita). ${cj>=cjGasMes?'Ya cubriste los gastos: todo lo que vendas ahora es limpio.':'Este mes apuntá a <b>cubrir los gastos</b>; la meta grande queda para el mes que viene.'}</div>`;
   box.innerHTML=`<div class="box obj mj"><div class="bh"><h3 style="margin:0">🥜 Maní JL · ${esc(mes)}</h3><a class="lnk" id="mj_e">Cambiar meta</a></div>
-    <div class="mjm">Meta del mes: <b>${m0(meta)}</b> limpios · ${nf(cjObjMes)} cajas</div>
-    <div class="mjp">${pasos}</div>
+    <div class="mjm">Meta del mes: <b>${m0(meta)}</b> limpios · ${nf(cjMetaMes)} cajas</div>
+    ${aviso}<div class="mjp">${pasos}</div>
     <div class="mjt">Mes</div>
-    <div class="obar mjb"><i style="width:${(pcG*100).toFixed(1)}%" class="${pcG>=1?'lleno':''}"></i>${pcF>0&&pcF<1?`<span class="gf" style="left:${(pcF*100).toFixed(1)}%"></span>`:''}</div>
+    <div class="obar mjb">${pcG>0?`<i style="width:${(pcG*100).toFixed(1)}%" class="${pcG>=1?'lleno':''}"></i>`:''}${pcF>0&&pcF<1?`<span class="gf" style="left:${(pcF*100).toFixed(1)}%"></span>`:''}</div>
     ${pcF>0&&pcF<1?`<div class="mjl"><span style="left:${(pcF*100).toFixed(1)}%">${cubre?'✓ Gastos cubiertos':'Acá cubrís gastos'}</span><span style="right:0">Meta</span></div>`:''}
     <div class="mjk"><div><small>Vendiste</small><b>${nf(Math.round(cj))} cajas</b><small>${cl.size} cliente${cl.size==1?'':'s'} · ${m0(vta)}</small></div>
       <div><small>Ganancia</small><b>${m0(mg)}</b><small>gastos ${m0(fijos)}</small></div>
