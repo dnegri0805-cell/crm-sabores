@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-25.12';
+const VERSION='2026-10-25.13';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -291,7 +291,7 @@ async function vInicio(){
   </div>${dia?`</details>
   <details class="plg"><summary>🗓️ Tareas y avisos del día</summary><div id="midia"></div><div id="tari"></div><div id="alm"></div></details>
   <div id="chk"></div>
-  <div class="pieini"><div id="bk"></div><div id="dlr"></div><p class="pfila"><span class="pic">${IC('doc',16)}</span><a class="lnk" data-iv="completa">Ver panel completo</a></p><p class="pfila"><span class="pic">${IC('menu',16)}</span><a class="lnk" onclick="menuTabsCfg()">Elegir pestañas del menú</a></p></div>`:''}`;
+  <div class="pieini"><div id="bk"></div><div id="dlr"></div><p class="pfila plink"><span class="pic">${IC('doc',16)}</span><a class="lnk" data-iv="completa">Ver panel completo</a></p><p class="pfila plink"><span class="pic">${IC('menu',16)}</span><a class="lnk" onclick="menuTabsCfg()">Elegir pestañas del menú</a></p></div>`:''}`;
   $$('#v details.plg').forEach(d=>{const o=new MutationObserver(badgePlg);o.observe(d,{subtree:true,childList:true,attributes:true,attributeFilter:['data-pend']})});
   const kp=(id,num,det,cls)=>{const b=$('#'+id);b.querySelector('.num').textContent=num;contar(b.querySelector('.num'),num);b.querySelector('.det').textContent=det||'';if(cls)b.classList.add(cls)};
   const fallo=(id,e)=>kp(id,'—','No se pudo leer: '+e.message);
@@ -322,14 +322,14 @@ async function vInicio(){
   // 3 deuda clientes
   if(fe.error){fallo('k3',fe.error);$('#t2').innerHTML='<p class="err">'+esc(fe.error.message)+'</p>'}else{
     const F=fe.data,tot=F.reduce((a,x)=>a+Number(x.pendiente||0),0),V=F.filter(x=>x.dias_mora>0),tv=V.reduce((a,x)=>a+Number(x.pendiente||0),0);
-    kp('k3',$m(tot),V.length?'Vencido: '+$m(tv)+' en '+V.length+(V.length==1?' factura':' facturas'):'Nada vencido',V.length?'alerta':'');
+    kp('k3',$m(tot),V.length?'Vencido: '+$m(tv)+' en '+V.length+(V.length==1?' factura':' facturas'):tot>0?'Nada vencido':'Nadie te debe',V.length?'alerta':'');$('#k3').classList.toggle('vacio',!(tot>0));
     V.sort((a,b)=>b.dias_mora-a.dias_mora);
     $('#t2').dataset.pend=V.length;$('#t2').innerHTML=V.length?'<table><tr><th>Cliente</th><th>Factura</th><th>Mora</th><th class="n">Debe</th></tr>'+V.slice(0,8).map(x=>`<tr><td>${cli(x.cliente_id)}</td><td>${x.tipo} ${x.numero}</td><td class="mora">${x.dias_mora} días</td><td class="n">${$m(x.pendiente)}</td></tr>`).join('')+'</table>'+(V.length>8?`<small>Y ${V.length-8} más.</small>`:'')+'<p><button class="alt" id="irC">Ir a Cobranza</button></p>':'<p><small>Ningún cliente tiene facturas vencidas.</small></p>';
     $('#irC')&&($('#irC').onclick=()=>{S.tab='cobranza';shell()})}
   // 4 proveedores
   if(sp.error)fallo('k4',sp.error);else{
     const D=sp.data.filter(x=>Number(x.saldo)>0.005),tot=D.reduce((a,x)=>a+Number(x.saldo),0);
-    kp('k4',$m(tot),D.length?D.length+(D.length==1?' proveedor':' proveedores'):'Sin deudas')}
+    kp('k4',$m(tot),D.length?D.length+(D.length==1?' proveedor':' proveedores'):'Sin deudas');$('#k4').classList.toggle('vacio',!(tot>0))}
   if(fp.error)$('#t3').innerHTML='<p class="err">'+esc(fp.error.message)+'</p>';else{
     const sal=id=>Number(sp.data?.find(x=>x.proveedor_id==id)?.saldo||0);
     const L=fp.data.filter(f=>f.tipo!='NC'&&sal(f.proveedor_id)>0.005);
@@ -503,7 +503,7 @@ async function cajaBackup(){const b=$('#bk');if(!b)return;
     mal=dA!=null&&dA<2?(dias==null||dias>=30):(dias==null||dias>=7),
     autoTxt=A?(dA<2?'✅ Copia automática: '+(dA==0?'hoy':'ayer')+' a las '+new Date(A).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}):'⚠️ La copia automática no corre desde el '+fd(A)):'';
   b.innerHTML=mal?`<div class="box alerta bkbox"><span class="bkic">${IC('download',22)}</span><div style="flex:1;min-width:0"><b>${dias==null?'Todavía no hiciste ninguna copia de seguridad':'Hace '+dias+' días que no hacés copia de seguridad'}</b><br><small>${autoTxt?autoTxt+'. ':''}Conviene tener también una copia guardada en tu equipo. Lleva un minuto.</small></div><button id="bk_d">Hacer la copia ahora</button><a class="lnk" id="bk_s">🩺 Estado del sistema</a></div>`
-    :`${A?`<p class="pfila${dA<2?'':' viejo'}"><span class="pic">${IC(dA<2?'check':'alert',16)}</span><span>${dA<2?'Copia automática: '+(dA==0?'hoy':'ayer')+' '+new Date(A).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}):'La copia automática no corre desde el '+fd(A)}</span></p>`:''}<p class="pfila${dias>=7?' viejo':''}"><span class="pic">${IC(dias>=7?'alert':'download',16)}</span><span>Copia en tu equipo: ${fd(u)}${dias?' · hace '+dias+(dias==1?' día':' días'):' · hoy'}</span><a class="lnk" id="bk_d">Hacer otra</a></p><p class="pfila"><span class="pic">${IC('gauge',16)}</span><a class="lnk" id="bk_s">Estado del sistema</a></p>`;
+    :`${A?`<p class="pfila${dA<2?'':' viejo'}"><span class="pic">${IC(dA<2?'check':'alert',16)}</span><span>${dA<2?'Copia automática: '+(dA==0?'hoy':'ayer')+' '+new Date(A).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}):'La copia automática no corre desde el '+fd(A)}</span></p>`:''}<p class="pfila${dias>=7?' viejo':''}"><span class="pic">${IC(dias>=7?'alert':'download',16)}</span><span>Copia en tu equipo: ${u?new Date(u).toLocaleDateString('es-AR',{day:'numeric',month:'numeric'}):'nunca'}${dias?' · hace '+dias+(dias==1?' día':' días'):' · hoy'}</span><a class="lnk" id="bk_d">Hacer otra</a></p><p class="pfila plink"><span class="pic">${IC('gauge',16)}</span><a class="lnk" id="bk_s">Estado del sistema</a></p>`;
   $('#bk_d').onclick=descargarBackup;$('#bk_s').onclick=estadoSistema}
 async function descargarBackup(){
   const m=document.createElement('div');m.className='modal';m.innerHTML=`<div class="mc"><h3>Copia de seguridad</h3><p id="bk_e">Preparando…</p><div class="barra"><i id="bk_b"></i></div></div>`;document.body.appendChild(m);
@@ -3063,7 +3063,8 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
       if(enMes){cj+=q/bu;mg+=q*(pu-cu);vta+=q*pu;cl.add(o.cliente_id);if(sA&&dia>=sA&&dia<=sB)cjS+=q/bu;else if(sA&&dia<sA)cjAntesS+=q/bu}}
     if(tJL>0)(U[o.cliente_id]=U[o.cliente_id]||[]).push(dia)}
   const fijos=G.items.reduce((s,x)=>s+(+x.m||0),0)*((+C.pct||100)/100),limpio=mg-fijos,meta=+C.meta;
-  const cat=[...ids].map(id=>{const p=S.productos.find(x=>x.producto_id==id);return(precioLista(id,'mayorista')-(+p?.costo||0))*(S.min[id]?.b||1)}).filter(x=>x>0),mbCat=cat.length?cat.reduce((s,x)=>s+x,0)/cat.length:8000;
+  const chico=id=>/\b(65|85)\s*g\b/i.test(S.productos.find(x=>x.producto_id==id)?.descripcion||''),foco=C.foco=='chicos'&&[...ids].some(chico);
+  const cat=[...ids].filter(id=>!foco||chico(id)).map(id=>{const p=S.productos.find(x=>x.producto_id==id);return(precioLista(id,'mayorista')-(+p?.costo||0))*(S.min[id]?.b||1)}).filter(x=>x>0),mbCat=cat.length?cat.reduce((s,x)=>s+x,0)/cat.length:8000;
   const mb=cj>=3&&mg>0?mg/cj:mbCat,faltaMg=Math.max(0,meta+fijos-mg),faltaCj=Math.ceil(faltaMg/mb);
   const hab=(d1,d2)=>{let n=0;for(let d=d1;d<=d2;d++)if(new Date(Y,M,d).getDay()!=0)n++;return n};
   const habTot=hab(1,dm),habPas=Math.max(1,hab(1,dh-1)+(hoy.getHours()>=14?1:0)),habRest=Math.max(1,hab(dh,dm)),visitas=Math.max(1,Math.round(habRest/2)),proyLimpio=mg/habPas*habTot-fijos,ok=proyLimpio>=meta;
@@ -3084,10 +3085,10 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
   const pvV=Math.ceil(faltaSem/visSem),R=30,CI=2*Math.PI*R,ring=(f,t)=>`<svg class="mjr" viewBox="0 0 76 76" aria-hidden="true"><circle cx="38" cy="38" r="${R}" class="tr"/>${f>0?`<circle cx="38" cy="38" r="${R}" class="fl" stroke-dasharray="${(CI*f).toFixed(1)} ${CI.toFixed(1)}"/>`:''}<text x="38" y="43" text-anchor="middle">${t}</text></svg>`;
   const hero=faltaMg<=0?`<div class="mjh ok"><div><div class="ey">Objetivo de ${esc(mes.toLowerCase())}</div><div class="mjhn">Cumplido</div><div class="hs">Vas ${m0(limpio-meta)} arriba de la meta. Lo que sumes ya es extra.</div></div></div>`
     :semIni?`<div class="mjh">${ring(pcS,Math.round(pcS*100)+'%')}<div><div class="ey">${semTit}</div><div class="mjhn">${nf(Math.round(cjS))}<span> / ${nf(objSem)} cajas</span></div>
-      <div class="hs">${faltaSem>0?`${nf(pvV)} cajas por visita · ${visSem} visita${visSem==1?'':'s'}`:'Semana cumplida. Lo que sumes adelanta el mes.'}</div>${realista?'':'<span class="pill">Foco: cubrir gastos</span>'}</div></div>`
+      <div class="hs">${faltaSem>0?`${nf(pvV)} cajas por visita · ${visSem} visita${visSem==1?'':'s'}`:'Semana cumplida. Lo que sumes adelanta el mes.'}</div>${realista?'':'<span class="pill">Foco: cubrir gastos</span>'}${foco&&pocas?'<span class="pill">65 y 85 g</span>':''}</div></div>`
     :`<div class="mjh"><div><div class="ey">${esc(mes)}</div><div class="mjhn">${nf(faltaCj)}<span> cajas por vender</span></div></div></div>`;
   const aviso=realista?'':`<div class="mja"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5"/><path d="M10 9v5M10 6.2v.1"/></svg><span>La meta de ${m0(meta)} no da en ${esc(mes.toLowerCase())}: serían ${nf(Math.ceil(Math.max(0,cjMetaMes-cjAntesHoy)/visitas))} cajas por visita. ${cj>=cjGasMes?'Gastos ya cubiertos: lo que vendas es limpio.':'Este mes, cubrí los gastos; la meta grande va el mes que viene.'}</span></div>`;
-  const nota=faltaMg<=0?'':pocas?`Estimado con ${m0(mbCat)} de ganancia promedio por caja.${!cubre&&realista?` Con ${nf(Math.ceil((fijos-mg)/mb))} cajas cubrís los gastos.`:''}`
+  const nota=faltaMg<=0?'':pocas?`Estimado con ${m0(mbCat)} de ganancia por caja${foco?' (65 y 85 g)':' (promedio de toda la línea)'}. <a class="lnk" id="mj_f">${foco?'Usar toda la línea':'Calcular con 65 y 85 g'}</a>${!cubre&&realista?` Con ${nf(Math.ceil((fijos-mg)/mb))} cajas cubrís los gastos.`:''}`
       :`Cada caja te deja ${m0(mb)}. A este ritmo cerrás ${esc(mes.toLowerCase())} con <b class="${ok?'sube':'baja'}">${m0(proyLimpio)}</b> limpios.`;
   box.innerHTML=`<div class="box obj mj"><div class="mjtop"><div><div class="ey">Maní JL</div><div class="tt">${esc(mes)}</div></div><button class="mjmeta" id="mj_e" aria-label="Cambiar meta"><small>Meta limpia</small><b>${m0(meta)}</b><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16H4v-3z"/></svg></button></div>
     <div id="mj_h" role="button" tabindex="0" aria-expanded="${abierto}" style="cursor:pointer">${hero}</div>
@@ -3105,6 +3106,7 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
         :'<p class="mjn">Cuando haya ventas, acá aparecen los clientes a los que les toca reponer JL y los que compran mucho y no lo llevan.</p>'}</div></div></div>`;
   const plegar=()=>{const d=$('#mj_d'),ab=d.hidden;d.hidden=!ab;try{localStorage.setItem('mj_abierto',ab?'1':'0')}catch(e){}$('#mj_h').setAttribute('aria-expanded',ab);$('#mj_t').innerHTML=(ab?'Ocultar detalle':'Ver detalle del mes')+' <span>'+(ab?'▴':'▾')+'</span>'};
   $('#mj_h').onclick=plegar;$('#mj_t').onclick=plegar;
+  const bf=$('#mj_f');if(bf)bf.onclick=async()=>{const{error}=await guardaCfgJ('mani_jl',{...C,foco:foco?'todo':'chicos'});error?toast(error.message,1):maniJLInicio()};
   $$('#manijl [data-mjp]').forEach(bt=>bt.onclick=()=>{const x=VIS.find(y=>y.c.id==bt.dataset.mjp);S.preCli=x.c;S.preItems=x.it&&x.it.length?x.it:null;S.tab='pedidos';shell()});
   $('#mj_e').onclick=pedirMeta}
 
