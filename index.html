@@ -198,7 +198,7 @@ tr.clic{cursor:pointer}tr.clic:hover td{background:#f6e9ec}
 .ped.est-pendiente{border-left-color:#c58a00}.ped.est-aprobado,.ped.est-en_preparacion,.ped.est-listo,.ped.est-en_reparto{border-left-color:#2f5ea8}.ped.est-entregado{border-left-color:var(--ok)}.ped.est-cancelado{border-left-color:#b9bfcc;opacity:.7}
 .ped-top{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}.ped-top .cli{flex:1;min-width:0}.ped-top .tot{font-weight:700;font-variant-numeric:tabular-nums}
 .ped-acc{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.ped-acc button{padding:6px 12px;font-size:14px}
-.pmas{position:relative}.ped-acc .pmas .masc{left:0;right:auto;top:36px}.pmas>summary{list-style:none;cursor:pointer;padding:6px 12px;border:1px solid var(--l);border-radius:8px;font-size:14px;background:#fff}.pmas>summary::-webkit-details-marker{display:none}
+.pmas{position:relative}.ped-acc .pmas .masc{left:0;right:auto;top:36px}.pmas>summary{list-style:none;cursor:pointer;padding:6px 12px;letter-spacing:1px;font-weight:700;color:var(--m);border:1px solid var(--l);border-radius:8px;font-size:14px;background:#fff}.pmas>summary::-webkit-details-marker{display:none}
 .pmas .masc{display:flex;flex-direction:column;gap:6px;position:absolute;right:0;z-index:20;background:#fff;border:1px solid var(--l);border-radius:10px;padding:8px;box-shadow:0 6px 18px rgba(0,0,0,.15);min-width:200px}
 .pmas .masc button,.pmas .masc select{width:100%;text-align:left}
 .ped-acc select.mas{width:auto;margin:0;padding:6px;font-size:14px}
@@ -377,6 +377,9 @@ small>.skl,td>.skl{min-height:16px;border-radius:6px}
   .fc-volp{display:none}
   header{padding:4px 10px!important}
   .hlogo{height:40px!important}
+  .ped-acc{gap:5px}.ped-acc button{padding:6px 10px}.ped-acc .pwa{width:38px}.pmas>summary{padding:6px 9px}
+  header .hn2{display:none}header .hn{display:inline!important;font-size:17px;font-weight:700;color:#fff;white-space:nowrap;margin-left:6px;letter-spacing:.2px}
+  header b{display:flex;align-items:center;min-width:0}
   .hback{width:36px!important;height:36px!important}
   header .umenu summary{width:34px;height:34px;font-size:15px}
 }
@@ -893,6 +896,6 @@ html.oscuro .vrow,html.oscuro .rrow{background:#18202f}
 <div id="app"><div class="splash"><img src="logo.png" alt="Sabores de mi País"><i></i></div></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
-<script src="app.js?v=2026-10-25.1"></script>
+<script src="app.js?v=2026-10-25.2"></script>
 </body>
 </html>
