@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-25.13';
+const VERSION='2026-10-25.14';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -322,14 +322,14 @@ async function vInicio(){
   // 3 deuda clientes
   if(fe.error){fallo('k3',fe.error);$('#t2').innerHTML='<p class="err">'+esc(fe.error.message)+'</p>'}else{
     const F=fe.data,tot=F.reduce((a,x)=>a+Number(x.pendiente||0),0),V=F.filter(x=>x.dias_mora>0),tv=V.reduce((a,x)=>a+Number(x.pendiente||0),0);
-    kp('k3',$m(tot),V.length?'Vencido: '+$m(tv)+' en '+V.length+(V.length==1?' factura':' facturas'):tot>0?'Nada vencido':'Nadie te debe',V.length?'alerta':'');$('#k3').classList.toggle('vacio',!(tot>0));
+    kp('k3',$m(tot),V.length?'Vencido: '+$m(tv)+' en '+V.length+(V.length==1?' factura':' facturas'):tot>0?'Nada vencido':'Nadie te debe',V.length?'alerta':'');$('#k3').classList.toggle('vacio',!(tot>0));kpCeros();
     V.sort((a,b)=>b.dias_mora-a.dias_mora);
     $('#t2').dataset.pend=V.length;$('#t2').innerHTML=V.length?'<table><tr><th>Cliente</th><th>Factura</th><th>Mora</th><th class="n">Debe</th></tr>'+V.slice(0,8).map(x=>`<tr><td>${cli(x.cliente_id)}</td><td>${x.tipo} ${x.numero}</td><td class="mora">${x.dias_mora} días</td><td class="n">${$m(x.pendiente)}</td></tr>`).join('')+'</table>'+(V.length>8?`<small>Y ${V.length-8} más.</small>`:'')+'<p><button class="alt" id="irC">Ir a Cobranza</button></p>':'<p><small>Ningún cliente tiene facturas vencidas.</small></p>';
     $('#irC')&&($('#irC').onclick=()=>{S.tab='cobranza';shell()})}
   // 4 proveedores
   if(sp.error)fallo('k4',sp.error);else{
     const D=sp.data.filter(x=>Number(x.saldo)>0.005),tot=D.reduce((a,x)=>a+Number(x.saldo),0);
-    kp('k4',$m(tot),D.length?D.length+(D.length==1?' proveedor':' proveedores'):'Sin deudas');$('#k4').classList.toggle('vacio',!(tot>0))}
+    kp('k4',$m(tot),D.length?D.length+(D.length==1?' proveedor':' proveedores'):'Sin deudas');$('#k4').classList.toggle('vacio',!(tot>0));kpCeros()}
   if(fp.error)$('#t3').innerHTML='<p class="err">'+esc(fp.error.message)+'</p>';else{
     const sal=id=>Number(sp.data?.find(x=>x.proveedor_id==id)?.saldo||0);
     const L=fp.data.filter(f=>f.tipo!='NC'&&sal(f.proveedor_id)>0.005);
@@ -341,7 +341,7 @@ async function vInicio(){
   if(!S.stockOk){kp('k5','—','No se pudo leer el stock');$('#t4').innerHTML='<p class="err">No se pudo leer el stock. Corré stock.sql en Supabase.</p>'}else{
     if(!S.inv){const{data:E}=await sb.from('pedidos').select('total').in('estado',['aprobado','en_preparacion','listo','en_reparto']);const n=(E||[]).length,te=(E||[]).reduce((a,o)=>a+Number(o.total||0),0);
       const b5=$('#k5');b5.querySelector('.lab').textContent='🚚 Para entregar';b5.style.cursor='pointer';b5.title='Ver los pedidos para entregar';b5.onclick=()=>irPed('abiertos');
-      kp('k5',String(n),n?'Suman '+$m(te):'Nada pendiente');b5.classList.toggle('vacio',!n);$('#t4').innerHTML='<p><small>Todavía no cargaste el inventario. Cuando hagas el conteo, cargalo en la pestaña Stock y acá vas a ver qué reponer.</small></p><p><button class="alt" id="irS">Ir a Stock</button></p>';$('#irS').onclick=()=>{S.tab='stock';shell()};return}
+      kp('k5',String(n),n?'Suman '+$m(te):'Nada pendiente');b5.classList.toggle('vacio',!n);kpCeros();$('#t4').innerHTML='<p><small>Todavía no cargaste el inventario. Cuando hagas el conteo, cargalo en la pestaña Stock y acá vas a ver qué reponer.</small></p><p><button class="alt" id="irS">Ir a Stock</button></p>';$('#irS').onclick=()=>{S.tab='stock';shell()};return}
     const B=bajos();
     kp('k5',String(B.length),B.length?(B.filter(x=>x.d<=0).length+' sin stock'):'Todo sobre el mínimo',B.length?'alerta':'ok');
     $('#t4').dataset.pend=B.length;$('#t4').innerHTML=B.length?'<table><tr><th>Producto</th><th class="n">Disp.</th><th class="n">Mín.</th></tr>'+B.slice(0,8).map(x=>`<tr><td>${esc(x.p.descripcion)}</td><td class="n ${x.d<=0?'mora':''}">${nf(x.d)}</td><td class="n">${nf(x.m)}</td></tr>`).join('')+'</table>'+(B.length>8?`<small>Y ${B.length-8} más.</small>`:'')+'<p><button class="alt" id="irS">Ir a Stock</button></p>':'<p><small>Ningún producto está por debajo de su mínimo.</small></p>';
@@ -462,6 +462,11 @@ const BK_TABLAS=[['Clientes','clientes'],['Productos y precios','precios_product
   ['Cuentas','cuentas'],['Movimientos de cuentas','movimientos_cuenta'],['Cheques','cheques'],['Retenciones','retenciones'],['Pedidos fijos','pedidos_fijos'],['Prospectos','prospectos'],['Notas de crédito','notas_credito'],['Vencimientos','vencimientos'],['Combos','combos'],['Contactos con clientes','contactos_clientes'],
   ['Encuestas','encuestas'],['Cupones','cupones'],['Cupones usados','cupones_usos'],['Puntos','puntos_mov'],['Presupuestos','presupuestos'],
   ['Carritos guardados','carritos'],['Avisos de stock','avisos_stock'],['Búsquedas sin resultado','busquedas'],['Precios pactados','precios_cliente'],['Precios de la competencia','precios_competencia'],['Muestras','muestras'],['Visitas al catálogo','vistas_catalogo'],['Reclamos','reclamos'],['Productos que piden','pedidos_sugeridos'],['Preventas','preventas'],['Reservas','reservas'],['Exhibidores','comodatos'],['Fraccionados','fraccionados'],['Combustible','cargas_combustible'],['Promesas de pago','promesas_pago'],['Documentos (lista)','documentos_cliente'],['Le debemos','pendientes_cliente'],['Repartos','repartos_dia'],['Fotos de góndola (lista)','fotos_cliente'],['Comprobantes recibidos','comprobantes_cliente'],['Votos','votos_producto']];
+/* Inicio simple: si deudas, proveedores y entregas están en cero, un solo renglón en vez de tres */
+function kpCeros(){if(!$('.kphoy'))return;const ks=['k3','k4','k5'].map(i=>document.getElementById(i)).filter(Boolean);if(ks.length<3)return;
+  const todos=ks.every(b=>b.classList.contains('vacio'));let t=document.getElementById('kcero');
+  if(todos){ks.forEach(b=>b.style.setProperty('display','none','important'));if(!t){t=document.createElement('div');t.id='kcero';t.className='box vacio';t.innerHTML=`<span class="lab">${IC('check',16)} Todo al día</span><span class="det">Sin deudas ni entregas</span>`;ks[2].after(t)}}
+  else{ks.forEach(b=>b.style.removeProperty('display'));if(t)t.remove()}}
 /* Numerito en los plegables del inicio: cuántas cosas hay adentro sin abrirlos */
 function badgePlg(){$$('details.plg').forEach(d=>{const sm=d.querySelector('summary');if(!sm)return;let n=0,hay=false;d.querySelectorAll('[data-pend]').forEach(e=>{hay=true;n+=+e.dataset.pend||0});
   let b=sm.querySelector('.pb');if(!hay){if(b)b.remove();return}if(!b){b=document.createElement('span');b.className='pb';sm.appendChild(b)}const t=n?String(n):'al día';if(b.textContent!==t)b.textContent=t;b.classList.toggle('cero',!n)})}
