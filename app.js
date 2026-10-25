@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-25.4';
+const VERSION='2026-10-25.5';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -3050,11 +3050,19 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
   const mb=cj>=3&&mg>0?mg/cj:mbCat,faltaMg=Math.max(0,meta+fijos-mg),faltaCj=Math.ceil(faltaMg/mb);
   const hab=(d1,d2)=>{let n=0;for(let d=d1;d<=d2;d++)if(new Date(hoy.getFullYear(),hoy.getMonth(),d).getDay()!=0)n++;return n};
   const habTot=hab(1,dm),habPas=Math.max(1,hab(1,dh-1)+(hoy.getHours()>=14?1:0)),habRest=Math.max(1,hab(dh,dm)),visitas=Math.max(1,Math.round(habRest/2)),proyLimpio=mg/habPas*habTot-fijos,ok=proyLimpio>=meta;
-  box.innerHTML=`<div class="box obj"><div class="bh"><h3 style="margin:0">🥜 Maní JL: ${$m(meta)} limpios en ${esc(mesNom(m).toLowerCase())}</h3><a class="lnk" id="mj_e">Cambiar</a></div>
-    <div class="obar"><i style="width:${(pc*100).toFixed(1)}%" class="${pc>=1?'lleno':''}"></i><span class="hoy" style="left:${(dh/dm*100).toFixed(1)}%" title="Hoy"></span></div>
-    <div class="ofila"><span>Te quedan limpios <b class="${limpio<0?'baja':''}">${$m(limpio)}</b> (${Math.round(limpio/meta*100)} %)</span><span>${faltaMg<=0?'<b class="sube">¡Objetivo cumplido! 🎉</b>':'Faltan <b>'+nf(faltaCj)+' cajas</b> · <b>'+nf(Math.ceil(faltaCj/visitas))+'</b> por visita (te quedan '+visitas+' visitas)'}</span></div>
-    <div class="ofila"><span>Vendiste <b>${nf(Math.round(cj))}</b> cajas a ${cl.size} cliente${cl.size==1?'':'s'} (${$m(vta)})</span><span>Margen ${$m(mg)} − gastos ${$m(fijos)}</span></div>
-    <p><small>${faltaMg<=0?'Vas '+$m(limpio-meta)+' arriba del objetivo.':(cj<3?'Todavía hay pocas ventas: estimo con el margen promedio del catálogo ('+$m(mbCat)+' por caja). ':'Cada caja te está dejando '+$m(mb)+'. ')+'A este ritmo cerrás con <b class="'+(ok?'sube':'baja')+'">'+$m(proyLimpio)+'</b> limpios'+(ok?': llegás. 💪':': <b>no llegás</b>.')}</small></p></div>`;
+  const m0=n=>(n<0?'−':'')+'$ '+Math.round(Math.abs(n)).toLocaleString('es-AR'),obj=meta+fijos,pcG=Math.max(0,Math.min(1,mg/obj)),pcF=fijos>0?Math.min(1,fijos/obj):0,mes=mesNom(m).split(' ')[0],cubre=mg>=fijos,pocas=cj<3;
+  const pasos=faltaMg<=0?'<b class="sube">¡Objetivo cumplido! 🎉</b> Vas '+m0(limpio-meta)+' arriba.'
+    :`Te faltan <b>${nf(faltaCj)} cajas</b> → <b>${nf(Math.ceil(faltaCj/visitas))} por visita</b> en las ${visitas} visita${visitas==1?'':'s'} que quedan`;
+  box.innerHTML=`<div class="box obj mj"><div class="bh"><h3 style="margin:0">🥜 Maní JL · ${esc(mes)}</h3><a class="lnk" id="mj_e">Cambiar meta</a></div>
+    <div class="mjm">Meta: <b>${m0(meta)}</b> limpios</div>
+    <div class="obar mjb"><i style="width:${(pcG*100).toFixed(1)}%" class="${pcG>=1?'lleno':''}"></i>${pcF>0&&pcF<1?`<span class="gf" style="left:${(pcF*100).toFixed(1)}%"></span>`:''}</div>
+    ${pcF>0&&pcF<1?`<div class="mjl"><span style="left:${(pcF*100).toFixed(1)}%">${cubre?'✓ Gastos cubiertos':'Acá cubrís gastos'}</span><span style="right:0">Meta</span></div>`:''}
+    <div class="mjk"><div><small>Vendiste</small><b>${nf(Math.round(cj))} cajas</b><small>${cl.size} cliente${cl.size==1?'':'s'} · ${m0(vta)}</small></div>
+      <div><small>Ganancia</small><b>${m0(mg)}</b><small>gastos ${m0(fijos)}</small></div>
+      <div><small>Te queda limpio</small><b class="${limpio<0?'baja':limpio>=meta?'sube':''}">${m0(limpio)}</b><small>${limpio<0?'falta cubrir gastos':Math.round(limpio/meta*100)+' % de la meta'}</small></div></div>
+    <div class="mjp">${pasos}</div>
+    <p><small>${faltaMg<=0?'':pocas?`Todavía ${cj?'hay pocas ventas':'no vendiste JL'} este mes: calculo con lo que deja una caja en promedio (${m0(mbCat)}).${!cubre?` Con ${nf(Math.ceil((fijos-mg)/mb))} cajas cubrís los gastos.`:''}`
+      :`Cada caja te está dejando ${m0(mb)}. A este ritmo cerrás ${esc(mes.toLowerCase())} con <b class="${ok?'sube':'baja'}">${m0(proyLimpio)}</b> limpios${ok?': llegás. 💪':'.'}`}</small></p></div>`;
   $('#mj_e').onclick=pedirMeta}
 
 /* ======================= VENDEDORES Y COMISIONES (Reportes) ======================= */
