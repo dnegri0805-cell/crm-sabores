@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-25.5';
+const VERSION='2026-10-25.6';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -3040,29 +3040,60 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
   const pedirMeta=async()=>{const x=prompt('¿Cuánto querés que te quede LIMPIO por mes con Maní JL? (en pesos, después de los gastos fijos):',C.meta?String(C.meta):'2000000');if(x===null)return;const n=numAR(x);if(!(n>0))return toast('Escribí un importe, por ejemplo 2000000.',1);
     const{error}=await guardaCfgJ('mani_jl',{...C,meta:n});error?toast(error.message,1):(toast('Objetivo de Maní JL guardado.'),maniJLInicio())};
   if(!(C.meta>0)){box.innerHTML=`<div class="box obj"><div class="bh"><h3 style="margin:0">🥜 Maní JL</h3><button class="alt" id="mj_e">Poner objetivo</button></div><p><small>Decime cuánto querés que te quede limpio por mes y te voy mostrando, con las ventas reales, cuántas cajas te faltan.</small></p></div>`;$('#mj_e').onclick=pedirMeta;return}
-  const m=mesHoy(),[a,b]=mesRango(m),hoy=new Date(),dh=hoy.getDate(),dm=new Date(hoy.getFullYear(),hoy.getMonth()+1,0).getDate();
+  const m=mesHoy(),[a,b]=mesRango(m),hoy=new Date(),dh=hoy.getDate(),dm=new Date(hoy.getFullYear(),hoy.getMonth()+1,0).getDate(),Y=hoy.getFullYear(),M=hoy.getMonth();
   const ids=new Set(S.productos.filter(p=>S.min[p.producto_id]?.pv==jl.id).map(p=>p.producto_id));
-  const{data:pe}=await todo(()=>sb.from('pedidos').select('cliente_id,creado_en,pedido_items(*)').neq('estado','cancelado').gte('creado_en',tsAR(a)).lt('creado_en',tsAR(b)).order('numero'));
-  let cj=0,mg=0,vta=0;const cl=new Set();
-  for(const o of pe||[])for(const i of o.pedido_items||[]){if(!ids.has(i.producto_id))continue;const q=+i.cantidad||0,pr=S.productos.find(p=>p.producto_id==i.producto_id),cu=+i.costo_unitario||+(pr?.costo||0),pu=+i.precio_unitario||0,bu=S.min[i.producto_id]?.b||1;cj+=q/bu;mg+=q*(pu-cu);vta+=q*pu;cl.add(o.cliente_id)}
-  const fijos=G.items.reduce((s,x)=>s+(+x.m||0),0)*((+C.pct||100)/100),limpio=mg-fijos,meta=+C.meta,pc=Math.max(0,Math.min(1,limpio/meta));
+  const d0=new Date(hoy);d0.setDate(d0.getDate()-120);const desde=diaLocal(d0)<a?diaLocal(d0):a;
+  const{data:pe}=await todo(()=>sb.from('pedidos').select('cliente_id,creado_en,total,pedido_items(producto_id,cantidad,precio_unitario,costo_unitario)').neq('estado','cancelado').gte('creado_en',tsAR(desde)).lt('creado_en',tsAR(b)).order('numero'));
+  /* semana: lunes a sábado; el domingo ya muestra la semana que viene. Recortada al mes. */
+  const dow=hoy.getDay(),lun=new Date(Y,M,dh+(dow==0?1:1-dow)),sab=new Date(lun.getFullYear(),lun.getMonth(),lun.getDate()+5);
+  const semIni=lun.getMonth()==M?lun.getDate():lun<hoy&&sab.getMonth()==M?1:null,semFin=semIni?(sab.getMonth()==M?sab.getDate():dm):null;
+  const dS=d=>diaLocal(new Date(Y,M,d)),sA=semIni?dS(semIni):null,sB=semIni?dS(semFin):null;
+  let cj=0,mg=0,vta=0,cjS=0,cjAntesS=0;const cl=new Set(),U={},T={},jlProd={};
+  for(const o of pe||[]){const dia=diaLocal(o.creado_en),enMes=dia>=a;let tJL=0;
+    if(dia>=diaLocal(new Date(Y,M,dh-90)))T[o.cliente_id]=(T[o.cliente_id]||0)+(+o.total||0);
+    for(const i of o.pedido_items||[]){if(!ids.has(i.producto_id))continue;const q=+i.cantidad||0,pr=S.productos.find(p=>p.producto_id==i.producto_id),cu=+i.costo_unitario||+(pr?.costo||0),pu=+i.precio_unitario||0,bu=S.min[i.producto_id]?.b||1;
+      tJL+=q;(jlProd[o.cliente_id]=jlProd[o.cliente_id]||new Set()).add(i.producto_id);
+      if(enMes){cj+=q/bu;mg+=q*(pu-cu);vta+=q*pu;cl.add(o.cliente_id);if(sA&&dia>=sA&&dia<=sB)cjS+=q/bu;else if(sA&&dia<sA)cjAntesS+=q/bu}}
+    if(tJL>0)(U[o.cliente_id]=U[o.cliente_id]||[]).push(dia)}
+  const fijos=G.items.reduce((s,x)=>s+(+x.m||0),0)*((+C.pct||100)/100),limpio=mg-fijos,meta=+C.meta;
   const cat=[...ids].map(id=>{const p=S.productos.find(x=>x.producto_id==id);return(precioLista(id,'mayorista')-(+p?.costo||0))*(S.min[id]?.b||1)}).filter(x=>x>0),mbCat=cat.length?cat.reduce((s,x)=>s+x,0)/cat.length:8000;
   const mb=cj>=3&&mg>0?mg/cj:mbCat,faltaMg=Math.max(0,meta+fijos-mg),faltaCj=Math.ceil(faltaMg/mb);
-  const hab=(d1,d2)=>{let n=0;for(let d=d1;d<=d2;d++)if(new Date(hoy.getFullYear(),hoy.getMonth(),d).getDay()!=0)n++;return n};
+  const hab=(d1,d2)=>{let n=0;for(let d=d1;d<=d2;d++)if(new Date(Y,M,d).getDay()!=0)n++;return n};
   const habTot=hab(1,dm),habPas=Math.max(1,hab(1,dh-1)+(hoy.getHours()>=14?1:0)),habRest=Math.max(1,hab(dh,dm)),visitas=Math.max(1,Math.round(habRest/2)),proyLimpio=mg/habPas*habTot-fijos,ok=proyLimpio>=meta;
+  /* meta de la semana: lo que faltaba al empezar la semana, repartido en los días hábiles que quedaban del mes */
+  const cjObjMes=Math.ceil((meta+fijos)/mb),habSem=semIni?hab(semIni,semFin):0,habDesdeSem=semIni?Math.max(1,hab(semIni,dm)):1;
+  const faltabaAlLunes=Math.max(0,cjObjMes-Math.round(cjAntesS)),objSem=semIni?Math.ceil(faltabaAlLunes*habSem/habDesdeSem):0;
+  const hoyIdx=Math.max(semIni||1,dh+(dow==0?1:0)),habSemRest=semIni?Math.max(0,hab(Math.min(hoyIdx,semFin+1),semFin)):0,visSem=Math.max(1,Math.ceil(habSemRest/2)),faltaSem=Math.max(0,objSem-Math.round(cjS)),pcS=objSem?Math.min(1,cjS/objSem):0;
   const m0=n=>(n<0?'−':'')+'$ '+Math.round(Math.abs(n)).toLocaleString('es-AR'),obj=meta+fijos,pcG=Math.max(0,Math.min(1,mg/obj)),pcF=fijos>0?Math.min(1,fijos/obj):0,mes=mesNom(m).split(' ')[0],cubre=mg>=fijos,pocas=cj<3;
-  const pasos=faltaMg<=0?'<b class="sube">¡Objetivo cumplido! 🎉</b> Vas '+m0(limpio-meta)+' arriba.'
-    :`Te faltan <b>${nf(faltaCj)} cajas</b> → <b>${nf(Math.ceil(faltaCj/visitas))} por visita</b> en las ${visitas} visita${visitas==1?'':'s'} que quedan`;
+  const mesC=mes.slice(0,3).toLowerCase(),semTit=semIni?(dow==0&&lun>hoy?'Semana que viene':'Esta semana')+` · ${semIni==semFin?semIni:semIni+' al '+semFin} ${mesC}`:'';
+  /* a quién visitar */
+  const hoyS=diaLocal(hoy),dd=(x,y)=>Math.round((new Date(y+'T12:00')-new Date(x+'T12:00'))/864e5),act=S.clientes.filter(c=>c.activo!==false);
+  const V=[];for(const c of act){const L=[...new Set(U[c.id]||[])].sort();
+    if(L.length){const ult=L[L.length-1],hace=dd(ult,hoyS);if(sA&&ult>=sA)continue;const gaps=L.slice(1).map((x,k)=>dd(L[k],x)).filter(g=>g>0),cada=gaps.length?Math.round(gaps.reduce((s,g)=>s+g,0)/gaps.length):21;
+      if(hace>=Math.max(7,cada*.85))V.push({c,pri:hace/cada+1,why:`Le toca reponer: compró JL hace ${hace} días${gaps.length?` (suele cada ${cada})`:''}`,it:[...(jlProd[c.id]||[])]})}
+    else if((T[c.id]||0)>0)V.push({c,pri:(T[c.id]||0)/1e9,why:`Te compra ${m0(T[c.id]/3)} por mes y todavía no lleva JL`,it:null})}
+  V.sort((x,y)=>y.pri-x.pri);const VIS=V.slice(0,6);
+  const pasos=faltaMg<=0?'<b class="sube">¡Objetivo del mes cumplido! 🎉</b> Vas '+m0(limpio-meta)+' arriba.'
+    :semIni?`<div class="mjsh"><span>${semTit}</span>${objSem&&cjS>=objSem?'<b class="sube">✓ Cumplida</b>':''}</div>
+      <div class="mjsn"><b>${nf(Math.round(cjS))}</b> <span>de ${nf(objSem)} cajas</span></div>
+      <div class="obar mjsb"><i style="width:${(pcS*100).toFixed(1)}%" class="${pcS>=1?'lleno':''}"></i></div>
+      <div class="mjsx">${faltaSem>0?`Faltan <b>${nf(faltaSem)}</b> · <b>${nf(Math.ceil(faltaSem/visSem))} cajas por visita</b> (${visSem} visita${visSem==1?'':'s'})`:'Ya hiciste las cajas de la semana. Todo lo que sumes adelanta la meta.'}</div>`
+    :`Te faltan <b>${nf(faltaCj)} cajas</b> este mes.`;
   box.innerHTML=`<div class="box obj mj"><div class="bh"><h3 style="margin:0">🥜 Maní JL · ${esc(mes)}</h3><a class="lnk" id="mj_e">Cambiar meta</a></div>
-    <div class="mjm">Meta: <b>${m0(meta)}</b> limpios</div>
+    <div class="mjm">Meta del mes: <b>${m0(meta)}</b> limpios · ${nf(cjObjMes)} cajas</div>
+    <div class="mjp">${pasos}</div>
+    <div class="mjt">Mes</div>
     <div class="obar mjb"><i style="width:${(pcG*100).toFixed(1)}%" class="${pcG>=1?'lleno':''}"></i>${pcF>0&&pcF<1?`<span class="gf" style="left:${(pcF*100).toFixed(1)}%"></span>`:''}</div>
     ${pcF>0&&pcF<1?`<div class="mjl"><span style="left:${(pcF*100).toFixed(1)}%">${cubre?'✓ Gastos cubiertos':'Acá cubrís gastos'}</span><span style="right:0">Meta</span></div>`:''}
     <div class="mjk"><div><small>Vendiste</small><b>${nf(Math.round(cj))} cajas</b><small>${cl.size} cliente${cl.size==1?'':'s'} · ${m0(vta)}</small></div>
       <div><small>Ganancia</small><b>${m0(mg)}</b><small>gastos ${m0(fijos)}</small></div>
       <div><small>Te queda limpio</small><b class="${limpio<0?'baja':limpio>=meta?'sube':''}">${m0(limpio)}</b><small>${limpio<0?'falta cubrir gastos':Math.round(limpio/meta*100)+' % de la meta'}</small></div></div>
-    <div class="mjp">${pasos}</div>
-    <p><small>${faltaMg<=0?'':pocas?`Todavía ${cj?'hay pocas ventas':'no vendiste JL'} este mes: calculo con lo que deja una caja en promedio (${m0(mbCat)}).${!cubre?` Con ${nf(Math.ceil((fijos-mg)/mb))} cajas cubrís los gastos.`:''}`
-      :`Cada caja te está dejando ${m0(mb)}. A este ritmo cerrás ${esc(mes.toLowerCase())} con <b class="${ok?'sube':'baja'}">${m0(proyLimpio)}</b> limpios${ok?': llegás. 💪':'.'}`}</small></p></div>`;
+    <p><small>${faltaMg<=0?'':pocas?`Calculo con lo que deja una caja en promedio (${m0(mbCat)}).${!cubre?` Con ${nf(Math.ceil((fijos-mg)/mb))} cajas cubrís los gastos.`:''}`
+      :`Cada caja te está dejando ${m0(mb)}. A este ritmo cerrás ${esc(mes.toLowerCase())} con <b class="${ok?'sube':'baja'}">${m0(proyLimpio)}</b> limpios${ok?': llegás. 💪':'.'}`}</small></p>
+    <div class="mjv"><div class="mjt">A quién visitar${VIS.length?` <small>· ${VIS.length} sugerido${VIS.length==1?'':'s'}</small>`:''}</div>
+      ${VIS.length?VIS.map(x=>`<div class="mjc"><div><b>${esc(x.c.razon_social||'Cliente')}</b><small>${esc(x.why)}</small></div><button class="alt" data-mjp="${x.c.id}">Pedido</button></div>`).join('')
+        :'<p><small>Todavía no hay a quién sugerir: cuando tus clientes vayan comprando, acá te aparecen los que les toca reponer JL y los que compran mucho y no lo llevan.</small></p>'}</div></div>`;
+  $$('#manijl [data-mjp]').forEach(bt=>bt.onclick=()=>{const x=VIS.find(y=>y.c.id==bt.dataset.mjp);S.preCli=x.c;S.preItems=x.it&&x.it.length?x.it:null;S.tab='pedidos';shell()});
   $('#mj_e').onclick=pedirMeta}
 
 /* ======================= VENDEDORES Y COMISIONES (Reportes) ======================= */
