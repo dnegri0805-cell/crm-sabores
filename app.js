@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-25.2';
+const VERSION='2026-10-25.3';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -276,12 +276,12 @@ async function vInicio(){
   </div>`;
   $('#v').innerHTML=`<div class="bh ini-h" style="flex-wrap:wrap;gap:8px"><div><h2 style="margin:0">${hr<5?'Buenas noches':hr<13?'Buen día':hr<20?'Buenas tardes':'Buenas noches'}${S.perfil.nombre?', '+esc(String(S.perfil.nombre).trim().split(/\s+/)[0]):''}</h2><small class="ini-f">${hoyD.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}</small></div>
     ${dia?'':'<button class="alt" data-iv="dia">← Volver al inicio simple</button>'}</div>
-  ${dia?`${principalesHTML(false)}${kpH}`:`
+  ${dia?`${principalesHTML(false)}${kpH}<div id="manijl"></div>`:`
   ${principalesHTML()}<div id="bk"></div><div id="dlr"></div><div id="chk"></div><div id="cmpi"></div><div id="cami"></div><div id="equi"></div><div id="doci"></div><div id="midia"></div><div id="mani"></div><div id="resd"></div><div id="tari"></div>
   <div class="herr" id="herr"></div>
   <div id="alm"></div>
   <div id="empi"></div><div id="metai"></div><div id="colai"></div><div id="plani"></div><div id="toca"></div><div id="fidel"></div><div id="masi"></div><div id="creci"></div><div id="servi"></div><div id="fieli"></div><div id="fechas"></div>
-  <div id="obj"></div>`}
+  <div id="manijl"></div><div id="obj"></div>`}
   ${dia?'':kpH}
   <div id="t1" hidden></div>
   <div class="box" id="b3" hidden><h3>Pagos a proveedores (próximos 7 días)</h3><div id="t3"></div></div>
@@ -300,7 +300,7 @@ async function vInicio(){
   $('#k6')&&($('#k6').onclick=()=>irA('clientes',{cs:'agenda',agD:Math.min(dvHoy,6)}));
   if(S.perfil.rol=='dueno'){cajaBackup();cajaDolar().catch(()=>{})}
   /* Primero los números del día; los avisos y tareas de abajo se cargan un instante después para que Inicio aparezca más rápido */
-  avisosEnVivo();setTimeout(()=>{herramientas();generarFijos();alertasMargen();objetivoMes();tocaInicio();fidelInicio().catch(()=>{});masInicio().catch(()=>{});crecerInicio().catch(()=>{});fielesInicio().catch(()=>{});servInicio().catch(()=>{});planInicio().catch(()=>{});colaInicio().catch(()=>{});resumenDia().catch(()=>{});tareasInicio().catch(()=>{});chequeoInicio().catch(()=>{});camionetaInicio().catch(()=>{});cuentasInicio().catch(()=>{});equiposInicio().catch(()=>{});comprobantesInicio().catch(()=>{});mananaInicio().catch(()=>{});miDia().catch(()=>{});ocSemanal().catch(()=>{});aplicarAumentosProg().catch(()=>{});sincronizarOff().catch(()=>{});metasInicio().catch(()=>{});empujonBox($('#empi')).catch(()=>{});fechasInicio();},700);
+  avisosEnVivo();setTimeout(()=>{herramientas();generarFijos();alertasMargen();objetivoMes();maniJLInicio().catch(()=>{});tocaInicio();fidelInicio().catch(()=>{});masInicio().catch(()=>{});crecerInicio().catch(()=>{});fielesInicio().catch(()=>{});servInicio().catch(()=>{});planInicio().catch(()=>{});colaInicio().catch(()=>{});resumenDia().catch(()=>{});tareasInicio().catch(()=>{});chequeoInicio().catch(()=>{});camionetaInicio().catch(()=>{});cuentasInicio().catch(()=>{});equiposInicio().catch(()=>{});comprobantesInicio().catch(()=>{});mananaInicio().catch(()=>{});miDia().catch(()=>{});ocSemanal().catch(()=>{});aplicarAumentosProg().catch(()=>{});sincronizarOff().catch(()=>{});metasInicio().catch(()=>{});empujonBox($('#empi')).catch(()=>{});fechasInicio();},700);
   const cli=id=>esc(S.clientes.find(c=>c.id==id)?.razon_social||'Cliente');
   const [fv,pe,fe,sp,fp]=await Promise.all([
     sb.from('facturas_venta').select('*').order('id',{ascending:false}).limit(500),
@@ -3032,6 +3032,30 @@ async function objetivoMes(){const box=$('#obj');if(!box)return;
   $('#ob_e')&&($('#ob_e').onclick=async()=>{const x=prompt('Objetivo de ventas de '+mesNom(m).toLowerCase()+' (en pesos, con IVA):',meta?String(meta):'');if(x===null)return;const n=numAR(x);if(!(n>0))return toast('Escribí un importe, por ejemplo 15000000.',1);
     const{error}=await sb.from('config_app').upsert({clave:k,valor:String(n)});error?toast(error.message,1):(toast('Objetivo guardado.'),objetivoMes())});
 }
+
+/* ======================= MANÍ JL: OBJETIVO DE GANANCIA LIMPIA (Inicio) ======================= */
+async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='dueno')return;
+  const[C,pv,G]=await Promise.all([cfgJ('mani_jl',{meta:0,pct:100}),sb.from('proveedores').select('id,razon_social'),cfgJ('gastos_fijos',{items:[]})]);
+  const jl=(pv.data||[]).find(p=>/^\s*JL\b/i.test(p.razon_social||''));if(!jl){box.innerHTML='';return}
+  const pedirMeta=async()=>{const x=prompt('¿Cuánto querés que te quede LIMPIO por mes con Maní JL? (en pesos, después de los gastos fijos):',C.meta?String(C.meta):'2000000');if(x===null)return;const n=numAR(x);if(!(n>0))return toast('Escribí un importe, por ejemplo 2000000.',1);
+    const{error}=await guardaCfgJ('mani_jl',{...C,meta:n});error?toast(error.message,1):(toast('Objetivo de Maní JL guardado.'),maniJLInicio())};
+  if(!(C.meta>0)){box.innerHTML=`<div class="box obj"><div class="bh"><h3 style="margin:0">🥜 Maní JL</h3><button class="alt" id="mj_e">Poner objetivo</button></div><p><small>Decime cuánto querés que te quede limpio por mes y te voy mostrando, con las ventas reales, cuántas cajas te faltan.</small></p></div>`;$('#mj_e').onclick=pedirMeta;return}
+  const m=mesHoy(),[a,b]=mesRango(m),hoy=new Date(),dh=hoy.getDate(),dm=new Date(hoy.getFullYear(),hoy.getMonth()+1,0).getDate();
+  const ids=new Set(S.productos.filter(p=>S.min[p.producto_id]?.pv==jl.id).map(p=>p.producto_id));
+  const{data:pe}=await todo(()=>sb.from('pedidos').select('cliente_id,creado_en,pedido_items(*)').neq('estado','cancelado').gte('creado_en',tsAR(a)).lt('creado_en',tsAR(b)).order('numero'));
+  let cj=0,mg=0,vta=0;const cl=new Set();
+  for(const o of pe||[])for(const i of o.pedido_items||[]){if(!ids.has(i.producto_id))continue;const q=+i.cantidad||0,pr=S.productos.find(p=>p.producto_id==i.producto_id),cu=+i.costo_unitario||+(pr?.costo||0),pu=+i.precio_unitario||0,bu=S.min[i.producto_id]?.b||1;cj+=q/bu;mg+=q*(pu-cu);vta+=q*pu;cl.add(o.cliente_id)}
+  const fijos=G.items.reduce((s,x)=>s+(+x.m||0),0)*((+C.pct||100)/100),limpio=mg-fijos,meta=+C.meta,pc=Math.max(0,Math.min(1,limpio/meta));
+  const cat=[...ids].map(id=>{const p=S.productos.find(x=>x.producto_id==id);return(precioLista(id,'mayorista')-(+p?.costo||0))*(S.min[id]?.b||1)}).filter(x=>x>0),mbCat=cat.length?cat.reduce((s,x)=>s+x,0)/cat.length:8000;
+  const mb=cj>=3&&mg>0?mg/cj:mbCat,faltaMg=Math.max(0,meta+fijos-mg),faltaCj=Math.ceil(faltaMg/mb);
+  const hab=(d1,d2)=>{let n=0;for(let d=d1;d<=d2;d++)if(new Date(hoy.getFullYear(),hoy.getMonth(),d).getDay()!=0)n++;return n};
+  const habTot=hab(1,dm),habPas=Math.max(1,hab(1,dh-1)+(hoy.getHours()>=14?1:0)),habRest=Math.max(1,hab(dh,dm)),visitas=Math.max(1,Math.round(habRest/2)),proyLimpio=mg/habPas*habTot-fijos,ok=proyLimpio>=meta;
+  box.innerHTML=`<div class="box obj"><div class="bh"><h3 style="margin:0">🥜 Maní JL: ${$m(meta)} limpios en ${esc(mesNom(m).toLowerCase())}</h3><a class="lnk" id="mj_e">Cambiar</a></div>
+    <div class="obar"><i style="width:${(pc*100).toFixed(1)}%" class="${pc>=1?'lleno':''}"></i><span class="hoy" style="left:${(dh/dm*100).toFixed(1)}%" title="Hoy"></span></div>
+    <div class="ofila"><span>Te quedan limpios <b class="${limpio<0?'baja':''}">${$m(limpio)}</b> (${Math.round(limpio/meta*100)} %)</span><span>${faltaMg<=0?'<b class="sube">¡Objetivo cumplido! 🎉</b>':'Faltan <b>'+nf(faltaCj)+' cajas</b> · <b>'+nf(Math.ceil(faltaCj/visitas))+'</b> por visita (te quedan '+visitas+' visitas)'}</span></div>
+    <div class="ofila"><span>Vendiste <b>${nf(Math.round(cj))}</b> cajas a ${cl.size} cliente${cl.size==1?'':'s'} (${$m(vta)})</span><span>Margen ${$m(mg)} − gastos ${$m(fijos)}</span></div>
+    <p><small>${faltaMg<=0?'Vas '+$m(limpio-meta)+' arriba del objetivo.':(cj<3?'Todavía hay pocas ventas: estimo con el margen promedio del catálogo ('+$m(mbCat)+' por caja). ':'Cada caja te está dejando '+$m(mb)+'. ')+'A este ritmo cerrás con <b class="'+(ok?'sube':'baja')+'">'+$m(proyLimpio)+'</b> limpios'+(ok?': llegás. 💪':': <b>no llegás</b>.')}</small></p></div>`;
+  $('#mj_e').onclick=pedirMeta}
 
 /* ======================= VENDEDORES Y COMISIONES (Reportes) ======================= */
 async function vendedoresReporte(){const box=$('#rp_v');if(!box)return;
