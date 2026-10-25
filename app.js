@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-25.20';
+const VERSION='2026-10-25.21';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -2677,7 +2677,7 @@ async function vProspectos(){
   $('#cs').innerHTML=`<div class="kp"><div class="box"><span class="lab">Prospectos activos</span><span class="num">${data.filter(x=>!['cliente','no_interesado'].includes(x.estado)).length}</span><span class="det">${cnt('interesado')} interesados</span></div>
     <div class="box ${data.some(x=>x.proximo_seguimiento&&x.proximo_seguimiento<=hoy&&!['cliente','no_interesado'].includes(x.estado))?'alerta':''}"><span class="lab">Para seguir hoy</span><span class="num">${data.filter(x=>x.proximo_seguimiento&&x.proximo_seguimiento<=hoy&&!['cliente','no_interesado'].includes(x.estado)).length}</span><span class="det">seguimiento vencido o de hoy</span></div>
     <div class="box ok"><span class="lab">Pasaron a clientes</span><span class="num">${cnt('cliente')}</span><span class="det">${data.length?Math.round(cnt('cliente')/data.length*100):0} % de conversión</span></div></div>
-  <div class="fc-acc" style="margin-bottom:8px"><button class="alt" id="pr_imp">📋 Pegar una lista de prospectos</button></div>
+  <div class="fc-acc" style="margin-bottom:8px;display:flex;flex-wrap:wrap;gap:8px"><button id="pr_aqui">📍 Agregar el comercio donde estoy</button><button class="alt" id="pr_imp">📋 Pegar una lista de prospectos</button></div>
   <details class="box" id="pr_nv" ${data.length?'':'open'}><summary><b>+ Agregar prospecto</b></summary><div class="g" style="margin-top:10px">
     <input id="ps_n" placeholder="Nombre del negocio *"><input id="ps_r" list="dl_rub" placeholder="Rubro (kiosco, pizzería, hotel…)">${rubroDL()}<input id="ps_t" placeholder="Teléfono"><input id="ps_d" placeholder="Domicilio">
     <input id="ps_z" placeholder="Zona o barrio"><input id="ps_c" placeholder="Contacto (nombre)"><label class="f">Próximo seguimiento<input type="date" id="ps_f"></label><input id="ps_o" placeholder="Notas"></div>
@@ -2709,7 +2709,7 @@ async function vProspectos(){
   $$('#cs [data-pdt]').forEach(b=>b.onclick=()=>editarProspecto(P(b.dataset.pdt),vProspectos));
   $$('#cs [data-pn]').forEach(b=>b.onclick=()=>{const x=P(b.dataset.pn),t=prompt('Nota sobre '+x.nombre+':',x.observaciones||'');if(t!==null)upd(x.id,{observaciones:t.trim()||null,ultimo_contacto:diaLocal(new Date())},'Nota guardada.')});
   $$('#cs [data-pfc]').forEach(b=>b.onclick=()=>fichaCliente(S.clientes.find(c=>c.id==b.dataset.pfc)));
-  $('#pr_imp').onclick=()=>importarProspectos(vProspectos);$$('#cs [data-prr]').forEach(b=>b.onclick=()=>respuestasRapidas(P(b.dataset.prr)));
+  $('#pr_imp').onclick=()=>importarProspectos(vProspectos);$('#pr_aqui').onclick=()=>agregarAqui(vProspectos);$$('#cs [data-prr]').forEach(b=>b.onclick=()=>respuestasRapidas(P(b.dataset.prr)));
   $$('#cs [data-px2]').forEach(b=>b.onclick=async()=>{const x=P(b.dataset.px2);if(!confirm('¿Dar de alta a «'+x.nombre+'» y mandarle su catálogo por WhatsApp?'))return;const w=window.open('','_blank');if(await altaExpres(x,w))vProspectos()});
   $$('#cs [data-pc]').forEach(b=>b.onclick=async()=>{const x=P(b.dataset.pc);if(!confirm('¿Dar de alta a «'+x.nombre+'» como cliente? Después completás CUIT y lista en su ficha.'))return;
     const{data:c,error}=await insertCliente({razon_social:x.nombre,telefono:x.telefono,domicilio:x.domicilio,condicion_iva:'consumidor_final',lista:'mayorista',condicion_pago_dias:0,vendedor_id:S.perfil.id,observaciones:x.observaciones,rubro:x.rubro||null,lat:x.lat??null,lng:x.lng??null,origen:x.campania?'qr':(x.origen||'prospecto'),campania:x.campania||null});
@@ -5524,7 +5524,7 @@ async function vEmbudo(){const{data,error}=await sb.from('prospectos').select('*
   const seg=data.filter(x=>x.proximo_seguimiento&&x.proximo_seguimiento<=hoy&&!['cliente','no_interesado'].includes(x.estado));
   const dias=x=>{const n=Math.floor((Date.now()-new Date(x.actualizado_en||x.creado_en||Date.now()))/864e5);return isNaN(n)?0:n};
   $('#vs').innerHTML=`<div class="kp"><div class="box"><span class="lab">Prospectos</span><span class="num">${tot}</span></div><div class="box ok"><span class="lab">Se hicieron clientes</span><span class="num">${tot?Math.round(cl/tot*100):0} %</span><span class="det">${cl} de ${tot}</span></div><div class="box ${seg.length?'alerta':''}"><span class="lab">Seguimiento para hoy</span><span class="num">${seg.length}</span></div></div>
-  <div class="fc-acc" style="margin-bottom:8px"><button class="alt" id="em_imp">📋 Pegar una lista de prospectos</button></div>
+  <div class="fc-acc" style="margin-bottom:8px;display:flex;flex-wrap:wrap;gap:8px"><button id="em_aqui">📍 Agregar el comercio donde estoy</button><button class="alt" id="em_imp">📋 Pegar una lista de prospectos</button></div>
   <div class="box"><h3>🧲 Embudo de prospectos</h3><p><small>Cada negocio que querés sumar pasa por etapas. Movelo con "→" cuando avanza. Los que llevan muchos días quietos en una etapa necesitan un empujón (o una muestra).</small></p>
     <div class="emf"><label class="f">Zona o barrio<select id="em_z"><option value="">Todas</option>${ZE.map(z=>`<option ${S.emZo==z?'selected':''}>${esc(z)}</option>`).join('')}</select></label><label class="f">Tipo de negocio<select id="em_r"><option value="">Todos</option>${RE.map(z=>`<option ${S.emRu==z?'selected':''}>${esc(z)}</option>`).join('')}</select></label></div>
     <div class="emb">${ETAPAS.map(([k,t],i)=>`<div class="col"><div class="hd"><b>${t}</b> <span class="badge">${(G[k]||[]).length}</span></div>${(G[k]||[]).slice(0,S.emAll[k]?2000:40).map(x=>`<div class="cd ${dias(x)>14&&k!='cliente'?'viejo':''}"><details class="cdd"><summary><b>${esc(x.nombre)}</b></summary><div class="cdx">${x.domicilio?`<span>${IC('pin',14)} ${esc(x.domicilio)}${zoE(x)?' · '+esc(zoE(x)):''}</span>`:''}${x.telefono?`<span>${IC('phone',14)} <a class="lnk" href="tel:${esc(String(x.telefono).replace(/[^+\d]/g,''))}">${esc(x.telefono)}</a></span>`:''}${x.contacto?`<span>${IC('user',14)} ${esc(x.contacto)}</span>`:''}${x.observaciones?`<span class="ob">${esc(x.observaciones)}</span>`:''}${x.domicilio||x.lat?`<a class="lnk" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${x.lat&&x.lng?x.lat+','+x.lng:encodeURIComponent(x.domicilio+', '+(x.ciudad||'Buenos Aires'))}">${IC('map',14)} Cómo llegar</a>`:''}<a class="lnk" data-ed="${x.id}">${IC('pencil',14)} Editar datos</a></div></details>${SCp&&k!='cliente'?' '+badgeP(SCp(x)):''}<small>${esc(x.rubro||'')}${x.rubro?' · ':''}${dias(x)} d en esta etapa</small>
@@ -5534,7 +5534,7 @@ async function vEmbudo(){const{data,error}=await sb.from('prospectos').select('*
   $$('#vs [data-em]').forEach(a=>a.onclick=()=>upd(a.dataset.em,{estado:a.dataset.e,ultimo_contacto:diaLocal(new Date())}));
   $$('#vs [data-en]').forEach(a=>a.onclick=()=>{if(confirm('¿Marcar como "No le interesa"?'))upd(a.dataset.en,{estado:'no_interesado'})});
   $$('#vs [data-ew]').forEach(a=>a.onclick=()=>{const x=P(a.dataset.ew);window.open('https://wa.me/'+telWA(x.telefono)+'?text='+encodeURIComponent(`¡Hola! Te escribo de *Sabores de mi País*, distribuidora de alimentos 👋`+(x.rubro?' Te paso nuestro catálogo para '+x.rubro.toLowerCase()+'s:\n'+linkRubro(x.rubro):'')),'_blank');if(x.estado=='nuevo')upd(x.id,{estado:'contactado',ultimo_contacto:diaLocal(new Date())})});
-  $('#em_imp').onclick=()=>importarProspectos(vEmbudo);$$('#vs [data-err]').forEach(a=>a.onclick=()=>respuestasRapidas(P(a.dataset.err)));
+  $('#em_imp').onclick=()=>importarProspectos(vEmbudo);$('#em_aqui').onclick=()=>agregarAqui(vEmbudo);$$('#vs [data-err]').forEach(a=>a.onclick=()=>respuestasRapidas(P(a.dataset.err)));
   $$('#vs [data-ec]').forEach(a=>a.onclick=async()=>{const x=P(a.dataset.ec);if(!confirm('¿Dar de alta a «'+x.nombre+'» como cliente'+(x.telefono?' y mandarle su catálogo por WhatsApp':'')+'?'))return;const w=x.telefono?window.open('','_blank'):null;if(await altaExpres(x,w))vEmbudo()})}
 
 /* ---------- 12. Precios redondeados ---------- */
@@ -6059,6 +6059,34 @@ async function respuestasRapidas(x){const[{data:rr},{data:en}]=await Promise.all
   m.querySelectorAll('[data-rc]').forEach(b=>b.onclick=async()=>{const t=plantilla(L[+b.dataset.rc].txt,o).trim();try{await navigator.clipboard.writeText(t);toast('Copiado.')}catch(e){prompt('Copiá:',t)}})}
 
 /* Cargar una lista de prospectos pegada */
+/* Agregar el comercio donde estoy: toma la ubicación del GPS, busca la dirección y el barrio, y lo guarda como prospecto */
+async function agregarAqui(fin){const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  m.innerHTML=`<div class="mc"><div class="bh"><h3 style="margin:0">📍 Agregar el comercio donde estoy</h3><button class="alt" id="aq_x">Cerrar</button></div><p id="aq_st"><span class="skl" role="status" aria-label="Buscando"></span> Buscando tu ubicación…</p></div>`;
+  const q=i=>m.querySelector(i);q('#aq_x').onclick=()=>m.remove();
+  let pos=null;try{pos=await new Promise((ok,no)=>navigator.geolocation?navigator.geolocation.getCurrentPosition(ok,no,{enableHighAccuracy:true,timeout:15000,maximumAge:30000}):no(new Error('sin GPS')))}catch(e){}
+  if(!document.body.contains(m))return;
+  const lat=pos?+pos.coords.latitude.toFixed(7):null,lng=pos?+pos.coords.longitude.toFixed(7):null;let dom='',bar='',ciu='';
+  if(lat!=null){try{const r=await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=es&zoom=18&addressdetails=1`);const j=await r.json(),a=j.address||{};
+    dom=[a.road,a.house_number].filter(Boolean).join(' ');bar=a.suburb||a.neighbourhood||a.quarter||a.city_district||'';ciu=/Buenos Aires/i.test(a.city||a.state||'')&&!a.county?'CABA':(a.city||a.town||a.county||'');if(/Comuna/i.test(bar))bar=a.neighbourhood||'';}catch(e){}}
+  const{data:rs}=await sb.from('prospectos').select('rubro').not('rubro','is',null).limit(1000);const RB=[...new Set((rs||[]).map(x=>x.rubro))].sort((a,b)=>a.localeCompare(b,'es'));
+  m.innerHTML=`<div class="mc"><div class="bh"><h3 style="margin:0">📍 Agregar el comercio donde estoy</h3><button class="alt" id="aq_x">Cerrar</button></div>
+    ${lat==null?'<p class="err" style="margin-top:0">No pude tomar tu ubicación. Revisá que el celular tenga la ubicación prendida y que el CRM tenga permiso. Igual podés cargarlo escribiendo la dirección.</p>':`<p style="margin-top:0"><small>${IC('pin',14)} Ubicación tomada${pos.coords.accuracy?' (±'+Math.round(pos.coords.accuracy)+' m)':''}. Revisá la dirección por las dudas.</small></p>`}
+    <div class="g"><label class="f">Nombre del comercio<input id="aq_n" placeholder="Ej.: Súper Lin" autocomplete="off"></label>
+    <label class="f">Teléfono / WhatsApp (si lo tenés)<input id="aq_t" type="tel" inputmode="tel" placeholder="11 5555-1111"></label>
+    <label class="f">Dirección<input id="aq_d" value="${esc(dom)}" placeholder="Calle y número"></label>
+    <label class="f">Barrio<input id="aq_z" value="${esc(bar)}"></label>
+    <label class="f">Tipo de negocio<input id="aq_r" list="aq_rl" value="Supermercado chino / autoservicio"><datalist id="aq_rl">${RB.map(x=>`<option value="${esc(x)}">`).join('')}</datalist></label>
+    <label class="f">Persona de contacto<input id="aq_c" placeholder="Ej.: el dueño, Lin"></label>
+    <label class="f">Qué pasó<select id="aq_e"><option value="nuevo">Lo vi, todavía no entré</option><option value="visitado" selected>Entré y hablé</option><option value="interesado">Le interesó</option><option value="no_interesado">No le interesa</option></select></label>
+    <label class="f">Volver el día<input id="aq_f" type="date" min="${diaLocal(new Date())}"></label></div>
+    <label class="f">Notas<textarea id="aq_o" rows="3" placeholder="Qué marcas de maní tiene, quién decide, cuándo volver…"></textarea></label>
+    <p style="display:flex;gap:8px;justify-content:flex-end;margin:12px 0 0"><button class="alt" id="aq_c2">Cancelar</button><button id="aq_g">Guardar prospecto</button></p></div>`;
+  q('#aq_x').onclick=()=>m.remove();q('#aq_c2').onclick=()=>m.remove();setTimeout(()=>q('#aq_n').focus(),50);
+  q('#aq_g').onclick=async()=>{const nom=q('#aq_n').value.trim();if(!nom)return toast('Escribí el nombre del comercio.',1);const hoy=diaLocal(new Date()),e=q('#aq_e').value;
+    const o={nombre:nom,telefono:q('#aq_t').value.trim()||null,domicilio:q('#aq_d').value.trim()||null,zona:q('#aq_z').value.trim()||null,ciudad:ciu||null,rubro:q('#aq_r').value.trim()||null,contacto:q('#aq_c').value.trim()||null,estado:e,proximo_seguimiento:q('#aq_f').value||null,observaciones:q('#aq_o').value.trim()||null,lat,lng,origen:'Recorrida',campania:'Maní JL',prioridad:'alta',ultimo_contacto:e=='nuevo'?null:hoy};
+    q('#aq_g').disabled=true;const{error}=await sb.from('prospectos').insert(o);q('#aq_g').disabled=false;
+    if(error)return toast(error.message,1);toast('«'+nom+'» guardado.');m.remove();fin&&fin()}}
+
 function importarProspectos(fin){const m=document.createElement('div');m.className='modal';document.body.appendChild(m);let L=[];
   m.innerHTML=`<div class="mc"><div class="bh"><h3>📋 Pegar una lista de prospectos</h3><button class="alt" id="ip_x">Cerrar</button></div>
     <p><small>Pegá una fila por negocio: <b>nombre y teléfono</b> (y si querés, dirección). Sirve copiar de una planilla, de tus contactos o de un grupo. Ejemplo:<br><code>Kiosco Lalo 11 5555-1111 Cabildo 2100</code></small></p>
