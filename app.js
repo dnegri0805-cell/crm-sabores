@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-24.44';
+const VERSION='2026-10-24.45';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -4972,13 +4972,24 @@ navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.ir=='porAprob
 function ctxAlarma(){try{if(!S.ac)S.ac=new (window.AudioContext||window.webkitAudioContext)();if(S.ac.state=='suspended')S.ac.resume();return S.ac}catch(e){return null}}
 /* El navegador solo deja sonar después de un toque: se "desbloquea" el audio con el primer toque en el CRM */
 ['click','touchstart','keydown'].forEach(ev=>document.addEventListener(ev,()=>ctxAlarma(),{once:true,passive:true,capture:true}));
-function timbre(){const a=ctxAlarma();if(!a)return;const t=a.currentTime;
-  /* Melodía tipo app de comida: "di-ri-ding… ding-dong!" con timbre de marimba (fundamental + armónico que se apaga rápido) */
-  const nota=(d,f,dur,v)=>[[1,v],[4,v*.35],[2.01,v*.25]].forEach(([m,vv])=>{const o=a.createOscillator(),g=a.createGain();o.type='sine';o.frequency.value=f*m;
-    const fin=m==1?dur:dur*.35;g.gain.setValueAtTime(.0001,t+d);g.gain.exponentialRampToValueAtTime(vv,t+d+.008);g.gain.exponentialRampToValueAtTime(.0001,t+d+fin);
-    o.connect(g).connect(a.destination);o.start(t+d);o.stop(t+d+fin+.02)});
-  [[0,784,.18,.55],[.11,1047,.18,.55],[.22,1319,.3,.6],[.5,1568,.22,.6],[.66,2093,.6,.7],[.66,1047,.6,.35]].forEach(([d,f,dur,v])=>nota(d,f,dur,v));
-  vibrar([200,100,200,100,500])}
+/* Tonos de la alarma: cadena master con compresor + reverb suave para que suene "de app" y no a pitido */
+function busAlarma(a){if(S.acBus&&S.acBus.a===a)return S.acBus;const c=a.createDynamicsCompressor();c.threshold.value=-14;c.ratio.value=4;c.connect(a.destination);
+  const r=a.createConvolver(),n=a.sampleRate*1.6,b=a.createBuffer(2,n,a.sampleRate);for(let ch=0;ch<2;ch++){const d=b.getChannelData(ch);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,3)}
+  r.buffer=b;const w=a.createGain();w.gain.value=.22;r.connect(w).connect(c);return S.acBus={a,dry:c,wet:r}}
+function tonoNota(a,t,f,dur,v,parciales){const B=busAlarma(a);parciales.forEach(([m,vv,dd])=>{const o=a.createOscillator(),g=a.createGain();o.type='sine';o.frequency.value=f*m;
+  const fin=dur*(dd||1);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v*vv,t+.006);g.gain.exponentialRampToValueAtTime(.0001,t+fin);
+  o.connect(g);g.connect(B.dry);g.connect(B.wet);o.start(t);o.stop(t+fin+.05)})}
+const TONOS={
+  chime:{n:'Campana suave',f(a,t){const P=[[1,1,1],[2,.35,.6],[3,.15,.35],[4.2,.08,.2]];[[0,1175],[.28,880]].forEach(([d,f])=>tonoNota(a,t+d,f,1.4,.5,P))}},
+  pro:{n:'Aviso moderno',f(a,t){const P=[[1,1,1],[2,.2,.4]];[[0,1047],[.07,1319],[.14,1568],[.26,2093]].forEach(([d,f],i)=>tonoNota(a,t+d,f,i==3?1.1:.5,.38,P))}},
+  caja:{n:'Caja registradora',f(a,t){const B=busAlarma(a),n=a.sampleRate*.12,b=a.createBuffer(1,n,a.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*(1-i/n);
+    const s=a.createBufferSource(),h=a.createBiquadFilter(),g=a.createGain();s.buffer=b;h.type='highpass';h.frequency.value=3000;g.gain.value=.5;s.connect(h).connect(g).connect(B.dry);s.start(t);
+    const P=[[1,1,1],[2.76,.5,.4],[5.4,.25,.2]];tonoNota(a,t+.1,2637,1,.45,P);tonoNota(a,t+.1,3136,1,.3,P)}},
+  clasica:{n:'Clásica (pitidos)',f(a,t){[[0,988],[.16,1319],[.32,1568],[.62,988],[.78,1319],[.94,1568]].forEach(([d,f])=>{const o=a.createOscillator(),g=a.createGain();o.type='triangle';o.frequency.value=f;
+    g.gain.setValueAtTime(.0001,t+d);g.gain.exponentialRampToValueAtTime(.7,t+d+.02);g.gain.exponentialRampToValueAtTime(.0001,t+d+.15);o.connect(g).connect(a.destination);o.start(t+d);o.stop(t+d+.17)})}}};
+function tonoElegido(){let k;try{k=localStorage.getItem('crm_tono')}catch(e){}return TONOS[k]?k:'chime'}
+function timbre(k){const a=ctxAlarma();if(!a)return;(TONOS[k]||TONOS[tonoElegido()]).f(a,a.currentTime+.02);if(!k)vibrar([300,120,300])}
+function elegirTono(k){try{localStorage.setItem('crm_tono',k)}catch(e){}timbre(k);document.querySelectorAll('#tonos button').forEach(b=>{b.classList.toggle('alt',b.dataset.k!=k);b.textContent=(b.dataset.k==k?'✓ ':'')+'▶ '+TONOS[b.dataset.k].n})}
 function pararAlarma(){clearInterval(S.alIv);S.alIv=null;$('#alarma')?.remove();try{navigator.serviceWorker?.getRegistration().then(r=>r&&r.getNotifications({tag:'crm-pedido'}).then(L=>L.forEach(n=>n.close())))}catch(e){}}
 function alarmaPedido(L){S.alarmaL=[...(S.alarmaL&&$('#alarma')?S.alarmaL:[]),...L];const T=S.alarmaL;
   let d=$('#alarma');if(!d){d=document.createElement('div');d.id='alarma';document.body.appendChild(d)}
@@ -7545,7 +7556,7 @@ function vistaCfg(){const p=prefV(),m=document.createElement('div');m.className=
     <h4>Colores</h4><div class="sub">${[['claro','☀️ Claro'],['oscuro','🌙 Oscuro'],['auto','Automático']].map(([k,t])=>`<button class="${(p.t||'claro')==k?'':'alt'}" data-vt="${k}">${t}</button>`).join('')}</div>
     <h4>🖨️ Imprimir a distancia</h4><p><small>Usá esto <b>en la PC del depósito</b>: queda como impresora y saca sola lo que mandes desde el celular.</small></p><button class="alt" id="vc_imp">🖨️ Usar este equipo como impresora del depósito</button>
     <h4>🧾 Impresora térmica (rollo)</h4><p><small>Si este equipo imprime en una térmica de tickets, los pedidos, recibos y etiquetas salen en formato rollo.</small></p><div class="sub">${[[0,'No uso'],[58,'58 mm'],[80,'80 mm']].map(([w,t])=>`<button class="${tkW()==w?'':'alt'}" data-tk="${w}">${t}</button>`).join('')}</div>
-    ${huellaHTML()}<h4>📲 Avisos de pedidos con el CRM cerrado</h4><p><small>Te llega una notificación cada vez que entra un pedido, aunque el CRM esté cerrado y el celular bloqueado.</small></p><p id="push_box"><button type="button" onclick="activarPush()">📲 Activar en este celular</button> <a class="lnk" onclick="probarPush()">Mandarme un aviso de prueba</a></p><h4>🔔 Avisos en este equipo</h4><p><button class="alt" type="button" onclick="document.querySelector('.modal')?.remove();alarmaPedido([{t:'🛒 Así suena un pedido nuevo (prueba)',tab:'pedidos'}])">🔔 Probar la alarma de pedido</button> <small>Subí el volumen multimedia del celular.</small></p><p><small>Te avisa con una notificación cuando entra un pedido online, un reclamo o un presupuesto aceptado, aunque estés en otra app. El CRM tiene que quedar abierto (en el celular, mejor instalado como app).</small></p>
+    ${huellaHTML()}<h4>📲 Avisos de pedidos con el CRM cerrado</h4><p><small>Te llega una notificación cada vez que entra un pedido, aunque el CRM esté cerrado y el celular bloqueado.</small></p><p id="push_box"><button type="button" onclick="activarPush()">📲 Activar en este celular</button> <a class="lnk" onclick="probarPush()">Mandarme un aviso de prueba</a></p><h4>🔔 Avisos en este equipo</h4><p><span id="tonos" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">${Object.entries(TONOS).map(([k,v])=>`<button type="button" data-k="${k}" class="${k==tonoElegido()?'':'alt'}" onclick="elegirTono('${k}')">${k==tonoElegido()?'✓ ':''}▶ ${v.n}</button>`).join('')}</span><small>Tocá uno para escucharlo; queda elegido.</small><br><button class="alt" type="button" onclick="document.querySelector('.modal')?.remove();alarmaPedido([{t:'🛒 Así suena un pedido nuevo (prueba)',tab:'pedidos'}])">🔔 Probar la alarma de pedido</button> <small>Subí el volumen multimedia del celular.</small></p><p><small>Te avisa con una notificación cuando entra un pedido online, un reclamo o un presupuesto aceptado, aunque estés en otra app. El CRM tiene que quedar abierto (en el celular, mejor instalado como app).</small></p>
     ${ns=='no'?'<p><small>Este navegador no permite notificaciones.</small></p>':ns=='denied'?'<p><small>Bloqueaste las notificaciones para esta página: habilitalas en el candado de la barra de direcciones.</small></p>':`<button id="vc_n" class="${S.vivoBg&&ns=='granted'?'alt':''}">${S.vivoBg&&ns=='granted'?'🔕 Apagar avisos':'🔔 Activar avisos'}</button>`}</div>`;
   const q=s=>m.querySelector(s),sv=o=>{try{localStorage.setItem('pref_vista',JSON.stringify({...prefV(),...o}))}catch(e){}aplicarVista();m.remove();vistaCfg()};
   q('#vc_x').onclick=()=>m.remove();huellaBind(m);q('#vc_imp').onclick=()=>{m.remove();irA('impresora')};m.querySelectorAll('[data-vz]').forEach(b=>b.onclick=()=>sv({z:+b.dataset.vz}));m.querySelectorAll('[data-vt]').forEach(b=>b.onclick=()=>sv({t:b.dataset.vt}));m.querySelectorAll('[data-tk]').forEach(b=>b.onclick=()=>{try{localStorage.setItem('pref_ticket',JSON.stringify({w:+b.dataset.tk}))}catch(e){}m.remove();vistaCfg();toast(+b.dataset.tk?'Listo: imprime en rollo de '+b.dataset.tk+' mm.':'Listo: imprime en hoja A4.')});
