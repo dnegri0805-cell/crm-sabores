@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-25.11';
+const VERSION='2026-10-25.12';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -285,7 +285,7 @@ async function vInicio(){
   ${dia?'':kpH}
   <div id="t1" hidden></div>
   <div class="box" id="b3" hidden><h3>Pagos a proveedores (próximos 7 días)</h3><div id="t3"></div></div>
-  ${dia?'<details class="plg"><summary>📋 Facturas vencidas y productos para reponer</summary>':''}<div class="dos">
+  ${dia?'<details class="plg"><summary>📋 Vencidas y para reponer</summary>':''}<div class="dos">
     <div class="box"><h3>Facturas vencidas de clientes</h3><div id="t2"><span class="skl" role="status" aria-label="Cargando"></span></div></div>
     <div class="box"><h3>Productos para reponer</h3><div id="t4"><span class="skl" role="status" aria-label="Cargando"></span></div></div>
   </div>${dia?`</details>
@@ -3047,6 +3047,8 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
   if(!(C.meta>0)){box.innerHTML=`<div class="box obj"><div class="bh"><h3 style="margin:0">🥜 Maní JL</h3><button class="alt" id="mj_e">Poner objetivo</button></div><p><small>Decime cuánto querés que te quede limpio por mes y te voy mostrando, con las ventas reales, cuántas cajas te faltan.</small></p></div>`;$('#mj_e').onclick=pedirMeta;return}
   const m=mesHoy(),[a,b]=mesRango(m),hoy=new Date(),dh=hoy.getDate(),dm=new Date(hoy.getFullYear(),hoy.getMonth()+1,0).getDate(),Y=hoy.getFullYear(),M=hoy.getMonth();
   const ids=new Set(S.productos.filter(p=>S.min[p.producto_id]?.pv==jl.id).map(p=>p.producto_id));
+  /* si los productos todavía no cargaron, espera: si no, calcula con un promedio inventado y los números saltan */
+  if(!ids.size){box._r=(box._r||0)+1;if(box._r<8)setTimeout(()=>maniJLInicio().catch(()=>{}),800);return}box._r=0;
   const d0=new Date(hoy);d0.setDate(d0.getDate()-120);const desde=diaLocal(d0)<a?diaLocal(d0):a;
   const{data:pe}=await todo(()=>sb.from('pedidos').select('cliente_id,creado_en,total,pedido_items(producto_id,cantidad,precio_unitario,costo_unitario)').neq('estado','cancelado').gte('creado_en',tsAR(desde)).lt('creado_en',tsAR(b)).order('numero'));
   /* semana: lunes a sábado; el domingo ya muestra la semana que viene. Recortada al mes. */

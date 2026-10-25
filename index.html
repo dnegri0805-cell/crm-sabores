@@ -890,8 +890,8 @@ html.oscuro .vrow,html.oscuro .rrow{background:#18202f}
 .opl{display:flex;flex-direction:column}.opi{display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--borde,#e3e6ec)}.opi.anul{opacity:.55}.opi-m{font-size:16px}.opi-b{grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap}.opi-b button{padding:6px 10px}
 .kpp{margin:8px 0}
 @media(min-width:900px){#v .sub{flex-wrap:wrap!important;overflow:visible!important;-webkit-mask:none!important;mask:none!important}}
-.kp .box.vacio{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 14px}.kp .box.vacio .num{display:none}.kp .box.vacio .det{color:var(--mu);font-size:13px}
-.plg>summary .pb{margin-left:auto;min-width:22px;height:22px;padding:0 7px;border-radius:999px;background:var(--m);color:#fff;font-size:12px;font-weight:700;display:inline-grid;place-items:center}.plg>summary .pb.cero{background:#eef0f4;color:#6a7184;font-weight:600}.plg>summary:has(.pb)::after,.plg>summary:has(.cfgn)::after{margin-left:10px}
+.kp .box.vacio{display:flex!important;flex-direction:row!important;align-items:center;justify-content:space-between;gap:8px;padding:12px 14px!important;text-align:left!important}.kp .box.vacio .lab{margin:0!important;display:flex;align-items:center;gap:6px}.kp .box.vacio .num{display:none}.kp .box.vacio .det{color:var(--mu);font-size:13px}
+.plg>summary .pb{margin-left:auto;white-space:nowrap;flex:none;min-width:22px;height:22px;padding:0 7px;border-radius:999px;background:var(--m);color:#fff;font-size:12px;font-weight:700;display:inline-grid;place-items:center}.plg>summary .pb.cero{background:#eef0f4;color:#6a7184;font-weight:600}.plg>summary:has(.pb)::after,.plg>summary:has(.cfgn)::after{margin-left:10px}
 .plg>summary .cfgav{flex:1;max-width:120px;height:6px;border-radius:99px;background:#eceef3;overflow:hidden;margin-left:auto}.plg>summary .cfgav i{display:block;height:100%;background:var(--m);border-radius:99px}.plg>summary .cfgn{font-size:13px;color:#6a7184;font-weight:600;white-space:nowrap}
 .pieini .pfila{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:13.5px;color:#6a7184;line-height:1.35}.pieini .pfila .pic{flex:none;display:grid;place-items:center;color:#9aa0ad}.pieini .pfila>span:not(.pic){flex:1;min-width:0}.pieini .pfila .lnk{text-decoration:none;font-weight:600;color:var(--m);white-space:nowrap}.pieini .pfila.viejo{color:#8a5a00}.pieini .pfila.viejo .pic{color:#c48a00}.pieini #bk{margin-bottom:0}
 html.oscuro .pieini .pfila .lnk{color:#f0b3c2}html.oscuro .pieini .pfila.viejo{color:#e0b55a}html.oscuro .plg>summary .pb.cero,html.oscuro .plg>summary .cfgav{background:#273246}
@@ -901,6 +901,6 @@ html.oscuro .pieini .pfila .lnk{color:#f0b3c2}html.oscuro .pieini .pfila.viejo{c
 <div id="app"><div class="splash"><img src="logo.png" alt="Sabores de mi País"><i></i></div></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
-<script src="app.js?v=2026-10-25.11"></script>
+<script src="app.js?v=2026-10-25.12"></script>
 </body>
 </html>
