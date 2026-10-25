@@ -19,7 +19,7 @@ self.addEventListener('activate', e => e.waitUntil((async () => {
 // Clave de la copia: la página sin parámetros (pedido.html?c=… usa la misma copia que pedido.html)
 const clave = u => { let p = u.pathname; if (p.endsWith('/')) p += 'index.html'; return u.origin + p; };
 const guardar = async (k, res) => { if (res && res.ok && res.type !== 'opaque') { const c = await caches.open(CACHE); await c.put(k, res.clone()); } return res; };
-const ESTATICOS = /\.(png|jpg|jpeg|webp|svg|webmanifest|woff2?)$/i;
+const ESTATICOS = /\.(png|jpg|jpeg|webp|svg|webmanifest|woff2?|mp3)$/i;
 
 self.addEventListener('fetch', e => {
   const req = e.request;

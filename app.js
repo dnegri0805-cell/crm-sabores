@@ -4985,15 +4985,19 @@ const TONOS={
   caja:{n:'Caja registradora',f(a,t){const B=busAlarma(a),n=a.sampleRate*.12,b=a.createBuffer(1,n,a.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*(1-i/n);
     const s=a.createBufferSource(),h=a.createBiquadFilter(),g=a.createGain();s.buffer=b;h.type='highpass';h.frequency.value=3000;g.gain.value=.5;s.connect(h).connect(g).connect(B.dry);s.start(t);
     const P=[[1,1,1],[2.76,.5,.4],[5.4,.25,.2]];tonoNota(a,t+.1,2637,1,.45,P);tonoNota(a,t+.1,3136,1,.3,P)}},
+  nuevo:{n:'Notificación (recomendada)',f(a,t){if(S.tonoNuevo){const x=a.createBufferSource();x.buffer=S.tonoNuevo;x.connect(a.destination);x.start(t)}else{cargarTonoNuevo().then(ok=>ok?TONOS.nuevo.f(a,a.currentTime):TONOS.chime.f(a,a.currentTime))}}},
   propio:{n:'Mi sonido',f(a,t){if(S.tonoBuf){const x=a.createBufferSource();x.buffer=S.tonoBuf;x.connect(a.destination);x.start(t)}else{cargarTonoPropio().then(ok=>ok?TONOS.propio.f(a,a.currentTime):TONOS.chime.f(a,a.currentTime))}}},
   clasica:{n:'Clásica (pitidos)',f(a,t){[[0,988],[.16,1319],[.32,1568],[.62,988],[.78,1319],[.94,1568]].forEach(([d,f])=>{const o=a.createOscillator(),g=a.createGain();o.type='triangle';o.frequency.value=f;
     g.gain.setValueAtTime(.0001,t+d);g.gain.exponentialRampToValueAtTime(.7,t+d+.02);g.gain.exponentialRampToValueAtTime(.0001,t+d+.15);o.connect(g).connect(a.destination);o.start(t+d);o.stop(t+d+.17)})}}};
+/* Sonido de pedido nuevo elegido para el CRM (pedido-nuevo.mp3, viene con la app) */
+async function cargarTonoNuevo(){try{if(S.tonoNuevo)return true;const a=ctxAlarma();if(!a)return false;S.tonoNuevo=await a.decodeAudioData(await (await fetch('pedido-nuevo.mp3')).arrayBuffer());return true}catch(e){return false}}
+['click','touchstart','keydown'].forEach(ev=>document.addEventListener(ev,()=>cargarTonoNuevo(),{once:true,passive:true}));
 /* Sonido propio: un mp3 cortito del celular, guardado en este equipo */
 async function cargarTonoPropio(){try{const d=localStorage.getItem('crm_tono_audio');if(!d)return false;const a=ctxAlarma();S.tonoBuf=await a.decodeAudioData(await (await fetch(d)).arrayBuffer());return true}catch(e){return false}}
 function subirTono(inp){const f=inp.files[0];if(!f)return;if(f.size>1500000)return toast('Ese audio es muy pesado: elegí uno cortito (menos de 1,5 MB)');
   const r=new FileReader();r.onload=async()=>{try{localStorage.setItem('crm_tono_audio',r.result)}catch(e){return toast('No se pudo guardar: probá con un audio más corto')}S.tonoBuf=null;
     if(await cargarTonoPropio()){elegirTono('propio');toast('🎵 Listo: ese es tu sonido de pedido')}else toast('No pude leer ese audio: probá con un mp3')};r.readAsDataURL(f)}
-function tonoElegido(){let k;try{k=localStorage.getItem('crm_tono')}catch(e){}return TONOS[k]?k:'chime'}
+function tonoElegido(){let k;try{if(!localStorage.getItem('crm_tono_nuevo1')){localStorage.setItem('crm_tono_nuevo1','1');localStorage.setItem('crm_tono','nuevo')}k=localStorage.getItem('crm_tono')}catch(e){}return TONOS[k]?k:'nuevo'}
 function timbre(k){const a=ctxAlarma();if(!a)return;(TONOS[k]||TONOS[tonoElegido()]).f(a,a.currentTime+.02);if(!k)vibrar([300,120,300])}
 function elegirTono(k){try{localStorage.setItem('crm_tono',k)}catch(e){}timbre(k);document.querySelectorAll('#tonos button').forEach(b=>{b.classList.toggle('alt',b.dataset.k!=k);b.textContent=(b.dataset.k==k?'✓ ':'')+'▶ '+TONOS[b.dataset.k].n})}
 function pararAlarma(){clearInterval(S.alIv);S.alIv=null;$('#alarma')?.remove();try{navigator.serviceWorker?.getRegistration().then(r=>r&&r.getNotifications({tag:'crm-pedido'}).then(L=>L.forEach(n=>n.close())))}catch(e){}}
