@@ -3,7 +3,7 @@
 // y en segundo plano se baja la última versión publicada. Si hay una versión nueva,
 // la página la detecta (version.json) y se recarga sola con la nueva.
 // Los datos (clientes, pedidos, precios) NUNCA se guardan acá: siempre vienen de la base.
-const CACHE = 'sabores-v2';
+const CACHE = 'sabores-v3';
 const OFFLINE = '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
   '<body style="font:16px system-ui;margin:0;display:grid;place-items:center;min-height:100vh;background:#f3f4f7;color:#1c2333;text-align:center;padding:24px">' +
   '<div><h2 style="color:#7b2d3e">Sin conexión</h2><p>Revisá el wifi o los datos del celular y volvé a intentar.</p>' +
@@ -19,7 +19,7 @@ self.addEventListener('activate', e => e.waitUntil((async () => {
 // Clave de la copia: la página sin parámetros (pedido.html?c=… usa la misma copia que pedido.html)
 const clave = u => { let p = u.pathname; if (p.endsWith('/')) p += 'index.html'; return u.origin + p; };
 const guardar = async (k, res) => { if (res && res.ok && res.type !== 'opaque') { const c = await caches.open(CACHE); await c.put(k, res.clone()); } return res; };
-const ESTATICOS = /\.(png|jpg|jpeg|webp|svg|webmanifest|woff2?|mp3)$/i;
+const ESTATICOS = /\.(png|jpg|jpeg|webp|svg|woff2?|mp3)$/i; // el manifest va siempre a la red (para que el ícono nuevo se vea)
 
 self.addEventListener('fetch', e => {
   const req = e.request;
@@ -81,7 +81,7 @@ self.addEventListener('push', e => {
   e.waitUntil((async () => {
     try {
       await self.registration.showNotification(d.titulo || '🛒 ¡Pedido nuevo!', {
-        body: d.texto || 'Entró un pedido.', icon: 'icon-sab2-192.png', badge: 'badge-pedido.png',
+        body: d.texto || 'Entró un pedido.', icon: 'icon-sab3-192.png', badge: 'badge-pedido.png',
         vibrate: [500, 200, 500, 200, 500], tag: 'crm-pedido', renotify: true, requireInteraction: true,
         data: { url: d.url || './index.html?ir=porAprobar' }
       });
