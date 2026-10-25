@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-25.17';
+const VERSION='2026-10-25.18';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -5494,7 +5494,7 @@ async function vPreventa(){const due=S.perfil.rol=='dueno';
 const ETAPAS=[['nuevo','Nuevo'],['contactado','Contactado'],['visitado','Visitado'],['interesado','Interesado'],['cliente','Ya es cliente']];
 async function vEmbudo(){const{data,error}=await sb.from('prospectos').select('*').order('creado_en',{ascending:false}).limit(1000);if(error){$('#vs').innerHTML='<p class="err">'+esc(error.message)+'</p>';return}
   const SCp=await cargarPuntajes().catch(()=>null);if(SCp)data.sort((a,b)=>SCp(b)-SCp(a));
-  const G={};for(const x of data)(G[x.estado||'nuevo']=G[x.estado||'nuevo']||[]).push(x);const tot=data.filter(x=>x.estado!='no_interesado').length,cl=(G.cliente||[]).length,hoy=diaLocal(new Date());
+  const G={},etK=x=>x.estado=='no_interesado'||ETAPAS.some(e=>e[0]==x.estado)?x.estado:'nuevo';for(const x of data)(G[etK(x)]=G[etK(x)]||[]).push(x);const tot=data.filter(x=>x.estado!='no_interesado').length,cl=(G.cliente||[]).length,hoy=diaLocal(new Date());
   const seg=data.filter(x=>x.proximo_seguimiento&&x.proximo_seguimiento<=hoy&&!['cliente','no_interesado'].includes(x.estado));
   const dias=x=>{const n=Math.floor((Date.now()-new Date(x.actualizado_en||x.creado_en||Date.now()))/864e5);return isNaN(n)?0:n};
   $('#vs').innerHTML=`<div class="kp"><div class="box"><span class="lab">Prospectos</span><span class="num">${tot}</span></div><div class="box ok"><span class="lab">Se hicieron clientes</span><span class="num">${tot?Math.round(cl/tot*100):0} %</span><span class="det">${cl} de ${tot}</span></div><div class="box ${seg.length?'alerta':''}"><span class="lab">Seguimiento para hoy</span><span class="num">${seg.length}</span></div></div>
