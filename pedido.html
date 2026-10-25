@@ -302,7 +302,7 @@ body.foco .sto,body.foco .sgb,body.foco #rep,body.foco #alta,body.foco .opi,body
 .fic .fph .nuevo{top:10px;right:10px}.fic .fph .rib{position:absolute;top:10px;left:10px;background:var(--er);color:#fff;font-weight:800;padding:4px 10px;border-radius:10px}
 .fic .fmeta{font-size:12px;color:var(--mu);text-transform:uppercase;letter-spacing:.04em}.fic .fnm{margin:4px 0 6px;font-size:22px;line-height:1.2}
 .fic .fpr{display:flex;align-items:baseline;gap:8px;margin-bottom:4px}.fic .fpr b{font-family:var(--fd);font-size:30px}.fic .fpr s{color:var(--mu)}.fic .fpr small{color:var(--mu);font-size:14px}
-.esc{width:100%;border-collapse:collapse;font-size:11.5px;margin:4px 0 2px;color:var(--mu)}.esc td{padding:2px 0;border-top:1px dashed rgba(0,0,0,.1);line-height:1.25}.esc td+td{text-align:right;font-weight:700;color:inherit;white-space:nowrap;padding-left:6px}.esc tr:first-child td{border-top:0}.esc.big{font-size:14px;margin:8px 0}.esc.big td{padding:6px 0}.fic .fln{font-size:14px;margin:4px 0}.fic .fln.cc{color:#9a5a00;background:var(--sol2,#fff4d1);border-radius:10px;padding:6px 10px}
+.esc{width:100%;border-collapse:collapse;font-size:11.5px;margin:4px 0 2px;color:var(--mu)}.esc td{padding:2px 0;border-top:1px dashed rgba(0,0,0,.1);line-height:1.25}.esc td+td{text-align:right;font-weight:700;color:inherit;white-space:nowrap;padding-left:6px}.esc tr:first-child td{border-top:0}.card .esc{width:calc(100% - 20px);table-layout:auto}.card .esc td+td{font-variant-numeric:tabular-nums;padding-left:8px}.card .esc td:first-child{word-break:normal;overflow-wrap:anywhere}.esc.big{font-size:14px;margin:8px 0}.esc.big td{padding:6px 0}.fic .fln{font-size:14px;margin:4px 0}.fic .fln.cc{color:#9a5a00;background:var(--sol2,#fff4d1);border-radius:10px;padding:6px 10px}
 .fic .fq{display:flex;gap:8px;align-items:center;margin:12px 0 4px;flex-wrap:wrap}.fic .fq .prim{flex:1;height:50px;border-radius:999px;font-size:16px}.fic .fq .sec{height:50px;border-radius:999px}
 .fic .fq .mn,.fic .fq .ms{width:50px;height:50px;border-radius:50%;font-size:24px;padding:0}.fic .fq input{width:80px;height:50px;text-align:center;font-size:18px;margin:0}
 .fic .fsub{font-size:14px;color:var(--ok);margin:4px 0}.fic .ffv{width:100%;margin:8px 0;border-radius:999px}.fic .fver{width:100%;height:50px;border-radius:999px;margin-top:12px;position:sticky;bottom:0}
@@ -421,7 +421,7 @@ function iconizar(){try{document.querySelectorAll('button,.kgp,.fln,.sbt,.cc,.ki
 {let pend=0;new MutationObserver(()=>{if(pend)return;pend=1;requestAnimationFrame(()=>{pend=0;iconizar()})}).observe(document.documentElement,{childList:true,subtree:true})}
 
 const blP=p=>new RegExp('(^|\\D)'+p.b+'\\s*kg','i').test(p.d||'')?p.tb+' '+p.b+' kg':p.tb+' × '+p.b;
-const VERSION='2026-10-24.3';
+const VERSION='2026-10-25.1';
 /* Siempre la última versión: mira version.json (unos pocos bytes) y si hay una más nueva, recarga sola */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.pedido;
   if(v&&v!==VERSION&&u.searchParams.get('v')!==v){u.searchParams.set('v',v);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
@@ -503,7 +503,8 @@ function escHTML(p,pu,ub,cls){if(!(p.b>1)||!(p.ud>1||p.bp>0))return '';
   const T=[['Unidad',pu]];if(p.ud>1&&p.ud<p.b)T.push(['Display × '+p.ud,ub*p.ud]);
   T.push([p.tb+' × '+p.b+(p.ud>1&&p.ud<p.b&&p.b%p.ud==0?' ('+(p.b/p.ud)+' displays)':''),ub*p.b]);
   if(p.bp>0)T.push(['Pallet × '+p.bp+' '+pl(p.tb,p.bp)+' ('+nf(p.bp*p.b)+' u.)',ub*p.b*p.bp]);
-  return `<table class="esc ${cls||''}">${T.map(([t,v])=>`<tr><td>${esc(t)}</td><td>${$m(v)}</td></tr>`).join('')}</table>`}
+  const m0=v=>Math.abs(v-Math.round(v))<.005?'$ '+Math.round(v).toLocaleString('es-AR'):$m(v);
+  return `<table class="esc ${cls||''}">${T.map(([t,v])=>`<tr><td>${esc(t)}</td><td>${m0(v)}</td></tr>`).join('')}</table>`}
 function promoP(p,q,cerca){if(p.combo||p.pac)return null;let best=null;for(const r of (C?.promos||[])){const av=String(r.av||'').toUpperCase();
   if(r.a=='marca'&&String(p.m||'').toUpperCase()!==av)continue;if(r.a=='familia'&&String(p.f||'').toUpperCase()!==av)continue;if(r.a=='producto'&&String(p.id)!==String(r.av))continue;
   if(r.mt=='bulto'&&!(p.b>1))continue;if(!cerca){if(r.mt=='unidades'&&q<r.mu)continue;if(r.mt=='bulto'&&q<p.b)continue}
