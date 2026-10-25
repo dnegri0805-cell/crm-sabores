@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-25.7';
+const VERSION='2026-10-25.8';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -64,7 +64,7 @@ async function init(){
   datosEmisor().catch(()=>{});shell();if(S._fcVolver){const cl=S.clientes.find(x=>x.id==S._fcVolver);S._fcVolver=null;if(cl&&S.tab=='clientes')try{fichaCliente(cl)}catch(e){}}huellaArranque();programarManana();llegueArranque();
 }
 function shell(){
-  app.innerHTML=`<header><b><a id="hback" class="hback" onclick="volver()" title="Volver a la pantalla anterior" aria-label="Volver" hidden>${IC('back',22)}</a>${MARCA.logo?`<img class="hlogo" src="${MARCA.logo}" alt="Sabores de mi País"><span class="hn">Sabores<span class="hn2"> de mi País</span></span>`:'Sabores de mi País'}</b><nav>${tabsMenu().pri.map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${nomTab(t)}</a>`).join('')}${tabsMenu().sec.length?`<a data-mas="1" class="${tabsMenu().sec.includes(S.tab)?'on':''}">${tabsMenu().sec.includes(S.tab)?nomTab(S.tab)+' ▾':'Más ▾'}</a>`:''}</nav><span><a class="hbt" onclick="buscarTodo()" title="Buscar (Ctrl+K)" aria-label="Buscar">${IC('search',22)}</a><a class="hbt" onclick="ayuda()" title="Ayuda de esta pantalla (?)" aria-label="Ayuda">${IC('help',22)}</a><a class="hbt" onclick="vistaCfg()" title="Letra, colores y avisos">Aa</a><details class="umenu"><summary title="${esc(S.perfil.nombre)}" aria-label="Mi usuario">${esc((S.perfil.nombre||'?').trim().charAt(0).toUpperCase())}</summary><div class="umc"><b>${esc(S.perfil.nombre)}</b><small>${S.perfil.rol=='dueno'?'Dueño':esc(S.perfil.rol)} · versión ${VERSION}</small><button class="alt" onclick="out()">Salir</button></div></details></span></header><main id="v"></main>`;
+  app.innerHTML=`<header><b><a id="hback" class="hback" onclick="volver()" title="Volver a la pantalla anterior" aria-label="Volver" hidden>${IC('back',22)}</a>${MARCA.logo?`<img class="hlogo" src="${MARCA.logo}" alt="Sabores de mi País"><span class="mjhn">Sabores<span class="hn2"> de mi País</span></span>`:'Sabores de mi País'}</b><nav>${tabsMenu().pri.map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${nomTab(t)}</a>`).join('')}${tabsMenu().sec.length?`<a data-mas="1" class="${tabsMenu().sec.includes(S.tab)?'on':''}">${tabsMenu().sec.includes(S.tab)?nomTab(S.tab)+' ▾':'Más ▾'}</a>`:''}</nav><span><a class="hbt" onclick="buscarTodo()" title="Buscar (Ctrl+K)" aria-label="Buscar">${IC('search',22)}</a><a class="hbt" onclick="ayuda()" title="Ayuda de esta pantalla (?)" aria-label="Ayuda">${IC('help',22)}</a><a class="hbt" onclick="vistaCfg()" title="Letra, colores y avisos">Aa</a><details class="umenu"><summary title="${esc(S.perfil.nombre)}" aria-label="Mi usuario">${esc((S.perfil.nombre||'?').trim().charAt(0).toUpperCase())}</summary><div class="umc"><b>${esc(S.perfil.nombre)}</b><small>${S.perfil.rol=='dueno'?'Dueño':esc(S.perfil.rol)} · versión ${VERSION}</small><button class="alt" onclick="out()">Salir</button></div></details></span></header><main id="v"></main>`;
   $$('nav a[data-t]').forEach(a=>a.onclick=()=>{S.tab=a.dataset.t;shell()});$$('nav a[data-mas]').forEach(a=>a.onclick=menuMas);
   {const B=bottomTabs(),dentro=B.includes(S.tab),bn=document.createElement('nav');bn.className='bnav';
    bn.innerHTML=B.map(t=>`<a data-bt="${t}" class="${S.tab==t?'on':''}">${IC(BN_IC[t],23)}${t=='precios'?'Precios':nomTab(t)}</a>`).join('')+`<a data-bm="1" class="${dentro?'':'on'}">${IC('menu',23)}${dentro?'Más':esc(nomTab(S.tab).replace(/^📖 /,''))}</a>`;
@@ -3065,7 +3065,7 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
   const faltabaAlLunes=Math.max(0,cjObjMes-Math.round(cjAntesS)),objSem=semIni?Math.ceil(faltabaAlLunes*habSem/habDesdeSem):0;
   const hoyIdx=Math.max(semIni||1,dh+(dow==0?1:0)),habSemRest=semIni?Math.max(0,hab(Math.min(hoyIdx,semFin+1),semFin)):0,visSem=Math.max(1,Math.ceil(habSemRest/2)),faltaSem=Math.max(0,objSem-Math.round(cjS)),pcS=objSem?Math.min(1,cjS/objSem):0;
   const m0=n=>(n<0?'−':'')+'$ '+Math.round(Math.abs(n)).toLocaleString('es-AR'),obj=meta+fijos,pcG=Math.max(0,Math.min(1,mg/obj)),pcF=fijos>0?Math.min(1,fijos/obj):0,mes=mesNom(m).split(' ')[0],cubre=mg>=fijos,pocas=cj<3;
-  const mesC=mes.slice(0,3).toLowerCase(),semTit=semIni?(dow==0&&lun>hoy?'Semana que viene':'Esta semana')+` · ${semIni==semFin?semIni:semIni+' al '+semFin} ${mesC}`:'';
+  const mesC=mes.slice(0,3).toLowerCase(),semTit=semIni?(dow==0&&lun>hoy?'Semana que viene':'Esta semana')+` · ${semIni==semFin?semIni:semIni+'–'+semFin} ${mesC}`:'';
   /* a quién visitar */
   const hoyS=diaLocal(hoy),dd=(x,y)=>Math.round((new Date(y+'T12:00')-new Date(x+'T12:00'))/864e5),act=S.clientes.filter(c=>c.activo!==false);
   const V=[];for(const c of act){const L=[...new Set(U[c.id]||[])].sort();
@@ -3073,27 +3073,26 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
       if(hace>=Math.max(7,cada*.85))V.push({c,pri:hace/cada+1,why:`Le toca reponer: compró JL hace ${hace} días${gaps.length?` (suele cada ${cada})`:''}`,it:[...(jlProd[c.id]||[])]})}
     else if((T[c.id]||0)>0)V.push({c,pri:(T[c.id]||0)/1e9,why:`Te compra ${m0(T[c.id]/3)} por mes y todavía no lleva JL`,it:null})}
   V.sort((x,y)=>y.pri-x.pri);const VIS=V.slice(0,6);
-  const pasos=faltaMg<=0?'<b class="sube">¡Objetivo del mes cumplido! 🎉</b> Vas '+m0(limpio-meta)+' arriba.'
-    :semIni?`<div class="mjsh"><span>${semTit}</span>${objSem&&cjS>=objSem?'<b class="sube">✓ Cumplida</b>':''}</div>
-      <div class="mjsn"><b>${nf(Math.round(cjS))}</b> <span>de ${nf(objSem)} cajas${realista?'':' para cubrir gastos'}</span></div>
-      <div class="obar mjsb">${pcS>0?`<i style="width:${(pcS*100).toFixed(1)}%" class="${pcS>=1?'lleno':''}"></i>`:''}</div>
-      <div class="mjsx">${faltaSem>0?`Faltan <b>${nf(faltaSem)}</b> · <b>${nf(Math.ceil(faltaSem/visSem))} cajas por visita</b> (${visSem} visita${visSem==1?'':'s'})`:'Ya hiciste las cajas de la semana. Todo lo que sumes adelanta la meta.'}</div>`
-    :`Te faltan <b>${nf(faltaCj)} cajas</b> este mes.`;
-  const aviso=realista?'':`<div class="mja">Con ${visitas} visita${visitas==1?'':'s'} que quedan, los ${m0(meta)} de ${esc(mes.toLowerCase())} no dan (serían ${nf(Math.ceil(Math.max(0,cjMetaMes-cjAntesHoy)/visitas))} cajas por visita). ${cj>=cjGasMes?'Ya cubriste los gastos: todo lo que vendas ahora es limpio.':'Este mes apuntá a <b>cubrir los gastos</b>; la meta grande queda para el mes que viene.'}</div>`;
-  box.innerHTML=`<div class="box obj mj"><div class="bh"><h3 style="margin:0">🥜 Maní JL · ${esc(mes)}</h3><a class="lnk" id="mj_e">Cambiar meta</a></div>
-    <div class="mjm">Meta del mes: <b>${m0(meta)}</b> limpios · ${nf(cjMetaMes)} cajas</div>
-    ${aviso}<div class="mjp">${pasos}</div>
-    <div class="mjt">Mes</div>
+  const pvV=Math.ceil(faltaSem/visSem),R=30,CI=2*Math.PI*R,ring=(f,t)=>`<svg class="mjr" viewBox="0 0 76 76" aria-hidden="true"><circle cx="38" cy="38" r="${R}" class="tr"/>${f>0?`<circle cx="38" cy="38" r="${R}" class="fl" stroke-dasharray="${(CI*f).toFixed(1)} ${CI.toFixed(1)}"/>`:''}<text x="38" y="43" text-anchor="middle">${t}</text></svg>`;
+  const hero=faltaMg<=0?`<div class="mjh ok"><div><div class="ey">Objetivo de ${esc(mes.toLowerCase())}</div><div class="mjhn">Cumplido</div><div class="hs">Vas ${m0(limpio-meta)} arriba de la meta. Lo que sumes ya es extra.</div></div></div>`
+    :semIni?`<div class="mjh">${ring(pcS,Math.round(pcS*100)+'%')}<div><div class="ey">${semTit}</div><div class="mjhn">${nf(Math.round(cjS))}<span> / ${nf(objSem)} cajas</span></div>
+      <div class="hs">${faltaSem>0?`${nf(pvV)} cajas por visita · ${visSem} visita${visSem==1?'':'s'}`:'Semana cumplida. Lo que sumes adelanta el mes.'}</div>${realista?'':'<span class="pill">Foco: cubrir gastos</span>'}</div></div>`
+    :`<div class="mjh"><div><div class="ey">${esc(mes)}</div><div class="mjhn">${nf(faltaCj)}<span> cajas por vender</span></div></div></div>`;
+  const aviso=realista?'':`<div class="mja"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5"/><path d="M10 9v5M10 6.2v.1"/></svg><span>La meta de ${m0(meta)} no da en ${esc(mes.toLowerCase())}: serían ${nf(Math.ceil(Math.max(0,cjMetaMes-cjAntesHoy)/visitas))} cajas por visita. ${cj>=cjGasMes?'Gastos ya cubiertos: lo que vendas es limpio.':'Este mes, cubrí los gastos; la meta grande va el mes que viene.'}</span></div>`;
+  const nota=faltaMg<=0?'':pocas?`Estimado con ${m0(mbCat)} de ganancia promedio por caja.${!cubre?` Con ${nf(Math.ceil((fijos-mg)/mb))} cajas cubrís los gastos.`:''}`
+      :`Cada caja te deja ${m0(mb)}. A este ritmo cerrás ${esc(mes.toLowerCase())} con <b class="${ok?'sube':'baja'}">${m0(proyLimpio)}</b> limpios.`;
+  box.innerHTML=`<div class="box obj mj"><div class="mjtop"><div><div class="ey">Maní JL</div><div class="tt">${esc(mes)}</div></div><button class="mjmeta" id="mj_e" aria-label="Cambiar meta"><small>Meta limpia</small><b>${m0(meta)}</b><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16H4v-3z"/></svg></button></div>
+    ${hero}${aviso}
+    <div class="mjsec"><div class="mjrow"><span class="ey">Mes</span><span class="mjg">${m0(mg)} <small>de ${m0(obj)} de ganancia</small></span></div>
     <div class="obar mjb">${pcG>0?`<i style="width:${(pcG*100).toFixed(1)}%" class="${pcG>=1?'lleno':''}"></i>`:''}${pcF>0&&pcF<1?`<span class="gf" style="left:${(pcF*100).toFixed(1)}%"></span>`:''}</div>
-    ${pcF>0&&pcF<1?`<div class="mjl"><span style="left:${(pcF*100).toFixed(1)}%">${cubre?'✓ Gastos cubiertos':'Acá cubrís gastos'}</span><span style="right:0">Meta</span></div>`:''}
-    <div class="mjk"><div><small>Vendiste</small><b>${nf(Math.round(cj))} cajas</b><small>${cl.size} cliente${cl.size==1?'':'s'} · ${m0(vta)}</small></div>
-      <div><small>Ganancia</small><b>${m0(mg)}</b><small>gastos ${m0(fijos)}</small></div>
-      <div><small>Te queda limpio</small><b class="${limpio<0?'baja':limpio>=meta?'sube':''}">${m0(limpio)}</b><small>${limpio<0?'falta cubrir gastos':Math.round(limpio/meta*100)+' % de la meta'}</small></div></div>
-    <p><small>${faltaMg<=0?'':pocas?`Calculo con lo que deja una caja en promedio (${m0(mbCat)}).${!cubre?` Con ${nf(Math.ceil((fijos-mg)/mb))} cajas cubrís los gastos.`:''}`
-      :`Cada caja te está dejando ${m0(mb)}. A este ritmo cerrás ${esc(mes.toLowerCase())} con <b class="${ok?'sube':'baja'}">${m0(proyLimpio)}</b> limpios${ok?': llegás. 💪':'.'}`}</small></p>
-    <div class="mjv"><div class="mjt">A quién visitar${VIS.length?` <small>· ${VIS.length} sugerido${VIS.length==1?'':'s'}</small>`:''}</div>
-      ${VIS.length?VIS.map(x=>`<div class="mjc"><div><b>${esc(x.c.razon_social||'Cliente')}</b><small>${esc(x.why)}</small></div><button class="alt" data-mjp="${x.c.id}">Pedido</button></div>`).join('')
-        :'<p><small>Todavía no hay a quién sugerir: cuando tus clientes vayan comprando, acá te aparecen los que les toca reponer JL y los que compran mucho y no lo llevan.</small></p>'}</div></div>`;
+    ${pcF>0&&pcF<1?`<div class="mjl"><span style="left:${(pcF*100).toFixed(1)}%">${cubre?'Gastos cubiertos':'Gastos '+m0(fijos)}</span><span style="right:0">Meta</span></div>`:''}
+    <div class="mjk"><div><small>Vendiste</small><b>${nf(Math.round(cj))}</b><small>cajas · ${cl.size} cliente${cl.size==1?'':'s'}</small></div>
+      <div><small>Facturado</small><b>${m0(vta)}</b><small>ganancia ${m0(mg)}</small></div>
+      <div><small>Limpio</small><b class="${limpio<0?'baja':limpio>=meta?'sube':''}">${m0(limpio)}</b><small>${limpio<0?'falta cubrir gastos':Math.round(limpio/meta*100)+' % de la meta'}</small></div></div>
+    ${nota?`<p class="mjn">${nota}</p>`:''}</div>
+    <div class="mjsec mjv"><div class="mjrow"><span class="ey">A quién visitar</span>${VIS.length?`<small>${VIS.length} sugerido${VIS.length==1?'':'s'}</small>`:''}</div>
+      ${VIS.length?VIS.map(x=>{const nm=String(x.c.razon_social||'Cliente');return`<div class="mjc"><span class="av">${esc(nm.trim()[0]||'?').toUpperCase()}</span><div><b>${esc(nm)}</b><small>${esc(x.why)}</small></div><button class="alt" data-mjp="${x.c.id}">Pedido</button></div>`}).join('')
+        :'<p class="mjn">Cuando haya ventas, acá aparecen los clientes a los que les toca reponer JL y los que compran mucho y no lo llevan.</p>'}</div></div>`;
   $$('#manijl [data-mjp]').forEach(bt=>bt.onclick=()=>{const x=VIS.find(y=>y.c.id==bt.dataset.mjp);S.preCli=x.c;S.preItems=x.it&&x.it.length?x.it:null;S.tab='pedidos';shell()});
   $('#mj_e').onclick=pedirMeta}
 
