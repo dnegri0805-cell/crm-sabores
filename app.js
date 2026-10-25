@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-25.10';
+const VERSION='2026-10-25.11';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -291,7 +291,8 @@ async function vInicio(){
   </div>${dia?`</details>
   <details class="plg"><summary>🗓️ Tareas y avisos del día</summary><div id="midia"></div><div id="tari"></div><div id="alm"></div></details>
   <div id="chk"></div>
-  <div class="pieini"><div id="bk"></div><div id="dlr"></div><a class="lnk" data-iv="completa">📋 Ver panel completo</a> · <a class="lnk" onclick="menuTabsCfg()">☰ Elegir pestañas del menú</a></div>`:''}`;
+  <div class="pieini"><div id="bk"></div><div id="dlr"></div><p class="pfila"><span class="pic">${IC('doc',16)}</span><a class="lnk" data-iv="completa">Ver panel completo</a></p><p class="pfila"><span class="pic">${IC('menu',16)}</span><a class="lnk" onclick="menuTabsCfg()">Elegir pestañas del menú</a></p></div>`:''}`;
+  $$('#v details.plg').forEach(d=>{const o=new MutationObserver(badgePlg);o.observe(d,{subtree:true,childList:true,attributes:true,attributeFilter:['data-pend']})});
   const kp=(id,num,det,cls)=>{const b=$('#'+id);b.querySelector('.num').textContent=num;contar(b.querySelector('.num'),num);b.querySelector('.det').textContent=det||'';if(cls)b.classList.add(cls)};
   const fallo=(id,e)=>kp(id,'—','No se pudo leer: '+e.message);
   $$('[data-iv]').forEach(b=>b.onclick=()=>{S.inicioModo=b.dataset.iv;vInicio();scrollTo(0,0)});
@@ -323,7 +324,7 @@ async function vInicio(){
     const F=fe.data,tot=F.reduce((a,x)=>a+Number(x.pendiente||0),0),V=F.filter(x=>x.dias_mora>0),tv=V.reduce((a,x)=>a+Number(x.pendiente||0),0);
     kp('k3',$m(tot),V.length?'Vencido: '+$m(tv)+' en '+V.length+(V.length==1?' factura':' facturas'):'Nada vencido',V.length?'alerta':'');
     V.sort((a,b)=>b.dias_mora-a.dias_mora);
-    $('#t2').innerHTML=V.length?'<table><tr><th>Cliente</th><th>Factura</th><th>Mora</th><th class="n">Debe</th></tr>'+V.slice(0,8).map(x=>`<tr><td>${cli(x.cliente_id)}</td><td>${x.tipo} ${x.numero}</td><td class="mora">${x.dias_mora} días</td><td class="n">${$m(x.pendiente)}</td></tr>`).join('')+'</table>'+(V.length>8?`<small>Y ${V.length-8} más.</small>`:'')+'<p><button class="alt" id="irC">Ir a Cobranza</button></p>':'<p><small>Ningún cliente tiene facturas vencidas.</small></p>';
+    $('#t2').dataset.pend=V.length;$('#t2').innerHTML=V.length?'<table><tr><th>Cliente</th><th>Factura</th><th>Mora</th><th class="n">Debe</th></tr>'+V.slice(0,8).map(x=>`<tr><td>${cli(x.cliente_id)}</td><td>${x.tipo} ${x.numero}</td><td class="mora">${x.dias_mora} días</td><td class="n">${$m(x.pendiente)}</td></tr>`).join('')+'</table>'+(V.length>8?`<small>Y ${V.length-8} más.</small>`:'')+'<p><button class="alt" id="irC">Ir a Cobranza</button></p>':'<p><small>Ningún cliente tiene facturas vencidas.</small></p>';
     $('#irC')&&($('#irC').onclick=()=>{S.tab='cobranza';shell()})}
   // 4 proveedores
   if(sp.error)fallo('k4',sp.error);else{
@@ -340,10 +341,10 @@ async function vInicio(){
   if(!S.stockOk){kp('k5','—','No se pudo leer el stock');$('#t4').innerHTML='<p class="err">No se pudo leer el stock. Corré stock.sql en Supabase.</p>'}else{
     if(!S.inv){const{data:E}=await sb.from('pedidos').select('total').in('estado',['aprobado','en_preparacion','listo','en_reparto']);const n=(E||[]).length,te=(E||[]).reduce((a,o)=>a+Number(o.total||0),0);
       const b5=$('#k5');b5.querySelector('.lab').textContent='🚚 Para entregar';b5.style.cursor='pointer';b5.title='Ver los pedidos para entregar';b5.onclick=()=>irPed('abiertos');
-      kp('k5',String(n),n?'Suman '+$m(te):'Nada para entregar');$('#t4').innerHTML='<p><small>Todavía no cargaste el inventario. Cuando hagas el conteo, cargalo en la pestaña Stock y acá vas a ver qué reponer.</small></p><p><button class="alt" id="irS">Ir a Stock</button></p>';$('#irS').onclick=()=>{S.tab='stock';shell()};return}
+      kp('k5',String(n),n?'Suman '+$m(te):'Nada pendiente');b5.classList.toggle('vacio',!n);$('#t4').innerHTML='<p><small>Todavía no cargaste el inventario. Cuando hagas el conteo, cargalo en la pestaña Stock y acá vas a ver qué reponer.</small></p><p><button class="alt" id="irS">Ir a Stock</button></p>';$('#irS').onclick=()=>{S.tab='stock';shell()};return}
     const B=bajos();
     kp('k5',String(B.length),B.length?(B.filter(x=>x.d<=0).length+' sin stock'):'Todo sobre el mínimo',B.length?'alerta':'ok');
-    $('#t4').innerHTML=B.length?'<table><tr><th>Producto</th><th class="n">Disp.</th><th class="n">Mín.</th></tr>'+B.slice(0,8).map(x=>`<tr><td>${esc(x.p.descripcion)}</td><td class="n ${x.d<=0?'mora':''}">${nf(x.d)}</td><td class="n">${nf(x.m)}</td></tr>`).join('')+'</table>'+(B.length>8?`<small>Y ${B.length-8} más.</small>`:'')+'<p><button class="alt" id="irS">Ir a Stock</button></p>':'<p><small>Ningún producto está por debajo de su mínimo.</small></p>';
+    $('#t4').dataset.pend=B.length;$('#t4').innerHTML=B.length?'<table><tr><th>Producto</th><th class="n">Disp.</th><th class="n">Mín.</th></tr>'+B.slice(0,8).map(x=>`<tr><td>${esc(x.p.descripcion)}</td><td class="n ${x.d<=0?'mora':''}">${nf(x.d)}</td><td class="n">${nf(x.m)}</td></tr>`).join('')+'</table>'+(B.length>8?`<small>Y ${B.length-8} más.</small>`:'')+'<p><button class="alt" id="irS">Ir a Stock</button></p>':'<p><small>Ningún producto está por debajo de su mínimo.</small></p>';
     $('#irS')&&($('#irS').onclick=()=>{S.tab='stock';S.soloBajo=true;shell()})}
 }
 /* Productos activos con mínimo cargado y disponible en o por debajo del mínimo */
@@ -461,11 +462,15 @@ const BK_TABLAS=[['Clientes','clientes'],['Productos y precios','precios_product
   ['Cuentas','cuentas'],['Movimientos de cuentas','movimientos_cuenta'],['Cheques','cheques'],['Retenciones','retenciones'],['Pedidos fijos','pedidos_fijos'],['Prospectos','prospectos'],['Notas de crédito','notas_credito'],['Vencimientos','vencimientos'],['Combos','combos'],['Contactos con clientes','contactos_clientes'],
   ['Encuestas','encuestas'],['Cupones','cupones'],['Cupones usados','cupones_usos'],['Puntos','puntos_mov'],['Presupuestos','presupuestos'],
   ['Carritos guardados','carritos'],['Avisos de stock','avisos_stock'],['Búsquedas sin resultado','busquedas'],['Precios pactados','precios_cliente'],['Precios de la competencia','precios_competencia'],['Muestras','muestras'],['Visitas al catálogo','vistas_catalogo'],['Reclamos','reclamos'],['Productos que piden','pedidos_sugeridos'],['Preventas','preventas'],['Reservas','reservas'],['Exhibidores','comodatos'],['Fraccionados','fraccionados'],['Combustible','cargas_combustible'],['Promesas de pago','promesas_pago'],['Documentos (lista)','documentos_cliente'],['Le debemos','pendientes_cliente'],['Repartos','repartos_dia'],['Fotos de góndola (lista)','fotos_cliente'],['Comprobantes recibidos','comprobantes_cliente'],['Votos','votos_producto']];
+/* Numerito en los plegables del inicio: cuántas cosas hay adentro sin abrirlos */
+function badgePlg(){$$('details.plg').forEach(d=>{const sm=d.querySelector('summary');if(!sm)return;let n=0,hay=false;d.querySelectorAll('[data-pend]').forEach(e=>{hay=true;n+=+e.dataset.pend||0});
+  let b=sm.querySelector('.pb');if(!hay){if(b)b.remove();return}if(!b){b=document.createElement('span');b.className='pb';sm.appendChild(b)}const t=n?String(n):'al día';if(b.textContent!==t)b.textContent=t;b.classList.toggle('cero',!n)})}
 /* ---------- Dólar del día: actualiza el costo de los productos que se compran en dólares ---------- */
 async function cajaDolar(){const b=$('#dlr');if(!b)return;
   const{data}=await sb.from('config_app').select('clave,valor').in('clave',['dolar','dolar_fecha']);const v=Object.fromEntries((data||[]).map(r=>[r.clave,r.valor]));
   const d=+v.dolar||0,f=v.dolar_fecha?new Date(v.dolar_fecha):null;
-  b.innerHTML=`<p class="bkp"><small>💵 Dólar del día: <b>${d?$m(d):'sin cargar'}</b>${f?' · cargado el '+f.toLocaleDateString('es-AR',{day:'numeric',month:'numeric'}):''}</small> <a class="lnk" id="dl_c">Cambiar dólar</a></p>`;
+  const vj=!d||!f||(Date.now()-f)/864e5>=3;
+  b.innerHTML=`<p class="pfila${vj?' viejo':''}"><span class="pic">${IC(vj?'alert':'cash',16)}</span><span>Dólar: <b>${d?$m(d):'sin cargar'}</b>${f?' · '+f.toLocaleDateString('es-AR',{day:'numeric',month:'numeric'}):''}${vj&&f?' · actualizalo':''}</span><a class="lnk" id="dl_c">Cambiar</a></p>`;
   $('#dl_c').onclick=()=>dolarModal()}
 async function dolarModal(){const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
   const{data:cf}=await sb.from('config_app').select('valor').eq('clave','dolar').maybeSingle();let d=+cf?.valor||0;
@@ -498,7 +503,7 @@ async function cajaBackup(){const b=$('#bk');if(!b)return;
     mal=dA!=null&&dA<2?(dias==null||dias>=30):(dias==null||dias>=7),
     autoTxt=A?(dA<2?'✅ Copia automática: '+(dA==0?'hoy':'ayer')+' a las '+new Date(A).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}):'⚠️ La copia automática no corre desde el '+fd(A)):'';
   b.innerHTML=mal?`<div class="box alerta bkbox"><span class="bkic">${IC('download',22)}</span><div style="flex:1;min-width:0"><b>${dias==null?'Todavía no hiciste ninguna copia de seguridad':'Hace '+dias+' días que no hacés copia de seguridad'}</b><br><small>${autoTxt?autoTxt+'. ':''}Conviene tener también una copia guardada en tu equipo. Lleva un minuto.</small></div><button id="bk_d">Hacer la copia ahora</button><a class="lnk" id="bk_s">🩺 Estado del sistema</a></div>`
-    :`<p class="bkp"><small>${autoTxt?autoTxt+'<br>':''}💾 Copia en tu equipo: ${fd(u)}${dias?' (hace '+dias+(dias==1?' día':' días')+')':' (hoy)'}.</small> <a class="lnk" id="bk_d">Hacer otra</a> · <a class="lnk" id="bk_s">🩺 Estado del sistema</a></p>`;
+    :`${A?`<p class="pfila${dA<2?'':' viejo'}"><span class="pic">${IC(dA<2?'check':'alert',16)}</span><span>${dA<2?'Copia automática: '+(dA==0?'hoy':'ayer')+' '+new Date(A).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}):'La copia automática no corre desde el '+fd(A)}</span></p>`:''}<p class="pfila${dias>=7?' viejo':''}"><span class="pic">${IC(dias>=7?'alert':'download',16)}</span><span>Copia en tu equipo: ${fd(u)}${dias?' · hace '+dias+(dias==1?' día':' días'):' · hoy'}</span><a class="lnk" id="bk_d">Hacer otra</a></p><p class="pfila"><span class="pic">${IC('gauge',16)}</span><a class="lnk" id="bk_s">Estado del sistema</a></p>`;
   $('#bk_d').onclick=descargarBackup;$('#bk_s').onclick=estadoSistema}
 async function descargarBackup(){
   const m=document.createElement('div');m.className='modal';m.innerHTML=`<div class="mc"><h3>Copia de seguridad</h3><p id="bk_e">Preparando…</p><div class="barra"><i id="bk_b"></i></div></div>`;document.body.appendChild(m);
@@ -7088,7 +7093,7 @@ async function informeMes(mes){mes=mes||mesHoy();const[y,mo]=mes.split('-').map(
 /* ---------- 9. Tareas del dueño ---------- */
 async function tareasInicio(){const box=$('#tari');if(!box)return;await generarRecurrentes().catch(()=>{});const{data,error}=await sb.from('tareas').select('*').eq('hecha',false).order('fecha').limit(100);if(error){box.innerHTML='';return}
   const hoy=diaLocal(new Date()),L=data||[],AU=await tareasAuto().catch(()=>[]);
-  box.innerHTML=`<div class="box"><div class="bh"><h3 style="margin:0">📝 Tareas</h3><small>${L.filter(t=>t.fecha<=hoy).length+AU.filter(t=>t.f<=hoy).length} para hoy</small></div>
+  box.innerHTML=`<div class="box" data-pend="${L.filter(t=>t.fecha<=hoy).length+AU.filter(t=>t.f<=hoy).length}"><div class="bh"><h3 style="margin:0">📝 Tareas</h3><small>${L.filter(t=>t.fecha<=hoy).length+AU.filter(t=>t.f<=hoy).length} para hoy</small></div>
     <div class="g" style="margin-top:6px"><input id="ta_t" placeholder="Nueva tarea (ej.: pagarle a Paladini, llamar a La Rosa)"><input id="ta_f" type="date" value="${hoy}" style="max-width:160px"></div><button class="alt" id="ta_g">Agregar</button> <button class="alt" onclick="tareasRec()">🔁 Tareas que se repiten</button>
     ${L.length?`<div style="margin-top:8px">${L.map(t=>`<label class="chk" style="display:flex;gap:8px;align-items:flex-start;padding:4px 0"><input type="checkbox" data-tah="${t.id}" style="width:auto;margin:3px 0 0"><span><b class="${t.fecha<hoy?'mora':''}">${esc(t.titulo)}</b><br><small class="${t.fecha<hoy?'mora':''}">${t.fecha<hoy?'venció el '+fd(t.fecha):t.fecha==hoy?'hoy':fd(t.fecha)}${t.cliente_id?' · '+esc(nomCli(t.cliente_id)):''}</small></span></label>`).join('')}</div>`:'<p><small>No tenés tareas pendientes.</small></p>'}
     ${AU.length?'<h4 style="margin:10px 0 4px">🤖 Se armaron solas</h4>'+AU.map(t=>`<div class="vi" style="align-items:center;padding:4px 0"><span style="flex:1"><b class="${t.f<hoy?'mora':''}">${esc(t.t)}</b><br><small class="${t.f<hoy?'mora':''}">${t.f<hoy?'venció el '+fd(t.f):t.f==hoy?'hoy':fd(t.f)}</small></span><button class="alt" onclick="${t.go}">Ir</button></div>`).join(''):''}</div>`;
@@ -7226,7 +7231,7 @@ async function miDia(){const box=$('#midia');if(!box||S.perfil.rol!='dueno')retu
     ['cheques','🏦 Depositar cheques',(ch.data||[]).length,"irA('contable')"],['pagar','💸 Pagar a proveedores (vencen en 3 días)',pagar,"irA('compras',{sub:'cuenta'})"],['comprar','📦 Revisar órdenes de compra en borrador',(oc.data||[]).length,"irA('compras',{sub:'ordenes'})"],
     ['temp','🌡️ Anotar la temperatura de la cámara',K.camaras&&!tp.error&&!(tp.data||[]).length?1:0,'temperatura()'],['rot','📦 Contar 10 productos (conteo del día)',S.inv&&!rotHecho()?10:0,'conteoDia()'],['tareas','📝 Tareas de hoy',(ta.data||[]).length,"document.getElementById('tari').scrollIntoView({behavior:'smooth'})"]].filter(r=>r[4]||r[2]);
   const hechos=R.filter(r=>H[r[0]]).length;
-  box.innerHTML=`<div class="box midia"><div class="bh"><h3 style="margin:0">✅ Mi día</h3><small>${hechos} de ${R.length} hechos</small></div><div class="rfbar"><span style="width:${R.length?Math.round(hechos/R.length*100):0}%"></span></div>
+  box.innerHTML=`<div class="box midia" data-pend="${R.length-hechos}"><div class="bh"><h3 style="margin:0">✅ Mi día</h3><small>${hechos} de ${R.length} hechos</small></div><div class="rfbar"><span style="width:${R.length?Math.round(hechos/R.length*100):0}%"></span></div>
     ${R.map(([k,t,n,f])=>`<div class="vi md ${H[k]?'hecho':''}" style="align-items:center"><label class="chk" style="flex:1;margin:0"><input type="checkbox" data-mdk="${k}" ${H[k]?'checked':''} style="width:22px;height:22px;margin:0 8px 0 0">${t}${n&&n!==1||(n===1&&k!='temp')?` <span class="badge">${n}</span>`:''}</label><button class="alt" onclick="${f}">Ir</button></div>`).join('')}
     <p style="margin:6px 0 0"><small><a class="lnk" onclick="autoAprobarCfg()">🤖 Aprobación automática de pedidos online</a> · <a class="lnk" onclick="ocAutoCfg()">🗓️ Orden de compra semanal</a></small></p></div>`;
   $$('#midia [data-mdk]').forEach(c=>c.onchange=()=>{c.checked?H[c.dataset.mdk]=1:delete H[c.dataset.mdk];try{localStorage.setItem(key,JSON.stringify(H))}catch(e){}miDia()})}
@@ -7577,7 +7582,7 @@ async function chequeoInicio(){const box=$('#chk');if(!box||S.perfil.rol!='dueno
   const[F,C]=await Promise.all([sqlFaltantes(),configPendiente()]),pend=C.filter(x=>!x[1]);if(!F.length&&(!pend.length||oc)){box.innerHTML='';return}
   box.innerHTML=`<div class="box ${F.length?'alerta':'chk-solo'}">${F.length?`<h3 style="margin:0 0 6px">🩺 Falta correr ${F.length==1?'1 archivo':F.length+' archivos'} en Supabase</h3><p><small>Sin esto, algunas pantallas no andan. Para cada uno: tocá <b>Copiar</b>, después <b>Abrir Supabase</b>, pegá (Ctrl + V) y tocá <b>Run</b>. Corrélos en este orden.</small></p>
     ${F.map(f=>`<div class="vi" style="align-items:center"><b style="flex:1">${esc(f)}</b><button class="alt" data-csq="${esc(f)}">📋 Copiar</button><a class="alt btnl" href="${SUPA_SQL}" target="_blank" rel="noopener">Abrir Supabase</a></div>`).join('')}<p><small>Cuando termines, recargá esta página.</small></p>`:''}
-    ${pend.length&&!oc?`<details class="plg"><summary>⚙️ Configuración del sistema: ${C.length-pend.length} de ${C.length} ${C.length-pend.length==1?'paso listo':'pasos listos'} · tocá para ver</summary>${pend.map(([t,ok,f])=>`<div class="vi" style="align-items:center;padding:4px 0"><span style="flex:1">${t}</span><button class="alt" onclick="${f}">Ir</button></div>`).join('')}<p><a class="lnk" id="chk_oc">Ocultar hasta mañana</a></p></details>`:''}</div>`;
+    ${pend.length&&!oc?`<details class="plg"><summary>⚙️ Configuración<span class="cfgav"><i style="width:${Math.round((C.length-pend.length)/C.length*100)}%"></i></span><span class="cfgn">${C.length-pend.length} de ${C.length}</span></summary>${pend.map(([t,ok,f])=>`<div class="vi" style="align-items:center;padding:4px 0"><span style="flex:1">${t}</span><button class="alt" onclick="${f}">Ir</button></div>`).join('')}<p><a class="lnk" id="chk_oc">Ocultar hasta mañana</a></p></details>`:''}</div>`;
   $$('#chk [data-csq]').forEach(b=>b.onclick=()=>copiarSQL(b.dataset.csq,b));$('#chk_oc')&&($('#chk_oc').onclick=()=>{try{localStorage.setItem('chk_oc',diaLocal(new Date()))}catch(e){}chequeoInicio()})}
 
 /* Pestañas que se ven arriba (se guarda para todos tus equipos) */
