@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-25.9';
+const VERSION='2026-10-25.10';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -3088,7 +3088,7 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
     <div id="mj_d"${abierto?'':' hidden'}>${aviso}
     <div class="mjsec"><div class="mjrow"><span class="ey">Mes</span><span class="mjg">${m0(mg)} <small>de ${m0(obj)} (meta + gastos)</small></span></div>
     <div class="obar mjb">${pcG>0?`<i style="width:${(pcG*100).toFixed(1)}%" class="${pcG>=1?'lleno':''}"></i>`:''}${pcF>0&&pcF<1?`<span class="gf" style="left:${(pcF*100).toFixed(1)}%"></span>`:''}</div>
-    ${pcF>0&&pcF<1?`<div class="mjl"><span style="left:${(pcF*100).toFixed(1)}%">${cubre?'Gastos cubiertos':'Gastos '+m0(fijos)}</span><span style="right:0">Meta ${m0(obj)}</span></div>`:''}
+    ${pcF>0&&pcF<1?`<div class="mjl"><span style="left:${(pcF*100).toFixed(1)}%">${cubre?'Gastos cubiertos':'Gastos '+m0(fijos)}</span><span style="right:0">${m0(obj)}</span></div>`:''}
     <div class="mjk"><div><small>Vendiste</small><b>${nf(Math.round(cj))}</b><small>cajas · ${cl.size} cliente${cl.size==1?'':'s'}</small></div>
       <div><small>Ganancia</small><b>${m0(mg)}</b><small>facturado ${m0(vta)}</small></div>
       <div><small>Limpio</small>${limpio<0&&!(cj>0)?`<b style="color:var(--mu)">${m0(0)}</b><small>faltan ${m0(fijos)} para gastos</small>`:`<b class="${limpio<0?'baja':limpio>=meta?'sube':''}">${m0(limpio)}</b><small>${limpio<0?'faltan '+m0(-limpio)+' para gastos':Math.round(limpio/meta*100)+' % de la meta'}</small>`}</div></div>
