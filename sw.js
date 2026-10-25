@@ -81,7 +81,7 @@ self.addEventListener('push', e => {
   e.waitUntil((async () => {
     try {
       await self.registration.showNotification(d.titulo || '🛒 ¡Pedido nuevo!', {
-        body: d.texto || 'Entró un pedido.', icon: 'icon-sab-192.png', badge: 'badge-pedido.png',
+        body: d.texto || 'Entró un pedido.', icon: 'icon-sab2-192.png', badge: 'badge-pedido.png',
         vibrate: [500, 200, 500, 200, 500], tag: 'crm-pedido', renotify: true, requireInteraction: true,
         data: { url: d.url || './index.html?ir=porAprobar' }
       });
