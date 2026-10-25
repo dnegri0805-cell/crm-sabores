@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-24.43';
+const VERSION='2026-10-24.44';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -4973,9 +4973,12 @@ function ctxAlarma(){try{if(!S.ac)S.ac=new (window.AudioContext||window.webkitAu
 /* El navegador solo deja sonar después de un toque: se "desbloquea" el audio con el primer toque en el CRM */
 ['click','touchstart','keydown'].forEach(ev=>document.addEventListener(ev,()=>ctxAlarma(),{once:true,passive:true,capture:true}));
 function timbre(){const a=ctxAlarma();if(!a)return;const t=a.currentTime;
-  [[0,988],[.16,1319],[.32,1568],[.62,988],[.78,1319],[.94,1568]].forEach(([d,f])=>{const o=a.createOscillator(),g=a.createGain();o.type='triangle';o.frequency.value=f;
-    g.gain.setValueAtTime(.0001,t+d);g.gain.exponentialRampToValueAtTime(.7,t+d+.02);g.gain.exponentialRampToValueAtTime(.0001,t+d+.15);o.connect(g).connect(a.destination);o.start(t+d);o.stop(t+d+.17)});
-  vibrar([400,150,400,150,400])}
+  /* Melodía tipo app de comida: "di-ri-ding… ding-dong!" con timbre de marimba (fundamental + armónico que se apaga rápido) */
+  const nota=(d,f,dur,v)=>[[1,v],[4,v*.35],[2.01,v*.25]].forEach(([m,vv])=>{const o=a.createOscillator(),g=a.createGain();o.type='sine';o.frequency.value=f*m;
+    const fin=m==1?dur:dur*.35;g.gain.setValueAtTime(.0001,t+d);g.gain.exponentialRampToValueAtTime(vv,t+d+.008);g.gain.exponentialRampToValueAtTime(.0001,t+d+fin);
+    o.connect(g).connect(a.destination);o.start(t+d);o.stop(t+d+fin+.02)});
+  [[0,784,.18,.55],[.11,1047,.18,.55],[.22,1319,.3,.6],[.5,1568,.22,.6],[.66,2093,.6,.7],[.66,1047,.6,.35]].forEach(([d,f,dur,v])=>nota(d,f,dur,v));
+  vibrar([200,100,200,100,500])}
 function pararAlarma(){clearInterval(S.alIv);S.alIv=null;$('#alarma')?.remove();try{navigator.serviceWorker?.getRegistration().then(r=>r&&r.getNotifications({tag:'crm-pedido'}).then(L=>L.forEach(n=>n.close())))}catch(e){}}
 function alarmaPedido(L){S.alarmaL=[...(S.alarmaL&&$('#alarma')?S.alarmaL:[]),...L];const T=S.alarmaL;
   let d=$('#alarma');if(!d){d=document.createElement('div');d.id='alarma';document.body.appendChild(d)}
