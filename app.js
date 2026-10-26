@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-26.7';
+const VERSION='2026-10-26.8';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -291,7 +291,7 @@ async function vInicio(){
   </div>${dia?`</details>
   <details class="plg"><summary>🗓️ Tareas y avisos del día</summary><div id="midia"></div><div id="tari"></div><div id="alm"></div></details>
   <div id="chk"></div>
-  <div class="pieini"><div id="bk"></div><div id="dlr"></div><p class="pfila plink"><span class="pic">${IC('doc',16)}</span><a class="lnk" data-iv="completa">Ver panel completo</a></p><p class="pfila plink"><span class="pic">${IC('menu',16)}</span><a class="lnk" onclick="menuTabsCfg()">Elegir pestañas del menú</a></p></div>`:''}`;
+  <div class="pieini"><div id="bk"></div><div id="dlr"></div><p class="pfila plink"><span class="pic">${IC('cash',16)}</span><a class="lnk" onclick="mercadoPago()">Mercado Pago: cobros por transferencia</a></p><p class="pfila plink"><span class="pic">${IC('doc',16)}</span><a class="lnk" data-iv="completa">Ver panel completo</a></p><p class="pfila plink"><span class="pic">${IC('menu',16)}</span><a class="lnk" onclick="menuTabsCfg()">Elegir pestañas del menú</a></p></div>`:''}`;
   $$('#v details.plg').forEach(d=>{const o=new MutationObserver(badgePlg);o.observe(d,{subtree:true,childList:true,attributes:true,attributeFilter:['data-pend']})});
   const kp=(id,num,det,cls)=>{const b=$('#'+id);b.querySelector('.num').textContent=num;contar(b.querySelector('.num'),num);b.querySelector('.det').textContent=det||'';if(cls)b.classList.add(cls)};
   const fallo=(id,e)=>kp(id,'—','No se pudo leer: '+e.message);
@@ -474,6 +474,32 @@ function kpCeros(){if(!$('.kphoy'))return;
 /* Numerito en los plegables del inicio: cuántas cosas hay adentro sin abrirlos */
 function badgePlg(){$$('details.plg').forEach(d=>{const sm=d.querySelector('summary');if(!sm)return;let n=0,hay=false;d.querySelectorAll('[data-pend]').forEach(e=>{hay=true;n+=+e.dataset.pend||0});
   let b=sm.querySelector('.pb');if(!hay){if(b)b.remove();return}if(!b){b=document.createElement('span');b.className='pb';sm.appendChild(b)}const t=n?String(n):'al día';if(b.textContent!==t)b.textContent=t;b.classList.toggle('cero',!n)})}
+/* ---------- Mercado Pago: conectar la cuenta y ver las transferencias que entran ---------- */
+async function mercadoPago(){if(S.perfil.rol!='dueno')return toast('Solo el dueño puede conectar Mercado Pago.',1);
+  const m=document.createElement('div');m.className='modal';document.body.appendChild(m);const q=i=>m.querySelector(i);
+  const llamar=async o=>{const{data,error}=await sb.functions.invoke('mp-movimientos',{body:o||{}});if(error){let t=error.message;try{const j=await error.context.json();t=j.error||t}catch(e){}throw new Error(t)}return data};
+  const pinta=async()=>{m.innerHTML=`<div class="mc"><div class="bh"><h3 style="margin:0">💵 Mercado Pago</h3><button class="alt" id="mp_x">Cerrar</button></div><p><span class="skl" role="status" aria-label="Cargando"></span> Revisando la conexión…</p></div>`;q('#mp_x').onclick=()=>m.remove();
+    let st;try{st=await llamar({})}catch(e){st={conectado:false,error:e.message}}
+    const form=`<details ${st.conectado?'':'open'} class="mpf"><summary><b>${st.conectado?'Cambiar la credencial':'Conectar tu cuenta'}</b></summary>
+      <ol class="mpp"><li>Entrá a <a class="lnk" href="https://www.mercadopago.com.ar/developers/panel/app" target="_blank" rel="noopener">mercadopago.com.ar/developers</a> con tu cuenta.</li><li><b>Crear aplicación</b> (nombre: CRM Sabores). Si te pregunta el tipo, elegí pagos online / otra.</li><li>Entrá a la aplicación → <b>Credenciales de producción</b> → copiá el <b>Access Token</b> (empieza con APP_USR-).</li><li>Pegalo acá abajo y tocá Guardar.</li></ol>
+      <label class="f">Access Token<input id="mp_t" type="password" autocomplete="off" placeholder="APP_USR-…"></label>
+      <p style="display:flex;gap:8px;justify-content:flex-end;margin:8px 0 0">${st.conectado?'<button class="alt" id="mp_b">Desconectar</button>':''}<button id="mp_g">Guardar</button></p>
+      <p><small>La credencial queda guardada en el servidor del CRM y nadie la puede volver a ver desde la app. Solo se usa para leer tus cobros.</small></p></details>`;
+    m.innerHTML=`<div class="mc"><div class="bh"><h3 style="margin:0">💵 Mercado Pago</h3><button class="alt" id="mp_x">Cerrar</button></div>
+      ${st.conectado?`<p class="mpok">${IC('check',16)} Conectado a la cuenta de <b>${esc(st.cuenta||'')}</b></p><p style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button id="mp_v">Ver lo que entró</button><select id="mp_d" style="width:auto;margin:0"><option value="7">Últimos 7 días</option><option value="15" selected>Últimos 15 días</option><option value="30">Últimos 30 días</option></select></p><div id="mp_l"></div>`
+        :`<p>${st.error?`<span class="err">${esc(st.error)}</span><br>`:''}Conectá tu cuenta para que el CRM vea las transferencias que te entran y te ayude a saber quién te pagó.</p>`}
+      ${form}</div>`;
+    q('#mp_x').onclick=()=>m.remove();
+    q('#mp_g').onclick=async()=>{const t=q('#mp_t').value.trim();if(!/^APP_USR-/.test(t))return toast('Pegá el Access Token de producción (empieza con APP_USR-).',1);
+      q('#mp_g').disabled=true;const{error}=await sb.rpc('mp_guardar_token',{p_token:t});if(error){q('#mp_g').disabled=false;return toast(error.message,1)}toast('Credencial guardada. Probando la conexión…');pinta()};
+    if(q('#mp_b'))q('#mp_b').onclick=async()=>{if(!confirm('¿Desconectar Mercado Pago del CRM?'))return;const{error}=await sb.rpc('mp_guardar_token',{p_token:''});error?toast(error.message,1):(toast('Mercado Pago desconectado.'),pinta())};
+    if(q('#mp_v'))q('#mp_v').onclick=async()=>{const L=q('#mp_l');L.innerHTML='<p><span class="skl" role="status" aria-label="Cargando"></span> Buscando movimientos…</p>';
+      try{const d=await llamar({accion:'movimientos',dias:+q('#mp_d').value});const M=d.movimientos||[];
+        if(d.error){L.innerHTML=`<p class="err">${esc(d.error)}</p>`;return}
+        L.innerHTML=M.length?`<p><small>${M.length} movimiento${M.length==1?'':'s'} que te entraron. Si una transferencia que recibiste no aparece acá, avisá: Mercado Pago no las informa todas por esta vía.</small></p><table><tr><th>Fecha</th><th>De quién</th><th class="n">Monto</th></tr>${M.map(x=>`<tr><td>${new Date(x.fecha).toLocaleString('es-AR',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'})}<br><small>${esc([x.tipo,x.medio,x.estado!='approved'?x.estado:''].filter(Boolean).join(' · '))}</small></td><td>${esc(x.pagador||'—')}${x.doc?'<br><small>DNI/CUIT '+esc(x.doc)+'</small>':''}${x.descripcion?'<br><small>'+esc(x.descripcion)+'</small>':''}</td><td class="n"><b>${$m(x.monto)}</b></td></tr>`).join('')}</table>`
+          :'<p><small>No encontré movimientos en esos días. Si recibiste transferencias y no aparecen, Mercado Pago no las informa por esta vía y vamos por el extracto.</small></p>'}catch(e){L.innerHTML=`<p class="err">${esc(e.message)}</p>`}}};
+  pinta()}
+
 /* ---------- Dólar del día: actualiza el costo de los productos que se compran en dólares ---------- */
 async function cajaDolar(){const b=$('#dlr');if(!b)return;
   const{data}=await sb.from('config_app').select('clave,valor').in('clave',['dolar','dolar_fecha']);const v=Object.fromEntries((data||[]).map(r=>[r.clave,r.valor]));
