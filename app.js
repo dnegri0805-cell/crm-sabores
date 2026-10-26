@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-26.10';
+const VERSION='2026-10-26.11';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -3086,7 +3086,7 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
   /* si los productos todavía no cargaron, espera: si no, calcula con un promedio inventado y los números saltan */
   if(!ids.size){box._r=(box._r||0)+1;if(box._r<8)setTimeout(()=>maniJLInicio().catch(()=>{}),800);return}box._r=0;
   const d0=new Date(hoy);d0.setDate(d0.getDate()-120);const desde=diaLocal(d0)<a?diaLocal(d0):a;
-  const{data:pe}=await todo(()=>sb.from('pedidos').select('cliente_id,creado_en,total,pedido_items(producto_id,cantidad,precio_unitario,costo_unitario)').neq('estado','cancelado').gte('creado_en',tsAR(desde)).lt('creado_en',tsAR(b)).order('numero'));
+  const{data:pe}=await todo(()=>sb.from('pedidos').select('cliente_id,creado_en,total,pedido_items(producto_id,cantidad,precio_unitario,costo_unitario)').neq('estado','cancelado').or('es_prueba.is.null,es_prueba.eq.false').gte('creado_en',tsAR(desde)).lt('creado_en',tsAR(b)).order('numero'));
   /* semana: lunes a sábado; el domingo ya muestra la semana que viene. Recortada al mes. */
   const dow=hoy.getDay(),lun=new Date(Y,M,dh+(dow==0?1:1-dow)),sab=new Date(lun.getFullYear(),lun.getMonth(),lun.getDate()+5);
   const semIni=lun.getMonth()==M?lun.getDate():lun<hoy&&sab.getMonth()==M?1:null,semFin=semIni?(sab.getMonth()==M?sab.getDate():dm):null;
