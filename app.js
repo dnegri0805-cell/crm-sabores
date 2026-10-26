@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-26.9';
+const VERSION='2026-10-26.10';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -199,7 +199,7 @@ function enBultos(id,q){const b=bul(id);q=Number(q)||0;if(!b||q<b.n)return '';co
 const esPeso=id=>!!S.min[id]?.pw,esKg=id=>esPeso(id)&&!ppz(id);
 /* Se pesa de verdad (fiambres y quesos); los insumos por kilo en bolsas/cajas cerradas no */
 const aPesar=id=>{if(!esPeso(id))return false;const p=S.productos.find(x=>x.producto_id==id);return !p||pareceKg(p)};
-const cantTxt=(id,q)=>{if(esKg(id))return nf(q)+' kg';if(esPeso(id))return nf(q)+' '+(+q==1?'pieza':'piezas')+' (≈ '+nf(Math.round(q*ppz(id)*10)/10)+' kg)';const e=enBultos(id,q);return nf(q)+(e?' ('+e+')':'')};
+const cantTxt=(id,q)=>{if(esKg(id))return nf(q)+' kg';if(esPeso(id))return nf(q)+' '+(+q==1?'pieza':'piezas')+' (≈ '+nf(Math.round(q*ppz(id)*10)/10)+' kg)';const e=enBultos(id,q),b=bul(id);return nf(q)+(e?' ('+e+')':b&&b.n>1?' u.':'')};
 /* Quesos y fiambres: se detectan por familia y descripción (los envasados por gramos quedan afuera) */
 const FAM_PESO=/queso|fiambre|chacinad|jamoner|embutid|^secos$/i,FAM_NO=/fetas|rallad|hebras|mendicrim|tholem|untable|fetead|cheddar|dips/i,
   DES_NO=/\d+\s*(gr|grs|g|gs|ml|cc)\b|fetas|rallad|\bunt\b|unt\.|hebras|crema\b|tholem|pizzeta|mascarpone|camembert|brie|mendicrim|\bman[ií]\b|salchicha|rodajitas|fuet|bandeja|\(\d+\)/i;
