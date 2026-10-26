@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-26.13';
+const VERSION='2026-10-26.14';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -277,12 +277,12 @@ async function vInicio(){
   </div>`;
   $('#v').innerHTML=`<div class="bh ini-h" style="flex-wrap:wrap;gap:8px"><div><h2 style="margin:0">${hr<5?'Buenas noches':hr<13?'Buen día':hr<20?'Buenas tardes':'Buenas noches'}${S.perfil.nombre?', '+esc(String(S.perfil.nombre).trim().split(/\s+/)[0]):''}</h2><small class="ini-f">${hoyD.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}</small></div>
     ${dia?'':'<button class="alt" data-iv="dia">← Volver al inicio simple</button>'}</div>
-  ${dia?`${principalesHTML(false)}${kpH}<div id="manijl"></div>`:`
+  ${dia?`${principalesHTML(false)}${kpH}<div id="manijl"></div><div id="metaskg"></div>`:`
   ${principalesHTML()}<div id="bk"></div><div id="dlr"></div><div id="chk"></div><div id="cmpi"></div><div id="cami"></div><div id="equi"></div><div id="doci"></div><div id="midia"></div><div id="mani"></div><div id="resd"></div><div id="tari"></div>
   <div class="herr" id="herr"></div>
   <div id="alm"></div>
   <div id="empi"></div><div id="metai"></div><div id="colai"></div><div id="plani"></div><div id="toca"></div><div id="fidel"></div><div id="masi"></div><div id="creci"></div><div id="servi"></div><div id="fieli"></div><div id="fechas"></div>
-  <div id="manijl"></div><div id="obj"></div>`}
+  <div id="manijl"></div><div id="metaskg"></div><div id="obj"></div>`}
   ${dia?'':kpH}
   <div id="t1" hidden></div>
   <div class="box" id="b3" hidden><h3>Pagos a proveedores (próximos 7 días)</h3><div id="t3"></div></div>
@@ -302,7 +302,7 @@ async function vInicio(){
   $('#k6')&&($('#k6').onclick=()=>irA('clientes',{cs:'agenda',agD:Math.min(dvHoy,6)}));
   if(S.perfil.rol=='dueno'){cajaBackup();cajaDolar().catch(()=>{})}
   /* Primero los números del día; los avisos y tareas de abajo se cargan un instante después para que Inicio aparezca más rápido */
-  avisosEnVivo();setTimeout(()=>{herramientas();generarFijos();alertasMargen();objetivoMes();maniJLInicio().catch(()=>{});tocaInicio();fidelInicio().catch(()=>{});masInicio().catch(()=>{});crecerInicio().catch(()=>{});fielesInicio().catch(()=>{});servInicio().catch(()=>{});planInicio().catch(()=>{});colaInicio().catch(()=>{});resumenDia().catch(()=>{});tareasInicio().catch(()=>{});chequeoInicio().catch(()=>{});camionetaInicio().catch(()=>{});cuentasInicio().catch(()=>{});equiposInicio().catch(()=>{});comprobantesInicio().catch(()=>{});mananaInicio().catch(()=>{});miDia().catch(()=>{});ocSemanal().catch(()=>{});aplicarAumentosProg().catch(()=>{});sincronizarOff().catch(()=>{});metasInicio().catch(()=>{});empujonBox($('#empi')).catch(()=>{});fechasInicio();},700);
+  avisosEnVivo();setTimeout(()=>{herramientas();generarFijos();alertasMargen();objetivoMes();maniJLInicio().catch(()=>{});metasKgInicio().catch(()=>{});tocaInicio();fidelInicio().catch(()=>{});masInicio().catch(()=>{});crecerInicio().catch(()=>{});fielesInicio().catch(()=>{});servInicio().catch(()=>{});planInicio().catch(()=>{});colaInicio().catch(()=>{});resumenDia().catch(()=>{});tareasInicio().catch(()=>{});chequeoInicio().catch(()=>{});camionetaInicio().catch(()=>{});cuentasInicio().catch(()=>{});equiposInicio().catch(()=>{});comprobantesInicio().catch(()=>{});mananaInicio().catch(()=>{});miDia().catch(()=>{});ocSemanal().catch(()=>{});aplicarAumentosProg().catch(()=>{});sincronizarOff().catch(()=>{});metasInicio().catch(()=>{});empujonBox($('#empi')).catch(()=>{});fechasInicio();},700);
   const cli=id=>esc(S.clientes.find(c=>c.id==id)?.razon_social||'Cliente');
   const [fv,pe,fe,sp,fp]=await Promise.all([
     sb.from('facturas_venta').select('*').order('id',{ascending:false}).limit(500),
@@ -3205,6 +3205,68 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
       if(sw._mov){if(dx>25&&!der)elegir('todo');else if(dx<-25&&der)elegir('chicos')}setTimeout(()=>sw._mov=false,50)});}
   $$('#manijl [data-mjp]').forEach(bt=>bt.onclick=()=>{const x=VIS.find(y=>y.c.id==bt.dataset.mjp);S.preCli=x.c;S.preItems=x.it&&x.it.length?x.it:null;S.tab='pedidos';shell()});
   $('#mj_e').onclick=pedirMeta}
+
+/* ======================= METAS EN KILOS POR PRODUCTO (Inicio) =======================
+   Un solo reloj para los productos que se quieren empujar (config_app 'metas_kg': {items:[{p:producto_id,n:nombre corto,meta:kg por mes}],sel}).
+   Arriba se elige el producto; muestra los kilos de la semana, el mes y a quién visitar. */
+async function metasKgInicio(){const box=$('#metaskg');if(!box||S.perfil.rol!='dueno')return;
+  const C=await cfgJ('metas_kg',{items:[],sel:0});const IT=(C.items||[]).filter(x=>x&&x.p);if(!IT.length){box.innerHTML='';return}
+  if(!S.productos?.length){box._r=(box._r||0)+1;if(box._r<8)setTimeout(()=>metasKgInicio().catch(()=>{}),800);return}box._r=0;
+  const sel=Math.min(Math.max(0,+C.sel||0),IT.length-1),it=IT[sel],id=it.p,meta=+it.meta||0,pr=S.productos.find(p=>p.producto_id==id);
+  const kgDe=q=>{q=+q||0;return esKg(id)?q:esPeso(id)&&ppz(id)?q*ppz(id):q};
+  const m=mesHoy(),[a,b]=mesRango(m),hoy=new Date(),dh=hoy.getDate(),dm=new Date(hoy.getFullYear(),hoy.getMonth()+1,0).getDate(),Y=hoy.getFullYear(),M=hoy.getMonth();
+  const d0=new Date(hoy);d0.setDate(d0.getDate()-120);const desde=diaLocal(d0)<a?diaLocal(d0):a;
+  const{data:pe}=await todo(()=>sb.from('pedidos').select('cliente_id,creado_en,total,pedido_items(producto_id,cantidad,precio_unitario,costo_unitario)').neq('estado','cancelado').or('es_prueba.is.null,es_prueba.eq.false').gte('creado_en',tsAR(desde)).lt('creado_en',tsAR(b)).order('numero'));
+  const dow=hoy.getDay(),lun=new Date(Y,M,dh+(dow==0?1:1-dow)),sab=new Date(lun.getFullYear(),lun.getMonth(),lun.getDate()+5);
+  const semIni=lun.getMonth()==M?lun.getDate():lun<hoy&&sab.getMonth()==M?1:null,semFin=semIni?(sab.getMonth()==M?sab.getDate():dm):null;
+  const dS=d=>diaLocal(new Date(Y,M,d)),sA=semIni?dS(semIni):null,sB=semIni?dS(semFin):null;
+  let kg=0,kgS=0,kgAntesS=0,vta=0,mg=0;const cl=new Set(),U={},T={};
+  for(const o of pe||[]){const dia=diaLocal(o.creado_en),enMes=dia>=a;let lleva=false;
+    if(dia>=diaLocal(new Date(Y,M,dh-90)))T[o.cliente_id]=(T[o.cliente_id]||0)+(+o.total||0);
+    for(const i of o.pedido_items||[]){if(i.producto_id!=id)continue;lleva=true;const q=+i.cantidad||0,k=kgDe(q),pu=+i.precio_unitario||0,cu=+i.costo_unitario||+(pr?.costo||0);
+      if(enMes){kg+=k;vta+=q*pu;mg+=q*(pu-cu);cl.add(o.cliente_id);if(sA&&dia>=sA&&dia<=sB)kgS+=k;else if(sA&&dia<sA)kgAntesS+=k}}
+    if(lleva)(U[o.cliente_id]=U[o.cliente_id]||[]).push(dia)}
+  const hab=(d1,d2)=>{let n=0;for(let d=d1;d<=d2;d++)if(new Date(Y,M,d).getDay()!=0)n++;return n};
+  const habTot=hab(1,dm),habPas=Math.max(1,hab(1,dh-1)+(hoy.getHours()>=14?1:0)),proy=kg/habPas*habTot,falta=Math.max(0,meta-kg);
+  const habSem=semIni?hab(semIni,semFin):0,habDesdeSem=semIni?Math.max(1,hab(semIni,dm)):1,objSem=semIni?Math.ceil(Math.max(0,meta-kgAntesS)*habSem/habDesdeSem):0;
+  const hoyIdx=Math.max(semIni||1,dh+(dow==0?1:0)),habSemRest=semIni?Math.max(0,hab(Math.min(hoyIdx,semFin+1),semFin)):0,visSem=Math.max(1,Math.ceil(habSemRest/2)),faltaSem=Math.max(0,objSem-kgS),pcS=objSem?Math.min(1,kgS/objSem):0;
+  const k0=n=>nf(Math.round(n*10)/10)+' kg',m0=n=>(n<0?'−':'')+'$ '+Math.round(Math.abs(n)).toLocaleString('es-AR'),mes=mesNom(m).split(' ')[0],mesC=mes.slice(0,3).toLowerCase();
+  const semTit=semIni?(dow==0&&lun>hoy?'Semana que viene':'Esta semana')+` · ${semIni==semFin?semIni:semIni+'–'+semFin} ${mesC}`:'';
+  /* a quién visitar: los que llevan este producto y les toca reponer, y los que compran mucho y no lo llevan */
+  const hoyS=diaLocal(hoy),dd=(x,y)=>Math.round((new Date(y+'T12:00')-new Date(x+'T12:00'))/864e5),V=[];
+  for(const c of S.clientes.filter(c=>c.activo!==false)){const L=[...new Set(U[c.id]||[])].sort();
+    if(L.length){const ult=L[L.length-1],hace=dd(ult,hoyS);if(sA&&ult>=sA)continue;const gaps=L.slice(1).map((x,k)=>dd(L[k],x)).filter(g=>g>0),cada=gaps.length?Math.round(gaps.reduce((s,g)=>s+g,0)/gaps.length):21;
+      if(hace>=Math.max(7,cada*.85))V.push({c,pri:hace/cada+1,why:`Le toca reponer: lo llevó hace ${hace} días${gaps.length?` (suele cada ${cada})`:''}`})}
+    else if((T[c.id]||0)>0)V.push({c,pri:(T[c.id]||0)/1e9,why:`Te compra ${m0(T[c.id]/3)} por mes y todavía no lo lleva`})}
+  V.sort((x,y)=>y.pri-x.pri);const VIS=V.slice(0,6);
+  let abierto=false;try{abierto=localStorage.getItem('mk_abierto')=='1'}catch(e){}
+  const R=30,CI=2*Math.PI*R,ring=(f,t)=>`<svg class="mjr" viewBox="0 0 76 76" aria-hidden="true"><circle cx="38" cy="38" r="${R}" class="tr"/>${f>0?`<circle cx="38" cy="38" r="${R}" class="fl" stroke-dasharray="${(CI*f).toFixed(1)} ${CI.toFixed(1)}"/>`:`<circle cx="38" cy="8" r="4" class="dot"/>`}<text x="38" y="43" text-anchor="middle">${t}</text></svg>`;
+  const pvV=faltaSem/visSem,hero=!meta?`<div class="mjh"><div><div class="ey">${esc(mes)}</div><div class="mjhn">${k0(kg)}<span> vendidos</span></div><div class="hs">Poné una meta para ver cuánto te falta.</div></div></div>`
+    :falta<=0?`<div class="mjh ok"><div><div class="ey">Meta de ${esc(mes.toLowerCase())}</div><div class="mjhn">Cumplida</div><div class="hs">Vas ${k0(kg-meta)} arriba de la meta. Lo que sumes ya es extra.</div></div></div>`
+    :semIni?`<div class="mjh">${ring(pcS,Math.round(pcS*100)+'%')}<div><div class="ey">${semTit}</div><div class="mjhn">${nf(Math.round(kgS))}<span> / ${nf(objSem)} kg</span></div>
+      <div class="hs">${faltaSem>0?`${nf(Math.ceil(pvV))} kg por visita · ${visSem} visita${visSem==1?'':'s'}`:'Semana cumplida. Lo que sumes adelanta el mes.'}</div></div></div>`
+    :`<div class="mjh"><div><div class="ey">${esc(mes)}</div><div class="mjhn">${nf(Math.ceil(falta))}<span> kg por vender</span></div></div></div>`;
+  const pc=meta?Math.min(1,kg/meta):0,tabs=IT.length>1?`<div class="mjseg mktab" role="tablist" aria-label="Producto"><div>${IT.map((x,k)=>`<button role="tab" aria-selected="${k==sel}" data-mk="${k}" class="${k==sel?'on':''}">${esc(x.n||'Producto')}</button>`).join('')}</div></div>`:'';
+  box.innerHTML=`<div class="box obj mj"><div class="mjtop"><div><div class="ey">${esc(pr?.descripcion||it.n||'Producto')}</div><div class="tt">${esc(mes)}</div></div><button class="mjmeta" id="mk_e" aria-label="Cambiar meta"><small>Meta del mes</small><b>${meta?nf(meta)+' kg':'Poner'}</b><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16H4v-3z"/></svg></button></div>
+    ${tabs}<div id="mk_h" role="button" tabindex="0" aria-expanded="${abierto}" style="cursor:pointer;margin-top:${tabs?'10px':'0'}">${hero}</div>
+    <button class="mjver" id="mk_t">${abierto?'Ocultar detalle':'Ver detalle del mes'} <span>${abierto?'▴':'▾'}</span></button>
+    <div id="mk_d"${abierto?'':' hidden'}>
+    <div class="mjsec"><div class="mjrow"><span class="ey">Mes</span><span class="mjg">${k0(kg)} <small>${meta?'de '+nf(meta)+' kg':''}</small></span></div>
+    ${meta?`<div class="obar mjb">${pc>0?`<i style="width:${(pc*100).toFixed(1)}%" class="${pc>=1?'lleno':''}"></i>`:''}</div>`:''}
+    <div class="mjk"><div><small>Vendiste</small><b>${k0(kg)}</b><small>${cl.size} cliente${cl.size==1?'':'s'}</small></div>
+      <div><small>Facturado</small><b>${m0(vta)}</b><small>en ${esc(mes.toLowerCase())}</small></div>
+      <div><small>Ganancia</small><b>${m0(mg)}</b><small>${kg>0?m0(mg/kg)+' por kg':'—'}</small></div></div>
+    ${meta&&falta>0&&kg>0?`<p class="mjn">A este ritmo cerrás ${esc(mes.toLowerCase())} con <b class="${proy>=meta?'sube':'baja'}">${k0(proy)}</b>${proy>=meta?': llegás. 💪':'.'}</p>`:''}</div>
+    <div class="mjsec mjv"><div class="mjrow"><span class="ey">A quién visitar</span>${VIS.length?`<small>${VIS.length} sugerido${VIS.length==1?'':'s'}</small>`:''}</div>
+      ${VIS.length?VIS.map(x=>{const nm=String(x.c.razon_social||'Cliente');return`<div class="mjc"><span class="av">${esc(nm.trim()[0]||'?').toUpperCase()}</span><div><b>${esc(nm)}</b><small>${esc(x.why)}</small></div><button class="alt" data-mkp="${x.c.id}">Pedido</button></div>`}).join('')
+        :'<p class="mjn">Cuando haya ventas, acá aparecen los clientes a los que les toca reponer y los que compran mucho y no lo llevan.</p>'}</div></div></div>`;
+  const plegar=()=>{const d=$('#mk_d'),ab=d.hidden;d.hidden=!ab;try{localStorage.setItem('mk_abierto',ab?'1':'0')}catch(e){}$('#mk_h').setAttribute('aria-expanded',ab);$('#mk_t').innerHTML=(ab?'Ocultar detalle':'Ver detalle del mes')+' <span>'+(ab?'▴':'▾')+'</span>'};
+  $('#mk_h').onclick=plegar;$('#mk_t').onclick=plegar;
+  $$('#metaskg [data-mk]').forEach(bt=>bt.onclick=async()=>{const k=+bt.dataset.mk;if(k==sel)return;$$('#metaskg [data-mk]').forEach(b=>{const on=+b.dataset.mk==k;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});
+    const{error}=await guardaCfgJ('metas_kg',{...C,sel:k});error?toast(error.message,1):metasKgInicio().catch(()=>{})});
+  $$('#metaskg [data-mkp]').forEach(bt=>bt.onclick=()=>{const x=VIS.find(y=>y.c.id==bt.dataset.mkp);S.preCli=x.c;S.preItems=[id];S.tab='pedidos';shell()});
+  $('#mk_e').onclick=async()=>{const x=prompt(`¿Cuántos kilos de ${it.n||'este producto'} querés vender por mes?`,meta?String(meta):'100');if(x===null)return;const n=numAR(x);if(!(n>0))return toast('Escribí los kilos, por ejemplo 150.',1);
+    const items=(C.items||[]).map(y=>y.p==id?{...y,meta:n}:y);const{error}=await guardaCfgJ('metas_kg',{...C,items,sel});error?toast(error.message,1):(toast('Meta guardada.'),metasKgInicio())}}
 
 /* ======================= VENDEDORES Y COMISIONES (Reportes) ======================= */
 async function vendedoresReporte(){const box=$('#rp_v');if(!box)return;
