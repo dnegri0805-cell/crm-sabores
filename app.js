@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-26.19';
+const VERSION='2026-10-26.20';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -3257,7 +3257,7 @@ async function metasKgInicio(){const box=$('#metaskg');if(!box||S.perfil.rol!='d
     :semIni?`<div class="mjh">${ring(pcS,Math.round(pcS*100)+'%')}<div><div class="ey">${semTit}</div><div class="mjhn">${nf(Math.round(kgS))}<span> / ${nf(objSem)} kg</span></div>
       <div class="hs">${faltaSem>0?`${nf(Math.ceil(pvV))} kg por visita · ${visSem} visita${visSem==1?'':'s'}`:'Semana cumplida. Lo que sumes adelanta el mes.'}</div>${ST&&stMeta?`<span class="pill">⭐ ${esc(stN)}: ${nf(Math.round(stKg*10)/10)} / ${nf(stMeta)} kg</span>`:''}</div></div>`
     :`<div class="mjh"><div><div class="ey">${esc(mes)}</div><div class="mjhn">${nf(Math.ceil(falta))}<span> kg por vender</span></div></div></div>`;
-  const pc=meta?Math.min(1,kg/meta):0,fotoDe=x=>{const L=x.ps?.length?[x.star?.p,...x.ps]:[x.p];for(const q of L)if(q&&S.min[q]?.foto)return S.min[q].foto;return ''},
+  const pc=meta?Math.min(1,kg/meta):0,fotoDe=x=>{if(x.f)return x.f;const L=x.ps?.length?[x.star?.p,...x.ps]:[x.p];for(const q of L)if(q&&S.min[q]?.foto)return S.min[q].foto;return ''},
     tabs=IT.length>1?`<div class="mktabs" role="tablist" aria-label="Producto">${IT.map((x,k)=>{const f=fotoDe(x),pk=+x.meta?Math.min(1,kgT[k]/x.meta):0;return`<button role="tab" aria-selected="${k==sel}" data-mk="${k}" class="mkt${k==sel?' on':''}"><span class="mkf">${f?`<img src="${esc(f)}" alt="">`:esc((x.n||'?')[0])}</span><span class="mkn">${esc(x.n||'Producto')}</span><span class="mkb"><i style="width:${(pk*100).toFixed(1)}%"></i></span><span class="mkk">${nf(Math.round(kgT[k]))}${+x.meta?' / '+nf(x.meta):''} kg</span></button>`}).join('')}</div>`:'';
   box.innerHTML=`<div class="box obj mj"><div class="mjtop"><div><div class="ey">${esc(it.t||(linea?it.n:pr?.descripcion)||it.n||'Producto')}</div><div class="tt">${esc(mes)}</div></div><button class="mjmeta" id="mk_e" aria-label="Cambiar meta"><small>Meta del mes</small><b>${meta?nf(meta)+' kg':'Poner'}</b><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16H4v-3z"/></svg></button></div>
     ${tabs}<div id="mk_h" role="button" tabindex="0" aria-expanded="${abierto}" style="cursor:pointer;margin-top:${tabs?'10px':'0'}">${hero}</div>
@@ -3270,7 +3270,7 @@ async function metasKgInicio(){const box=$('#metaskg');if(!box||S.perfil.rol!='d
       <div><small>Ganancia</small><b>${m0(mg)}</b><small>${meta&&gMeta>0?'de '+m0(gMeta):kg>0?m0(mg/kg)+' por kg':'—'}</small></div></div>
     ${gk>0?`<p class="mjn">Cada kilo te deja${linea?' en promedio':''} <b>${m0(gk)}</b>${meta?`. Si llegás a los ${nf(meta)} kg ganás <b>${m0(gMeta)}</b>`:''}.</p>`:''}
     ${meta&&falta>0&&kg>0?`<p class="mjn">A este ritmo cerrás ${esc(mes.toLowerCase())} con <b class="${proy>=meta?'sube':'baja'}">${k0(proy)}</b>${proy>=meta?': llegás. 💪':'.'}</p>`:''}</div>
-    ${ST?(()=>{const ft=S.min[stId]?.foto,fal=Math.max(0,stMeta-stKg),pcSt=stMeta?Math.min(1,stKg/stMeta):0;return`<div class="mkst">
+    ${ST?(()=>{const ft=ST.f||S.min[stId]?.foto,fal=Math.max(0,stMeta-stKg),pcSt=stMeta?Math.min(1,stKg/stMeta):0;return`<div class="mkst">
       <div class="sth">${ft?`<img src="${esc(ft)}" alt="">`:''}<div class="stt"><span class="ey">⭐ El que más te deja</span><b>${esc(stN)}</b></div><div class="stk">${k0(stKg)}<br><small>${stMeta?'de '+nf(stMeta)+' kg':''}</small></div></div>
       ${stMeta?`<div class="stbar"><i style="width:${(pcSt*100).toFixed(1)}%"></i></div>`:''}
       <div class="stn"><div><b>${m0(stGk)}</b><small>por kilo${gk>0&&stGk>gk?' · '+nf(Math.round(stGk/gk*10)/10)+' × el promedio':''}</small></div>${stMeta?`<div><b>${m0(stMeta*stGk)}</b><small>si llegás a ${nf(stMeta)} kg</small></div>`:''}</div>
