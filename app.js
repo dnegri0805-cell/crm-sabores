@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-26.15';
+const VERSION='2026-10-26.16';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -3210,24 +3210,27 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
    Un solo reloj para los productos que se quieren empujar (config_app 'metas_kg': {items:[{p:producto_id,n:nombre corto,meta:kg por mes}],sel}).
    Arriba se elige el producto; muestra los kilos de la semana, el mes y a quién visitar. */
 async function metasKgInicio(){const box=$('#metaskg');if(!box||S.perfil.rol!='dueno')return;
-  const C=await cfgJ('metas_kg',{items:[],sel:0});const IT=(C.items||[]).filter(x=>x&&x.p);if(!IT.length){box.innerHTML='';return}
+  const C=await cfgJ('metas_kg',{items:[],sel:0});const IT=(C.items||[]).filter(x=>x&&(x.p||x.ps?.length));if(!IT.length){box.innerHTML='';return}
   if(!S.productos?.length){box._r=(box._r||0)+1;if(box._r<8)setTimeout(()=>metasKgInicio().catch(()=>{}),800);return}box._r=0;
-  const sel=Math.min(Math.max(0,+C.sel||0),IT.length-1),it=IT[sel],id=it.p,meta=+it.meta||0,pr=S.productos.find(p=>p.producto_id==id);
-  const kgDe=q=>{q=+q||0;return esKg(id)?q:esPeso(id)&&ppz(id)?q*ppz(id):q};
-  /* ganancia por kg con el precio de hoy (el fijo si lo tiene; si se vende por pieza, se pasa a kilo) */
-  const fac=esPeso(id)&&ppz(id)?ppz(id):1,pvH=+pr?.precio_fijo>0?+pr.precio_fijo:+pr?.precio_mayorista||0,gk=pvH>0?(pvH-(+pr?.costo||0))/fac:0,gMeta=meta*gk;
+  /* cada meta sigue un producto (p) o una línea de varios productos (ps) y suma sus kilos */
+  const sel=Math.min(Math.max(0,+C.sel||0),IT.length-1),it=IT[sel],IDS=new Set(it.ps?.length?it.ps:[it.p]),linea=IDS.size>1,id=[...IDS][0],meta=+it.meta||0,prD=x=>S.productos.find(p=>p.producto_id==x),pr=prD(id);
+  const kgDe=(x,q)=>{q=+q||0;return esKg(x)?q:esPeso(x)&&ppz(x)?q*ppz(x):q};
+  /* ganancia por kg con el precio de hoy (el fijo si lo tiene; si se vende por pieza, se pasa a kilo); en una línea, el promedio */
+  const gkDe=x=>{const q=prD(x),fac=esPeso(x)&&ppz(x)?ppz(x):1,pv=+q?.precio_fijo>0?+q.precio_fijo:+q?.precio_mayorista||0;return pv>0?(pv-(+q?.costo||0))/fac:0};
+  const GK=[...IDS].map(gkDe).filter(x=>x>0);let gk=GK.length?GK.reduce((s,x)=>s+x,0)/GK.length:0;
   const m=mesHoy(),[a,b]=mesRango(m),hoy=new Date(),dh=hoy.getDate(),dm=new Date(hoy.getFullYear(),hoy.getMonth()+1,0).getDate(),Y=hoy.getFullYear(),M=hoy.getMonth();
   const d0=new Date(hoy);d0.setDate(d0.getDate()-120);const desde=diaLocal(d0)<a?diaLocal(d0):a;
   const{data:pe}=await todo(()=>sb.from('pedidos').select('cliente_id,creado_en,total,pedido_items(producto_id,cantidad,precio_unitario,costo_unitario)').neq('estado','cancelado').or('es_prueba.is.null,es_prueba.eq.false').gte('creado_en',tsAR(desde)).lt('creado_en',tsAR(b)).order('numero'));
   const dow=hoy.getDay(),lun=new Date(Y,M,dh+(dow==0?1:1-dow)),sab=new Date(lun.getFullYear(),lun.getMonth(),lun.getDate()+5);
   const semIni=lun.getMonth()==M?lun.getDate():lun<hoy&&sab.getMonth()==M?1:null,semFin=semIni?(sab.getMonth()==M?sab.getDate():dm):null;
   const dS=d=>diaLocal(new Date(Y,M,d)),sA=semIni?dS(semIni):null,sB=semIni?dS(semFin):null;
-  let kg=0,kgS=0,kgAntesS=0,vta=0,mg=0;const cl=new Set(),U={},T={};
+  let kg=0,kgS=0,kgAntesS=0,vta=0,mg=0;const cl=new Set(),U={},T={},LL={};
   for(const o of pe||[]){const dia=diaLocal(o.creado_en),enMes=dia>=a;let lleva=false;
     if(dia>=diaLocal(new Date(Y,M,dh-90)))T[o.cliente_id]=(T[o.cliente_id]||0)+(+o.total||0);
-    for(const i of o.pedido_items||[]){if(i.producto_id!=id)continue;lleva=true;const q=+i.cantidad||0,k=kgDe(q),pu=+i.precio_unitario||0,cu=+i.costo_unitario||+(pr?.costo||0);
+    for(const i of o.pedido_items||[]){if(!IDS.has(i.producto_id))continue;lleva=true;(LL[o.cliente_id]=LL[o.cliente_id]||new Set()).add(i.producto_id);const q=+i.cantidad||0,k=kgDe(i.producto_id,q),pu=+i.precio_unitario||0,cu=+i.costo_unitario||+(prD(i.producto_id)?.costo||0);
       if(enMes){kg+=k;vta+=q*pu;mg+=q*(pu-cu);cl.add(o.cliente_id);if(sA&&dia>=sA&&dia<=sB)kgS+=k;else if(sA&&dia<sA)kgAntesS+=k}}
     if(lleva)(U[o.cliente_id]=U[o.cliente_id]||[]).push(dia)}
+  if(linea&&kg>=5&&mg>0)gk=mg/kg;const gMeta=meta*gk;
   const hab=(d1,d2)=>{let n=0;for(let d=d1;d<=d2;d++)if(new Date(Y,M,d).getDay()!=0)n++;return n};
   const habTot=hab(1,dm),habPas=Math.max(1,hab(1,dh-1)+(hoy.getHours()>=14?1:0)),proy=kg/habPas*habTot,falta=Math.max(0,meta-kg);
   const habSem=semIni?hab(semIni,semFin):0,habDesdeSem=semIni?Math.max(1,hab(semIni,dm)):1,objSem=semIni?Math.ceil(Math.max(0,meta-kgAntesS)*habSem/habDesdeSem):0;
@@ -3249,7 +3252,7 @@ async function metasKgInicio(){const box=$('#metaskg');if(!box||S.perfil.rol!='d
       <div class="hs">${faltaSem>0?`${nf(Math.ceil(pvV))} kg por visita · ${visSem} visita${visSem==1?'':'s'}`:'Semana cumplida. Lo que sumes adelanta el mes.'}</div></div></div>`
     :`<div class="mjh"><div><div class="ey">${esc(mes)}</div><div class="mjhn">${nf(Math.ceil(falta))}<span> kg por vender</span></div></div></div>`;
   const pc=meta?Math.min(1,kg/meta):0,tabs=IT.length>1?`<div class="mjseg mktab" role="tablist" aria-label="Producto"><div>${IT.map((x,k)=>`<button role="tab" aria-selected="${k==sel}" data-mk="${k}" class="${k==sel?'on':''}">${esc(x.n||'Producto')}</button>`).join('')}</div></div>`:'';
-  box.innerHTML=`<div class="box obj mj"><div class="mjtop"><div><div class="ey">${esc(pr?.descripcion||it.n||'Producto')}</div><div class="tt">${esc(mes)}</div></div><button class="mjmeta" id="mk_e" aria-label="Cambiar meta"><small>Meta del mes</small><b>${meta?nf(meta)+' kg':'Poner'}</b><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16H4v-3z"/></svg></button></div>
+  box.innerHTML=`<div class="box obj mj"><div class="mjtop"><div><div class="ey">${esc(it.t||(linea?it.n:pr?.descripcion)||it.n||'Producto')}</div><div class="tt">${esc(mes)}</div></div><button class="mjmeta" id="mk_e" aria-label="Cambiar meta"><small>Meta del mes</small><b>${meta?nf(meta)+' kg':'Poner'}</b><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16H4v-3z"/></svg></button></div>
     ${tabs}<div id="mk_h" role="button" tabindex="0" aria-expanded="${abierto}" style="cursor:pointer;margin-top:${tabs?'10px':'0'}">${hero}</div>
     <button class="mjver" id="mk_t">${abierto?'Ocultar detalle':'Ver detalle del mes'} <span>${abierto?'▴':'▾'}</span></button>
     <div id="mk_d"${abierto?'':' hidden'}>
@@ -3258,7 +3261,7 @@ async function metasKgInicio(){const box=$('#metaskg');if(!box||S.perfil.rol!='d
     <div class="mjk"><div><small>Vendiste</small><b>${k0(kg)}</b><small>${cl.size} cliente${cl.size==1?'':'s'}</small></div>
       <div><small>Facturado</small><b>${m0(vta)}</b><small>en ${esc(mes.toLowerCase())}</small></div>
       <div><small>Ganancia</small><b>${m0(mg)}</b><small>${meta&&gMeta>0?'de '+m0(gMeta):kg>0?m0(mg/kg)+' por kg':'—'}</small></div></div>
-    ${gk>0?`<p class="mjn">Cada kilo te deja <b>${m0(gk)}</b>${meta?`. Si llegás a los ${nf(meta)} kg ganás <b>${m0(gMeta)}</b>`:''}.</p>`:''}
+    ${gk>0?`<p class="mjn">Cada kilo te deja${linea?' en promedio':''} <b>${m0(gk)}</b>${meta?`. Si llegás a los ${nf(meta)} kg ganás <b>${m0(gMeta)}</b>`:''}.</p>`:''}
     ${meta&&falta>0&&kg>0?`<p class="mjn">A este ritmo cerrás ${esc(mes.toLowerCase())} con <b class="${proy>=meta?'sube':'baja'}">${k0(proy)}</b>${proy>=meta?': llegás. 💪':'.'}</p>`:''}</div>
     <div class="mjsec mjv"><div class="mjrow"><span class="ey">A quién visitar</span>${VIS.length?`<small>${VIS.length} sugerido${VIS.length==1?'':'s'}</small>`:''}</div>
       ${VIS.length?VIS.map(x=>{const nm=String(x.c.razon_social||'Cliente');return`<div class="mjc"><span class="av">${esc(nm.trim()[0]||'?').toUpperCase()}</span><div><b>${esc(nm)}</b><small>${esc(x.why)}</small></div><button class="alt" data-mkp="${x.c.id}">Pedido</button></div>`}).join('')
@@ -3267,9 +3270,9 @@ async function metasKgInicio(){const box=$('#metaskg');if(!box||S.perfil.rol!='d
   $('#mk_h').onclick=plegar;$('#mk_t').onclick=plegar;
   $$('#metaskg [data-mk]').forEach(bt=>bt.onclick=async()=>{const k=+bt.dataset.mk;if(k==sel)return;$$('#metaskg [data-mk]').forEach(b=>{const on=+b.dataset.mk==k;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});
     const{error}=await guardaCfgJ('metas_kg',{...C,sel:k});error?toast(error.message,1):metasKgInicio().catch(()=>{})});
-  $$('#metaskg [data-mkp]').forEach(bt=>bt.onclick=()=>{const x=VIS.find(y=>y.c.id==bt.dataset.mkp);S.preCli=x.c;S.preItems=[id];S.tab='pedidos';shell()});
+  $$('#metaskg [data-mkp]').forEach(bt=>bt.onclick=()=>{const x=VIS.find(y=>y.c.id==bt.dataset.mkp);S.preCli=x.c;S.preItems=linea?(LL[x.c.id]?[...LL[x.c.id]]:null):[id];S.tab='pedidos';shell()});
   $('#mk_e').onclick=async()=>{const x=prompt(`¿Cuántos kilos de ${it.n||'este producto'} querés vender por mes?`,meta?String(meta):'100');if(x===null)return;const n=numAR(x);if(!(n>0))return toast('Escribí los kilos, por ejemplo 150.',1);
-    const items=(C.items||[]).map(y=>y.p==id?{...y,meta:n}:y);const{error}=await guardaCfgJ('metas_kg',{...C,items,sel});error?toast(error.message,1):(toast('Meta guardada.'),metasKgInicio())}}
+    const items=(C.items||[]).map(y=>y===C.items[C.items.indexOf(it)]||(y.n==it.n&&y.p==it.p&&JSON.stringify(y.ps)==JSON.stringify(it.ps))?{...y,meta:n}:y);const{error}=await guardaCfgJ('metas_kg',{...C,items,sel});error?toast(error.message,1):(toast('Meta guardada.'),metasKgInicio())}}
 
 /* ======================= VENDEDORES Y COMISIONES (Reportes) ======================= */
 async function vendedoresReporte(){const box=$('#rp_v');if(!box)return;
