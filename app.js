@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-26.11';
+const VERSION='2026-10-26.12';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -43,6 +43,7 @@ async function init(){
   if(pe){app.innerHTML='<div class="box login"><p class="err">No se pudo leer tu perfil: '+esc(pe.message)+'</p><button onclick="out()">Salir</button></div>';return}
   if(!p||!p.activo){app.innerHTML='<div class="box login"><p>Tu usuario todavía no está activado. Pedile al dueño que lo active.</p><button onclick="out()">Salir</button></div>';return}
   S.perfil=p;
+  if(session.user.user_metadata?.clave_temporal){cambiarClave(true);return}
   const traer=()=>Promise.all([
     todo(()=>sb.from('clientes').select('*').eq('activo',true).order('razon_social').order('id')),
     todo(()=>sb.from('precios_productos').select(PROD_COLS).order('descripcion').order('producto_id'))]);
@@ -291,7 +292,7 @@ async function vInicio(){
   </div>${dia?`</details>
   <details class="plg"><summary>🗓️ Tareas y avisos del día</summary><div id="midia"></div><div id="tari"></div><div id="alm"></div></details>
   <div id="chk"></div>
-  <div class="pieini"><div id="bk"></div><div id="dlr"></div><p class="pfila plink"><span class="pic">${IC('cash',16)}</span><a class="lnk" onclick="mercadoPago()">Mercado Pago: cobros por transferencia</a></p><p class="pfila plink"><span class="pic">${IC('doc',16)}</span><a class="lnk" data-iv="completa">Ver panel completo</a></p><p class="pfila plink"><span class="pic">${IC('menu',16)}</span><a class="lnk" onclick="menuTabsCfg()">Elegir pestañas del menú</a></p></div>`:''}`;
+  <div class="pieini"><div id="bk"></div><div id="dlr"></div><p class="pfila plink"><span class="pic">${IC('users',16)}</span><a class="lnk" onclick="usuarios()">Usuarios y accesos</a></p><p class="pfila plink"><span class="pic">${IC('lock',16)}</span><a class="lnk" onclick="cambiarClave()">Cambiar mi contraseña</a></p><p class="pfila plink"><span class="pic">${IC('cash',16)}</span><a class="lnk" onclick="mercadoPago()">Mercado Pago: cobros por transferencia</a></p><p class="pfila plink"><span class="pic">${IC('doc',16)}</span><a class="lnk" data-iv="completa">Ver panel completo</a></p><p class="pfila plink"><span class="pic">${IC('menu',16)}</span><a class="lnk" onclick="menuTabsCfg()">Elegir pestañas del menú</a></p></div>`:''}`;
   $$('#v details.plg').forEach(d=>{const o=new MutationObserver(badgePlg);o.observe(d,{subtree:true,childList:true,attributes:true,attributeFilter:['data-pend']})});
   const kp=(id,num,det,cls)=>{const b=$('#'+id);b.querySelector('.num').textContent=num;contar(b.querySelector('.num'),num);b.querySelector('.det').textContent=det||'';if(cls)b.classList.add(cls)};
   const fallo=(id,e)=>kp(id,'—','No se pudo leer: '+e.message);
@@ -474,6 +475,53 @@ function kpCeros(){if(!$('.kphoy'))return;
 /* Numerito en los plegables del inicio: cuántas cosas hay adentro sin abrirlos */
 function badgePlg(){$$('details.plg').forEach(d=>{const sm=d.querySelector('summary');if(!sm)return;let n=0,hay=false;d.querySelectorAll('[data-pend]').forEach(e=>{hay=true;n+=+e.dataset.pend||0});
   let b=sm.querySelector('.pb');if(!hay){if(b)b.remove();return}if(!b){b=document.createElement('span');b.className='pb';sm.appendChild(b)}const t=n?String(n):'al día';if(b.textContent!==t)b.textContent=t;b.classList.toggle('cero',!n)})}
+/* ---------- Usuarios y accesos (solo el dueño) ---------- */
+const ROL_TXT={dueno:'Socio / dueño · ve y cambia todo',administracion:'Administración · ve todo, sin configuración',vendedor:'Vendedor · pedidos y clientes, sin costos',deposito:'Depósito · armado y entregas'};
+async function usuarios(){if(S.perfil.rol!='dueno')return toast('Solo el dueño puede manejar los usuarios.',1);
+  const m=document.createElement('div');m.className='modal';document.body.appendChild(m);const q=i=>m.querySelector(i);
+  const fx=async o=>{const{data,error}=await sb.functions.invoke('usuarios',{body:o});if(error){let t=error.message;try{const j=await error.context.json();t=j.error||t}catch(e){}throw new Error(t)}return data};
+  const link=new URL('./',location.href).href;
+  const msj=(n,e,c)=>`Hola ${n.split(' ')[0]}! Te di acceso al CRM de *Sabores de mi País* 🙌\n\n👉 Entrá acá: ${link}\n📧 Correo: ${e}\n🔑 Contraseña temporal: ${c}\n\nLa primera vez te va a pedir que elijas tu propia contraseña. Desde el celular podés instalarlo como app (menú del navegador → Agregar a pantalla de inicio).`;
+  const mostrarClave=(n,e,c)=>{m.innerHTML=`<div class="mc"><div class="bh"><h3 style="margin:0">🔑 Acceso listo</h3><button class="alt" id="us_x">Cerrar</button></div>
+    <p>Pasale estos datos a <b>${esc(n)}</b>. La contraseña es temporal: la primera vez que entre va a tener que elegir una propia.</p>
+    <div class="uscl"><div><small>Correo</small><b>${esc(e)}</b></div><div><small>Contraseña temporal</small><b>${esc(c)}</b></div></div>
+    <p><small>Esta contraseña no se vuelve a mostrar. Si se pierde, generás otra desde Usuarios.</small></p>
+    <p style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end"><button class="alt" id="us_cp">Copiar mensaje</button><button class="wa" id="us_wa">Mandar por WhatsApp</button><button class="alt" id="us_vl">Volver a usuarios</button></p></div>`;
+    q('#us_x').onclick=()=>m.remove();q('#us_vl').onclick=pinta;
+    q('#us_cp').onclick=async()=>{try{await navigator.clipboard.writeText(msj(n,e,c));toast('Mensaje copiado.')}catch(x){toast('No pude copiar: anotalo a mano.',1)}};
+    q('#us_wa').onclick=()=>window.open('https://wa.me/?text='+encodeURIComponent(msj(n,e,c)),'_blank')};
+  const pinta=async()=>{m.innerHTML=`<div class="mc"><div class="bh"><h3 style="margin:0">👥 Usuarios y accesos</h3><button class="alt" id="us_x">Cerrar</button></div><p><span class="skl" role="status" aria-label="Cargando"></span></p></div>`;q('#us_x').onclick=()=>m.remove();
+    let d;try{d=await fx({accion:'lista'})}catch(e){m.querySelector('.mc').insertAdjacentHTML('beforeend',`<p class="err">${esc(e.message)}</p>`);return}
+    const U=d.usuarios||[];
+    m.innerHTML=`<div class="mc"><div class="bh"><h3 style="margin:0">👥 Usuarios y accesos</h3><button class="alt" id="us_x">Cerrar</button></div>
+      <div class="usl">${U.map(u=>{const yo=u.id==d.yo;return`<div class="usu ${u.activo?'':'off'}"><div class="usn"><b>${esc(u.nombre||u.email||'')}</b>${yo?' <span class="badge">vos</span>':''}${u.activo?'':' <span class="badge b-cancelado">dado de baja</span>'}<small>${esc(u.email||'')}${u.ultimo?' · entró el '+new Date(u.ultimo).toLocaleDateString('es-AR',{day:'numeric',month:'numeric'}):' · todavía no entró'}${u.temporal&&!yo?' · con contraseña temporal':''}</small></div>
+        ${yo?`<small>${esc(ROL_TXT[u.rol]||u.rol)}</small>`:`<select data-urol="${u.id}" style="margin:6px 0 0">${Object.entries(ROL_TXT).map(([k,t])=>`<option value="${k}" ${u.rol==k?'selected':''}>${t}</option>`).join('')}</select>
+        <div class="usa"><a class="lnk" data-ucl="${u.id}" data-un="${esc(u.nombre||'')}">Nueva contraseña temporal</a> · <a class="lnk" data-uac="${u.id}" data-v="${u.activo?0:1}">${u.activo?'Dar de baja':'Volver a dar acceso'}</a></div>`}</div>`}).join('')}</div>
+      <details class="mpf" ${U.length<2?'open':''}><summary><b>➕ Agregar usuario</b></summary>
+        <div class="g"><label class="f">Nombre y apellido<input id="us_n" autocomplete="off"></label><label class="f">Correo<input id="us_e" type="email" inputmode="email" autocomplete="off"></label>
+        <label class="f">Qué puede hacer<select id="us_r">${Object.entries(ROL_TXT).map(([k,t])=>`<option value="${k}" ${k=='dueno'?'selected':''}>${t}</option>`).join('')}</select></label></div>
+        <p style="display:flex;justify-content:flex-end;margin:8px 0 0"><button id="us_g">Crear acceso</button></p></details></div>`;
+    q('#us_x').onclick=()=>m.remove();
+    q('#us_g').onclick=async()=>{const n=q('#us_n').value.trim(),e=q('#us_e').value.trim();if(!n||!e)return toast('Completá nombre y correo.',1);
+      q('#us_g').disabled=true;try{const r=await fx({accion:'crear',nombre:n,email:e,rol:q('#us_r').value});mostrarClave(n,r.email,r.clave)}catch(x){q('#us_g').disabled=false;toast(x.message,1)}};
+    m.querySelectorAll('[data-urol]').forEach(sl=>sl.onchange=async()=>{try{await fx({accion:'rol',id:sl.dataset.urol,rol:sl.value});toast('Acceso actualizado.')}catch(x){toast(x.message,1);pinta()}});
+    m.querySelectorAll('[data-uac]').forEach(a=>a.onclick=async()=>{const v=a.dataset.v=='1';if(!v&&!confirm('¿Dar de baja este usuario? No va a poder entrar más al CRM (podés volver a darle acceso cuando quieras).'))return;try{await fx({accion:'activo',id:a.dataset.uac,activo:v});toast(v?'Acceso restablecido.':'Usuario dado de baja.');pinta()}catch(x){toast(x.message,1)}});
+    m.querySelectorAll('[data-ucl]').forEach(a=>a.onclick=async()=>{if(!confirm('¿Generar una contraseña temporal nueva? La anterior deja de funcionar.'))return;try{const r=await fx({accion:'clave',id:a.dataset.ucl});mostrarClave(a.dataset.un||'',r.email,r.clave)}catch(x){toast(x.message,1)}})};
+  pinta()}
+
+/* Cambiar mi contraseña (obligatorio la primera vez, si entró con una temporal) */
+function cambiarClave(oblig){const m=document.createElement('div');m.className='modal';document.body.appendChild(m);const q=i=>m.querySelector(i);
+  m.innerHTML=`<div class="mc"><div class="bh"><h3 style="margin:0">🔒 ${oblig?'Elegí tu contraseña':'Cambiar mi contraseña'}</h3>${oblig?'':'<button class="alt" id="cc_x">Cerrar</button>'}</div>
+    ${oblig?'<p>Entraste con una contraseña temporal. Elegí una propia para seguir.</p>':''}
+    <label class="f">Nueva contraseña<input id="cc_1" type="password" autocomplete="new-password" placeholder="Mínimo 8 caracteres"></label>
+    <label class="f">Repetila<input id="cc_2" type="password" autocomplete="new-password"></label>
+    <p style="display:flex;gap:8px;justify-content:flex-end;margin:10px 0 0">${oblig?'<button class="alt" id="cc_o">Salir</button>':''}<button id="cc_g">Guardar</button></p></div>`;
+  if(q('#cc_x'))q('#cc_x').onclick=()=>m.remove();if(q('#cc_o'))q('#cc_o').onclick=()=>out();
+  q('#cc_g').onclick=async()=>{const a=q('#cc_1').value,b=q('#cc_2').value;if(a.length<8)return toast('Usá al menos 8 caracteres.',1);if(a!=b)return toast('Las dos contraseñas no coinciden.',1);
+    q('#cc_g').disabled=true;const{error}=await sb.auth.updateUser({password:a,data:{clave_temporal:false}});q('#cc_g').disabled=false;
+    if(error)return toast(/should be different|same/i.test(error.message)?'Elegí una contraseña distinta a la temporal.':error.message,1);
+    toast('Contraseña guardada.');m.remove();if(oblig)init()}}
+
 /* ---------- Mercado Pago: conectar la cuenta y ver las transferencias que entran ---------- */
 async function mercadoPago(){if(S.perfil.rol!='dueno')return toast('Solo el dueño puede conectar Mercado Pago.',1);
   const m=document.createElement('div');m.className='modal';document.body.appendChild(m);const q=i=>m.querySelector(i);
