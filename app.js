@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-26.16';
+const VERSION='2026-10-26.17';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -3224,13 +3224,18 @@ async function metasKgInicio(){const box=$('#metaskg');if(!box||S.perfil.rol!='d
   const dow=hoy.getDay(),lun=new Date(Y,M,dh+(dow==0?1:1-dow)),sab=new Date(lun.getFullYear(),lun.getMonth(),lun.getDate()+5);
   const semIni=lun.getMonth()==M?lun.getDate():lun<hoy&&sab.getMonth()==M?1:null,semFin=semIni?(sab.getMonth()==M?sab.getDate():dm):null;
   const dS=d=>diaLocal(new Date(Y,M,d)),sA=semIni?dS(semIni):null,sB=semIni?dS(semFin):null;
-  let kg=0,kgS=0,kgAntesS=0,vta=0,mg=0;const cl=new Set(),U={},T={},LL={};
+  let kg=0,kgS=0,kgAntesS=0,vta=0,mg=0;const cl=new Set(),U={},T={},LL={},KP={};
   for(const o of pe||[]){const dia=diaLocal(o.creado_en),enMes=dia>=a;let lleva=false;
     if(dia>=diaLocal(new Date(Y,M,dh-90)))T[o.cliente_id]=(T[o.cliente_id]||0)+(+o.total||0);
     for(const i of o.pedido_items||[]){if(!IDS.has(i.producto_id))continue;lleva=true;(LL[o.cliente_id]=LL[o.cliente_id]||new Set()).add(i.producto_id);const q=+i.cantidad||0,k=kgDe(i.producto_id,q),pu=+i.precio_unitario||0,cu=+i.costo_unitario||+(prD(i.producto_id)?.costo||0);
-      if(enMes){kg+=k;vta+=q*pu;mg+=q*(pu-cu);cl.add(o.cliente_id);if(sA&&dia>=sA&&dia<=sB)kgS+=k;else if(sA&&dia<sA)kgAntesS+=k}}
+      if(enMes){kg+=k;KP[i.producto_id]=(KP[i.producto_id]||0)+k;vta+=q*pu;mg+=q*(pu-cu);cl.add(o.cliente_id);if(sA&&dia>=sA&&dia<=sB)kgS+=k;else if(sA&&dia<sA)kgAntesS+=k}}
     if(lleva)(U[o.cliente_id]=U[o.cliente_id]||[]).push(dia)}
   if(linea&&kg>=5&&mg>0)gk=mg/kg;const gMeta=meta*gk;
+  /* producto estrella dentro de la línea (el que más deja): mini-meta, prioridad al visitar y aviso de mezcla */
+  const ST=linea&&it.star?.p&&IDS.has(it.star.p)?it.star:null,stId=ST?.p,stN=ST?.n||prD(stId)?.descripcion||'Estrella',stMeta=+ST?.meta||0,stKg=ST?KP[stId]||0:0,stGk=ST?gkDe(stId):0;
+  let mezcla='';if(ST&&kg>=5){const top=Object.entries(KP).filter(([x])=>x!=stId).sort((a,b)=>b[1]-a[1])[0];
+    if(top&&top[1]/kg>=.3&&gkDe(top[0])<stGk){const kk=Math.max(1,Math.round(Math.min(top[1],stMeta>stKg?stMeta-stKg:top[1]/2))),extra=kk*(stGk-gkDe(top[0]));
+      if(extra>=1000)mezcla=`Este mes el ${Math.round(top[1]/kg*100)} % fue ${prD(top[0])?.descripcion||'otro salame'}. Si ${nf(kk)} kg de esos hubieran sido ${stN}, ganabas $\u00a0${Math.round(extra).toLocaleString('es-AR')} más.`}}
   const hab=(d1,d2)=>{let n=0;for(let d=d1;d<=d2;d++)if(new Date(Y,M,d).getDay()!=0)n++;return n};
   const habTot=hab(1,dm),habPas=Math.max(1,hab(1,dh-1)+(hoy.getHours()>=14?1:0)),proy=kg/habPas*habTot,falta=Math.max(0,meta-kg);
   const habSem=semIni?hab(semIni,semFin):0,habDesdeSem=semIni?Math.max(1,hab(semIni,dm)):1,objSem=semIni?Math.ceil(Math.max(0,meta-kgAntesS)*habSem/habDesdeSem):0;
@@ -3240,6 +3245,7 @@ async function metasKgInicio(){const box=$('#metaskg');if(!box||S.perfil.rol!='d
   /* a quién visitar: los que llevan este producto y les toca reponer, y los que compran mucho y no lo llevan */
   const hoyS=diaLocal(hoy),dd=(x,y)=>Math.round((new Date(y+'T12:00')-new Date(x+'T12:00'))/864e5),V=[];
   for(const c of S.clientes.filter(c=>c.activo!==false)){const L=[...new Set(U[c.id]||[])].sort();
+    if(L.length&&ST&&!LL[c.id]?.has(stId)){V.push({c,pri:100+L.length,why:`Lleva ${it.n||'la línea'} pero nunca ${stN}: ofrecéselo, es el que más te deja`,st:true});continue}
     if(L.length){const ult=L[L.length-1],hace=dd(ult,hoyS);if(sA&&ult>=sA)continue;const gaps=L.slice(1).map((x,k)=>dd(L[k],x)).filter(g=>g>0),cada=gaps.length?Math.round(gaps.reduce((s,g)=>s+g,0)/gaps.length):21;
       if(hace>=Math.max(7,cada*.85))V.push({c,pri:hace/cada+1,why:`Le toca reponer: lo llevó hace ${hace} días${gaps.length?` (suele cada ${cada})`:''}`})}
     else if((T[c.id]||0)>0)V.push({c,pri:(T[c.id]||0)/1e9,why:`Te compra ${m0(T[c.id]/3)} por mes y todavía no lo lleva`})}
@@ -3249,7 +3255,7 @@ async function metasKgInicio(){const box=$('#metaskg');if(!box||S.perfil.rol!='d
   const pvV=faltaSem/visSem,hero=!meta?`<div class="mjh"><div><div class="ey">${esc(mes)}</div><div class="mjhn">${k0(kg)}<span> vendidos</span></div><div class="hs">Poné una meta para ver cuánto te falta.</div></div></div>`
     :falta<=0?`<div class="mjh ok"><div><div class="ey">Meta de ${esc(mes.toLowerCase())}</div><div class="mjhn">Cumplida</div><div class="hs">Vas ${k0(kg-meta)} arriba de la meta. Lo que sumes ya es extra.</div></div></div>`
     :semIni?`<div class="mjh">${ring(pcS,Math.round(pcS*100)+'%')}<div><div class="ey">${semTit}</div><div class="mjhn">${nf(Math.round(kgS))}<span> / ${nf(objSem)} kg</span></div>
-      <div class="hs">${faltaSem>0?`${nf(Math.ceil(pvV))} kg por visita · ${visSem} visita${visSem==1?'':'s'}`:'Semana cumplida. Lo que sumes adelanta el mes.'}</div></div></div>`
+      <div class="hs">${faltaSem>0?`${nf(Math.ceil(pvV))} kg por visita · ${visSem} visita${visSem==1?'':'s'}`:'Semana cumplida. Lo que sumes adelanta el mes.'}</div>${ST&&stMeta?`<span class="pill">⭐ ${esc(stN)}: ${nf(Math.round(stKg*10)/10)} / ${nf(stMeta)} kg</span>`:''}</div></div>`
     :`<div class="mjh"><div><div class="ey">${esc(mes)}</div><div class="mjhn">${nf(Math.ceil(falta))}<span> kg por vender</span></div></div></div>`;
   const pc=meta?Math.min(1,kg/meta):0,tabs=IT.length>1?`<div class="mjseg mktab" role="tablist" aria-label="Producto"><div>${IT.map((x,k)=>`<button role="tab" aria-selected="${k==sel}" data-mk="${k}" class="${k==sel?'on':''}">${esc(x.n||'Producto')}</button>`).join('')}</div></div>`:'';
   box.innerHTML=`<div class="box obj mj"><div class="mjtop"><div><div class="ey">${esc(it.t||(linea?it.n:pr?.descripcion)||it.n||'Producto')}</div><div class="tt">${esc(mes)}</div></div><button class="mjmeta" id="mk_e" aria-label="Cambiar meta"><small>Meta del mes</small><b>${meta?nf(meta)+' kg':'Poner'}</b><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16H4v-3z"/></svg></button></div>
@@ -3263,6 +3269,10 @@ async function metasKgInicio(){const box=$('#metaskg');if(!box||S.perfil.rol!='d
       <div><small>Ganancia</small><b>${m0(mg)}</b><small>${meta&&gMeta>0?'de '+m0(gMeta):kg>0?m0(mg/kg)+' por kg':'—'}</small></div></div>
     ${gk>0?`<p class="mjn">Cada kilo te deja${linea?' en promedio':''} <b>${m0(gk)}</b>${meta?`. Si llegás a los ${nf(meta)} kg ganás <b>${m0(gMeta)}</b>`:''}.</p>`:''}
     ${meta&&falta>0&&kg>0?`<p class="mjn">A este ritmo cerrás ${esc(mes.toLowerCase())} con <b class="${proy>=meta?'sube':'baja'}">${k0(proy)}</b>${proy>=meta?': llegás. 💪':'.'}</p>`:''}</div>
+    ${ST?`<div class="mjsec"><div class="mjrow"><span class="ey">⭐ ${esc(stN)}</span><span class="mjg">${k0(stKg)} <small>${stMeta?'de '+nf(stMeta)+' kg':''}</small></span></div>
+      ${stMeta?`<div class="obar mjb"><i style="width:${(Math.min(1,stKg/stMeta)*100).toFixed(1)}%" class="${stKg>=stMeta?'lleno':''}"></i></div>`:''}
+      <p class="mjn">Es el que más te deja: <b>${m0(stGk)}</b> por kilo${gk>0&&stGk>gk?` (${nf(Math.round(stGk/gk*10)/10)} veces el promedio de la línea)`:''}.${stMeta?` Con los ${nf(stMeta)} kg ganás <b>${m0(stMeta*stGk)}</b>.`:''}</p>
+      ${mezcla?`<div class="mja"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5"/><path d="M10 9v5M10 6.2v.1"/></svg><span>${esc(mezcla)}</span></div>`:''}</div>`:''}
     <div class="mjsec mjv"><div class="mjrow"><span class="ey">A quién visitar</span>${VIS.length?`<small>${VIS.length} sugerido${VIS.length==1?'':'s'}</small>`:''}</div>
       ${VIS.length?VIS.map(x=>{const nm=String(x.c.razon_social||'Cliente');return`<div class="mjc"><span class="av">${esc(nm.trim()[0]||'?').toUpperCase()}</span><div><b>${esc(nm)}</b><small>${esc(x.why)}</small></div><button class="alt" data-mkp="${x.c.id}">Pedido</button></div>`}).join('')
         :'<p class="mjn">Cuando haya ventas, acá aparecen los clientes a los que les toca reponer y los que compran mucho y no lo llevan.</p>'}</div></div></div>`;
@@ -3270,7 +3280,7 @@ async function metasKgInicio(){const box=$('#metaskg');if(!box||S.perfil.rol!='d
   $('#mk_h').onclick=plegar;$('#mk_t').onclick=plegar;
   $$('#metaskg [data-mk]').forEach(bt=>bt.onclick=async()=>{const k=+bt.dataset.mk;if(k==sel)return;$$('#metaskg [data-mk]').forEach(b=>{const on=+b.dataset.mk==k;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});
     const{error}=await guardaCfgJ('metas_kg',{...C,sel:k});error?toast(error.message,1):metasKgInicio().catch(()=>{})});
-  $$('#metaskg [data-mkp]').forEach(bt=>bt.onclick=()=>{const x=VIS.find(y=>y.c.id==bt.dataset.mkp);S.preCli=x.c;S.preItems=linea?(LL[x.c.id]?[...LL[x.c.id]]:null):[id];S.tab='pedidos';shell()});
+  $$('#metaskg [data-mkp]').forEach(bt=>bt.onclick=()=>{const x=VIS.find(y=>y.c.id==bt.dataset.mkp);S.preCli=x.c;S.preItems=linea?(ST&&(x.st||!LL[x.c.id])?[stId,...(LL[x.c.id]||[])]:LL[x.c.id]?[...LL[x.c.id]]:null):[id];S.tab='pedidos';shell()});
   $('#mk_e').onclick=async()=>{const x=prompt(`¿Cuántos kilos de ${it.n||'este producto'} querés vender por mes?`,meta?String(meta):'100');if(x===null)return;const n=numAR(x);if(!(n>0))return toast('Escribí los kilos, por ejemplo 150.',1);
     const items=(C.items||[]).map(y=>y===C.items[C.items.indexOf(it)]||(y.n==it.n&&y.p==it.p&&JSON.stringify(y.ps)==JSON.stringify(it.ps))?{...y,meta:n}:y);const{error}=await guardaCfgJ('metas_kg',{...C,items,sel});error?toast(error.message,1):(toast('Meta guardada.'),metasKgInicio())}}
 
