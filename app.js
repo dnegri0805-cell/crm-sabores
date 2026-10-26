@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-26.6';
+const VERSION='2026-10-26.7';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -465,11 +465,11 @@ const BK_TABLAS=[['Clientes','clientes'],['Productos y precios','precios_product
 /* Inicio simple: si deudas, proveedores y entregas están en cero, un solo renglón en vez de tres */
 function kpCeros(){if(!$('.kphoy'))return;
   /* Inicio simple: las tarjetas en cero se juntan en un solo renglón "Todo al día"; las que tienen algo quedan a la vista */
-  const W={k2:'pedidos por aprobar',k3:'cobros pendientes',k4:'pagos',k5:'entregas',k6:'visitas hoy'};
+  const W={k2:'pedidos',k3:'cobros',k4:'pagos',k5:'entregas',k6:'visitas'};
   const ks=Object.keys(W).map(i=>document.getElementById(i)).filter(Boolean);if(ks.some(b=>b.querySelector('.num')?.textContent=='…'))return;
   const ce=ks.filter(b=>b.classList.contains('vacio'));let t=document.getElementById('kcero');
   ks.forEach(b=>b.style.removeProperty('display'));if(t)t.remove();if(ce.length<2)return;
-  ce.forEach(b=>b.style.setProperty('display','none','important'));const L=ce.map(b=>W[b.id]),txt='Sin '+(L.length>1?L.slice(0,-1).join(', ')+' ni '+L[L.length-1]:L[0]);
+  ce.forEach(b=>b.style.setProperty('display','none','important'));const L=ce.map(b=>W[b.id]),txt=L.length>=4?'Nada pendiente':'Sin '+(L.length>1?L.slice(0,-1).join(', ')+' ni '+L[L.length-1]:L[0]);
   t=document.createElement('div');t.id='kcero';t.className='box vacio';t.innerHTML=`<span class="lab">${IC('check',16)} Todo al día</span><span class="det">${esc(txt)}</span>`;ks[ks.length-1].after(t)}
 /* Numerito en los plegables del inicio: cuántas cosas hay adentro sin abrirlos */
 function badgePlg(){$$('details.plg').forEach(d=>{const sm=d.querySelector('summary');if(!sm)return;let n=0,hay=false;d.querySelectorAll('[data-pend]').forEach(e=>{hay=true;n+=+e.dataset.pend||0});
