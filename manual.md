@@ -1,25 +1,58 @@
 # Manual de uso · CRM Sabores de mi País
 
-Las funciones del CRM tal como quedaron, en el orden en que las usás en el día. Tocá cada sección para abrirla.
+Las funciones del CRM tal como quedaron, en el orden en que las usás en el día. Tocá cada sección para abrirla, o buscá una palabra arriba.
 
 ## 1. Antes de empezar
 
-- **Dónde entrar:** https://dnegri0805-cell.github.io/crm-sabores/ con tu usuario y contraseña.
+- **Dónde entrar:** https://dnegri0805-cell.github.io/crm-sabores/ con tu correo y contraseña.
+- **La primera vez:** si te dieron una contraseña temporal, el CRM te pide que elijas una propia (mínimo 8 caracteres) antes de entrar.
 - **Usalo como app:** en Chrome, menú ⋮ → *Agregar a pantalla de inicio*. Ganás pantalla y el celular lo cierra menos cuando cambiás a WhatsApp.
 - **Si salís y volvés:** el CRM retoma la pantalla donde estabas (hasta 3 horas) y el pedido a medio cargar (hasta 24 horas).
 - **Barra de abajo:** Inicio · Pedidos · Clientes · Precios · **Más** (Compras, Ventas, Cobranza, Caja, Stock, Contable y este Manual).
 - **Arriba:** la lupa busca un cliente, un producto o un pedido desde cualquier pantalla; **?** abre la ayuda de la pantalla en la que estás; **Aa** cambia el tamaño de letra y el modo oscuro.
 - **Avisos de pedidos:** en **Aa → 📲 Activar en este celular** te llega una notificación por cada pedido nuevo, aunque el CRM esté cerrado. Con el CRM abierto, además suena un timbre que se repite hasta que tocás **Ver pedido** (probalo en **Aa → Probar la alarma**).
-- **Se actualiza solo:** cuando hay una mejora, la página se recarga sola. Si algo no aparece, cerrá y volvé a abrir.
+- **Se actualiza solo:** cuando hay una mejora, la página se recarga sola. Si algo no aparece, cerrá la app del todo y volvé a abrirla.
 
 ## 2. Inicio
 
-- **Botones:** Nuevo pedido (el grande, en bordó), Nuevo cliente, Proveedores, Compras, Ventas y Folletos.
-- **Números del día:** Facturado hoy, Por aprobar, Visitas de hoy, Te deben, Debés a proveedores y Para entregar. *Te deben* se pinta de rojo solo si hay facturas vencidas.
-- **Desplegables de abajo:** *Facturas vencidas y productos para reponer*, *Tareas y avisos del día* y *Configuración del sistema* (los pasos que faltan, cada uno con su botón **Ir**).
-- **Copias de seguridad:** al pie dice cuándo fue la *copia automática* (se hace sola todas las noches a las 3:00 y guarda las últimas 7) y la *copia en tu equipo*. Una vez por mes tocá **Hacer otra** para bajarte una copia propia.
+Es el tablero del día. De arriba hacia abajo:
 
-## 3. Pedidos
+- **Botones:** Nuevo pedido (el grande, en bordó), Nuevo cliente, Proveedores, Compras, Ventas y Folletos.
+- **Facturado hoy:** siempre a la vista.
+- **Números del día:** Por aprobar, Visitas de hoy, Te deben, Debés a proveedores y Para entregar. *Te deben* se pinta de rojo solo si hay facturas vencidas.
+- **✅ Todo al día:** los números que están en cero se juntan en un solo renglón verde (por ejemplo *Nada pendiente* o *Sin cobros ni pagos*). Apenas uno tiene algo, vuelve a aparecer como tarjeta.
+- **🥜 Maní JL:** tu meta del mes con JL. Está explicada en la sección 3.
+- **Desplegables:** *Vencidas y para reponer*, *Tareas y avisos del día* y *Configuración*. Sin abrirlos ya ves qué hay adentro: un numerito bordó con la cantidad, o *al día* en gris si no hay nada. *Configuración* muestra una barrita con los pasos que faltan (por ejemplo 5 de 11), cada uno con su botón **Ir**.
+
+**El pie del Inicio**, un renglón por cosa:
+
+- **Copia automática:** se hace sola todas las noches a las 3:00 y guarda las últimas 7.
+- **Copia en tu equipo:** se pone en amarillo si pasó una semana. Tocá **Hacer otra** para bajarte una copia propia.
+- **Estado del sistema:** revisa que todo funcione.
+- **Dólar:** el del día, para los productos que se compran en dólares. Se pone en amarillo con *actualizalo* si tiene 3 días o más; tocá **Cambiar**.
+- **Usuarios y accesos**, **Cambiar mi contraseña** y **Mercado Pago:** se explican en las secciones 12 y 9.
+- **Ver panel completo** y **Elegir pestañas del menú.**
+
+## 3. Maní JL
+
+La tarjeta **Maní JL** del Inicio te dice cuántas cajas te faltan para tu meta de ganancia limpia del mes. Se arma sola con las ventas reales de los productos del proveedor JL.
+
+- **Meta limpia:** arriba a la derecha. Es lo que querés que te quede después de los gastos fijos. Para cambiarla tocá el lápiz ✏️.
+- **Bloque bordó:** la semana en curso, de lunes a sábado (el domingo ya muestra la que viene). El anillo dorado se llena con las cajas vendidas; abajo, cuántas cajas por visita necesitás (contando 3 visitas por semana).
+- **Foco: cubrir gastos:** aparece cuando la meta grande ya no llega en el mes. Ese mes la tarjeta te pide cubrir los gastos, y la meta grande arranca el mes siguiente.
+- **Ver detalle del mes:** tocando el bloque bordó o ese botón se abre el resto. La próxima vez la tarjeta queda como la dejaste.
+
+**El detalle del mes:**
+
+- **Mes:** la ganancia acumulada contra *meta + gastos*. El tramo rosado de la barra son los gastos fijos; pasada la rayita, todo es ganancia.
+- **Vendiste · Ganancia · Limpio:** cajas y clientes del mes, la ganancia (con lo facturado chiquito abajo) y lo que te queda limpio. Sin ventas, *Limpio* sale en gris con lo que falta para los gastos; pasa a rojo o verde recién cuando hay ventas.
+- **Pallets:** cuántos pallets por mes necesitás para la meta y cuánto te deja cada pallet. Si el mes está en *cubrir gastos*, dice *Desde el mes que viene*.
+- **Calcular con:** un interruptor que se toca o se desliza con el dedo. **65 y 85 g** calcula con los sobres chicos (unos $ 10.460 de ganancia por caja); **Toda la línea**, con el promedio de todos los productos JL. Cuando haya ventas, la tarjeta usa lo que realmente te deja cada caja.
+- **A quién visitar:** cuando haya ventas, los clientes a los que les toca reponer JL y los que compran mucho pero todavía no lo llevan, con botón **Pedido**.
+
+Los gastos fijos se cargan en *Resumen de hoy → Ganancia neta*. Los pedidos cancelados o marcados como prueba no cuentan.
+
+## 4. Pedidos
 
 Un pedido pasa por: cargarlo, pesarlo (si lleva fiambres o quesos), aprobarlo y facturarlo, prepararlo y entregarlo.
 
@@ -34,17 +67,19 @@ Un pedido pasa por: cargarlo, pesarlo (si lleva fiambres o quesos), aprobarlo y 
 
 El envío se suma solo: **gratis desde $ 150.000**, si no **$ 15.000**. Para probar sin ensuciar los números, marcá **Pedido de prueba** antes de guardar.
 
+**Cómo se leen las cantidades** en la nota de pedido, el remito y las listas: *10 u.* son 10 unidades sueltas; *20 (1 caja + 8 u.)* es una caja cerrada más 8 sueltas.
+
 **Después de guardarlo**, en *Últimos pedidos* cada tarjeta muestra un solo botón grande con el paso que sigue:
 
 - **⚖️ Pesar:** si lleva fiambres o quesos sin pesar. Escribís el peso de la etiqueta de cada pieza (si son varias, sumalas con +: 3,52 + 3,61). El importe se ajusta solo y te ofrece avisarle al cliente el total final.
 - **Aprobar y facturar:** aprueba el pedido y genera la **Factura C**.
 - **A preparación → Marcar listo → Salió a reparto → Entregado:** los estados que siguen.
 - **WhatsApp** (al lado): le manda al cliente el detalle del pedido con el total.
-- **Más ▾:** Aprobar sin facturar, Agregar o editar productos, Imprimir, Remito y Cambiar estado (ahí también se cancela).
+- **Más ▾:** Aprobar sin facturar, Agregar o editar productos, Imprimir, Remito, Marcar como prueba y Cambiar estado (ahí también se cancela).
 - **Te deja $…** (en gris): cuánto te deja el pedido. Se pinta de amarillo o rojo si queda debajo de tu margen mínimo o si perdés plata.
 - **Pedidos de prueba:** arriba de la lista aparece *Tenés N pedidos de prueba · Borrar*, que los borra con todo lo que generaron.
 
-## 4. Clientes
+## 5. Clientes y prospectos
 
 - **Lista:** agrupada por rubro, con buscador por nombre o CUIT y filtros por rubro. Cada cliente muestra cuándo compró por última vez y tres botones: lista de precios, WhatsApp y llamar.
 - **Pestañas:** Clientes · Agenda de visitas · Mapa · Dormidos · Prospectos · Pedidos fijos.
@@ -53,7 +88,25 @@ El envío se suma solo: **gratis desde $ 150.000**, si no **$ 15.000**. Para pro
 - **Para que el saludo salga bien:** los mensajes saludan con el campo **Contacto** ("¡Hola Mariela!"). Si está vacío, usan el nombre del negocio. En la lista se ve el nombre de fantasía; las facturas y remitos salen con la razón social.
 - **Alguien nuevo te escribe:** mandale el **catálogo público** (precios mayoristas): https://dnegri0805-cell.github.io/crm-sabores/pedido.html?ver=catalogo — está en *Más → Ventas → Folletos y catálogo*. Cuando pide, el CRM lo da de alta solo como cliente (o lo reconoce por el teléfono) y el pedido entra en **Pedidos → Por aprobar** con la nota *🌐 Catálogo · cliente nuevo*: completale los datos en su ficha y desde ahí usá siempre **Mandar lista**.
 
-## 5. Precios y fotos
+**Prospectos** son los negocios que querés sumar. Ya están cargados más de 170 súper chinos y autoservicios de CABA y Vicente López (campaña Maní JL), cada uno con dirección, ubicación, teléfono si lo había, barrio y la nota *ir de mañana, de 9 a 13*.
+
+- **Dónde:** *Clientes → Prospectos* (en lista) o *Ventas → Embudo de prospectos* (por etapas: Nuevo, Contactado, Visitado, Interesado y Ya es cliente).
+- **Filtrar:** arriba del embudo, **Zona o barrio** y **Tipo de negocio**. Por ejemplo *Saavedra* + *Supermercado chino* te deja solo esos para armar el recorrido del día.
+- **Ver los datos:** tocá el nombre y se despliega con dirección y barrio, teléfono (tocándolo llamás), notas y **Cómo llegar** (abre Google Maps en la puerta).
+- **Editar:** en la tarjeta desplegada, **Editar datos**, o **✏️ Editar** en la lista. Cambiás nombre, tipo, teléfono, contacto, dirección, barrio, etapa, prioridad, fecha para volver y notas.
+- **Avanzar de etapa:** **→ Contactado**, **→ Visitado**… Con **✕** queda como *No le interesa*. **WhatsApp** le manda el saludo y el catálogo de su rubro, y lo pasa a Contactado.
+- **Ver más:** cada columna muestra 40; abajo de todo, **Ver N más**.
+- **Seguimiento:** si le ponés fecha para volver, ese día aparece en *Seguimiento para hoy*.
+
+**📍 Agregar el comercio donde estoy** (arriba del embudo y de la lista), para los chinos que encontrás en la calle y no están en ninguna lista:
+
+1. Parado en la puerta, tocá el botón. La primera vez el celular pide permiso de ubicación: tocá *Permitir*.
+2. El CRM completa solo la **dirección** y el **barrio**. Revisalos.
+3. Escribí el **nombre** y, si lo tenés, el **teléfono**.
+4. Elegí **qué pasó** (lo vi y no entré, entré y hablé, le interesó, no le interesa), la fecha para volver y una nota.
+5. Tocá **Guardar prospecto**. Queda con la ubicación exacta, en la etapa que elegiste.
+
+## 6. Precios y fotos
 
 - **Precios:** tus productos con costo y precio de venta. Lo que cambies se ve al instante en los catálogos de tus clientes.
 - **Buscar:** por nombre o código, o escaneando el código de barras. Categorías: Todas, Fiambres, Quesos, Lácteos…
@@ -70,7 +123,7 @@ El envío se suma solo: **gratis desde $ 150.000**, si no **$ 15.000**. Para pro
 
 Foto con fondo liso y buena luz. Con 10 por día, en un par de semanas completás fiambres y quesos.
 
-## 6. Compras
+## 7. Compras
 
 Pestañas: Órdenes de compra · Facturas · Órdenes de pago · Proveedores · Sugerencia de compra · Mejor proveedor · Historial de costos.
 
@@ -83,7 +136,7 @@ Pestañas: Órdenes de compra · Facturas · Órdenes de pago · Proveedores · 
 - **Historial de costos:** cuánto subió cada producto y cada proveedor.
 - **Tus datos para los comprobantes** (razón social, CUIT, condición de IVA y domicilio): en *Órdenes de pago → Datos y retenciones*.
 
-## 7. Ventas
+## 8. Ventas
 
 Dejamos a la vista solo las herramientas que sirven todos los días:
 
@@ -92,14 +145,14 @@ Dejamos a la vista solo las herramientas que sirven todos los días:
 - **Comprando menos:** clientes que bajaron su compra o dejaron de llevar productos.
 - **Presupuestos:** presupuestos enviados y pedidos del catálogo público para confirmar.
 - **Reclamos:** reclamos que te hacen los clientes desde su cuenta.
-- **Embudo de prospectos:** negocios a conquistar, de nuevo a ya es cliente.
-- **Folletos y catálogo:** folletos listos para WhatsApp e Instagram, y el link del catálogo público.
+- **Embudo de prospectos:** los negocios a conquistar por etapas, con filtros por barrio y tipo (ver sección 5).
+- **Folletos y catálogo:** folletos listos para WhatsApp e Instagram (también el bilingüe español-chino) y el link del catálogo público.
 - **Cambios de precio:** lo que subió o bajó, para avisar a los clientes.
 - **Resumen semanal:** cómo fue la semana contra la anterior.
 
 Tus favoritas están en la pestaña **Favoritas**. El resto no se borró: escribiendo su nombre en **Buscar herramienta…** la encontrás, y con el **engranaje** las volvés a mostrar.
 
-## 8. Cobranza y Caja
+## 9. Cobranza, Caja y Mercado Pago
 
 **Cobranza:**
 
@@ -117,7 +170,16 @@ Al final, **Configurar avisos y cobros**: tono del mensaje, datos para transferi
 - **Cierre de caja:** contás el efectivo (con **Contar billetes** si querés) y el CRM lo compara con lo que debería haber.
 - **Ganancia del mes:** ventas menos costo de la mercadería y gastos.
 
-## 9. Stock y Contable
+**Mercado Pago** (pie del Inicio, *Mercado Pago: cobros por transferencia*). Está en prueba: sirve para ver desde el CRM lo que te entra a la cuenta, y más adelante marcar solos los pedidos cobrados.
+
+1. En la compu, entrá a **mercadopago.com.ar/developers** con tu cuenta → **Crear aplicación** (nombre: CRM Sabores).
+2. Dentro de la aplicación, **Credenciales de producción** → copiá el **Access Token** (empieza con APP_USR-).
+3. Pegalo en la ventana de Mercado Pago del CRM y tocá **Guardar**. Tiene que decir en verde *Conectado a la cuenta de…*.
+4. **Ver lo que entró** muestra los movimientos de los últimos 7, 15 o 30 días, con quién pagó y cuánto.
+
+La credencial queda guardada en el servidor y nadie la puede volver a ver desde la app; no la mandes por WhatsApp. **Desconectar** corta el acceso. Cuando tengas la cuenta de la SAS, tocás *Cambiar la credencial* y pegás la nueva.
+
+## 10. Stock y Contable
 
 **Stock:** cada producto muestra Físico (lo que hay), Reservado (lo comprometido en pedidos) y Disponible.
 
@@ -132,7 +194,7 @@ Al final, **Configurar avisos y cobros**: tono del mensaje, datos para transferi
 - **Cheques, Bancos, Flujo de caja, Valor del stock y Para el contador.**
 - **IVA y Retenciones** están ocultas mientras seas monotributista. Si la SAS pasa a ser Responsable Inscripta, cambiás la condición en tus datos y vuelven solas, igual que la Factura A y B.
 
-## 10. Lo que ve el cliente
+## 11. Lo que ve el cliente
 
 Con el link de **Mandar lista**, el cliente ve su catálogo con sus precios: **buscar, agregar, ver pedido, enviar**.
 
@@ -144,22 +206,51 @@ Con el link de **Mandar lista**, el cliente ve su catálogo con sus precios: **b
 
 Cuando envía el pedido, te entra en **Pedidos → Por aprobar**.
 
-## 11. Rutina diaria y preguntas frecuentes
+## 12. Usuarios y contraseñas
+
+Desde el pie del Inicio, **Usuarios y accesos** (solo lo ve el dueño). Ahí está cada persona con su correo, cuándo entró por última vez y qué puede hacer.
+
+**Darle acceso a alguien:**
+
+1. Abrí **➕ Agregar usuario**.
+2. Completá **nombre y apellido**, **correo** y **qué puede hacer**.
+3. Tocá **Crear acceso**. Aparece una **contraseña temporal**, que se muestra una sola vez.
+4. Tocá **Mandar por WhatsApp** (o **Copiar mensaje**): va el link del CRM, su correo y la contraseña.
+5. La primera vez que entre, el CRM le pide que elija su propia contraseña.
+
+**Qué puede hacer cada uno:**
+
+- **Socio / dueño:** ve y cambia todo, incluidos costos, márgenes, ganancias y configuración.
+- **Administración:** ve todo, sin tocar la configuración.
+- **Vendedor:** pedidos y clientes, sin ver costos ni ganancias.
+- **Depósito:** armado y entregas.
+
+**Después:**
+
+- **Cambiar lo que puede hacer:** elegí otra opción en su recuadro; se guarda sola.
+- **Se olvidó la contraseña:** **Nueva contraseña temporal** y se la mandás de nuevo. La anterior deja de funcionar.
+- **Dar de baja:** no puede entrar más. Con **Volver a dar acceso** lo reactivás cuando quieras.
+- **Tu propia contraseña:** pie del Inicio → **Cambiar mi contraseña**.
+
+## 13. Rutina diaria y preguntas frecuentes
 
 Repartís de lunes a sábado y los pedidos cierran a las 20:00 para el día siguiente.
 
-1. **A la mañana:** abrí Inicio y mirá *Por aprobar* y *Para entregar*.
+1. **A la mañana:** abrí Inicio y mirá *Por aprobar*, *Para entregar* y la tarjeta de Maní JL.
 2. **Pedidos por aprobar:** pesá los fiambres y quesos, y tocá **Aprobar y facturar**.
-3. **Preparar y repartir:** A preparación, Listo, Salió a reparto y Entregado.
-4. **Cobrar:** registrá cada cobro en Cobranza, así se genera el recibo.
-5. **Vender:** en Ventas → Les toca comprar, escribile a quien ya debería pedir.
-6. **Gastos:** cargá en Caja lo que gastaste.
-7. **A la noche:** Cierre de caja con el efectivo contado.
+3. **Salir a vender:** en el Embudo filtrá por el barrio del día y usá **Cómo llegar**. Los chinos nuevos que encuentres, cargalos con **📍 Agregar el comercio donde estoy**.
+4. **Preparar y repartir:** A preparación, Listo, Salió a reparto y Entregado.
+5. **Cobrar:** registrá cada cobro en Cobranza, así se genera el recibo.
+6. **Vender a los que ya compran:** en Ventas → Les toca comprar, escribile a quien ya debería pedir.
+7. **Gastos:** cargá en Caja lo que gastaste.
+8. **A la noche:** Cierre de caja con el efectivo contado.
 
-- **No veo un cambio nuevo:** cerrá el CRM y volvé a abrirlo.
+- **No veo un cambio nuevo:** cerrá la app del todo y volvé a abrirla.
 - **El mensaje saluda con el nombre del negocio:** cargale el Contacto en la ficha del cliente.
 - **El PDF sale en tamaño Carta:** en la pantalla de impresión tocá *Tamaño de papel* y elegí **A4**.
 - **El cliente perdió su link:** mandáselo de nuevo con Mandar lista.
 - **El cliente no puede enviar el pedido:** revisá si no llega al mínimo, si pasó la hora de corte o si tiene deuda vencida.
+- **Hice un pedido de prueba y cuenta en las ventas:** cancelalo, o en *Más ▾* marcalo como prueba.
+- **No me toma la ubicación al agregar un comercio:** prendé la ubicación del celular y dale permiso al CRM; igual podés escribir la dirección a mano.
 - **Se me borró algo:** hay una copia automática de cada noche (las últimas 7) y la que bajás a tu equipo.
-- **Seguridad:** el link de cada cliente es personal; no compartas tu contraseña.
+- **Seguridad:** el link de cada cliente es personal; no compartas tu contraseña ni la credencial de Mercado Pago.

@@ -4,7 +4,8 @@ Guía ordenada por sección para consultar o pasarle al equipo. Cada punto dice 
 
 ## 1. Primeros pasos
 
-- **CRM (uso interno):** https://dnegri0805-cell.github.io/crm-sabores/ — se entra con usuario y contraseña.
+- **CRM (uso interno):** https://dnegri0805-cell.github.io/crm-sabores/ — se entra con usuario y contraseña. Si te dieron una contraseña temporal, la primera vez te pide elegir una propia.
+- **Usuarios y accesos** (pie del Inicio, solo el dueño): das de alta a un socio, vendedor, administración o depósito con una contraseña temporal que se manda por WhatsApp; cambiás qué puede hacer, generás una contraseña nueva o lo das de baja. **Cambiar mi contraseña** está al lado.
 - **Catálogo de cada cliente:** link personal `pedido.html?c=…` que se manda desde la ficha del cliente (botón de WhatsApp). Cada cliente ve sus precios, su cuenta y sus promos.
 - **Catálogo público (sin precios de cliente):** `pedido.html?ver=catalogo` — para redes, folletos y nuevos clientes.
 - **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-11.30`). Si algo "no aparece", cerrá y abrí la pestaña.
@@ -20,7 +21,11 @@ Guía ordenada por sección para consultar o pasarle al equipo. Cada punto dice 
 
 ## 2. Inicio
 
-Es el tablero del día. Arriba de todo, si falta algo: **🩺 Falta correr un SQL** (el CRM detecta solo qué archivo falta; botón **📋 Copiar** y **Abrir Supabase**) y **⚙️ Configuración pendiente** (datos de pago, link de Mercado Pago, WhatsApp, gastos fijos, zonas, cámaras, depósito, etc., cada uno con **Ir**). En el celular, arriba aparecen **6 botones grandes**: Nuevo pedido, Cola del día, Por aprobar, Armar, Reparto y Cobrar.
+Es el tablero del día. **Inicio simple** (el que se abre por defecto): botones grandes, *Facturado hoy*, los números del día (los que están en cero se juntan en un renglón verde **✅ Todo al día**), la tarjeta **🥜 Maní JL** y los desplegables *Vencidas y para reponer*, *Tareas y avisos del día* y *Configuración*, con un numerito que dice cuántas cosas hay adentro. Al pie: copias de seguridad (la del equipo en amarillo si pasó una semana), Estado del sistema, Dólar (en amarillo con 3 días o más), Usuarios y accesos, Cambiar mi contraseña, Mercado Pago, Ver panel completo y Elegir pestañas.
+
+**🥜 Maní JL:** meta de ganancia limpia del mes con los productos de JL (se cambia con el lápiz). El bloque bordó muestra las cajas de la semana con un anillo y cuántas cajas por visita hacen falta; si la meta no llega en el mes, pasa a *Foco: cubrir gastos*. En **Ver detalle del mes**: barra con el tramo de gastos, Vendiste · Ganancia · Limpio, pallets por mes y ganancia por pallet, el interruptor **Calcular con** (65 y 85 g o toda la línea, se desliza con el dedo) y **A quién visitar**. No cuenta pedidos cancelados ni de prueba.
+
+En el **panel completo**, arriba de todo, si falta algo: **🩺 Falta correr un SQL** (el CRM detecta solo qué archivo falta; botón **📋 Copiar** y **Abrir Supabase**) y **⚙️ Configuración pendiente** (datos de pago, link de Mercado Pago, WhatsApp, gastos fijos, zonas, cámaras, depósito, etc., cada uno con **Ir**). En el celular, arriba aparecen **6 botones grandes**: Nuevo pedido, Cola del día, Por aprobar, Armar, Reparto y Cobrar.
 
 **✅ Mi día:** todo lo que tenés que hacer hoy en una sola lista, con cuántos hay de cada cosa: mandar la Cola, aprobar, armar, pesar, repartir, cobrar vencidos, depositar cheques, pagar a proveedores, revisar órdenes de compra en borrador, anotar la temperatura y tus tareas. Cada renglón tiene **Ir** y lo tildás cuando lo terminaste.
 
@@ -238,7 +243,8 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 - **📍 Avisarme al llegar** (Clientes, arriba): con el CRM abierto en el celular, cuando llegás a la puerta de un cliente (a menos de 80 m) te muestra su última compra, lo que debe, lo que le debemos, su promesa de pago y sus notas, con botones para el pedido, la ficha, la visita y la góndola.
 - **Mapa:** clientes coloreados por **última compra** o deuda, y los prospectos. **💰 Cuánto compra:** colores según lo que compró cada uno en los últimos 3 meses (verde oscuro, el 20 % que más compra). **🚚 Cerca del reparto:** las paradas del recorrido (los pedidos que salen o, si no hay, los clientes que visitás hoy) y, a menos de 1,2 km, los **clientes dormidos** (más de 45 días sin comprar) y los **prospectos**, con lista, WhatsApp y Cómo llegar para pasar a verlos.
 - **Dormidos:** clientes que hace mucho no compran.
-- **Prospectos:** negocios a conquistar, con su estado y su **⭐ puntaje** (0 a 100: rubro que mejor convierte, cercanía a tus clientes, teléfono, origen y estado). La cola, las llamadas y el embudo empiezan por los de mayor puntaje. **⚡ Alta exprés:** lo da de alta y le manda por WhatsApp su catálogo personal con la bienvenida y el kit de primer pedido.
+- **Prospectos:** más de 170 súper chinos y autoservicios de CABA y Vicente López ya cargados (campaña Maní JL), con barrio, ubicación y teléfono. En el **Embudo** se filtra por **Zona o barrio** y **Tipo de negocio**; tocando el nombre se despliegan dirección, teléfono, notas, **Cómo llegar** y **Editar datos** (nombre, tipo, contacto, dirección, barrio, etapa, prioridad, fecha para volver y notas). Cada columna muestra 40 y abajo **Ver más**. **📍 Agregar el comercio donde estoy:** en la puerta del negocio toma el GPS, completa dirección y barrio, y lo guarda con lo que pasó en la visita.
+- **Puntaje de prospectos:** cada uno con su estado y su **⭐ puntaje** (0 a 100: rubro que mejor convierte, cercanía a tus clientes, teléfono, origen y estado). La cola, las llamadas y el embudo empiezan por los de mayor puntaje. **⚡ Alta exprés:** lo da de alta y le manda por WhatsApp su catálogo personal con la bienvenida y el kit de primer pedido.
 - **Pedidos fijos:** pedidos que se repiten solos (semanal, quincenal…).
 
 ## 9. Reparto, cobranza y caja
@@ -357,4 +363,6 @@ Una sola vez, en este orden:
 - **"El cliente perdió su link":** reenvialo desde su ficha.
 - **Seguridad:** nunca compartas la clave secreta de la base de datos; el link de cada cliente es personal.
 - **Mails automáticos:** a las 7:45 llega *Tu cola de hoy* con botón para empezar, y a las 20:30 el resumen del día. Se activan cuando se cargan los datos de Gmail en GitHub.
-- **Próximamente:** factura electrónica ARCA y usuarios para vendedores y choferes.
+- **Mercado Pago** (pie del Inicio, en prueba): pegás el Access Token de tu cuenta (mercadopago.com.ar/developers → Crear aplicación → Credenciales de producción) y con **Ver lo que entró** ves los cobros de los últimos días. La credencial queda en el servidor y no se puede volver a ver desde la app.
+- **Cantidades en notas y remitos:** *10 u.* son unidades sueltas; *20 (1 caja + 8 u.)*, una caja cerrada más 8 sueltas.
+- **Próximamente:** factura electrónica ARCA y conciliación automática de transferencias.

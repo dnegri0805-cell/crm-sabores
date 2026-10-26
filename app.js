@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-26.12';
+const VERSION='2026-10-26.13';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -7773,7 +7773,7 @@ async function menuVentasCfg(){const MV=Object.assign({oc:[],fav:[]},S.menuV||{}
   q('#mv_g').onclick=()=>sv({oc:[...m.querySelectorAll('[data-mvv]')].filter(c=>!c.checked).map(c=>c.dataset.mvv),fav:MV.fav});q('#mv_r').onclick=()=>sv({oc:[],fav:[]})}
 
 /* 4. Ayuda de cada pantalla */
-const SECC={inicio:'## 2.',pedidos:'## 3.',reparto:'## 9.',cobranza:'## 9.',caja:'## 9.',clientes:'## 8.',compras:'## 10.',stock:'## 10.',precios:'## 10.',reportes:'## 10.',contable:'## 10.',ventas:'## 4.'};
+const SECC={inicio:'## 2.',pedidos:'## 4.',reparto:'## 4.',cobranza:'## 9.',caja:'## 9.',clientes:'## 5.',compras:'## 7.',stock:'## 10.',precios:'## 6.',reportes:'## 10.',contable:'## 10.',ventas:'## 8.'};
 async function ayuda(){if(!S.manualMD){try{S.manualMD=await(await fetch('manual.md?v='+VERSION)).text()}catch(e){return toast('No pude abrir el manual.',1)}}
   const L=S.manualMD.split('\n'),m=document.createElement('div');m.className='modal';document.body.appendChild(m);let titulo='',md='';
   if(S.tab=='ventas'&&S.GRfull){const it=S.GRfull.flatMap(([g,x])=>x).find(x=>x[0]==S.vs);if(it){titulo=it[1];const k=norm(it[1].replace(/[^\p{L}\p{N}\s]/gu,'').trim());md=L.filter(l=>/^\s*- /.test(l)&&norm(l.replace(/[^\p{L}\p{N}\s]/gu,'')).includes(k)).join('\n')}}
