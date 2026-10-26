@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-26.5';
+const VERSION='2026-10-26.6';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -269,7 +269,7 @@ async function vInicio(){
   const kpH=`<div class="kp${dia?' kphoy':''}">
     <div class="box" id="k1"><span class="lab">Facturado hoy</span><span class="num">…</span><span class="det"></span></div>
     <div class="box" id="k2"><span class="lab">Por aprobar</span><span class="num">…</span><span class="det"></span></div>
-    ${dia?`<div class="box clic" id="k6"><span class="lab">Visitas de hoy</span><span class="num">${visHoy.length}</span><span class="det">${visHoy.length?esc(visHoy.slice(0,3).map(nomVis).join(', '))+(visHoy.length>3?'…':''):'Nadie agendado hoy'}</span></div>`:''}
+    ${dia?`<div class="box clic${visHoy.length?'':' vacio'}" id="k6"><span class="lab">Visitas de hoy</span><span class="num">${visHoy.length}</span><span class="det">${visHoy.length?esc(visHoy.slice(0,3).map(nomVis).join(', '))+(visHoy.length>3?'…':''):'Nadie agendado hoy'}</span></div>`:''}
     <div class="box" id="k3"><span class="lab">Te deben</span><span class="num">…</span><span class="det"></span></div>
     <div class="box" id="k4"><span class="lab">Debés a proveedores</span><span class="num">…</span><span class="det"></span></div>
     <div class="box" id="k5"><span class="lab">Stock bajo</span><span class="num">…</span><span class="det"></span></div>
@@ -316,7 +316,7 @@ async function vInicio(){
   // 2 pedidos pendientes
   if(pe.error){fallo('k2',pe.error);$('#t1').innerHTML='<p class="err">'+esc(pe.error.message)+'</p>'}else{
     const P=pe.data,tot=P.reduce((a,o)=>a+Number(o.total||0),0);
-    kp('k2',String(P.length),P.length?'Suman '+$m(tot):'Nada pendiente',P.length?'alerta':'ok');
+    kp('k2',String(P.length),P.length?'Suman '+$m(tot):'Nada pendiente',P.length?'alerta':'ok');$('#k2').classList.toggle('vacio',!P.length);kpCeros();
     $('#t1').innerHTML=P.length?'<table><tr><th>N°</th><th>Cliente</th><th class="n">Total</th></tr>'+P.slice(0,8).map(o=>`<tr><td>${o.numero}</td><td>${esc(o.clientes?.razon_social)}${o.origen=='online'?' <span class="badge b-online">Online</span>':''}</td><td class="n">${$m(o.total)}</td></tr>`).join('')+'</table>'+(P.length>8?`<small>Y ${P.length-8} más.</small>`:'')+'<p><button class="alt" id="irP">Ir a Pedidos</button></p>':'<p><small>No hay pedidos esperando aprobación.</small></p>';
     $('#irP')&&($('#irP').onclick=()=>{S.tab='pedidos';shell()})}
   // 3 deuda clientes
@@ -463,10 +463,14 @@ const BK_TABLAS=[['Clientes','clientes'],['Productos y precios','precios_product
   ['Encuestas','encuestas'],['Cupones','cupones'],['Cupones usados','cupones_usos'],['Puntos','puntos_mov'],['Presupuestos','presupuestos'],
   ['Carritos guardados','carritos'],['Avisos de stock','avisos_stock'],['Búsquedas sin resultado','busquedas'],['Precios pactados','precios_cliente'],['Precios de la competencia','precios_competencia'],['Muestras','muestras'],['Visitas al catálogo','vistas_catalogo'],['Reclamos','reclamos'],['Productos que piden','pedidos_sugeridos'],['Preventas','preventas'],['Reservas','reservas'],['Exhibidores','comodatos'],['Fraccionados','fraccionados'],['Combustible','cargas_combustible'],['Promesas de pago','promesas_pago'],['Documentos (lista)','documentos_cliente'],['Le debemos','pendientes_cliente'],['Repartos','repartos_dia'],['Fotos de góndola (lista)','fotos_cliente'],['Comprobantes recibidos','comprobantes_cliente'],['Votos','votos_producto']];
 /* Inicio simple: si deudas, proveedores y entregas están en cero, un solo renglón en vez de tres */
-function kpCeros(){if(!$('.kphoy'))return;const ks=['k3','k4','k5'].map(i=>document.getElementById(i)).filter(Boolean);if(ks.length<3)return;
-  const todos=ks.every(b=>b.classList.contains('vacio'));let t=document.getElementById('kcero');
-  if(todos){ks.forEach(b=>b.style.setProperty('display','none','important'));if(!t){t=document.createElement('div');t.id='kcero';t.className='box vacio';t.innerHTML=`<span class="lab">${IC('check',16)} Todo al día</span><span class="det">Sin deudas ni entregas</span>`;ks[2].after(t)}}
-  else{ks.forEach(b=>b.style.removeProperty('display'));if(t)t.remove()}}
+function kpCeros(){if(!$('.kphoy'))return;
+  /* Inicio simple: las tarjetas en cero se juntan en un solo renglón "Todo al día"; las que tienen algo quedan a la vista */
+  const W={k2:'pedidos por aprobar',k3:'cobros pendientes',k4:'pagos',k5:'entregas',k6:'visitas hoy'};
+  const ks=Object.keys(W).map(i=>document.getElementById(i)).filter(Boolean);if(ks.some(b=>b.querySelector('.num')?.textContent=='…'))return;
+  const ce=ks.filter(b=>b.classList.contains('vacio'));let t=document.getElementById('kcero');
+  ks.forEach(b=>b.style.removeProperty('display'));if(t)t.remove();if(ce.length<2)return;
+  ce.forEach(b=>b.style.setProperty('display','none','important'));const L=ce.map(b=>W[b.id]),txt='Sin '+(L.length>1?L.slice(0,-1).join(', ')+' ni '+L[L.length-1]:L[0]);
+  t=document.createElement('div');t.id='kcero';t.className='box vacio';t.innerHTML=`<span class="lab">${IC('check',16)} Todo al día</span><span class="det">${esc(txt)}</span>`;ks[ks.length-1].after(t)}
 /* Numerito en los plegables del inicio: cuántas cosas hay adentro sin abrirlos */
 function badgePlg(){$$('details.plg').forEach(d=>{const sm=d.querySelector('summary');if(!sm)return;let n=0,hay=false;d.querySelectorAll('[data-pend]').forEach(e=>{hay=true;n+=+e.dataset.pend||0});
   let b=sm.querySelector('.pb');if(!hay){if(b)b.remove();return}if(!b){b=document.createElement('span');b.className='pb';sm.appendChild(b)}const t=n?String(n):'al día';if(b.textContent!==t)b.textContent=t;b.classList.toggle('cero',!n)})}
