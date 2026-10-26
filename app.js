@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-26.17';
+const VERSION='2026-10-26.18';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -3269,10 +3269,12 @@ async function metasKgInicio(){const box=$('#metaskg');if(!box||S.perfil.rol!='d
       <div><small>Ganancia</small><b>${m0(mg)}</b><small>${meta&&gMeta>0?'de '+m0(gMeta):kg>0?m0(mg/kg)+' por kg':'—'}</small></div></div>
     ${gk>0?`<p class="mjn">Cada kilo te deja${linea?' en promedio':''} <b>${m0(gk)}</b>${meta?`. Si llegás a los ${nf(meta)} kg ganás <b>${m0(gMeta)}</b>`:''}.</p>`:''}
     ${meta&&falta>0&&kg>0?`<p class="mjn">A este ritmo cerrás ${esc(mes.toLowerCase())} con <b class="${proy>=meta?'sube':'baja'}">${k0(proy)}</b>${proy>=meta?': llegás. 💪':'.'}</p>`:''}</div>
-    ${ST?`<div class="mjsec"><div class="mjrow"><span class="ey">⭐ ${esc(stN)}</span><span class="mjg">${k0(stKg)} <small>${stMeta?'de '+nf(stMeta)+' kg':''}</small></span></div>
-      ${stMeta?`<div class="obar mjb"><i style="width:${(Math.min(1,stKg/stMeta)*100).toFixed(1)}%" class="${stKg>=stMeta?'lleno':''}"></i></div>`:''}
-      <p class="mjn">Es el que más te deja: <b>${m0(stGk)}</b> por kilo${gk>0&&stGk>gk?` (${nf(Math.round(stGk/gk*10)/10)} veces el promedio de la línea)`:''}.${stMeta?` Con los ${nf(stMeta)} kg ganás <b>${m0(stMeta*stGk)}</b>.`:''}</p>
-      ${mezcla?`<div class="mja"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5"/><path d="M10 9v5M10 6.2v.1"/></svg><span>${esc(mezcla)}</span></div>`:''}</div>`:''}
+    ${ST?(()=>{const ft=S.min[stId]?.foto,fal=Math.max(0,stMeta-stKg),pcSt=stMeta?Math.min(1,stKg/stMeta):0;return`<div class="mkst">
+      <div class="sth">${ft?`<img src="${esc(ft)}" alt="">`:''}<div class="stt"><span class="ey">⭐ El que más te deja</span><b>${esc(stN)}</b></div><div class="stk">${k0(stKg)}<br><small>${stMeta?'de '+nf(stMeta)+' kg':''}</small></div></div>
+      ${stMeta?`<div class="stbar"><i style="width:${(pcSt*100).toFixed(1)}%"></i></div>`:''}
+      <div class="stn"><div><b>${m0(stGk)}</b><small>por kilo${gk>0&&stGk>gk?' · '+nf(Math.round(stGk/gk*10)/10)+' × el promedio':''}</small></div>${stMeta?`<div><b>${m0(stMeta*stGk)}</b><small>si llegás a ${nf(stMeta)} kg</small></div>`:''}</div>
+      ${stMeta?`<span class="stf${fal<=0?' ok':''}">${fal<=0?'¡Meta cumplida! 🎉':'Te faltan '+k0(fal)}</span>`:''}
+      ${mezcla?`<div class="mja"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5"/><path d="M10 9v5M10 6.2v.1"/></svg><span>${esc(mezcla)}</span></div>`:''}</div>`})():''}
     <div class="mjsec mjv"><div class="mjrow"><span class="ey">A quién visitar</span>${VIS.length?`<small>${VIS.length} sugerido${VIS.length==1?'':'s'}</small>`:''}</div>
       ${VIS.length?VIS.map(x=>{const nm=String(x.c.razon_social||'Cliente');return`<div class="mjc"><span class="av">${esc(nm.trim()[0]||'?').toUpperCase()}</span><div><b>${esc(nm)}</b><small>${esc(x.why)}</small></div><button class="alt" data-mkp="${x.c.id}">Pedido</button></div>`}).join('')
         :'<p class="mjn">Cuando haya ventas, acá aparecen los clientes a los que les toca reponer y los que compran mucho y no lo llevan.</p>'}</div></div></div>`;
