@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-26.18';
+const VERSION='2026-10-26.19';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -3224,10 +3224,10 @@ async function metasKgInicio(){const box=$('#metaskg');if(!box||S.perfil.rol!='d
   const dow=hoy.getDay(),lun=new Date(Y,M,dh+(dow==0?1:1-dow)),sab=new Date(lun.getFullYear(),lun.getMonth(),lun.getDate()+5);
   const semIni=lun.getMonth()==M?lun.getDate():lun<hoy&&sab.getMonth()==M?1:null,semFin=semIni?(sab.getMonth()==M?sab.getDate():dm):null;
   const dS=d=>diaLocal(new Date(Y,M,d)),sA=semIni?dS(semIni):null,sB=semIni?dS(semFin):null;
-  let kg=0,kgS=0,kgAntesS=0,vta=0,mg=0;const cl=new Set(),U={},T={},LL={},KP={};
+  let kg=0,kgS=0,kgAntesS=0,vta=0,mg=0;const cl=new Set(),U={},T={},LL={},KP={},IDK=IT.map(x=>new Set(x.ps?.length?x.ps:[x.p])),kgT=IT.map(()=>0);
   for(const o of pe||[]){const dia=diaLocal(o.creado_en),enMes=dia>=a;let lleva=false;
     if(dia>=diaLocal(new Date(Y,M,dh-90)))T[o.cliente_id]=(T[o.cliente_id]||0)+(+o.total||0);
-    for(const i of o.pedido_items||[]){if(!IDS.has(i.producto_id))continue;lleva=true;(LL[o.cliente_id]=LL[o.cliente_id]||new Set()).add(i.producto_id);const q=+i.cantidad||0,k=kgDe(i.producto_id,q),pu=+i.precio_unitario||0,cu=+i.costo_unitario||+(prD(i.producto_id)?.costo||0);
+    for(const i of o.pedido_items||[]){if(enMes)IDK.forEach((st,k)=>{if(st.has(i.producto_id))kgT[k]+=kgDe(i.producto_id,+i.cantidad||0)});if(!IDS.has(i.producto_id))continue;lleva=true;(LL[o.cliente_id]=LL[o.cliente_id]||new Set()).add(i.producto_id);const q=+i.cantidad||0,k=kgDe(i.producto_id,q),pu=+i.precio_unitario||0,cu=+i.costo_unitario||+(prD(i.producto_id)?.costo||0);
       if(enMes){kg+=k;KP[i.producto_id]=(KP[i.producto_id]||0)+k;vta+=q*pu;mg+=q*(pu-cu);cl.add(o.cliente_id);if(sA&&dia>=sA&&dia<=sB)kgS+=k;else if(sA&&dia<sA)kgAntesS+=k}}
     if(lleva)(U[o.cliente_id]=U[o.cliente_id]||[]).push(dia)}
   if(linea&&kg>=5&&mg>0)gk=mg/kg;const gMeta=meta*gk;
@@ -3257,7 +3257,8 @@ async function metasKgInicio(){const box=$('#metaskg');if(!box||S.perfil.rol!='d
     :semIni?`<div class="mjh">${ring(pcS,Math.round(pcS*100)+'%')}<div><div class="ey">${semTit}</div><div class="mjhn">${nf(Math.round(kgS))}<span> / ${nf(objSem)} kg</span></div>
       <div class="hs">${faltaSem>0?`${nf(Math.ceil(pvV))} kg por visita · ${visSem} visita${visSem==1?'':'s'}`:'Semana cumplida. Lo que sumes adelanta el mes.'}</div>${ST&&stMeta?`<span class="pill">⭐ ${esc(stN)}: ${nf(Math.round(stKg*10)/10)} / ${nf(stMeta)} kg</span>`:''}</div></div>`
     :`<div class="mjh"><div><div class="ey">${esc(mes)}</div><div class="mjhn">${nf(Math.ceil(falta))}<span> kg por vender</span></div></div></div>`;
-  const pc=meta?Math.min(1,kg/meta):0,tabs=IT.length>1?`<div class="mjseg mktab" role="tablist" aria-label="Producto"><div>${IT.map((x,k)=>`<button role="tab" aria-selected="${k==sel}" data-mk="${k}" class="${k==sel?'on':''}">${esc(x.n||'Producto')}</button>`).join('')}</div></div>`:'';
+  const pc=meta?Math.min(1,kg/meta):0,fotoDe=x=>{const L=x.ps?.length?[x.star?.p,...x.ps]:[x.p];for(const q of L)if(q&&S.min[q]?.foto)return S.min[q].foto;return ''},
+    tabs=IT.length>1?`<div class="mktabs" role="tablist" aria-label="Producto">${IT.map((x,k)=>{const f=fotoDe(x),pk=+x.meta?Math.min(1,kgT[k]/x.meta):0;return`<button role="tab" aria-selected="${k==sel}" data-mk="${k}" class="mkt${k==sel?' on':''}"><span class="mkf">${f?`<img src="${esc(f)}" alt="">`:esc((x.n||'?')[0])}</span><span class="mkn">${esc(x.n||'Producto')}</span><span class="mkb"><i style="width:${(pk*100).toFixed(1)}%"></i></span><span class="mkk">${nf(Math.round(kgT[k]))}${+x.meta?' / '+nf(x.meta):''} kg</span></button>`}).join('')}</div>`:'';
   box.innerHTML=`<div class="box obj mj"><div class="mjtop"><div><div class="ey">${esc(it.t||(linea?it.n:pr?.descripcion)||it.n||'Producto')}</div><div class="tt">${esc(mes)}</div></div><button class="mjmeta" id="mk_e" aria-label="Cambiar meta"><small>Meta del mes</small><b>${meta?nf(meta)+' kg':'Poner'}</b><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16H4v-3z"/></svg></button></div>
     ${tabs}<div id="mk_h" role="button" tabindex="0" aria-expanded="${abierto}" style="cursor:pointer;margin-top:${tabs?'10px':'0'}">${hero}</div>
     <button class="mjver" id="mk_t">${abierto?'Ocultar detalle':'Ver detalle del mes'} <span>${abierto?'▴':'▾'}</span></button>
