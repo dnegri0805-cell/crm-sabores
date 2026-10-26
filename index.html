@@ -905,13 +905,13 @@ html.oscuro .pieini .pfila .lnk{color:#f0b3c2}html.oscuro .pieini .pfila.viejo{c
 .mj .mjpal{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;background:#f6f7fa;border-radius:12px;padding:10px 12px}.mj .mjpal>div{display:flex;flex-direction:column;gap:1px;min-width:0}.mj .mjpal>div+div{border-left:1px solid #e3e6ee;padding-left:12px}.mj .mjpal small{font-size:11.5px;color:#6a7184}.mj .mjpal b{font-size:15.5px;color:#1c2333}html.oscuro .mj .mjpal{background:#1f2836}html.oscuro .mj .mjpal b{color:#e3e6ee}
 .emf{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0 10px}.emf .f{margin:0}.cd details.cdd>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:6px}.cd details.cdd>summary::-webkit-details-marker{display:none}.cd details.cdd>summary::after{content:"";width:7px;height:7px;border-right:2px solid #9aa0ad;border-bottom:2px solid #9aa0ad;transform:rotate(45deg);margin-left:auto;flex:none;transition:transform .15s}.cd details.cdd[open]>summary::after{transform:rotate(-135deg)}.cd details.cdd>summary::before{display:none!important}.cd .cdx{display:flex;flex-direction:column;gap:5px;margin:8px 0 4px;padding:8px 10px;background:#f6f7fa;border-radius:10px;font-size:13px;color:#3c4458}.cd .cdx span{display:flex;gap:6px;align-items:flex-start}.cd .cdx .ic{flex:none;margin-top:2px;color:var(--m)}.cd .cdx .ob{font-size:12px;color:#6a7184}.cd .cdx a.lnk{display:inline-flex;align-items:center;gap:5px;font-weight:600}html.oscuro .cd .cdx{background:#1f2836;color:#d6dbe6}
 /* Pantalla de carga igual a la del celular: mismo tamaño y lugar del logo, así no "salta" al abrir */
-.splash{gap:0!important}.splash img{width:202px!important;max-width:49vw!important;animation:none!important}.splash i{position:absolute;top:calc(50% + 150px)}
+.splash{gap:0!important}.splash img{width:calc(202px / var(--z,1))!important;max-width:calc(49vw / var(--z,1))!important;animation:none!important}.splash i{position:absolute;top:calc(50% + 150px / var(--z,1));width:calc(34px / var(--z,1));height:calc(34px / var(--z,1))}
 </style>
 </head>
 <body>
 <div id="app"><div class="splash"><img src="logo.png" alt="Sabores de mi País"><i></i></div></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
-<script src="app.js?v=2026-10-26.1"></script>
+<script src="app.js?v=2026-10-26.2"></script>
 </body>
 </html>
