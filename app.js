@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-26.8';
+const VERSION='2026-10-26.9';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -3127,7 +3127,7 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
   const bps=[...ids].filter(id=>!foco||chico(id)).map(id=>S.min[id]?.bp||0).filter(x=>x>0),bpP=bps.length?bps.reduce((a,x)=>a+x,0)/bps.length:0,palMes=bpP?cjMetaMes/bpP:0;
   const conSel=pocas&&faltaMg>0&&[...ids].some(chico),nota=faltaMg<=0||conSel?'':pocas?`Estimado con ${m0(mbCat)} de ganancia por caja${foco?' (65 y 85 g)':' (promedio de toda la línea)'}.${!cubre&&realista?` Con ${nf(Math.ceil((fijos-mg)/mb))} cajas cubrís los gastos.`:''}`
       :`Cada caja te deja ${m0(mb)}. A este ritmo cerrás ${esc(mes.toLowerCase())} con <b class="${ok?'sube':'baja'}">${m0(proyLimpio)}</b> limpios.`;
-  const SEL=conSel?`<div class="mjseg"><span>Calcular con<small>Estimado: ${m0(mbCat)} por caja</small></span><div role="group"><button data-mjf="chicos" class="${foco?'on':''}">65 y 85 g</button><button data-mjf="todo" class="${foco?'':'on'}">Toda la línea</button></div></div>`:'';
+  const SEL=conSel?`<div class="mjseg"><span>Calcular con<small>Estimado: ${m0(mbCat)} por caja</small></span><div role="radiogroup" aria-label="Calcular con" class="mjsw ${foco?'':'der'}" id="mj_sw"><i class="mjpill"></i><button role="radio" aria-checked="${!!foco}" data-mjf="chicos" class="${foco?'on':''}">65 y 85 g</button><button role="radio" aria-checked="${!foco}" data-mjf="todo" class="${foco?'':'on'}">Toda la línea</button></div></div>`:'';
   box.innerHTML=`<div class="box obj mj"><div class="mjtop"><div><div class="ey">Maní JL</div><div class="tt">${esc(mes)}</div></div><button class="mjmeta" id="mj_e" aria-label="Cambiar meta"><small>Meta limpia</small><b>${m0(meta)}</b><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16H4v-3z"/></svg></button></div>
     <div id="mj_h" role="button" tabindex="0" aria-expanded="${abierto}" style="cursor:pointer">${hero}</div>
     <button class="mjver" id="mj_t">${abierto?'Ocultar detalle':'Ver detalle del mes'} <span>${abierto?'▴':'▾'}</span></button>
@@ -3144,7 +3144,17 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
         :'<p class="mjn">Cuando haya ventas, acá aparecen los clientes a los que les toca reponer JL y los que compran mucho y no lo llevan.</p>'}</div></div></div>`;
   const plegar=()=>{const d=$('#mj_d'),ab=d.hidden;d.hidden=!ab;try{localStorage.setItem('mj_abierto',ab?'1':'0')}catch(e){}$('#mj_h').setAttribute('aria-expanded',ab);$('#mj_t').innerHTML=(ab?'Ocultar detalle':'Ver detalle del mes')+' <span>'+(ab?'▴':'▾')+'</span>'};
   $('#mj_h').onclick=plegar;$('#mj_t').onclick=plegar;
-  $$('#manijl [data-mjf]').forEach(bt=>bt.onclick=async e=>{e.stopPropagation();if(bt.classList.contains('on'))return;try{localStorage.setItem('mj_abierto','1')}catch(x){}const{error}=await guardaCfgJ('mani_jl',{...C,foco:bt.dataset.mjf});error?toast(error.message,1):maniJLInicio()});
+  const sw=$('#mj_sw');if(sw){
+    /* Interruptor deslizable: la pastilla blanca se mueve con el dedo y queda del lado que elijas */
+    const elegir=async v=>{const der=v=='todo';sw.classList.toggle('der',der);sw.querySelectorAll('button').forEach(b=>{const on=b.dataset.mjf==v;b.classList.toggle('on',on);b.setAttribute('aria-checked',on)});
+      if(v==(foco?'chicos':'todo'))return;try{localStorage.setItem('mj_abierto','1')}catch(x){}
+      await new Promise(r=>setTimeout(r,260));const{error}=await guardaCfgJ('mani_jl',{...C,foco:v});error?toast(error.message,1):maniJLInicio()};
+    sw.querySelectorAll('button').forEach(b=>b.onclick=e=>{e.stopPropagation();if(sw._mov)return;if(!b.classList.contains('on'))elegir(b.dataset.mjf)});
+    let x0=null,dx=0;const pill=sw.querySelector('.mjpill');
+    sw.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;dx=0;sw._mov=false;pill.style.transition='none'},{passive:true});
+    sw.addEventListener('touchmove',e=>{if(x0==null)return;dx=e.touches[0].clientX-x0;if(Math.abs(dx)>6)sw._mov=true;const w=sw.clientWidth/2-3,base=sw.classList.contains('der')?w:0;pill.style.transform=`translateX(${Math.max(0,Math.min(w,base+dx))}px)`},{passive:true});
+    sw.addEventListener('touchend',()=>{if(x0==null)return;pill.style.transition='';pill.style.transform='';const der=sw.classList.contains('der');x0=null;
+      if(sw._mov){if(dx>25&&!der)elegir('todo');else if(dx<-25&&der)elegir('chicos')}setTimeout(()=>sw._mov=false,50)});}
   $$('#manijl [data-mjp]').forEach(bt=>bt.onclick=()=>{const x=VIS.find(y=>y.c.id==bt.dataset.mjp);S.preCli=x.c;S.preItems=x.it&&x.it.length?x.it:null;S.tab='pedidos';shell()});
   $('#mj_e').onclick=pedirMeta}
 
