@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-26.14';
+const VERSION='2026-10-26.15';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -3214,6 +3214,8 @@ async function metasKgInicio(){const box=$('#metaskg');if(!box||S.perfil.rol!='d
   if(!S.productos?.length){box._r=(box._r||0)+1;if(box._r<8)setTimeout(()=>metasKgInicio().catch(()=>{}),800);return}box._r=0;
   const sel=Math.min(Math.max(0,+C.sel||0),IT.length-1),it=IT[sel],id=it.p,meta=+it.meta||0,pr=S.productos.find(p=>p.producto_id==id);
   const kgDe=q=>{q=+q||0;return esKg(id)?q:esPeso(id)&&ppz(id)?q*ppz(id):q};
+  /* ganancia por kg con el precio de hoy (el fijo si lo tiene; si se vende por pieza, se pasa a kilo) */
+  const fac=esPeso(id)&&ppz(id)?ppz(id):1,pvH=+pr?.precio_fijo>0?+pr.precio_fijo:+pr?.precio_mayorista||0,gk=pvH>0?(pvH-(+pr?.costo||0))/fac:0,gMeta=meta*gk;
   const m=mesHoy(),[a,b]=mesRango(m),hoy=new Date(),dh=hoy.getDate(),dm=new Date(hoy.getFullYear(),hoy.getMonth()+1,0).getDate(),Y=hoy.getFullYear(),M=hoy.getMonth();
   const d0=new Date(hoy);d0.setDate(d0.getDate()-120);const desde=diaLocal(d0)<a?diaLocal(d0):a;
   const{data:pe}=await todo(()=>sb.from('pedidos').select('cliente_id,creado_en,total,pedido_items(producto_id,cantidad,precio_unitario,costo_unitario)').neq('estado','cancelado').or('es_prueba.is.null,es_prueba.eq.false').gte('creado_en',tsAR(desde)).lt('creado_en',tsAR(b)).order('numero'));
@@ -3230,7 +3232,7 @@ async function metasKgInicio(){const box=$('#metaskg');if(!box||S.perfil.rol!='d
   const habTot=hab(1,dm),habPas=Math.max(1,hab(1,dh-1)+(hoy.getHours()>=14?1:0)),proy=kg/habPas*habTot,falta=Math.max(0,meta-kg);
   const habSem=semIni?hab(semIni,semFin):0,habDesdeSem=semIni?Math.max(1,hab(semIni,dm)):1,objSem=semIni?Math.ceil(Math.max(0,meta-kgAntesS)*habSem/habDesdeSem):0;
   const hoyIdx=Math.max(semIni||1,dh+(dow==0?1:0)),habSemRest=semIni?Math.max(0,hab(Math.min(hoyIdx,semFin+1),semFin)):0,visSem=Math.max(1,Math.ceil(habSemRest/2)),faltaSem=Math.max(0,objSem-kgS),pcS=objSem?Math.min(1,kgS/objSem):0;
-  const k0=n=>nf(Math.round(n*10)/10)+' kg',m0=n=>(n<0?'−':'')+'$ '+Math.round(Math.abs(n)).toLocaleString('es-AR'),mes=mesNom(m).split(' ')[0],mesC=mes.slice(0,3).toLowerCase();
+  const k0=n=>nf(Math.round(n*10)/10)+'\u00a0kg',m0=n=>(n<0?'−':'')+'$\u00a0'+Math.round(Math.abs(n)).toLocaleString('es-AR'),mes=mesNom(m).split(' ')[0],mesC=mes.slice(0,3).toLowerCase();
   const semTit=semIni?(dow==0&&lun>hoy?'Semana que viene':'Esta semana')+` · ${semIni==semFin?semIni:semIni+'–'+semFin} ${mesC}`:'';
   /* a quién visitar: los que llevan este producto y les toca reponer, y los que compran mucho y no lo llevan */
   const hoyS=diaLocal(hoy),dd=(x,y)=>Math.round((new Date(y+'T12:00')-new Date(x+'T12:00'))/864e5),V=[];
@@ -3255,7 +3257,8 @@ async function metasKgInicio(){const box=$('#metaskg');if(!box||S.perfil.rol!='d
     ${meta?`<div class="obar mjb">${pc>0?`<i style="width:${(pc*100).toFixed(1)}%" class="${pc>=1?'lleno':''}"></i>`:''}</div>`:''}
     <div class="mjk"><div><small>Vendiste</small><b>${k0(kg)}</b><small>${cl.size} cliente${cl.size==1?'':'s'}</small></div>
       <div><small>Facturado</small><b>${m0(vta)}</b><small>en ${esc(mes.toLowerCase())}</small></div>
-      <div><small>Ganancia</small><b>${m0(mg)}</b><small>${kg>0?m0(mg/kg)+' por kg':'—'}</small></div></div>
+      <div><small>Ganancia</small><b>${m0(mg)}</b><small>${meta&&gMeta>0?'de '+m0(gMeta):kg>0?m0(mg/kg)+' por kg':'—'}</small></div></div>
+    ${gk>0?`<p class="mjn">Cada kilo te deja <b>${m0(gk)}</b>${meta?`. Si llegás a los ${nf(meta)} kg ganás <b>${m0(gMeta)}</b>`:''}.</p>`:''}
     ${meta&&falta>0&&kg>0?`<p class="mjn">A este ritmo cerrás ${esc(mes.toLowerCase())} con <b class="${proy>=meta?'sube':'baja'}">${k0(proy)}</b>${proy>=meta?': llegás. 💪':'.'}</p>`:''}</div>
     <div class="mjsec mjv"><div class="mjrow"><span class="ey">A quién visitar</span>${VIS.length?`<small>${VIS.length} sugerido${VIS.length==1?'':'s'}</small>`:''}</div>
       ${VIS.length?VIS.map(x=>{const nm=String(x.c.razon_social||'Cliente');return`<div class="mjc"><span class="av">${esc(nm.trim()[0]||'?').toUpperCase()}</span><div><b>${esc(nm)}</b><small>${esc(x.why)}</small></div><button class="alt" data-mkp="${x.c.id}">Pedido</button></div>`}).join('')
