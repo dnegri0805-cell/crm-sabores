@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-26.3';
+const VERSION='2026-10-26.4';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -3097,6 +3097,7 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
   const bps=[...ids].filter(id=>!foco||chico(id)).map(id=>S.min[id]?.bp||0).filter(x=>x>0),bpP=bps.length?bps.reduce((a,x)=>a+x,0)/bps.length:0,palMes=bpP?cjMetaMes/bpP:0;
   const conSel=pocas&&faltaMg>0&&[...ids].some(chico),nota=faltaMg<=0||conSel?'':pocas?`Estimado con ${m0(mbCat)} de ganancia por caja${foco?' (65 y 85 g)':' (promedio de toda la línea)'}.${!cubre&&realista?` Con ${nf(Math.ceil((fijos-mg)/mb))} cajas cubrís los gastos.`:''}`
       :`Cada caja te deja ${m0(mb)}. A este ritmo cerrás ${esc(mes.toLowerCase())} con <b class="${ok?'sube':'baja'}">${m0(proyLimpio)}</b> limpios.`;
+  const SEL=conSel?`<div class="mjseg"><span>Calcular con<small>Estimado: ${m0(mbCat)} por caja</small></span><div role="group"><button data-mjf="chicos" class="${foco?'on':''}">65 y 85 g</button><button data-mjf="todo" class="${foco?'':'on'}">Toda la línea</button></div></div>`:'';
   box.innerHTML=`<div class="box obj mj"><div class="mjtop"><div><div class="ey">Maní JL</div><div class="tt">${esc(mes)}</div></div><button class="mjmeta" id="mj_e" aria-label="Cambiar meta"><small>Meta limpia</small><b>${m0(meta)}</b><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16H4v-3z"/></svg></button></div>
     <div id="mj_h" role="button" tabindex="0" aria-expanded="${abierto}" style="cursor:pointer">${hero}</div>
     <button class="mjver" id="mj_t">${abierto?'Ocultar detalle':'Ver detalle del mes'} <span>${abierto?'▴':'▾'}</span></button>
@@ -3107,7 +3108,7 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
     <div class="mjk"><div><small>Vendiste</small><b>${nf(Math.round(cj))}</b><small>cajas · ${cl.size} cliente${cl.size==1?'':'s'}</small></div>
       <div><small>Ganancia</small><b>${m0(mg)}</b><small>facturado ${m0(vta)}</small></div>
       <div><small>Limpio</small>${limpio<0&&!(cj>0)?`<b style="color:var(--mu)">${m0(0)}</b><small>faltan ${mM(fijos)}</small>`:`<b class="${limpio<0?'baja':limpio>=meta?'sube':''}">${m0(limpio)}</b><small>${limpio<0?'faltan '+mM(-limpio):Math.round(limpio/meta*100)+' % de la meta'}</small>`}</div></div>
-    ${palMes?`<div class="mjpal"><div><small>Para la meta</small><b>${palMes.toLocaleString('es-AR',{maximumFractionDigits:1})} pallets por mes</b><small>${nf(cjMetaMes)} cajas · ${nf(Math.round(bpP))} por pallet</small></div><div><small>Cada pallet te deja</small><b>${mM(mb*bpP)}</b><small>de ganancia</small></div></div>`:''}${nota?`<p class="mjn">${nota}</p>`:''}${conSel?`<div class="mjseg"><span>Calcular con<small>Estimado: ${m0(mbCat)} por caja</small></span><div role="group"><button data-mjf="chicos" class="${foco?'on':''}">65 y 85 g</button><button data-mjf="todo" class="${foco?'':'on'}">Toda la línea</button></div></div>`:''}</div>
+    ${palMes?`<div class="mjpal"><div><small>${realista?'Para la meta':'Desde el mes que viene'}</small><b>${palMes.toLocaleString('es-AR',{maximumFractionDigits:1})} pallets por mes</b><small>${nf(cjMetaMes)} cajas · ${nf(Math.round(bpP))} por pallet</small></div><div><small>Cada pallet te deja</small><b>${mM(mb*bpP)}</b><small>de ganancia</small></div>${SEL}</div>`:SEL}${nota?`<p class="mjn">${nota}</p>`:''}</div>
     <div class="mjsec mjv"><div class="mjrow"><span class="ey">A quién visitar</span>${VIS.length?`<small>${VIS.length} sugerido${VIS.length==1?'':'s'}</small>`:''}</div>
       ${VIS.length?VIS.map(x=>{const nm=String(x.c.razon_social||'Cliente');return`<div class="mjc"><span class="av">${esc(nm.trim()[0]||'?').toUpperCase()}</span><div><b>${esc(nm)}</b><small>${esc(x.why)}</small></div><button class="alt" data-mjp="${x.c.id}">Pedido</button></div>`}).join('')
         :'<p class="mjn">Cuando haya ventas, acá aparecen los clientes a los que les toca reponer JL y los que compran mucho y no lo llevan.</p>'}</div></div></div>`;
