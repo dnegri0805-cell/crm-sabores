@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-26.21';
+const VERSION='2026-10-26.22';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -3268,7 +3268,7 @@ async function metasKgInicio(){const box=$('#metaskg');if(!box||S.perfil.rol!='d
     <div class="mjk"><div><small>Vendiste</small><b>${k0(kg)}</b><small>${cl.size} cliente${cl.size==1?'':'s'}</small></div>
       <div><small>Facturado</small><b>${m0(vta)}</b><small>en ${esc(mes.toLowerCase())}</small></div>
       <div><small>Ganancia</small><b>${m0(mg)}</b><small>${meta&&gMeta>0?'de '+m0(gMeta):kg>0?m0(mg/kg)+' por kg':'—'}</small></div></div>
-    ${gk>0?`<p class="mjn">Cada kilo te deja${linea?' en promedio':''} <b>${m0(gk)}</b>${meta?`. Si llegás a los ${nf(meta)} kg ganás <b>${m0(gMeta)}</b>`:''}.</p>`:''}
+    ${gk>0?`<div class="mkgan"><div><b>${m0(gk)}</b><small>te deja cada kilo${linea?' (promedio)':''}</small></div>${meta?`<div><b>${m0(gMeta)}</b><small>si llegás a ${nf(meta)} kg</small></div>`:''}</div>`:''}
     ${meta&&falta>0&&kg>0?`<p class="mjn">A este ritmo cerrás ${esc(mes.toLowerCase())} con <b class="${proy>=meta?'sube':'baja'}">${k0(proy)}</b>${proy>=meta?': llegás. 💪':'.'}</p>`:''}</div>
     ${ST?(()=>{const ft=ST.f||S.min[stId]?.foto,fal=Math.max(0,stMeta-stKg),pcSt=stMeta?Math.min(1,stKg/stMeta):0;return`<div class="mkst">
       <div class="sth">${ft?`<img src="${esc(ft)}" alt="">`:''}<div class="stt"><span class="ey">⭐ El que más te deja</span><b>${esc(stN)}</b></div><div class="stk">${k0(stKg)}<br><small>${stMeta?'de '+nf(stMeta)+' kg':''}</small></div></div>
