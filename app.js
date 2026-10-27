@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-26.22';
+const VERSION='2026-10-26.23';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -3176,7 +3176,7 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
   const conSel=pocas&&faltaMg>0&&[...ids].some(chico),nota=faltaMg<=0||conSel?'':pocas?`Estimado con ${m0(mbCat)} de ganancia por caja${foco?' (65 y 85 g)':' (promedio de toda la línea)'}.${!cubre&&realista?` Con ${nf(Math.ceil((fijos-mg)/mb))} cajas cubrís los gastos.`:''}`
       :`Cada caja te deja ${m0(mb)}. A este ritmo cerrás ${esc(mes.toLowerCase())} con <b class="${ok?'sube':'baja'}">${m0(proyLimpio)}</b> limpios.`;
   const SEL=conSel?`<div class="mjseg"><span>Calcular con<small>Estimado: ${m0(mbCat)} por caja</small></span><div role="radiogroup" aria-label="Calcular con" class="mjsw ${foco?'':'der'}" id="mj_sw"><i class="mjpill"></i><button role="radio" aria-checked="${!!foco}" data-mjf="chicos" class="${foco?'on':''}">65 y 85 g</button><button role="radio" aria-checked="${!foco}" data-mjf="todo" class="${foco?'':'on'}">Toda la línea</button></div></div>`:'';
-  box.innerHTML=`<div class="box obj mj"><div class="mjtop"><div class="mjtl"><img class="mjimg" src="fotos/metas/mani-jl.webp" alt=""><div><div class="ey">Maní JL</div><div class="tt">${esc(mes)}</div></div></div><button class="mjmeta" id="mj_e" aria-label="Cambiar meta"><small>Meta limpia</small><b>${m0(meta)}</b><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16H4v-3z"/></svg></button></div>
+  box.innerHTML=`<div class="box obj mj"><div class="mjtop"><div class="mjtl"><img class="mjimg" src="fotos/metas/mani-jl.webp" alt=""><div><div class="ey">Meta de ${esc(mes.toLowerCase())}</div><div class="tt">Maní JL</div></div></div><button class="mjmeta" id="mj_e" aria-label="Cambiar meta"><small>Meta limpia</small><b>${m0(meta)}</b><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16H4v-3z"/></svg></button></div>
     <div id="mj_h" role="button" tabindex="0" aria-expanded="${abierto}" style="cursor:pointer">${hero}</div>
     <button class="mjver" id="mj_t">${abierto?'Ocultar detalle':'Ver detalle del mes'} <span>${abierto?'▴':'▾'}</span></button>
     <div id="mj_d"${abierto?'':' hidden'}>${aviso}
@@ -3252,14 +3252,14 @@ async function metasKgInicio(){const box=$('#metaskg');if(!box||S.perfil.rol!='d
   V.sort((x,y)=>y.pri-x.pri);const VIS=V.slice(0,6);
   let abierto=false;try{abierto=localStorage.getItem('mk_abierto')=='1'}catch(e){}
   const R=30,CI=2*Math.PI*R,ring=(f,t)=>`<svg class="mjr" viewBox="0 0 76 76" aria-hidden="true"><circle cx="38" cy="38" r="${R}" class="tr"/>${f>0?`<circle cx="38" cy="38" r="${R}" class="fl" stroke-dasharray="${(CI*f).toFixed(1)} ${CI.toFixed(1)}"/>`:`<circle cx="38" cy="8" r="4" class="dot"/>`}<text x="38" y="43" text-anchor="middle">${t}</text></svg>`;
-  const pvV=faltaSem/visSem,hero=!meta?`<div class="mjh"><div><div class="ey">${esc(mes)}</div><div class="mjhn">${k0(kg)}<span> vendidos</span></div><div class="hs">Poné una meta para ver cuánto te falta.</div></div></div>`
+  const pvV=faltaSem/visSem,hero=!meta?`<div class="mjh mkh"><div><div class="ey">${esc(mes)}</div><div class="mjhn">${k0(kg)}<span> vendidos</span></div><div class="hs">Poné una meta para ver cuánto te falta.</div></div></div>`
     :falta<=0?`<div class="mjh ok"><div><div class="ey">Meta de ${esc(mes.toLowerCase())}</div><div class="mjhn">Cumplida</div><div class="hs">Vas ${k0(kg-meta)} arriba de la meta. Lo que sumes ya es extra.</div></div></div>`
-    :semIni?`<div class="mjh">${ring(pcS,Math.round(pcS*100)+'%')}<div><div class="ey">${semTit}</div><div class="mjhn">${nf(Math.round(kgS))}<span> / ${nf(objSem)} kg</span></div>
+    :semIni?`<div class="mjh mkh">${ring(pcS,Math.round(pcS*100)+'%')}<div><div class="ey">${semTit}</div><div class="mjhn">${nf(Math.round(kgS))}<span> / ${nf(objSem)} kg</span></div>
       <div class="hs">${faltaSem>0?`${nf(Math.ceil(pvV))} kg por visita · ${visSem} visita${visSem==1?'':'s'}`:'Semana cumplida. Lo que sumes adelanta el mes.'}</div>${ST&&stMeta?`<span class="pill">⭐ ${esc(stN)}: ${nf(Math.round(stKg*10)/10)} / ${nf(stMeta)} kg</span>`:''}</div></div>`
-    :`<div class="mjh"><div><div class="ey">${esc(mes)}</div><div class="mjhn">${nf(Math.ceil(falta))}<span> kg por vender</span></div></div></div>`;
+    :`<div class="mjh mkh"><div><div class="ey">${esc(mes)}</div><div class="mjhn">${nf(Math.ceil(falta))}<span> kg por vender</span></div></div></div>`;
   const pc=meta?Math.min(1,kg/meta):0,fotoDe=x=>{if(x.f)return x.f;const L=x.ps?.length?[x.star?.p,...x.ps]:[x.p];for(const q of L)if(q&&S.min[q]?.foto)return S.min[q].foto;return ''},
     tabs=IT.length>1?`<div class="mktabs" role="tablist" aria-label="Producto">${IT.map((x,k)=>{const f=fotoDe(x),pk=+x.meta?Math.min(1,kgT[k]/x.meta):0;return`<button role="tab" aria-selected="${k==sel}" data-mk="${k}" class="mkt${k==sel?' on':''}"><span class="mkf">${f?`<img src="${esc(f)}" alt="">`:esc((x.n||'?')[0])}</span><span class="mkn">${esc(x.n||'Producto')}</span><span class="mkb"><i style="width:${(pk*100).toFixed(1)}%"></i></span><span class="mkk">${nf(Math.round(kgT[k]))}${+x.meta?' / '+nf(x.meta):''} kg</span></button>`}).join('')}</div>`:'';
-  box.innerHTML=`<div class="box obj mj"><div class="mjtop"><div><div class="ey">${esc(it.t||(linea?it.n:pr?.descripcion)||it.n||'Producto')}</div><div class="tt">${esc(mes)}</div></div><button class="mjmeta" id="mk_e" aria-label="Cambiar meta"><small>Meta del mes</small><b>${meta?nf(meta)+' kg':'Poner'}</b><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16H4v-3z"/></svg></button></div>
+  box.innerHTML=`<div class="box obj mj"><div class="mjtop"><div><div class="ey">Meta de ${esc(mes.toLowerCase())}</div><div class="tt mknm">${esc(it.t||(linea?it.n:pr?.descripcion)||it.n||'Producto')}</div></div><button class="mjmeta" id="mk_e" aria-label="Cambiar meta"><small>Meta del mes</small><b>${meta?nf(meta)+' kg':'Poner'}</b><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16H4v-3z"/></svg></button></div>
     ${tabs}<div id="mk_h" role="button" tabindex="0" aria-expanded="${abierto}" style="cursor:pointer;margin-top:${tabs?'10px':'0'}">${hero}</div>
     <button class="mjver" id="mk_t">${abierto?'Ocultar detalle':'Ver detalle del mes'} <span>${abierto?'▴':'▾'}</span></button>
     <div id="mk_d"${abierto?'':' hidden'}>
