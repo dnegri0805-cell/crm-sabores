@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-26.25';
+const VERSION='2026-10-27.1';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -1562,7 +1562,7 @@ async function vPedidos(){
     $$('.qty').forEach(e=>e.onchange=()=>{const i=S.items[e.dataset.k];i.q=i.cb?Math.max(1,+e.value||1):sbq(i.p.producto_id,Math.max(1,+e.value||1));setTimeout(drawI)});
     $$('#p_i [data-m]').forEach(b=>b.onclick=()=>{const i=S.items[b.dataset.m];i.q>1?i.q--:S.items.splice(b.dataset.m,1);drawI()});
     $$('#p_i [data-p]').forEach(b=>b.onclick=()=>{S.items[b.dataset.p].q++;drawI()});
-    $$('#p_i [data-bb]').forEach(b=>b.onclick=()=>{const i=S.items[b.dataset.bb];i.q+=bul(i.p.producto_id).n;drawI()});
+    $$('#p_i [data-bb]').forEach(b=>b.onclick=()=>{const i=S.items[b.dataset.bb],n=bul(i.p.producto_id).n;i.q=i.q<n?n:i.q+n;drawI()});/* el primer pack reemplaza la unidad suelta del comienzo */
     $$('#p_i [data-x]').forEach(a=>a.onclick=()=>{S.items.splice(a.dataset.x,1);drawI()});
     $$('#p_i [data-mpr]').forEach(a=>a.onclick=()=>precioAMano(S.items[a.dataset.mpr],pr(S.items[a.dataset.mpr].p),drawI));
     const SG=sugerencias(S.items,S.pfrec);$('#p_sug').innerHTML=SG.length?'<small>'+(SG.some(x=>x.t=='olvido')?'¿No se olvida de…? ':'')+(SG.some(x=>x.t=='otros')?'Otros clientes también llevan:':'')+'</small>'+SG.map(x=>`<button class="chip ${x.t}" data-sg="${x.p.producto_id}" data-sq="${Math.max(1,Math.round(x.q||bul(x.p.producto_id)?.n||1))}">+ ${esc(x.p.descripcion)}</button>`).join(''):'';
