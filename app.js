@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-26.24';
+const VERSION='2026-10-26.25';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -1065,10 +1065,11 @@ function catalogoPDF(l,L,c,nomLista){const w=window.open('','_blank');if(!w)retu
   const col=t=>{let h=0;for(const ch of String(t||''))h=(h*31+ch.charCodeAt(0))>>>0;return PALC[h%PALC.length]};
   const cap=t=>{t=String(t||'').toLowerCase();return t.charAt(0).toUpperCase()+t.slice(1)};
   const hoy=new Date().toLocaleDateString('es-AR',{day:'numeric',month:'long',year:'numeric'});
+  const $e=n=>'$\u00a0'+Math.round(+n||0).toLocaleString('es-AR');/* mayorista: sin centavos */
   const card=x=>{const b=bul(x.id),r=promoCerca(x.id,l);return`<div class="cd">${r?`<span class="rb">−${nf(r.descuento_pct)} %</span>`:''}
     ${x.f?`<div class="ph"><img src="${esc(x.f)}" alt=""></div>`:`<div class="ph in" style="background:${col(x.m)}1a;color:${col(x.m)}">${esc((x.d||'?')[0])}</div>`}
     ${x.c?`<div class="cc">Cód. ${esc(x.c)}</div>`:''}<div class="nm">${esc(x.d)}</div><div class="mk">${esc(x.m=='Otros'?'':x.m)}${b?(x.m=='Otros'?'':' · ')+esc(b.t)+' × '+b.n:''}</div>
-    <div class="pr">${$m(x.p).replace(/,(\d\d)$/,'<small>,$1</small>')}${esKg(x.id)?'<span class="u"> x kg</span>':ppz(x.id)?'<span class="u"> la pieza</span>':''}</div>${ppz(x.id)&&!esKg(x.id)?`<div class="bu">Pieza ≈ ${nf(ppz(x.id))} kg · ${$m(x.p/ppz(x.id))} x kg</div>`:''}${b?`<div class="bu">${esc(b.t)}: ${$m(x.p*b.n)}</div>`:''}${r?`<div class="pc">${esc(condPromo(r)||r.nombre)}</div>`:''}</div>`};
+    <div class="pr">${$e(x.p)}${esKg(x.id)?'<span class="u"> x kg</span>':ppz(x.id)?'<span class="u"> la pieza</span>':''}</div>${ppz(x.id)&&!esKg(x.id)?`<div class="bu">Pieza ≈ ${nf(ppz(x.id))} kg · ${$e(x.p/ppz(x.id))} x kg</div>`:''}${b?`<div class="bu">${esc(b.t)}: ${$e(x.p*b.n)}</div>`:''}${r?`<div class="pc">${esc(condPromo(r)||r.nombre)}</div>`:''}</div>`};
   const G={};for(const x of L)(G[x.fa]=G[x.fa]||[]).push(x);
   const F=Object.keys(G).sort(famCmp);const fNom=f=>FAM_ORDEN[String(f).toUpperCase()]!=null?f:cap(f);const nCod=v=>{const n=parseInt(String(v||'').replace(/\D/g,''),10);return isNaN(n)?Infinity:n};
   const O=L.filter(x=>promoCerca(x.id,l));
@@ -1077,14 +1078,14 @@ function catalogoPDF(l,L,c,nomLista){const w=window.open('','_blank');if(!w)retu
     @page{size:A4;margin:10mm}*{box-sizing:border-box}body{margin:0;font-family:system-ui,Segoe UI,Arial,sans-serif;color:#1c2333}
     .tapa{height:238mm;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;page-break-after:always;border:3px solid ${MARCA.c};border-radius:6mm;padding:20mm}
     .tapa img{max-width:120mm;max-height:90mm;object-fit:contain}.tapa h1{font-size:40px;margin:14mm 0 4mm;color:${MARCA.c}}.tapa .s{font-size:18px;color:#444;line-height:1.6}
-    .tapa .f{margin-top:12mm;display:flex;gap:6mm;flex-wrap:wrap;justify-content:center}.tapa .f span{background:#f3f4f7;border-radius:20px;padding:6px 14px;font-size:14px}
+    .tapa .f{margin-top:12mm;display:flex;gap:6mm;flex-wrap:wrap;justify-content:center}.tapa .f span{background:#f3f4f7;border-radius:20px;padding:6px 14px;font-size:14px}.tapa .inf{margin-top:12mm;display:grid;gap:4mm;width:100%;max-width:130mm;text-align:left}.tapa .inf div{display:grid;grid-template-columns:12mm 1fr;align-items:center;column-gap:3mm;border:1.5px solid ${MARCA.c}33;background:${MARCA.c}0d;border-radius:4mm;padding:3.5mm 5mm}.tapa .inf span{grid-row:1/3;font-size:26px;text-align:center}.tapa .inf b{font-size:16px;color:${MARCA.c}}.tapa .inf small{font-size:12.5px;color:#4a5163}
     .sec{margin:0 0 4mm;page-break-inside:auto}.sh{background:${MARCA.c};color:#fff;padding:3mm 5mm;border-radius:3mm;display:flex;justify-content:space-between;align-items:baseline;page-break-after:avoid;margin-bottom:3mm}
     .sh h2{margin:0;font-size:22px;letter-spacing:.02em}.sh small{opacity:.85}.sh.of{background:#b3261e}
     .g{display:grid;grid-template-columns:repeat(3,1fr);gap:4mm}
     .cd{position:relative;border:1px solid #dcdfe5;border-radius:3mm;padding:3mm;page-break-inside:avoid;break-inside:avoid;display:flex;flex-direction:column;gap:1.2mm}
     .ph{aspect-ratio:1;border-radius:2mm;display:grid;place-items:center;overflow:hidden;background:#fff}.ph img{width:100%;height:100%;object-fit:contain}.ph.in{font-size:46px;font-weight:800}
     .rb{position:absolute;top:3.5mm;left:3.5mm;background:#b3261e;color:#fff;font-weight:800;font-size:11px;padding:1mm 2mm;border-radius:2mm}
-    .nm{font-size:13px;font-weight:600;line-height:1.25;max-height:3.75em;overflow:hidden}.mk{font-size:10px;color:#6a7184;text-transform:uppercase;letter-spacing:.03em}
+    .nm{font-size:13px;font-weight:600;line-height:1.25;max-height:3.75em;overflow:hidden}.mk{font-size:10px;font-weight:600;color:#454c5e;text-transform:uppercase;letter-spacing:.03em}
     .pr{font-size:22px;font-weight:800;margin-top:auto}.pr small{font-size:12px}.pr .u{font-size:12.5px;font-weight:700;color:#6a7184}.bu{font-size:11px;color:#444}.pc{font-size:10.5px;color:#1d7a46;font-weight:700}
     .pie{margin-top:6mm;font-size:10px;color:#6a7184;text-align:center}.cc{font-size:10.5px;font-weight:700;color:${MARCA.c}}.gr{font-size:26px;font-weight:800;color:${MARCA.c};border-bottom:2px solid ${MARCA.c};margin:6mm 0 3mm;padding-bottom:1mm;page-break-after:avoid}
     .ayuda{font:14px system-ui;background:#f6e9ec;padding:10px;border-radius:6px;margin:10px}@media print{.ayuda{display:none}}</style><style>${docCss()}</style></head><body>
@@ -1092,7 +1093,8 @@ function catalogoPDF(l,L,c,nomLista){const w=window.open('','_blank');if(!w)retu
     <div class="tapa">${MARCA.logo?`<img src="${MARCA.logo}" alt="">`:''}<h1>Catálogo de productos</h1>
       <div class="s">${c?'<b>'+esc(c.razon_social)+'</b><br>':''}Lista ${esc(nomLista)} · Vigente al ${hoy}<br>Precios con IVA incluido</div>
       <div class="f"><span>${L.length} productos</span><span>${F.length} ${F.length==1?'categoría':'categorías'}</span>${O.length?`<span>🔥 ${O.length} en oferta</span>`:''}${S.telEmp?`<span>WhatsApp ${esc(S.telEmp)}</span>`:''}</div>
-      ${c?.token_pedidos?`<div class="s" style="margin-top:10mm;font-size:13px">Hacé tu pedido online:<br>${esc(linkPedidos(c))}</div>`:''}</div>
+      <div class="inf">${S.vcfg?.envio?`<div><span>🚚</span><b>Envío gratis desde ${$e(S.vcfg.envio)}</b><small>${S.vcfg.costoEnvio?'Si es menor, el envío cuesta '+$e(S.vcfg.costoEnvio):'Te lo llevamos al local'}</small></div>`:''}<div><span>📅</span><b>Entregas de lunes a sábado</b><small>Te lo llevamos al local</small></div><div><span>⏰</span><b>Pedí hasta las 20 h</b><small>Y te llega al día siguiente</small></div></div>
+      ${c?.token_pedidos?`<div class="s" style="margin-top:8mm;font-size:13px">Hacé tu pedido online:<br>${esc(linkPedidos(c))}</div>`:''}</div>
     ${O.length?`<div class="sec"><div class="sh of"><h2>🔥 Ofertas</h2><small>${O.length} productos</small></div><div class="g">${O.map(card).join('')}</div></div>`:''}
     ${F.map((f,i)=>{const g=famGrupo(f),gp=i?famGrupo(F[i-1]):null;return (g&&g!==gp?`<div class="gr">${esc(g)}</div>`:'')+`<div class="sec"><div class="sh"><h2>${esc(fNom(f))}</h2><small>${G[f].length} ${G[f].length==1?'producto':'productos'}</small></div><div class="g">${G[f].sort((a,b)=>nCod(a.c)-nCod(b.c)||a.d.localeCompare(b.d)).map(card).join('')}</div></div>`}).join('')}
     <p class="pie">Sabores de mi País · Precios sujetos a modificación sin previo aviso.${conFoto?' Algunas fotos: Open Food Facts (CC BY-SA).':''}</p>
@@ -1134,7 +1136,7 @@ function abrirListaPrecios(c){
       ${grupos(L).map(([g,X])=>`<h2>${esc(g)}</h2><table><tr>${ft?'<th></th>':''}${cod?'<th>Código</th>':''}<th>Producto</th><th class="n">Precio</th><th class="n">Por bulto</th></tr>${X.map(x=>`<tr>${ft?`<td style="width:58px;padding:3px">${x.f?`<img src="${esc(x.f)}" style="width:52px;height:52px;object-fit:contain;display:block">`:''}</td>`:''}${cod?`<td class="c">${esc(x.c)}</td>`:''}<td>${esc(x.d)}</td><td class="n">${$m(x.p)}${bul(x.id)?.kg?'<small style="font-weight:400;color:#8a90a0"> /kg</small>':''}</td><td class="n cj">${bul(x.id)?`<small style="font-weight:400;color:#6a7184">${esc(bulL(bul(x.id)))}</small><br>${$m(x.p*bul(x.id).n)}`:''}</td></tr>`).join('')}</table>`).join('')}
       <p class="pie">Precios sujetos a modificación sin previo aviso.${c?.token_pedidos?' Hacé tu pedido online: '+esc(linkPedidos(c)):''}</p>
       <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close()};
-  $('#lp_cat').onclick=async()=>{const{l}=sel();let{L}=sel();if(!FAM_CAT)await catalogoFotos();for(const x of L)if(!x.f){const k=catPorCodigo(x.c,x.d);if(k)x.f=new URL(k.img,location.href).href}if($('#lp_of').checked)L=L.filter(x=>promoCerca(x.id,l));if(!L.length)return toast($('#lp_of').checked?'No hay productos en oferta con ese filtro. Creá una promoción primero.':'No hay productos con ese filtro.',1);catalogoPDF(l,L,c,LIS[l])};
+  $('#lp_cat').onclick=async()=>{if(!S.vcfg)try{await cargarVentasCfg()}catch(e){}const{l}=sel();let{L}=sel();if(!FAM_CAT)await catalogoFotos();for(const x of L)if(!x.f){const k=catPorCodigo(x.c,x.d);if(k)x.f=new URL(k.img,location.href).href}if($('#lp_of').checked)L=L.filter(x=>promoCerca(x.id,l));if(!L.length)return toast($('#lp_of').checked?'No hay productos en oferta con ese filtro. Creá una promoción primero.':'No hay productos con ese filtro.',1);catalogoPDF(l,L,c,LIS[l])};
   $('#lp_wa').onclick=()=>{const{l,L}=sel();if(!L.length)return toast('No hay productos con ese filtro.',1);const cod=$('#lp_c').checked;
     const MAX=60,X=L.slice(0,MAX);
     let t=`*Sabores de mi País*\nLista de precios ${LIS[l]} · ${hoy()}\n_Precios con IVA incluido_\n`;
