@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-26.23';
+const VERSION='2026-10-26.24';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -1075,18 +1075,18 @@ function catalogoPDF(l,L,c,nomLista){const w=window.open('','_blank');if(!w)retu
   const conFoto=L.filter(x=>x.f).length;
   w.document.write(`<html><head><meta charset="utf-8"><title>Catálogo ${esc(nomLista)}${c?' - '+esc(c.razon_social):''} ${new Date().toLocaleDateString('es-AR')}</title><style>
     @page{size:A4;margin:10mm}*{box-sizing:border-box}body{margin:0;font-family:system-ui,Segoe UI,Arial,sans-serif;color:#1c2333}
-    .tapa{height:270mm;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;page-break-after:always;border:3px solid ${MARCA.c};border-radius:6mm;padding:20mm}
+    .tapa{height:238mm;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;page-break-after:always;border:3px solid ${MARCA.c};border-radius:6mm;padding:20mm}
     .tapa img{max-width:120mm;max-height:90mm;object-fit:contain}.tapa h1{font-size:40px;margin:14mm 0 4mm;color:${MARCA.c}}.tapa .s{font-size:18px;color:#444;line-height:1.6}
     .tapa .f{margin-top:12mm;display:flex;gap:6mm;flex-wrap:wrap;justify-content:center}.tapa .f span{background:#f3f4f7;border-radius:20px;padding:6px 14px;font-size:14px}
     .sec{margin:0 0 4mm;page-break-inside:auto}.sh{background:${MARCA.c};color:#fff;padding:3mm 5mm;border-radius:3mm;display:flex;justify-content:space-between;align-items:baseline;page-break-after:avoid;margin-bottom:3mm}
-    .sh h2{margin:0;font-size:20px;letter-spacing:.02em}.sh small{opacity:.85}.sh.of{background:#b3261e}
-    .g{display:grid;grid-template-columns:repeat(4,1fr);gap:3mm}
-    .cd{position:relative;border:1px solid #dcdfe5;border-radius:3mm;padding:2.5mm;page-break-inside:avoid;break-inside:avoid;display:flex;flex-direction:column;gap:1mm}
-    .ph{aspect-ratio:1;border-radius:2mm;display:grid;place-items:center;overflow:hidden;background:#fff}.ph img{width:100%;height:100%;object-fit:contain}.ph.in{font-size:34px;font-weight:800}
+    .sh h2{margin:0;font-size:22px;letter-spacing:.02em}.sh small{opacity:.85}.sh.of{background:#b3261e}
+    .g{display:grid;grid-template-columns:repeat(3,1fr);gap:4mm}
+    .cd{position:relative;border:1px solid #dcdfe5;border-radius:3mm;padding:3mm;page-break-inside:avoid;break-inside:avoid;display:flex;flex-direction:column;gap:1.2mm}
+    .ph{aspect-ratio:1;border-radius:2mm;display:grid;place-items:center;overflow:hidden;background:#fff}.ph img{width:100%;height:100%;object-fit:contain}.ph.in{font-size:46px;font-weight:800}
     .rb{position:absolute;top:3.5mm;left:3.5mm;background:#b3261e;color:#fff;font-weight:800;font-size:11px;padding:1mm 2mm;border-radius:2mm}
-    .nm{font-size:10.5px;font-weight:600;line-height:1.25;max-height:3.75em;overflow:hidden}.mk{font-size:8px;color:#6a7184;text-transform:uppercase;letter-spacing:.03em}
-    .pr{font-size:17px;font-weight:800;margin-top:auto}.pr small{font-size:10px}.pr .u{font-size:11px;font-weight:700;color:#6a7184}.bu{font-size:9px;color:#444}.pc{font-size:8.5px;color:#1d7a46;font-weight:700}
-    .pie{margin-top:6mm;font-size:10px;color:#6a7184;text-align:center}.cc{font-size:8.5px;font-weight:700;color:${MARCA.c}}.gr{font-size:26px;font-weight:800;color:${MARCA.c};border-bottom:2px solid ${MARCA.c};margin:6mm 0 3mm;padding-bottom:1mm;page-break-after:avoid}
+    .nm{font-size:13px;font-weight:600;line-height:1.25;max-height:3.75em;overflow:hidden}.mk{font-size:10px;color:#6a7184;text-transform:uppercase;letter-spacing:.03em}
+    .pr{font-size:22px;font-weight:800;margin-top:auto}.pr small{font-size:12px}.pr .u{font-size:12.5px;font-weight:700;color:#6a7184}.bu{font-size:11px;color:#444}.pc{font-size:10.5px;color:#1d7a46;font-weight:700}
+    .pie{margin-top:6mm;font-size:10px;color:#6a7184;text-align:center}.cc{font-size:10.5px;font-weight:700;color:${MARCA.c}}.gr{font-size:26px;font-weight:800;color:${MARCA.c};border-bottom:2px solid ${MARCA.c};margin:6mm 0 3mm;padding-bottom:1mm;page-break-after:avoid}
     .ayuda{font:14px system-ui;background:#f6e9ec;padding:10px;border-radius:6px;margin:10px}@media print{.ayuda{display:none}}</style><style>${docCss()}</style></head><body>
     <p class="ayuda">Para guardarlo en PDF elegí <b>Guardar como PDF</b>. En "Más opciones" activá <b>Gráficos de fondo</b> para que salgan los colores.${conFoto<L.length?' '+(L.length-conFoto)+' productos todavía no tienen foto: salen con su inicial.':''}</p>
     <div class="tapa">${MARCA.logo?`<img src="${MARCA.logo}" alt="">`:''}<h1>Catálogo de productos</h1>
