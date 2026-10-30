@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-30.4';
+const VERSION='2026-10-30.5';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -735,7 +735,7 @@ const docCss=()=>{const pie=['Sabores de mi País','Distribuidora de alimentos',
   table:has(th) td{padding:7px 10px!important;border-bottom:1px solid #eee8e1!important}
   table:has(th) tr:nth-child(even) td{background:#faf7f8}
   table:has(th) tr.tot td{background:#fff!important;border-top:2px solid ${MARCA.c}!important;border-bottom:0!important;font-size:17px}
-  body::after{content:"${pie}";display:block;text-align:center;font-size:10.5px;color:#8a90a0;border-top:1px solid #eee;padding:6px 0 0;margin-top:24px}
+  body::after{content:"${pie}";display:block;text-align:center;font-size:10.5px;color:var(--tx2,#5b6274);border-top:1px solid #eee;padding:6px 0 0;margin-top:24px}
   @media print{body::after{position:fixed;bottom:0;left:0;right:0;background:#fff;margin:0}}`};
 const logoImg=(h=110)=>MARCA.logo?`<img src="${MARCA.logo}" alt="" style="height:${h}px;max-width:${h*4}px;object-fit:contain;display:block;margin-bottom:6px">`:'';
 aplicarMarca();
@@ -1162,7 +1162,7 @@ function abrirListaPrecios(c){
     w.document.write(`<html><head><meta charset="utf-8"><title>Lista de precios ${LIS[l]}${c?' - '+esc(c.razon_social):''} ${hoy()}</title><style>body{font:12px system-ui,Segoe UI,sans-serif;margin:24px;color:#1c2333}h1{color:${MARCA.c};margin:0;font-size:22px}.top{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid ${MARCA.c};padding-bottom:8px;margin-bottom:6px}h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:${MARCA.c};margin:14px 0 4px;page-break-after:avoid}table{width:100%;border-collapse:collapse}td{padding:4px 6px;border-bottom:1px solid #e3e3e3}td.c{color:#6a7184;width:96px;white-space:nowrap}td.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:600;width:110px}tr{page-break-inside:avoid}.pie{margin-top:14px;color:#6a7184}.ayuda{background:#f6e9ec;padding:8px;border-radius:6px}@media print{.ayuda{display:none}}</style><style>${docCss()}</style></head><body>
       <p class="ayuda">Para guardarlo en PDF: en la ventana de impresión elegí <b>Guardar como PDF</b> como destino.</p>
       <div class="top"><div>${logoImg()}<h1>Sabores de mi País</h1><div>Lista de precios ${LIS[l]}${c?' · '+esc(c.razon_social):''}</div></div><div style="text-align:right">Vigente al <b>${hoy()}</b><br>Precios con IVA incluido</div></div>
-      ${grupos(L).map(([g,X])=>`<h2>${esc(g)}</h2><table><tr>${ft?'<th></th>':''}${cod?'<th>Código</th>':''}<th>Producto</th><th class="n">Precio</th><th class="n">Por bulto</th></tr>${X.map(x=>`<tr>${ft?`<td style="width:58px;padding:3px">${x.f?`<img src="${esc(x.f)}" style="width:52px;height:52px;object-fit:contain;display:block">`:''}</td>`:''}${cod?`<td class="c">${esc(x.c)}</td>`:''}<td>${esc(x.d)}</td><td class="n">${$m(x.p)}${bul(x.id)?.kg?'<small style="font-weight:400;color:#8a90a0"> /kg</small>':''}</td><td class="n cj">${bul(x.id)?`<small style="font-weight:400;color:#6a7184">${esc(bulL(bul(x.id)))}</small><br>${$m(x.p*bul(x.id).n)}`:''}</td></tr>`).join('')}</table>`).join('')}
+      ${grupos(L).map(([g,X])=>`<h2>${esc(g)}</h2><table><tr>${ft?'<th></th>':''}${cod?'<th>Código</th>':''}<th>Producto</th><th class="n">Precio</th><th class="n">Por bulto</th></tr>${X.map(x=>`<tr>${ft?`<td style="width:58px;padding:3px">${x.f?`<img src="${esc(x.f)}" style="width:52px;height:52px;object-fit:contain;display:block">`:''}</td>`:''}${cod?`<td class="c">${esc(x.c)}</td>`:''}<td>${esc(x.d)}</td><td class="n">${$m(x.p)}${bul(x.id)?.kg?'<small style="font-weight:400;color:var(--tx2,#5b6274)"> /kg</small>':''}</td><td class="n cj">${bul(x.id)?`<small style="font-weight:400;color:#6a7184">${esc(bulL(bul(x.id)))}</small><br>${$m(x.p*bul(x.id).n)}`:''}</td></tr>`).join('')}</table>`).join('')}
       <p class="pie">Precios sujetos a modificación sin previo aviso.${c?.token_pedidos?' Hacé tu pedido online: '+esc(linkPedidos(c)):''}</p>
       <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close()};
   $('#lp_cat').onclick=async()=>{if(!S.vcfg)try{await cargarVentasCfg()}catch(e){}const{l}=sel();let{L}=sel();if(!FAM_CAT)await catalogoFotos();for(const x of L)if(!x.f){const k=catPorCodigo(x.c,x.d);if(k)x.f=new URL(k.img,location.href).href}if($('#lp_of').checked)L=L.filter(x=>promoCerca(x.id,l));if(!L.length)return toast($('#lp_of').checked?'No hay productos en oferta con ese filtro. Creá una promoción primero.':'No hay productos con ese filtro.',1);catalogoPDF(l,L,c,LIS[l])};
