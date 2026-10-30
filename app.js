@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-30.1';
+const VERSION='2026-10-30.2';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -278,7 +278,7 @@ async function vInicio(){
   $('#v').innerHTML=`<div class="bh ini-h" style="flex-wrap:wrap;gap:8px"><div><h2 style="margin:0">${hr<5?'Buenas noches':hr<13?'Buen día':hr<20?'Buenas tardes':'Buenas noches'}${S.perfil.nombre?', '+esc(String(S.perfil.nombre).trim().split(/\s+/)[0]):''}</h2><small class="ini-f">${hoyD.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}</small></div>
     ${dia?'':'<button class="alt" data-iv="dia">← Volver al inicio simple</button>'}</div>
   ${dia?`${principalesHTML(false)}${kpH}<div id="manijl"></div><div id="metaskg"></div>`:`
-  ${principalesHTML()}<div id="bk"></div><div id="dlr"></div><div id="chk"></div><div id="cmpi"></div><div id="cami"></div><div id="equi"></div><div id="doci"></div><div id="midia"></div><div id="mani"></div><div id="resd"></div><div id="tari"></div>
+  ${principalesHTML()}<div id="bk"></div><div id="cmpi"></div><div id="cami"></div><div id="equi"></div><div id="doci"></div><div id="midia"></div><div id="mani"></div><div id="resd"></div><div id="tari"></div>
   <div class="herr" id="herr"></div>
   <div id="alm"></div>
   <div id="empi"></div><div id="metai"></div><div id="colai"></div><div id="plani"></div><div id="toca"></div><div id="fidel"></div><div id="masi"></div><div id="creci"></div><div id="servi"></div><div id="fieli"></div><div id="fechas"></div>
@@ -291,8 +291,8 @@ async function vInicio(){
     <div class="box"><h3>Productos para reponer</h3><div id="t4"><span class="skl" role="status" aria-label="Cargando"></span></div></div>
   </div>${dia?`</details>
   <details class="plg"><summary>🗓️ Tareas y avisos del día</summary><div id="midia"></div><div id="tari"></div><div id="alm"></div></details>
-  <div id="chk"></div>
-  <div class="pieini"><div id="bk"></div><div id="dlr"></div><p class="pfila plink"><span class="pic">${IC('users',16)}</span><a class="lnk" onclick="usuarios()">Usuarios y accesos</a></p><p class="pfila plink"><span class="pic">${IC('lock',16)}</span><a class="lnk" onclick="cambiarClave()">Cambiar mi contraseña</a></p><p class="pfila plink"><span class="pic">${IC('cash',16)}</span><a class="lnk" onclick="mercadoPago()">Mercado Pago: cobros por transferencia</a></p><p class="pfila plink"><span class="pic">${IC('doc',16)}</span><a class="lnk" data-iv="completa">Ver panel completo</a></p><p class="pfila plink"><span class="pic">${IC('menu',16)}</span><a class="lnk" onclick="menuTabsCfg()">Elegir pestañas del menú</a></p></div>`:''}`;
+  
+  <div class="pieini"><div id="bk"></div><p class="pfila plink"><span class="pic">${IC('users',16)}</span><a class="lnk" onclick="usuarios()">Usuarios y accesos</a></p><p class="pfila plink"><span class="pic">${IC('lock',16)}</span><a class="lnk" onclick="cambiarClave()">Cambiar mi contraseña</a></p><p class="pfila plink"><span class="pic">${IC('cash',16)}</span><a class="lnk" onclick="mercadoPago()">Mercado Pago: cobros por transferencia</a></p><p class="pfila plink"><span class="pic">${IC('doc',16)}</span><a class="lnk" data-iv="completa">Ver panel completo</a></p><p class="pfila plink"><span class="pic">${IC('menu',16)}</span><a class="lnk" onclick="menuTabsCfg()">Elegir pestañas del menú</a></p></div>`:''}`;
   $$('#v details.plg').forEach(d=>{const o=new MutationObserver(badgePlg);o.observe(d,{subtree:true,childList:true,attributes:true,attributeFilter:['data-pend']})});
   const kp=(id,num,det,cls)=>{const b=$('#'+id);b.querySelector('.num').textContent=num;contar(b.querySelector('.num'),num);b.querySelector('.det').textContent=det||'';if(cls)b.classList.add(cls)};
   const fallo=(id,e)=>kp(id,'—','No se pudo leer: '+e.message);
@@ -3170,8 +3170,8 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
   let abierto=false;try{abierto=localStorage.getItem('mj_abierto')=='1'}catch(e){}
   const habSig=(()=>{let n=0;const y=M==11?Y+1:Y,mm=(M+1)%12,d=new Date(y,mm+1,0).getDate();for(let k=1;k<=d;k++)if(new Date(y,mm,k).getDay()!=0)n++;return n})(),pvV=Math.ceil(faltaSem/visSem),R=30,CI=2*Math.PI*R,ring=(f,t)=>`<svg class="mjr" viewBox="0 0 76 76" aria-hidden="true"><circle cx="38" cy="38" r="${R}" class="tr"/>${f>0?'':`<circle cx="38" cy="8" r="4" class="dot"/>`}${f>0?`<circle cx="38" cy="38" r="${R}" class="fl" stroke-dasharray="${(CI*f).toFixed(1)} ${CI.toFixed(1)}"/>`:''}<text x="38" y="43" text-anchor="middle">${t}</text></svg>`;
   const hero=faltaMg<=0?`<div class="mjh ok"><div><div class="ey">Objetivo de ${esc(mes.toLowerCase())}</div><div class="mjhn">Cumplido</div><div class="hs">Vas ${m0(limpio-meta)} arriba de la meta. Lo que sumes ya es extra.</div></div></div>`
-    :semIni?`<div class="mjh">${ring(pcS,Math.round(pcS*100)+'%')}<div><div class="ey">${pvV>LIMV&&faltaSem>0?esc(mes)+' no llega':semTit}</div><div class="mjhn">${nf(Math.round(cjS))}<span> / ${nf(objSem)} cajas</span></div>
-      <div class="hs">${faltaSem>0?(pvV>LIMV?`Desde el 1/${(M+1)%12+1}: ${nf(Math.ceil(cjMetaMes/(habSig/6)))} cajas por semana`:`${nf(pvV)} cajas por visita · ${visSem} visita${visSem==1?'':'s'}`):'Semana cumplida. Lo que sumes adelanta el mes.'}</div>${realista?'':'<span class="pill">Foco: cubrir gastos</span>'}</div></div>`
+    :semIni?`<div class="mjh">${ring(pcS,Math.round(pcS*100)+'%')}<div><div class="ey">${pvV>LIMV&&faltaSem>0?esc(mes)+' no llega':semTit}</div><div class="mjhn">${pvV>LIMV&&faltaSem>0?`${nf(Math.round(cj))}<span> / ${nf(cjMetaMes)} cajas</span>`:`${nf(Math.round(cjS))}<span> / ${nf(objSem)} cajas</span>`}</div>
+      <div class="hs">${faltaSem>0?(pvV>LIMV?`Desde el 1/${(M+1)%12+1}: <b>${nf(Math.ceil(cjMetaMes/(habSig/6)))} cajas/semana</b>`:`${nf(pvV)} cajas por visita · ${visSem} visita${visSem==1?'':'s'}`):'Semana cumplida. Lo que sumes adelanta el mes.'}</div>${realista?'':'<span class="pill">Foco: cubrir gastos</span>'}</div></div>`
     :`<div class="mjh"><div><div class="ey">${esc(mes)}</div><div class="mjhn">${nf(faltaCj)}<span> cajas por vender</span></div></div></div>`;
   const aviso=realista?'':`<div class="mja"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5"/><path d="M10 9v5M10 6.2v.1"/></svg><span>La meta de ${m0(meta)} no llega en ${esc(mes.toLowerCase())}. ${cj>=cjGasMes?'Gastos ya cubiertos: lo que vendas es limpio.':'Este mes cubrí los gastos y la meta arranca el mes que viene.'}</span></div>`;
   const bps=[...ids].filter(id=>!foco||chico(id)).map(id=>S.min[id]?.bp||0).filter(x=>x>0),bpP=bps.length?bps.reduce((a,x)=>a+x,0)/bps.length:0,palMes=bpP?cjMetaMes/bpP:0;
@@ -3273,7 +3273,7 @@ async function metasKgInicio(){const box=$('#metaskg');if(!box||S.perfil.rol!='d
     ${meta?`<div class="obar mjb">${pc>0?`<i style="width:${(pc*100).toFixed(1)}%" class="${pc>=1?'lleno':''}"></i>`:''}</div>`:''}
     <div class="mjk"><div><small>Vendiste</small><b>${k0(kg)}</b><small>${cl.size} cliente${cl.size==1?'':'s'}</small></div>
       <div><small>Facturado</small><b>${m0(vta)}</b><small>en ${esc(mes.toLowerCase())}</small></div>
-      <div><small>Ganancia</small><b>${m0(mg)}</b><small>${meta&&gMeta>0?'de '+m0(gMeta):kg>0?m0(mg/kg)+' por kg':'—'}</small></div></div>
+      <div><small>Ganancia</small><b>${m0(mg)}</b><small>${kg>0?m0(mg/kg)+' por kg':'en '+esc(mes.toLowerCase())}</small></div></div>
     ${gk>0?`<div class="mkgan"><div><b>${m0(gk)}</b><small>te deja cada kilo${linea?' (promedio)':''}</small></div>${meta?`<div><b>${m0(gMeta)}</b><small>si llegás a ${nf(meta)} kg</small></div>`:''}</div>`:''}
     ${meta&&falta>0&&kg>0?`<p class="mjn">A este ritmo cerrás ${esc(mes.toLowerCase())} con <b class="${proy>=meta?'sube':'baja'}">${k0(proy)}</b>${proy>=meta?': llegás. 💪':'.'}</p>`:''}</div>
     ${ST?(()=>{const ft=ST.f||S.min[stId]?.foto,fal=Math.max(0,stMeta-stKg),pcSt=stMeta?Math.min(1,stKg/stMeta):0;return`<div class="mkst">
@@ -7448,9 +7448,11 @@ function abrirMasHoja(id,tit){const src=document.getElementById(id);if(!src)retu
   src.querySelectorAll('button').forEach(o=>{const c=o.cloneNode(true);c.removeAttribute('id');c.removeAttribute('onclick');c.onclick=()=>{m.remove();o.click()};m.querySelector('.pm-l').appendChild(c)})}
 function menuMas(todas){const LT=todas===1?(()=>{const t=tabsMenu();return [...t.pri,...t.sec].filter(x=>!bottomTabs().includes(x))})():tabsMenu().sec;const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
   m.innerHTML=`<div class="mc"><div class="bh"><h3>Más secciones</h3><button class="alt" id="mm_x">Cerrar</button></div>
-  <div class="mmas">${LT.map(t=>`<button class="${S.tab==t?'on':'alt'}" data-mt="${t}">${IC(MAS_IC[t]?.[0]||'box',24)}<span><b>${t=='manual'?'Manual':t[0].toUpperCase()+t.slice(1)}</b><small>${MAS_IC[t]?.[1]||''}</small></span></button>`).join('')}</div></div>`;
+  <div class="mmas">${LT.map(t=>`<button class="${S.tab==t?'on':'alt'}" data-mt="${t}">${IC(MAS_IC[t]?.[0]||'box',24)}<span><b>${t=='manual'?'Manual':t[0].toUpperCase()+t.slice(1)}</b><small>${MAS_IC[t]?.[1]||''}</small></span></button>`).join('')}</div>
+  ${S.perfil.rol=='dueno'?`<div class="mmas" style="margin-top:10px"><button class="alt" id="mm_dl">${IC('cash',24)}<span><b>Dólar del día</b><small>Actualiza los costos en dólares</small></span></button></div><div id="chk" style="margin-top:10px"></div>`:''}</div>`;
   m.onclick=e=>{if(e.target==m)m.remove()};m.querySelector('#mm_x').onclick=()=>m.remove();
-  m.querySelectorAll('[data-mt]').forEach(b=>b.onclick=()=>{m.remove();S.tab=b.dataset.mt;shell()})}
+  m.querySelectorAll('[data-mt]').forEach(b=>b.onclick=()=>{m.remove();S.tab=b.dataset.mt;shell()});
+  const dl=m.querySelector('#mm_dl');if(dl)dl.onclick=()=>{m.remove();dolarModal()};if(m.querySelector('#chk'))chequeoInicio().catch(()=>{})}
 const irA=(tab,extra)=>{Object.assign(S,extra||{});S.tab=tab;shell()};
 /* 6. Botones grandes (celular) */
 /* Inicio: los 4 accesos de todos los días, grandes, y el resto chico */
