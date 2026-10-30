@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-30.3';
+const VERSION='2026-10-30.4';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -477,6 +477,33 @@ function badgePlg(){$$('details.plg').forEach(d=>{const sm=d.querySelector('summ
   let b=sm.querySelector('.pb');if(!hay){if(b)b.remove();return}if(!b){b=document.createElement('span');b.className='pb';sm.appendChild(b)}const t=n?String(n):'al día';if(b.textContent!==t)b.textContent=t;b.classList.toggle('cero',!n)})}
 /* ---------- Usuarios y accesos (solo el dueño) ---------- */
 const ROL_TXT={dueno:'Socio / dueño · ve y cambia todo',administracion:'Administración · ve todo, sin configuración',vendedor:'Vendedor · pedidos y clientes, sin costos',deposito:'Depósito · armado y entregas'};
+/* Asignar clientes a un vendedor: de a uno o por zona. Los que se desmarcan vuelven a ser "de la casa". */
+async function asignarClientes(uid,nom){if(S.perfil.rol!='dueno')return;
+  const{data,error}=await todo(()=>sb.from('clientes').select('id,razon_social,nombre_fantasia,zona,ciudad,vendedor_id,activo').order('razon_social'));if(error)return toast(error.message,1);
+  const L=(data||[]).filter(c=>c.activo!==false),zn=c=>String(c.zona||c.ciudad||'Sin zona').trim()||'Sin zona',Z=[...new Set(L.map(zn))].sort((a,b)=>a.localeCompare(b,'es'));
+  const{data:pf}=await sb.from('perfiles').select('id,nombre,rol');const nomDe=id=>(pf||[]).find(p=>p.id==id)?.nombre||'';const esV=id=>(pf||[]).some(p=>p.id==id&&p.rol=='vendedor');
+  const sel=new Set(L.filter(c=>c.vendedor_id==uid).map(c=>c.id));let zf='',qf='';
+  const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  const draw=()=>{const V=L.filter(c=>(!zf||zn(c)==zf)&&(!qf||norm(c.razon_social+' '+(c.nombre_fantasia||'')).includes(norm(qf))));
+    m.innerHTML=`<div class="mc"><div class="bh"><h3 style="margin:0">Clientes de ${esc(nom)}</h3><button class="alt" id="as_x">Cerrar</button></div>
+      <p><small>Marcá los clientes que va a atender. Va a ver solo esos (y los que cargue él). Los que desmarques vuelven a ser tuyos. Los pedidos que ya hizo siguen contando para su comisión.</small></p>
+      <div class="g"><label class="f">Zona<select id="as_z"><option value="">Todas las zonas</option>${Z.map(z=>`<option ${z==zf?'selected':''}>${esc(z)}</option>`).join('')}</select></label><label class="f">Buscar<input id="as_q" value="${esc(qf)}" placeholder="Nombre del comercio"></label></div>
+      <p style="display:flex;gap:8px;flex-wrap:wrap"><button class="alt" id="as_all">Marcar los ${V.length} de la lista</button><button class="alt" id="as_none">Desmarcar la lista</button></p>
+      <div class="tw" style="max-height:48vh;overflow:auto"><table>${V.map(c=>{const otro=c.vendedor_id&&c.vendedor_id!=uid&&esV(c.vendedor_id);return`<tr><td style="width:36px"><input type="checkbox" data-asc="${c.id}" ${sel.has(c.id)?'checked':''} aria-label="${esc(c.razon_social)}"></td><td>${esc(nomVis(c))}<br><small>${esc(zn(c))}${otro?' · ahora lo atiende <b>'+esc(nomDe(c.vendedor_id))+'</b>':''}</small></td></tr>`}).join('')||'<tr><td>No hay clientes con ese filtro.</td></tr>'}</table></div>
+      <p style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px"><small><b>${sel.size}</b> cliente${sel.size==1?'':'s'} marcado${sel.size==1?'':'s'}</small><button id="as_g">Guardar</button></p></div>`;
+    m.querySelector('#as_x').onclick=()=>m.remove();
+    m.querySelector('#as_z').onchange=e=>{zf=e.target.value;draw()};
+    const qi=m.querySelector('#as_q');qi.oninput=()=>{qf=qi.value;clearTimeout(m._t);m._t=setTimeout(()=>{draw();const n=m.querySelector('#as_q');n.focus();n.setSelectionRange(n.value.length,n.value.length)},350)};
+    m.querySelector('#as_all').onclick=()=>{V.forEach(c=>sel.add(c.id));draw()};m.querySelector('#as_none').onclick=()=>{V.forEach(c=>sel.delete(c.id));draw()};
+    m.querySelectorAll('[data-asc]').forEach(c=>c.onchange=()=>{c.checked?sel.add(c.dataset.asc):sel.delete(c.dataset.asc);m.querySelector('#as_g').previousElementSibling.innerHTML=`<b>${sel.size}</b> cliente${sel.size==1?'':'s'} marcado${sel.size==1?'':'s'}`});
+    m.querySelector('#as_g').onclick=async()=>{const b=m.querySelector('#as_g');b.disabled=true;b.textContent='Guardando…';
+      const dar=L.filter(c=>sel.has(c.id)&&c.vendedor_id!=uid).map(c=>c.id),sacar=L.filter(c=>!sel.has(c.id)&&c.vendedor_id==uid).map(c=>c.id);
+      for(let k=0;k<dar.length;k+=100){const{error}=await sb.from('clientes').update({vendedor_id:uid}).in('id',dar.slice(k,k+100));if(error){b.disabled=false;b.textContent='Guardar';return toast(error.message,1)}}
+      for(let k=0;k<sacar.length;k+=100){const{error}=await sb.from('clientes').update({vendedor_id:S.perfil.id}).in('id',sacar.slice(k,k+100));if(error){b.disabled=false;b.textContent='Guardar';return toast(error.message,1)}}
+      toast(`Listo: ${nom} atiende ${sel.size} cliente${sel.size==1?'':'s'}.`);m.remove();
+      for(const c of S.clientes){if(dar.includes(c.id))c.vendedor_id=uid;if(sacar.includes(c.id))c.vendedor_id=S.perfil.id}}};
+  draw()}
+
 async function usuarios(){if(S.perfil.rol!='dueno')return toast('Solo el dueño puede manejar los usuarios.',1);
   const m=document.createElement('div');m.className='modal';document.body.appendChild(m);const q=i=>m.querySelector(i);
   const fx=async o=>{const{data,error}=await sb.functions.invoke('usuarios',{body:o});if(error){let t=error.message;try{const j=await error.context.json();t=j.error||t}catch(e){}throw new Error(t)}return data};
@@ -496,7 +523,7 @@ async function usuarios(){if(S.perfil.rol!='dueno')return toast('Solo el dueño 
     m.innerHTML=`<div class="mc"><div class="bh"><h3 style="margin:0">👥 Usuarios y accesos</h3><button class="alt" id="us_x">Cerrar</button></div>
       <div class="usl">${U.map(u=>{const yo=u.id==d.yo;return`<div class="usu ${u.activo?'':'off'}"><div class="usn"><b>${esc(u.nombre||u.email||'')}</b>${yo?' <span class="badge">vos</span>':''}${u.activo?'':' <span class="badge b-cancelado">dado de baja</span>'}<small>${esc(u.email||'')}${u.ultimo?' · entró el '+new Date(u.ultimo).toLocaleDateString('es-AR',{day:'numeric',month:'numeric'}):' · todavía no entró'}${u.temporal&&!yo?' · con contraseña temporal':''}</small></div>
         ${yo?`<small>${esc(ROL_TXT[u.rol]||u.rol)}</small>`:`<select data-urol="${u.id}" style="margin:6px 0 0">${Object.entries(ROL_TXT).map(([k,t])=>`<option value="${k}" ${u.rol==k?'selected':''}>${t}</option>`).join('')}</select>
-        <div class="usa"><a class="lnk" data-ucl="${u.id}" data-un="${esc(u.nombre||'')}">Nueva contraseña temporal</a> · <a class="lnk" data-uac="${u.id}" data-v="${u.activo?0:1}">${u.activo?'Dar de baja':'Volver a dar acceso'}</a></div>`}</div>`}).join('')}</div>
+        <div class="usa">${u.rol=='vendedor'&&u.activo?`<a class="lnk" data-uas="${u.id}" data-un="${esc(u.nombre||'')}"><b>Asignar clientes</b></a> · `:''}<a class="lnk" data-ucl="${u.id}" data-un="${esc(u.nombre||'')}">Nueva contraseña temporal</a> · <a class="lnk" data-uac="${u.id}" data-v="${u.activo?0:1}">${u.activo?'Dar de baja':'Volver a dar acceso'}</a></div>`}</div>`}).join('')}</div>
       <details class="mpf" ${U.length<2?'open':''}><summary><b>➕ Agregar usuario</b></summary>
         <div class="g"><label class="f">Nombre y apellido<input id="us_n" autocomplete="off"></label><label class="f">Correo<input id="us_e" type="email" inputmode="email" autocomplete="off"></label>
         <label class="f">Qué puede hacer<select id="us_r">${Object.entries(ROL_TXT).map(([k,t])=>`<option value="${k}" ${k=='dueno'?'selected':''}>${t}</option>`).join('')}</select></label></div>
@@ -506,6 +533,7 @@ async function usuarios(){if(S.perfil.rol!='dueno')return toast('Solo el dueño 
       q('#us_g').disabled=true;try{const r=await fx({accion:'crear',nombre:n,email:e,rol:q('#us_r').value});mostrarClave(n,r.email,r.clave)}catch(x){q('#us_g').disabled=false;toast(x.message,1)}};
     m.querySelectorAll('[data-urol]').forEach(sl=>sl.onchange=async()=>{try{await fx({accion:'rol',id:sl.dataset.urol,rol:sl.value});toast('Acceso actualizado.')}catch(x){toast(x.message,1);pinta()}});
     m.querySelectorAll('[data-uac]').forEach(a=>a.onclick=async()=>{const v=a.dataset.v=='1';if(!v&&!confirm('¿Dar de baja este usuario? No va a poder entrar más al CRM (podés volver a darle acceso cuando quieras).'))return;try{await fx({accion:'activo',id:a.dataset.uac,activo:v});toast(v?'Acceso restablecido.':'Usuario dado de baja.');pinta()}catch(x){toast(x.message,1)}});
+    m.querySelectorAll('[data-uas]').forEach(a=>a.onclick=()=>{m.remove();asignarClientes(a.dataset.uas,a.dataset.un)});
     m.querySelectorAll('[data-ucl]').forEach(a=>a.onclick=async()=>{if(!confirm('¿Generar una contraseña temporal nueva? La anterior deja de funcionar.'))return;try{const r=await fx({accion:'clave',id:a.dataset.ucl});mostrarClave(a.dataset.un||'',r.email,r.clave)}catch(x){toast(x.message,1)}})};
   pinta()}
 
