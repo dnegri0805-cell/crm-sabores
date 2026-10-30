@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-27.1';
+const VERSION='2026-10-30.1';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -313,7 +313,7 @@ async function vInicio(){
   // 1 facturado hoy y en el mes
   if(fv.error)fallo('k1',fv.error);else{
     let h=0,nh=0,m=0;for(const f of fv.data){if(f.anulada)continue;const d=fechaDe(f);if(!d)continue;const k=diaLocal(d);const t=Number(f.total||0);if(k==hoy){h+=t;nh++}if(k.slice(0,7)==mes)m+=t}
-    kp('k1',$m(h),nh+(nh==1?' factura':' facturas')+' · en el mes '+$m(m))}
+    {const pe=n=>'$ '+Math.round(+n||0).toLocaleString('es-AR');kp('k1',pe(h),nh+(nh==1?' factura':' facturas')+' · en el mes '+pe(m))}}
   // 2 pedidos pendientes
   if(pe.error){fallo('k2',pe.error);$('#t1').innerHTML='<p class="err">'+esc(pe.error.message)+'</p>'}else{
     const P=pe.data,tot=P.reduce((a,o)=>a+Number(o.total||0),0);
@@ -3168,10 +3168,10 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
     else if((T[c.id]||0)>0)V.push({c,pri:(T[c.id]||0)/1e9,why:`Te compra ${m0(T[c.id]/3)} por mes y todavía no lleva JL`,it:null})}
   V.sort((x,y)=>y.pri-x.pri);const VIS=V.slice(0,6);
   let abierto=false;try{abierto=localStorage.getItem('mj_abierto')=='1'}catch(e){}
-  const pvV=Math.ceil(faltaSem/visSem),R=30,CI=2*Math.PI*R,ring=(f,t)=>`<svg class="mjr" viewBox="0 0 76 76" aria-hidden="true"><circle cx="38" cy="38" r="${R}" class="tr"/>${f>0?'':`<circle cx="38" cy="8" r="4" class="dot"/>`}${f>0?`<circle cx="38" cy="38" r="${R}" class="fl" stroke-dasharray="${(CI*f).toFixed(1)} ${CI.toFixed(1)}"/>`:''}<text x="38" y="43" text-anchor="middle">${t}</text></svg>`;
+  const habSig=(()=>{let n=0;const y=M==11?Y+1:Y,mm=(M+1)%12,d=new Date(y,mm+1,0).getDate();for(let k=1;k<=d;k++)if(new Date(y,mm,k).getDay()!=0)n++;return n})(),pvV=Math.ceil(faltaSem/visSem),R=30,CI=2*Math.PI*R,ring=(f,t)=>`<svg class="mjr" viewBox="0 0 76 76" aria-hidden="true"><circle cx="38" cy="38" r="${R}" class="tr"/>${f>0?'':`<circle cx="38" cy="8" r="4" class="dot"/>`}${f>0?`<circle cx="38" cy="38" r="${R}" class="fl" stroke-dasharray="${(CI*f).toFixed(1)} ${CI.toFixed(1)}"/>`:''}<text x="38" y="43" text-anchor="middle">${t}</text></svg>`;
   const hero=faltaMg<=0?`<div class="mjh ok"><div><div class="ey">Objetivo de ${esc(mes.toLowerCase())}</div><div class="mjhn">Cumplido</div><div class="hs">Vas ${m0(limpio-meta)} arriba de la meta. Lo que sumes ya es extra.</div></div></div>`
-    :semIni?`<div class="mjh">${ring(pcS,Math.round(pcS*100)+'%')}<div><div class="ey">${semTit}</div><div class="mjhn">${nf(Math.round(cjS))}<span> / ${nf(objSem)} cajas</span></div>
-      <div class="hs">${faltaSem>0?`${nf(pvV)} cajas por visita · ${visSem} visita${visSem==1?'':'s'}`:'Semana cumplida. Lo que sumes adelanta el mes.'}</div>${realista?'':'<span class="pill">Foco: cubrir gastos</span>'}</div></div>`
+    :semIni?`<div class="mjh">${ring(pcS,Math.round(pcS*100)+'%')}<div><div class="ey">${pvV>LIMV&&faltaSem>0?esc(mes)+' no llega':semTit}</div><div class="mjhn">${nf(Math.round(cjS))}<span> / ${nf(objSem)} cajas</span></div>
+      <div class="hs">${faltaSem>0?(pvV>LIMV?`Desde el 1/${(M+1)%12+1}: ${nf(Math.ceil(cjMetaMes/(habSig/6)))} cajas por semana`:`${nf(pvV)} cajas por visita · ${visSem} visita${visSem==1?'':'s'}`):'Semana cumplida. Lo que sumes adelanta el mes.'}</div>${realista?'':'<span class="pill">Foco: cubrir gastos</span>'}</div></div>`
     :`<div class="mjh"><div><div class="ey">${esc(mes)}</div><div class="mjhn">${nf(faltaCj)}<span> cajas por vender</span></div></div></div>`;
   const aviso=realista?'':`<div class="mja"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5"/><path d="M10 9v5M10 6.2v.1"/></svg><span>La meta de ${m0(meta)} no llega en ${esc(mes.toLowerCase())}. ${cj>=cjGasMes?'Gastos ya cubiertos: lo que vendas es limpio.':'Este mes cubrí los gastos y la meta arranca el mes que viene.'}</span></div>`;
   const bps=[...ids].filter(id=>!foco||chico(id)).map(id=>S.min[id]?.bp||0).filter(x=>x>0),bpP=bps.length?bps.reduce((a,x)=>a+x,0)/bps.length:0,palMes=bpP?cjMetaMes/bpP:0;
@@ -3239,7 +3239,7 @@ async function metasKgInicio(){const box=$('#metaskg');if(!box||S.perfil.rol!='d
     if(top&&top[1]/kg>=.3&&gkDe(top[0])<stGk){const kk=Math.max(1,Math.round(Math.min(top[1],stMeta>stKg?stMeta-stKg:top[1]/2))),extra=kk*(stGk-gkDe(top[0]));
       if(extra>=1000)mezcla=`Este mes el ${Math.round(top[1]/kg*100)} % fue ${prD(top[0])?.descripcion||'otro salame'}. Si ${nf(kk)} kg de esos hubieran sido ${stN}, ganabas $\u00a0${Math.round(extra).toLocaleString('es-AR')} más.`}}
   const hab=(d1,d2)=>{let n=0;for(let d=d1;d<=d2;d++)if(new Date(Y,M,d).getDay()!=0)n++;return n};
-  const habTot=hab(1,dm),habPas=Math.max(1,hab(1,dh-1)+(hoy.getHours()>=14?1:0)),proy=kg/habPas*habTot,falta=Math.max(0,meta-kg);
+  const habTot=hab(1,dm),habPas=Math.max(1,hab(1,dh-1)+(hoy.getHours()>=14?1:0)),proy=kg/habPas*habTot,falta=Math.max(0,meta-kg),pc0=meta?Math.min(1,kg/meta):0;
   const habSem=semIni?hab(semIni,semFin):0,habDesdeSem=semIni?Math.max(1,hab(semIni,dm)):1,objSem=semIni?Math.ceil(Math.max(0,meta-kgAntesS)*habSem/habDesdeSem):0;
   const hoyIdx=Math.max(semIni||1,dh+(dow==0?1:0)),habSemRest=semIni?Math.max(0,hab(Math.min(hoyIdx,semFin+1),semFin)):0,visSem=Math.max(1,Math.ceil(habSemRest/2)),faltaSem=Math.max(0,objSem-kgS),pcS=objSem?Math.min(1,kgS/objSem):0;
   const k0=n=>nf(Math.round(n*10)/10)+'\u00a0kg',m0=n=>(n<0?'−':'')+'$\u00a0'+Math.round(Math.abs(n)).toLocaleString('es-AR'),mes=mesNom(m).split(' ')[0],mesC=mes.slice(0,3).toLowerCase();
@@ -3254,12 +3254,16 @@ async function metasKgInicio(){const box=$('#metaskg');if(!box||S.perfil.rol!='d
   V.sort((x,y)=>y.pri-x.pri);const VIS=V.slice(0,6);
   let abierto=false;try{abierto=localStorage.getItem('mk_abierto')=='1'}catch(e){}
   const R=30,CI=2*Math.PI*R,ring=(f,t)=>`<svg class="mjr" viewBox="0 0 76 76" aria-hidden="true"><circle cx="38" cy="38" r="${R}" class="tr"/>${f>0?`<circle cx="38" cy="38" r="${R}" class="fl" stroke-dasharray="${(CI*f).toFixed(1)} ${CI.toFixed(1)}"/>`:`<circle cx="38" cy="8" r="4" class="dot"/>`}<text x="38" y="43" text-anchor="middle">${t}</text></svg>`;
-  const pvV=faltaSem/visSem,hero=!meta?`<div class="mjh mkh"><div><div class="ey">${esc(mes)}</div><div class="mjhn">${k0(kg)}<span> vendidos</span></div><div class="hs">Poné una meta para ver cuánto te falta.</div></div></div>`
+  /* fin de mes: si lo que falta por visita es más del doble de lo normal, no se llega; mostrar el ritmo del mes que viene */
+  const habSig=(()=>{let n=0;const y=M==11?Y+1:Y,mm=(M+1)%12,d=new Date(y,mm+1,0).getDate();for(let k=1;k<=d;k++)if(new Date(y,mm,k).getDay()!=0)n++;return n})(),
+    pvNorm=meta/Math.max(1,Math.round(habTot/2)),noLlega=meta>0&&falta>0&&faltaSem>0&&faltaSem/visSem>pvNorm*2,semSig=Math.ceil(meta/(habSig/6)),mesSig=mesNom(diaLocal(new Date(Y,M+1,1)).slice(0,7)).split(' ')[0];
+  const pvV=faltaSem/visSem,hero=noLlega?`<div class="mjh mkh">${ring(pc0,Math.round(pc0*100)+'%')}<div><div class="ey">${esc(mes)} no llega</div><div class="mjhn">${nf(Math.round(kg))}<span> / ${nf(meta)} kg</span></div>
+      <div class="hs">Desde el 1/${(M+1)%12+1}: <b>${nf(semSig)} kg por semana</b></div><span class="pill">Foco: ${esc(mesSig.toLowerCase())}</span>${ST&&stMeta?`<span class="pill">⭐ ${esc(stN)}: ${nf(Math.round(stKg*10)/10)} / ${nf(stMeta)} kg</span>`:''}</div></div>`:!meta?`<div class="mjh mkh"><div><div class="ey">${esc(mes)}</div><div class="mjhn">${k0(kg)}<span> vendidos</span></div><div class="hs">Poné una meta para ver cuánto te falta.</div></div></div>`
     :falta<=0?`<div class="mjh ok"><div><div class="ey">Meta de ${esc(mes.toLowerCase())}</div><div class="mjhn">Cumplida</div><div class="hs">Vas ${k0(kg-meta)} arriba de la meta. Lo que sumes ya es extra.</div></div></div>`
     :semIni?`<div class="mjh mkh">${ring(pcS,Math.round(pcS*100)+'%')}<div><div class="ey">${semTit}</div><div class="mjhn">${nf(Math.round(kgS))}<span> / ${nf(objSem)} kg</span></div>
       <div class="hs">${faltaSem>0?`${nf(Math.ceil(pvV))} kg por visita · ${visSem} visita${visSem==1?'':'s'}`:'Semana cumplida. Lo que sumes adelanta el mes.'}</div>${ST&&stMeta?`<span class="pill">⭐ ${esc(stN)}: ${nf(Math.round(stKg*10)/10)} / ${nf(stMeta)} kg</span>`:''}</div></div>`
     :`<div class="mjh mkh"><div><div class="ey">${esc(mes)}</div><div class="mjhn">${nf(Math.ceil(falta))}<span> kg por vender</span></div></div></div>`;
-  const pc=meta?Math.min(1,kg/meta):0,fotoDe=x=>{if(x.f)return x.f;const L=x.ps?.length?[x.star?.p,...x.ps]:[x.p];for(const q of L)if(q&&S.min[q]?.foto)return S.min[q].foto;return ''},
+  const pc=pc0,fotoDe=x=>{if(x.f)return x.f;const L=x.ps?.length?[x.star?.p,...x.ps]:[x.p];for(const q of L)if(q&&S.min[q]?.foto)return S.min[q].foto;return ''},
     tabs=IT.length>1?`<div class="mktabs" role="tablist" aria-label="Producto">${IT.map((x,k)=>{const f=fotoDe(x),pk=+x.meta?Math.min(1,kgT[k]/x.meta):0;return`<button role="tab" aria-selected="${k==sel}" data-mk="${k}" class="mkt${k==sel?' on':''}"><span class="mkf">${f?`<img src="${esc(f)}" alt="">`:esc((x.n||'?')[0])}</span><span class="mkn">${esc(x.n||'Producto')}</span><span class="mkb"><i style="width:${(pk*100).toFixed(1)}%"></i></span><span class="mkk">${nf(Math.round(kgT[k]))}${+x.meta?' / '+nf(x.meta):''} kg</span></button>`}).join('')}</div>`:'';
   box.innerHTML=`<div class="box obj mj"><div class="mjtop"><div><div class="ey">Meta de ${esc(mes.toLowerCase())}</div><div class="tt mknm">${esc(it.t||(linea?it.n:pr?.descripcion)||it.n||'Producto')}</div></div><button class="mjmeta" id="mk_e" aria-label="Cambiar meta"><small>Meta del mes</small><b>${meta?nf(meta)+' kg':'Poner'}</b><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16H4v-3z"/></svg></button></div>
     ${tabs}<div id="mk_h" role="button" tabindex="0" aria-expanded="${abierto}" style="cursor:pointer;margin-top:${tabs?'10px':'0'}">${hero}</div>
