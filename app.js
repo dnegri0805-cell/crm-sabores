@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-30.2';
+const VERSION='2026-10-30.3';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -272,12 +272,12 @@ async function vInicio(){
     <div class="box" id="k2"><span class="lab">Por aprobar</span><span class="num">…</span><span class="det"></span></div>
     ${dia?`<div class="box clic${visHoy.length?'':' vacio'}" id="k6"><span class="lab">Visitas de hoy</span><span class="num">${visHoy.length}</span><span class="det">${visHoy.length?esc(visHoy.slice(0,3).map(nomVis).join(', '))+(visHoy.length>3?'…':''):'Nadie agendado hoy'}</span></div>`:''}
     <div class="box" id="k3"><span class="lab">Te deben</span><span class="num">…</span><span class="det"></span></div>
-    <div class="box" id="k4"><span class="lab">Debés a proveedores</span><span class="num">…</span><span class="det"></span></div>
+    ${S.perfil.rol=='vendedor'?'':`<div class="box" id="k4"><span class="lab">Debés a proveedores</span><span class="num">…</span><span class="det"></span></div>`}
     <div class="box" id="k5"><span class="lab">Stock bajo</span><span class="num">…</span><span class="det"></span></div>
   </div>`;
   $('#v').innerHTML=`<div class="bh ini-h" style="flex-wrap:wrap;gap:8px"><div><h2 style="margin:0">${hr<5?'Buenas noches':hr<13?'Buen día':hr<20?'Buenas tardes':'Buenas noches'}${S.perfil.nombre?', '+esc(String(S.perfil.nombre).trim().split(/\s+/)[0]):''}</h2><small class="ini-f">${hoyD.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}</small></div>
     ${dia?'':'<button class="alt" data-iv="dia">← Volver al inicio simple</button>'}</div>
-  ${dia?`${principalesHTML(false)}${kpH}<div id="manijl"></div><div id="metaskg"></div>`:`
+  ${dia?`${principalesHTML(false)}${kpH}<div id="comv"></div><div id="manijl"></div><div id="metaskg"></div>`:`
   ${principalesHTML()}<div id="bk"></div><div id="cmpi"></div><div id="cami"></div><div id="equi"></div><div id="doci"></div><div id="midia"></div><div id="mani"></div><div id="resd"></div><div id="tari"></div>
   <div class="herr" id="herr"></div>
   <div id="alm"></div>
@@ -302,7 +302,7 @@ async function vInicio(){
   $('#k6')&&($('#k6').onclick=()=>irA('clientes',{cs:'agenda',agD:Math.min(dvHoy,6)}));
   if(S.perfil.rol=='dueno'){cajaBackup();cajaDolar().catch(()=>{})}
   /* Primero los números del día; los avisos y tareas de abajo se cargan un instante después para que Inicio aparezca más rápido */
-  avisosEnVivo();setTimeout(()=>{herramientas();generarFijos();alertasMargen();objetivoMes();maniJLInicio().catch(()=>{});metasKgInicio().catch(()=>{});tocaInicio();fidelInicio().catch(()=>{});masInicio().catch(()=>{});crecerInicio().catch(()=>{});fielesInicio().catch(()=>{});servInicio().catch(()=>{});planInicio().catch(()=>{});colaInicio().catch(()=>{});resumenDia().catch(()=>{});tareasInicio().catch(()=>{});chequeoInicio().catch(()=>{});camionetaInicio().catch(()=>{});cuentasInicio().catch(()=>{});equiposInicio().catch(()=>{});comprobantesInicio().catch(()=>{});mananaInicio().catch(()=>{});miDia().catch(()=>{});ocSemanal().catch(()=>{});aplicarAumentosProg().catch(()=>{});sincronizarOff().catch(()=>{});metasInicio().catch(()=>{});empujonBox($('#empi')).catch(()=>{});fechasInicio();},700);
+  avisosEnVivo();setTimeout(()=>{herramientas();generarFijos();alertasMargen();objetivoMes();maniJLInicio().catch(()=>{});metasKgInicio().catch(()=>{});comisionInicio().catch(()=>{});tocaInicio();fidelInicio().catch(()=>{});masInicio().catch(()=>{});crecerInicio().catch(()=>{});fielesInicio().catch(()=>{});servInicio().catch(()=>{});planInicio().catch(()=>{});colaInicio().catch(()=>{});resumenDia().catch(()=>{});tareasInicio().catch(()=>{});chequeoInicio().catch(()=>{});camionetaInicio().catch(()=>{});cuentasInicio().catch(()=>{});equiposInicio().catch(()=>{});comprobantesInicio().catch(()=>{});mananaInicio().catch(()=>{});miDia().catch(()=>{});ocSemanal().catch(()=>{});aplicarAumentosProg().catch(()=>{});sincronizarOff().catch(()=>{});metasInicio().catch(()=>{});empujonBox($('#empi')).catch(()=>{});fechasInicio();},700);
   const cli=id=>esc(S.clientes.find(c=>c.id==id)?.razon_social||'Cliente');
   const [fv,pe,fe,sp,fp]=await Promise.all([
     sb.from('facturas_venta').select('*').order('id',{ascending:false}).limit(500),
@@ -330,7 +330,7 @@ async function vInicio(){
   // 4 proveedores
   if(sp.error)fallo('k4',sp.error);else{
     const D=sp.data.filter(x=>Number(x.saldo)>0.005),tot=D.reduce((a,x)=>a+Number(x.saldo),0);
-    kp('k4',$m(tot),D.length?D.length+(D.length==1?' proveedor':' proveedores'):'Sin deudas');$('#k4').classList.toggle('vacio',!(tot>0));kpCeros()}
+    if(!$('#k4'))return;kp('k4',$m(tot),D.length?D.length+(D.length==1?' proveedor':' proveedores'):'Sin deudas');$('#k4').classList.toggle('vacio',!(tot>0));kpCeros()}
   if(fp.error)$('#t3').innerHTML='<p class="err">'+esc(fp.error.message)+'</p>';else{
     const sal=id=>Number(sp.data?.find(x=>x.proveedor_id==id)?.saldo||0);
     const L=fp.data.filter(f=>f.tipo!='NC'&&sal(f.proveedor_id)>0.005);
@@ -898,6 +898,7 @@ function nuevoCliente(){const m=document.createElement('div');m.className='modal
   <label class="f">Días de pago<input id="c_p" type="number" min="0" inputmode="numeric" placeholder="0 = contado"></label></div><button id="c_g">Guardar cliente</button></div>`;
   m.onclick=e=>{if(e.target==m)m.remove()};$('#c_x').onclick=()=>m.remove();setTimeout(()=>$('#c_n')?.focus(),50);
   $('#c_g').onclick=async()=>{const n=$('#c_n').value.trim();if(!n)return toast('Falta la razón social.',1);$('#c_g').disabled=true;
+    if(await yaEsCliente($('#c_c').value.trim(),$('#c_t').value.trim())){$('#c_g').disabled=false;return toast(MSJ_YA_CLIENTE,1)}
     const{data,error}=await sb.from('clientes').insert({razon_social:n,cuit:$('#c_c').value.trim()||null,telefono:$('#c_t').value.trim()||null,domicilio:$('#c_d').value.trim()||null,
       condicion_iva:$('#c_i').value,lista:$('#c_l').value,...($('#c_r').value?{rubro:$('#c_r').value}:{}),...($('#c_nf').value.trim()?{nombre_fantasia:$('#c_nf').value.trim()}:{}),condicion_pago_dias:+$('#c_p').value||0,vendedor_id:S.perfil.id,...(dirOk()?dirLeer('c'):{})}).select().single();
     if(error){$('#c_g').disabled=false;return toast(dirFalta(error),1)}
@@ -3292,6 +3293,22 @@ async function metasKgInicio(){const box=$('#metaskg');if(!box||S.perfil.rol!='d
   $$('#metaskg [data-mkp]').forEach(bt=>bt.onclick=()=>{const x=VIS.find(y=>y.c.id==bt.dataset.mkp);S.preCli=x.c;S.preItems=linea?(ST&&(x.st||!LL[x.c.id])?[stId,...(LL[x.c.id]||[])]:LL[x.c.id]?[...LL[x.c.id]]:null):[id];S.tab='pedidos';shell()});
   $('#mk_e').onclick=async()=>{const x=prompt(`¿Cuántos kilos de ${it.n||'este producto'} querés vender por mes?`,meta?String(meta):'100');if(x===null)return;const n=numAR(x);if(!(n>0))return toast('Escribí los kilos, por ejemplo 150.',1);
     const items=(C.items||[]).map(y=>y===C.items[C.items.indexOf(it)]||(y.n==it.n&&y.p==it.p&&JSON.stringify(y.ps)==JSON.stringify(it.ps))?{...y,meta:n}:y);const{error}=await guardaCfgJ('metas_kg',{...C,items,sel});error?toast(error.message,1):(toast('Meta guardada.'),metasKgInicio())}}
+
+/* ======================= COMISIÓN DEL VENDEDOR (Inicio) =======================
+   Misma cuenta que Reportes: ventas sin IVA de los pedidos aprobados en adelante del mes × % de comisión. */
+async function comisionInicio(){const box=$('#comv');if(!box||S.perfil.rol!='vendedor')return;
+  const m=mesHoy(),[a,b]=mesRango(m),hoy=diaLocal(new Date());
+  const[pf,pe]=await Promise.all([sb.from('perfiles').select('comision_pct').eq('id',S.perfil.id).maybeSingle(),
+    todo(()=>sb.from('pedidos').select('total,creado_en,estado').eq('vendedor_id',S.perfil.id).not('estado','in','(pendiente,cancelado)').gte('creado_en',tsAR(a)).lt('creado_en',tsAR(b)).order('numero'))]);
+  const pct=+pf.data?.comision_pct||0,L=pe.data||[],v=L.reduce((s,o)=>s+(+o.total||0),0),vh=L.filter(o=>diaLocal(o.creado_en)==hoy).reduce((s,o)=>s+(+o.total||0),0),neto=v/1.21,com=neto*pct/100;
+  const m0=n=>'$\u00a0'+Math.round(+n||0).toLocaleString('es-AR'),mes=mesNom(m).split(' ')[0];
+  box.innerHTML=`<div class="box obj mj"><div class="mjtop"><div><div class="ey">${esc(mes)}</div><div class="tt">Tu comisión</div></div></div>
+    <div class="mkgan"><div><b>${m0(com)}</b><small>${pct?nf(pct)+' % de tus ventas sin IVA':'Todavía no tenés % cargado'}</small></div><div><b>${m0(v)}</b><small>vendiste en ${esc(mes.toLowerCase())} · ${L.length} pedido${L.length==1?'':'s'}</small></div></div>
+    <p class="mjn">Hoy vendiste <b>${m0(vh)}</b>. Cuentan los pedidos aprobados; los que están por aprobar se suman cuando la oficina los aprueba.</p></div>`}
+
+/* Aviso de cliente repetido para vendedores (no muestra los datos del cliente existente) */
+async function yaEsCliente(cuit,tel){if(S.perfil?.rol!='vendedor'||!(cuit||tel))return false;try{const{data}=await sb.rpc('cliente_ya_existe',{p_cuit:cuit||'',p_tel:tel||''});return !!data}catch(e){return false}}
+const MSJ_YA_CLIENTE='Este comercio ya es cliente de Sabores de mi País. Consultá con la oficina antes de cargarlo.';
 
 /* ======================= VENDEDORES Y COMISIONES (Reportes) ======================= */
 async function vendedoresReporte(){const box=$('#rp_v');if(!box)return;
@@ -6072,7 +6089,7 @@ async function vAuto(){const A=await cfgAuto(),due=S.perfil.rol=='dueno',dis=due
 async function guardaAuto(o,silencio){const{error}=await sb.from('config_app').upsert({clave:'automatizaciones',valor:JSON.stringify(o)});if(error)return toast(error.message,1);if(!silencio)toast('Automatizaciones guardadas.');vAuto()}
 
 /* ---------- Alta exprés ---------- */
-async function insertCliente(row){let r=row;for(let k=0;k<6;k++){const{data,error}=await sb.from('clientes').insert(r).select().single();if(!error)return{data};
+async function insertCliente(row){if(await yaEsCliente(row.cuit,row.telefono))return{error:{message:MSJ_YA_CLIENTE}};let r=row;for(let k=0;k<6;k++){const{data,error}=await sb.from('clientes').insert(r).select().single();if(!error)return{data};
   const col=Object.keys(r).find(c=>new RegExp("'"+c+"'|\\b"+c+"\\b").test(error.message)&&!['razon_social','telefono'].includes(c));if(!col)return{error};const{[col]:_,...rest}=r;r=rest}return{error:{message:'No se pudo dar de alta.'}}}
 async function altaExpres(x,w){if(x.cliente_id){const c=S.clientes.find(c=>c.id==x.cliente_id);if(c)return c}
   const cod=(String(x.observaciones||'').match(/código ([A-Z0-9]{4,12})/)||[])[1],ref=cod?S.clientes.find(c=>c.codigo_ref==cod):null;
@@ -7437,7 +7454,7 @@ const BN_IC={inicio:'home',pedidos:'cart',clientes:'user',precios:'tag',stock:'b
 const TAB_PRI=['inicio','pedidos','clientes','compras','ventas'];
 const TAB_ICO={inicio:'🏠',pedidos:'🛒',clientes:'👤',compras:'📦',ventas:'📈',reparto:'🚚',cobranza:'💵',caja:'🧾',stock:'📊',precios:'🏷️',reportes:'📑',contable:'📚',manual:'📖'};
 const nomTab=t=>t=='manual'?'📖 Manual':t[0].toUpperCase()+t.slice(1);
-function tabsMenu(){const T=['inicio','pedidos','clientes','compras','ventas','reparto','cobranza','caja','stock','precios','reportes','contable','manual'].filter(t=>!['precios','caja','contable'].includes(t)||S.perfil.rol=='dueno').filter(t=>t=='inicio'||t==S.tab||!(S.menuT?.oc||[]).includes(t));
+function tabsMenu(){const T=['inicio','pedidos','clientes','compras','ventas','reparto','cobranza','caja','stock','precios','reportes','contable','manual'].filter(t=>!['precios','caja','contable'].includes(t)||S.perfil.rol=='dueno').filter(t=>S.perfil.rol!='vendedor'||!['compras','reparto'].includes(t)).filter(t=>t=='inicio'||t==S.tab||!(S.menuT?.oc||[]).includes(t));
   return{pri:T.filter(t=>TAB_PRI.includes(t)),sec:T.filter(t=>!TAB_PRI.includes(t))}}
 const bottomTabs=()=>['inicio','pedidos','clientes',S.perfil.rol=='dueno'?'precios':'stock'];
 const MAS_IC={compras:['box','Proveedores y órdenes'],ventas:['chart','Cola, difusión y ofertas'],reparto:['truck','Hoja de reparto y entregas'],cobranza:['cash','Deudas y cobros'],caja:['receipt','Movimientos del día'],stock:['bars','Conteo y reposición'],reportes:['doc','Números del negocio'],contable:['calc','Libros e impuestos'],manual:['book','Cómo usar el CRM'],precios:['tag','Márgenes y productos'],pedidos:['cart','Cargar y aprobar'],clientes:['user','Fichas y agenda'],inicio:['home','Resumen del día']};
@@ -7456,7 +7473,7 @@ function menuMas(todas){const LT=todas===1?(()=>{const t=tabsMenu();return [...t
 const irA=(tab,extra)=>{Object.assign(S,extra||{});S.tab=tab;shell()};
 /* 6. Botones grandes (celular) */
 /* Inicio: los 4 accesos de todos los días, grandes, y el resto chico */
-const principalesHTML=(sec=true)=>`<div class="ppal"><button onclick="irA('pedidos')"><span>${IC('cart',30)}</span>Nuevo pedido</button><button class="alt" onclick="irA('clientes',{cs:'lista',abrirNuevo:1})"><span>${IC('user',30)}</span>Nuevo cliente</button><button class="alt" onclick="irA('compras',{sub:'proveedores'})"><span>${IC('building',30)}</span>Proveedores</button><button class="alt" onclick="irA('compras',{sub:'ordenes'})"><span>${IC('box',30)}</span>Compras</button><button class="alt" onclick="irA('ventas',{vs:'rapido'})"><span>${IC('chart',30)}</span>Ventas</button><button class="alt" onclick="folletosListos()"><span>${IC('folder',30)}</span>Folletos</button></div>
+const principalesHTML=(sec=true)=>`<div class="ppal"><button onclick="irA('pedidos')"><span>${IC('cart',30)}</span>Nuevo pedido</button><button class="alt" onclick="irA('clientes',{cs:'lista',abrirNuevo:1})"><span>${IC('user',30)}</span>Nuevo cliente</button>${S.perfil?.rol=='vendedor'?`<button class="alt" onclick="irA('clientes',{cs:'lista'})"><span>${IC('users',30)}</span>Mis clientes</button><button class="alt" onclick="irA('pedidos')"><span>${IC('box',30)}</span>Mis pedidos</button>`:`<button class="alt" onclick="irA('compras',{sub:'proveedores'})"><span>${IC('building',30)}</span>Proveedores</button><button class="alt" onclick="irA('compras',{sub:'ordenes'})"><span>${IC('box',30)}</span>Compras</button>`}<button class="alt" onclick="irA('ventas',{vs:'rapido'})"><span>${IC('chart',30)}</span>Ventas</button><button class="alt" onclick="folletosListos()"><span>${IC('folder',30)}</span>Folletos</button></div>
   ${sec?`<div class="atsec">${[['📥 Por aprobar',"irA('pedidos',{pf:'pendiente'})"],['🧺 Armar',"hojaArmado()"],['🚚 Reparto',"irA('reparto')"],['💵 Cobrar',"irA('cobranza')"],['⚡ Cola del día',"irA('ventas',{vs:'cola'})"]].map(([t,f])=>`<button class="alt" onclick="${f}">${t}</button>`).join('')}</div>`:''}`;
 const atajosHTML=()=>`<div class="atajos">${[['🛒','Nuevo pedido',"irA('pedidos')"],['⚡','Cola del día',"irA('ventas',{vs:'cola'})"],['📥','Por aprobar',"irA('pedidos',{pf:'pendiente'})"],['🧺','Armar',"hojaArmado()"],['🚚','Reparto',"irA('reparto')"],['💵','Cobrar',"irA('cobranza')"]].map(([i,t,f])=>`<button class="at" onclick="${f}"><span>${i}</span>${t}</button>`).join('')}</div>`;
 
@@ -7832,7 +7849,7 @@ async function chequeoInicio(){const box=$('#chk');if(!box||S.perfil.rol!='dueno
 /* Pestañas que se ven arriba (se guarda para todos tus equipos) */
 const TAB_NOM={pedidos:'Pedidos',ventas:'Ventas',reparto:'Reparto',clientes:'Clientes',cobranza:'Cobranza',caja:'Caja',compras:'Compras',stock:'Stock',precios:'Precios',reportes:'Reportes',contable:'Contable',manual:'📖 Manual'};
 async function menuTabsCfg(){if(S.menuT==null)S.menuT=await cfgJ('menu_tabs',{oc:[]});const oc=new Set(S.menuT.oc||[]),m=document.createElement('div');m.className='modal';document.body.appendChild(m);
-  const tabs=Object.keys(TAB_NOM).filter(t=>!['precios','caja','contable'].includes(t)||S.perfil.rol=='dueno');
+  const tabs=Object.keys(TAB_NOM).filter(t=>!['precios','caja','contable'].includes(t)||S.perfil.rol=='dueno').filter(t=>S.perfil.rol!='vendedor'||!['compras','reparto'].includes(t));
   m.innerHTML=`<div class="mc"><div class="bh"><h3>☰ Qué se ve en el menú</h3><button class="alt" id="mt_x">Cerrar</button></div>
     <div class="aviso" style="margin:0 0 10px"><b>✨ Menú simple recomendado</b><br><small>Deja lo del día a día. En Ventas quedan solo 14 pantallas: les toca comprar, prospectos, folletos y catálogo, estados de WhatsApp, presupuestos, reclamos, combos y pocas más. Oculta Reportes, los análisis, Instagram y las promociones que casi no se usan. No se borra nada: lo oculto se sigue encontrando con el buscador de Ventas.</small><br><button id="mt_s" style="margin-top:8px">Usar el menú simple</button></div>
     <p><small>O elegí vos: destildá las pestañas que no usás. No se borra nada: podés volver a mostrarlas cuando quieras, y se guarda para la PC y el celular.</small></p>
