@@ -19,3 +19,8 @@ Cada vez que se publica un cambio en `index.html` o `pedido.html`, subir su `VER
 ## Órdenes de pago y recibos detallados
 Correr una vez `sql/ordenes-pago.sql` en Supabase. Agrega: órdenes de pago numeradas (Compras → Órdenes de pago), pago escalonado por factura,
 valores con detalle (eCheq, cheques de cartera, transferencias por cuenta), retenciones sufridas y practicadas, certificados y anulación.
+
+## Archivos del programa
+- `app.js`: el CRM (todo lo que se usa al abrir y en el día a día).
+- `extras.js`: pantallas de uso ocasional (Contable, Reportes, Folletos, Impresora, Manual, Ventas y otras). Se baja sola en segundo plano y queda guardada en el celular. La lista de lo que vive ahí está en `EXTRAS` dentro de `app.js`: si se agrega una función nueva a `extras.js`, sumarla a esa lista.
+- Costos protegidos: el vendedor no puede leer `productos.costo`, `costo_usd`, `pedido_items.costo_unitario` ni costo/margen de `aprobaciones_precio`. El resto del equipo los lee por las vistas `*_c` (lo resuelve `PRIV` en `app.js`). Si se agregan columnas a esas tablas, correr `select columnas_privadas_refrescar();` en Supabase y sumarlas a `PRIV`.
