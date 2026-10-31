@@ -32,7 +32,7 @@ Es el tablero del día. De arriba hacia abajo:
 - **Facturado hoy:** siempre a la vista. En $ 0 queda en un solo renglón; cuando facturás, se agranda.
 - **Números del día:** Por aprobar, Visitas de hoy, Te deben, Debés a proveedores y Para entregar. *Te deben* se pinta de rojo solo si hay facturas vencidas.
 - **✅ Todo al día:** los números que están en cero se juntan en un solo renglón verde (por ejemplo *Nada pendiente* o *Sin cobros ni pagos*). Apenas uno tiene algo, vuelve a aparecer como tarjeta.
-- **Metas del mes:** una sola tarjeta con un renglón por meta (Maní JL, BOYA, Tarantela y Salames Grion), con su barra y lo que falta. Tocás un renglón y se abre su detalle completo abajo (explicado en la sección 3). El último tramo del mes ya muestra el ritmo del mes que viene.
+- **Metas del mes:** una sola tarjeta con un renglón por meta (Maní JL, BOYA, Tarantela y Salames Grion), con su barra y lo que falta. Tocás un renglón y se abre su detalle completo abajo (explicado en la sección 3). El último tramo del mes ya muestra el ritmo del mes que viene. Las metas en kilos también se muestran **en cajas** (≈ 25 kg la caja de BOYA, 16 kg la de La Tarantela, 10 kg la de salame): los kilos por caja se cambian con el **lápiz** de cada meta.
 - **Actividad reciente:** los últimos pedidos, cobros y prospectos que avanzaron, con quién lo hizo y cuándo.
 - **Tu comisión** (solo el vendedor): cuánto vendió en el mes y cuánto le corresponde.
 - **Tus logros** (solo el vendedor): 🔥 días seguidos con pedidos, 🏅 10 clientes nuevos, 💯 30 pedidos y 🎯 la meta del mes, con su barra de avance. En la tarjeta Vendedores el dueño ve la racha de cada uno.
