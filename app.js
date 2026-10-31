@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-31.27';
+const VERSION='2026-10-31.28';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -1407,12 +1407,17 @@ const linkCuenta=c=>c.token_pedidos?linkPedidos(c)+'#cuenta':'';
 async function fichaCliente(c){
   if(!c)return;S.fc=c.id;window.scrollTo(0,0);
   const IVA={responsable_inscripto:'Responsable Inscripto',monotributo:'Monotributo',consumidor_final:'Consumidor final',exento:'Exento'};
+  const tel0=telWA(c.telefono||''),dir0=dirCompleta(c),mapa0=c.lat&&c.lng?`https://www.google.com/maps/search/?api=1&query=${c.lat},${c.lng}`:dir0?'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(dir0):'',cuit0=c.cuit?String(c.cuit).replace(/^(\d{2})(\d{8})(\d)$/,'$1-$2-$3'):'';
+  if(S.fcUlt!=c.id){S.fcTab='res';S.fcHf=''}S.fcUlt=c.id;S.fcTab=S.fcTab||'res';
   $('#v').innerHTML=`<p class="fc-volp"><a class="lnk" id="fc_vol">← Volver a Clientes</a></p>
-  <div class="fc-head"><div class="fc-tit">${avatar(c,'big')}<h2>${esc(nomVis(c))}</h2><div class="fc-sub">${esc([(c.nombre_fantasia||'').trim()?tituloCaso(c.razon_social):'',c.rubro,c.barrio||c.ciudad].filter(Boolean).join(' · '))}</div>
-    <div class="fc-chips"><span class="fc-estw" id="fc_est">${estChip(c.id)}</span><span class="fc-etq" id="fc_etq">${etqChips(c)}<button class="etq-add" id="fc_eta">${IC('tag',13)} ${(c.etiquetas||[]).length?'Cambiar':'Etiqueta'}</button></span><span>${esc(nomL(c.lista))}</span><span>${c.condicion_pago_dias?c.condicion_pago_dias+' días':'Contado'}</span>${+c.limite_credito>0?`<span>Límite ${$m(c.limite_credito)}</span>`:''}</div></div>
-    <div class="fc-big"><button id="fc_np">${IC('cart',21)} Nuevo pedido</button><button class="alt fc-ml" id="fc_ml" title="Le manda por WhatsApp su link con la lista de precios actualizada">${IC('tag')} Mandar lista</button>${telWA(c.telefono||'')?`<a class="btn fc-wa" href="https://wa.me/${esc(telWA(c.telefono))}" target="_blank" rel="noopener">${IC('chat')} WhatsApp</a><a class="btn alt" href="tel:${esc(c.telefono)}">${IC('phone')} Llamar</a>`:`<button class="alt" id="fc_tel">${IC('plus')} Agregar teléfono</button>`}</div>
-    <details class="fc-dat"><summary>${IC('doc',18)} Datos del cliente ${IC('down',16)}</summary><div class="fc-datc"><div>${c.cuit?'CUIT '+esc(String(c.cuit).replace(/^(\d{2})(\d{8})(\d)$/,'$1-$2-$3'))+' · ':''}${IVA[c.condicion_iva]||esc(c.condicion_iva||'')}</div><div>${c.razon_social?'Razón social: '+esc(tituloCaso(c.razon_social)):''}</div><div>${c.telefono?'Tel. '+esc(c.telefono):'Sin teléfono'}</div><div>${dirCompleta(c)?esc(tituloCaso(dirCompleta(c)).replace(/, ([a-z])/g,(m,x)=>', '+x.toUpperCase()).replace(/\bCaba\b/g,'CABA').replace(/, CABA, Buenos Aires/,', CABA').replace(/\bCp\b/g,'CP')):'Sin dirección'}</div><button class="alt" id="fc_ed">${IC('pencil',16)} Editar datos</button></div></details>
-    <details class="fc-mas"><summary>Más acciones ${IC('down',16)}</summary><div class="fc-acc">${S.perfil.rol=='dueno'?'<button class="alt" id="fc_cb">🕓 Quién cambió qué</button>':''}<button class="alt" id="fc_rp">🔁 Repetir último</button><button class="alt" id="fc_po">🛒 Pedido online</button><button class="alt" id="fc_co">Registrar cobro</button><button class="alt" id="fc_ec">📄 Estado de cuenta</button><button class="alt" id="fc_lp">Lista de precios</button><button class="alt" id="fc_fj">Pedido fijo</button><button class="alt" id="fc_gl">📞 Guion de llamada</button><button class="alt" id="fc_ng">🧮 Negociar</button><button class="alt" id="fc_gon">📸 Góndola</button><button class="alt" id="fc_doc">📂 Documentos</button><button class="alt" id="fc_vac">${vacBtn(c)}</button><button class="alt" id="fc_hr">${horarioTxt(c)||'🕐 Horario de recepción'}</button>${'cuenta_clave' in c?`<button class="alt" id="fc_kc">${c.cuenta_clave?'👑 Es cuenta clave':'☆ Cuenta clave'}</button><button class="alt" id="fc_pd">${c.perdido_en?'🚩 Perdido ('+esc(c.perdido_con||'')+')':'🚩 Se fue a la competencia'}</button>`:''}</div></details></div>
+  <div class="fc-head fc3"><div class="fc-top"><div class="fc-tit">${avatar(c,'big')}<h2>${esc(nomVis(c))}</h2><div class="fc-sub">${esc([(c.nombre_fantasia||'').trim()?tituloCaso(c.razon_social):'',c.rubro,c.barrio||c.ciudad].filter(Boolean).join(' · '))}</div></div><button class="alt fc-more" id="fc_more" aria-label="Más acciones" title="Más acciones">${IC('menu',18)}<span>Más</span></button></div>
+    <div class="fc-chips"><span class="fc-estw" id="fc_est">${estChip(c.id)}</span><span class="fc-etq" id="fc_etq">${etqChips(c)}<button class="etq-add" id="fc_eta">${IC('tag',13)} ${(c.etiquetas||[]).length?'Cambiar':'Etiqueta'}</button></span><span>${esc(nomL(c.lista))}</span><span>${c.condicion_pago_dias?c.condicion_pago_dias+' días':'Contado'}</span>${+c.limite_credito>0?`<span>Límite ${$m(c.limite_credito)}</span>`:''}</div>
+    <div class="fc-sal" id="fc_sal"></div>
+    <div class="fc-kpi" id="fc_kpi"><div title="Lo que compra por mes (promedio de los últimos 3 meses)"><small>Por mes</small><b id="fk_m">…</b></div><div><small>Pide cada</small><b id="fk_c">…</b></div><div><small>Último</small><b id="fk_u">…</b></div><div id="fk_sw" class="clic" role="button" tabindex="0"><small>Saldo</small><b id="fk_s">…</b></div></div>
+    <div class="fc-acts"><button class="pri" id="fc_np">${IC('cart',22)}<span>Pedido</span></button>${tel0?`<a class="wa" href="https://wa.me/${esc(tel0)}" target="_blank" rel="noopener">${IC('chat',22)}<span>WhatsApp</span></a><a href="tel:${esc(c.telefono)}">${IC('phone',22)}<span>Llamar</span></a>`:`<button id="fc_tel">${IC('plus',22)}<span>Teléfono</span></button>`}<button id="fc_ml" title="Le manda por WhatsApp su link con la lista de precios actualizada">${IC('tag',22)}<span>Lista</span></button>${mapa0?`<a href="${mapa0}" target="_blank" rel="noopener">${IC('map',22)}<span>Mapa</span></a>`:''}</div>
+    <div class="fc-q">${c.telefono?`<a class="fc-qc" href="tel:${esc(c.telefono)}">${IC('phone',14)} ${esc(c.telefono)}</a>`:''}${dir0?`<a class="fc-qc" href="${mapa0}" target="_blank" rel="noopener">${IC('pin',14)} ${esc(tituloCaso(c.domicilio||dir0))}</a>`:''}${cuit0?`<button class="fc-qc" id="fc_cuit" title="Copiar CUIT">${IC('doc',14)} CUIT ${esc(cuit0)}</button>`:''}</div>
+    <details class="fc-dat"><summary>${IC('doc',18)} Todos los datos ${IC('down',16)}</summary><div class="fc-datc"><div>${c.cuit?'CUIT '+esc(String(c.cuit).replace(/^(\d{2})(\d{8})(\d)$/,'$1-$2-$3'))+' · ':''}${IVA[c.condicion_iva]||esc(c.condicion_iva||'')}</div><div>${c.razon_social?'Razón social: '+esc(tituloCaso(c.razon_social)):''}</div><div>${c.telefono?'Tel. '+esc(c.telefono):'Sin teléfono'}</div><div>${dirCompleta(c)?esc(tituloCaso(dirCompleta(c)).replace(/, ([a-z])/g,(m,x)=>', '+x.toUpperCase()).replace(/\bCaba\b/g,'CABA').replace(/, CABA, Buenos Aires/,', CABA').replace(/\bCp\b/g,'CP')):'Sin dirección'}</div><button class="alt" id="fc_ed">${IC('pencil',16)} Editar datos</button></div></details>
+    <div id="fc_masw" hidden><div class="fc-acc">${S.perfil.rol=='dueno'?'<button class="alt" id="fc_cb">🕓 Quién cambió qué</button>':''}<button class="alt" id="fc_rp">🔁 Repetir último</button><button class="alt" id="fc_po">🛒 Pedido online</button><button class="alt" id="fc_co">Registrar cobro</button><button class="alt" id="fc_ec">📄 Estado de cuenta</button><button class="alt" id="fc_lp">Lista de precios</button><button class="alt" id="fc_fj">Pedido fijo</button><button class="alt" id="fc_gl">📞 Guion de llamada</button><button class="alt" id="fc_ng">🧮 Negociar</button><button class="alt" id="fc_gon">📸 Góndola</button><button class="alt" id="fc_doc">📂 Documentos</button><button class="alt" id="fc_vac">${vacBtn(c)}</button><button class="alt" id="fc_hr">${horarioTxt(c)||'🕐 Horario de recepción'}</button>${'cuenta_clave' in c?`<button class="alt" id="fc_kc">${c.cuenta_clave?'👑 Es cuenta clave':'☆ Cuenta clave'}</button><button class="alt" id="fc_pd">${c.perdido_en?'🚩 Perdido ('+esc(c.perdido_con||'')+')':'🚩 Se fue a la competencia'}</button>`:''}</div></div></div>
   <div id="fc_px"></div>
   <div id="fc_edit" hidden class="box"><div class="g">
     ${'nombre_fantasia' in c?`<label class="f">Nombre del negocio (como lo conocés)<input id="e_nf" value="${esc(c.nombre_fantasia||'')}" placeholder="Ej.: Juancito"></label>`:''}<label class="f">Razón social (para facturas)<input id="e_n" value="${esc(c.razon_social)}"></label><label class="f">CUIT<input id="e_c" value="${esc(c.cuit)}"></label>
@@ -1427,26 +1432,39 @@ async function fichaCliente(c){
     ${'referido_por' in c?`<label class="f">Lo recomendó (Recomendá y ganá)<select id="e_rf"><option value="">— nadie —</option>${S.clientes.filter(x=>x.id!=c.id).map(x=>`<option value="${x.id}" ${x.id==c.referido_por?'selected':''}>${esc(x.razon_social)}</option>`).join('')}</select></label>`:''}
     ${'dias_visita' in c?`<label class="f">Días de visita</label>${chipsDias('ecd',c.dias_visita||[])}`:''}
     <button id="e_g">Guardar datos</button> <button class="alt" id="e_x">Cancelar</button></div>
-  <div class="kp">
-    <div class="box" id="f1"><span class="lab">Saldo</span><span class="num">…</span><span class="det"></span></div>
-    <div class="box" id="f2"><span class="lab">Vencido</span><span class="num">…</span><span class="det"></span></div>
-    <div class="box" id="f3"><span class="lab">Compró este año</span><span class="num">…</span><span class="det"></span></div>
-    <div class="box" id="f4"><span class="lab">Último pedido</span><span class="num">…</span><span class="det"></span></div>
-  </div>
-  <div class="dos fc2">
-    <div class="box fc-gr" id="fc_gr"><h3>Compras de los últimos 6 meses</h3><span class="skl" role="status" aria-label="Cargando"></span></div>
-    <div class="box fc-hist"><h3>Historial</h3><div id="fc_pe"><span class="skl" role="status" aria-label="Cargando"></span></div></div>
-    <div class="box"><h3>Facturas pendientes</h3><div id="fc_fa"><span class="skl" role="status" aria-label="Cargando"></span></div></div>
-    <div class="box"><h3>Lo que más compra</h3><div id="fc_pr"><span class="skl" role="status" aria-label="Cargando"></span></div></div>
+  <div class="fc-tabs" role="tablist">${[['res','Resumen'],['his','Historial'],['ped','Pedidos'],['cta','Cuenta'],['pre','Precios']].map(([k,t])=>`<button role="tab" class="${S.fcTab==k?'on':''}" data-ft="${k}" aria-selected="${S.fcTab==k}">${t}</button>`).join('')}</div>
+  <div class="fc-pan" data-fp="res">
     <div class="box" id="fc_op"><h3>💡 Oportunidades</h3><p><small>Buscando…</small></p></div>
-    <div class="box" id="fc_pt"><h3>🏆 Puntos</h3><p><small><span class="skl" role="status" aria-label="Cargando"></span></small></p></div>
+    <div class="box"><h3>Lo que más compra</h3><div id="fc_pr"><span class="skl" role="status" aria-label="Cargando"></span></div></div>
+    <div class="box fc-gr" id="fc_gr"><h3>Compras de los últimos 6 meses</h3><span class="skl" role="status" aria-label="Cargando"></span></div></div>
+  <div class="fc-pan" data-fp="his">
+    <div id="fc_nt" class="fc-nq"></div>
+    <div class="box fc-hist"><div class="fc-hf" id="fc_hf"></div><div id="fc_pe"><span class="skl" role="status" aria-label="Cargando"></span></div></div></div>
+  <div class="fc-pan" data-fp="ped"><div class="box"><div class="bh"><h3 style="margin:0">Pedidos</h3><span class="fc-acc" style="margin:0"><button class="alt" id="fc_rp2">${IC('repeat',15)} Repetir el último</button></span></div><div id="fc_pl"><span class="skl" role="status" aria-label="Cargando"></span></div></div></div>
+  <div class="fc-pan" data-fp="cta">
+    <div class="kp">
+      <div class="box" id="f1"><span class="lab">Saldo</span><span class="num">…</span><span class="det"></span></div>
+      <div class="box" id="f2"><span class="lab">Vencido</span><span class="num">…</span><span class="det"></span></div>
+      <div class="box" id="f3"><span class="lab">Compró este año</span><span class="num">…</span><span class="det"></span></div>
+      <div class="box" id="f4"><span class="lab">Último pedido</span><span class="num">…</span><span class="det"></span></div></div>
+    <div class="fc-acc fc-ctaa"><button id="fc_co2">${IC('cash',16)} Registrar cobro</button><button class="alt" id="fc_ec2">${IC('doc',16)} Estado de cuenta</button></div>
+    <div class="box"><h3>Facturas pendientes</h3><div id="fc_fa"><span class="skl" role="status" aria-label="Cargando"></span></div></div>
+    <div class="box"><h3>Últimos pagos</h3><div id="fc_pg"><span class="skl" role="status" aria-label="Cargando"></span></div></div></div>
+  <div class="fc-pan" data-fp="pre">
     <div class="box" id="fc_pc"><h3>💲 Precios pactados</h3><p><small><span class="skl" role="status" aria-label="Cargando"></span></small></p></div>
-  </div>
-  <div id="fc_nt"></div>
+    <div class="box" id="fc_pt"><h3>🏆 Puntos</h3><p><small><span class="skl" role="status" aria-label="Cargando"></span></small></p></div>
   <details class="box link-ped fc-plg"><summary><b>${IC('globe',18)} Link de pedidos online</b></summary>
     ${c.token_pedidos?`<p><small>Con este link ${esc(c.razon_social)} ve su catálogo con los precios de su lista y te manda pedidos, que llegan como <b>Por aprobar</b>.</small></p>
     <input readonly id="lk_u" value="${linkPedidos(c)}"><div class="fc-acc"><a class="btn-ver" href="${linkPedidos(c)}" target="_blank" rel="noopener">👀 Ver como lo ve el cliente</a><button class="alt wa" id="lk_w">Mandar por WhatsApp</button><button class="alt wa" id="lk_cu">Mandar link de su cuenta</button><button class="alt" id="lk_c">Copiar link</button><button class="alt" id="lk_n">Generar link nuevo</button></div>`
-    :'<p class="err"><small>Todavía no está activado. Corré pedidos-online.sql en Supabase.</small></p>'}</details>`;
+    :'<p class="err"><small>Todavía no está activado. Corré pedidos-online.sql en Supabase.</small></p>'}</details></div>`;
+  {const tabs=()=>{$$('#v .fc-tabs [data-ft]').forEach(b=>{const on=b.dataset.ft==S.fcTab;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});$$('#v .fc-pan').forEach(x=>x.classList.toggle('on',x.dataset.fp==S.fcTab))};
+    $$('#v .fc-tabs [data-ft]').forEach(b=>b.onclick=()=>{S.fcTab=b.dataset.ft;tabs();marcarUso('ficha:'+S.fcTab)});tabs();
+    $('#fk_sw').onclick=()=>{S.fcTab='cta';tabs();$('#v .fc-tabs').scrollIntoView({behavior:'smooth',block:'start'})};
+    const mas=$('#fc_more');mas.onclick=()=>{const acc=$('#fc_masw .fc-acc');if(!acc)return;const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+      m.innerHTML=`<div class="mc fc-masm"><div class="bh"><h3 style="margin:0">Más acciones</h3><button class="alt" id="mm_x">Cerrar</button></div></div>`;m.querySelector('.mc').appendChild(acc);
+      const cerrar=()=>{const w=$('#fc_masw');if(w&&acc.parentNode!==w)w.appendChild(acc);m.remove()};m.querySelector('#mm_x').onclick=cerrar;m.onclick=e=>{if(e.target===m)cerrar()};acc.addEventListener('click',e=>{if(e.target.closest('button'))setTimeout(cerrar,0)},{once:true})};
+    const cu=$('#fc_cuit');if(cu)cu.onclick=async()=>{try{await navigator.clipboard.writeText(String(c.cuit).replace(/\D/g,''));toast('CUIT copiado.')}catch(e){toast(String(c.cuit))}};
+    $('#fc_rp2').onclick=()=>$('#fc_rp').click();$('#fc_co2').onclick=()=>$('#fc_co').click();$('#fc_ec2').onclick=()=>$('#fc_ec').click()}
   $('#fc_vol').onclick=()=>{S.fc=null;vClientes()};
   $('#fc_tel')&&($('#fc_tel').onclick=async()=>{const t=(prompt('Teléfono de '+nomVis(c)+' (ej.: 11 2345 6789)')||'').trim();if(!t)return;const{error}=await sb.from('clientes').update({telefono:t}).eq('id',c.id);if(error)return toast(error.message,1);c.telefono=t;toast('Teléfono guardado.');fichaCliente(c)});
   $('#fc_lp').onclick=()=>abrirListaPrecios(c);{const b=$('#fc_ml');if(b)b.onclick=()=>mandarLista(c)}
@@ -1460,7 +1478,7 @@ async function fichaCliente(c){
       const tk=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now()).replace(/-/g,'');
       const{error}=await sb.from('clientes').update({token_pedidos:tk}).eq('id',c.id);if(error)return toast(error.message,1);
       c.token_pedidos=tk;toast('Link nuevo generado. Mandáselo al cliente.');fichaCliente(c)}}
-  $('#fc_np').onclick=()=>{S.preCli=c;S.tab='pedidos';shell()};$('#fc_cb')&&($('#fc_cb').onclick=()=>cambiosModal({ids:[c.id],titulo:'Cambios de '+nomVis(c)}));$('#fc_po').onclick=()=>{const b=$('#fc_lp');b.scrollIntoView({behavior:'smooth',block:'start'});b.style.outline='3px solid '+MARCA.c;setTimeout(()=>b.style.outline='',1800)};$('#fc_rp').onclick=()=>{S.preCli=c;S.preRep=1;S.tab='pedidos';shell()};$('#fc_ec').onclick=()=>estadoCuenta(c);notasFicha(c,'#fc_nt');$('#fc_ng')&&($('#fc_ng').onclick=()=>negociar(c));$('#fc_pd')&&($('#fc_pd').onclick=()=>marcarPerdido(c));
+  $('#fc_np').onclick=()=>{S.preCli=c;S.tab='pedidos';shell()};$('#fc_cb')&&($('#fc_cb').onclick=()=>cambiosModal({ids:[c.id],titulo:'Cambios de '+nomVis(c)}));$('#fc_po').onclick=()=>{$('#v .fc-tabs [data-ft="pre"]')?.click();setTimeout(()=>{const b=$('#v .link-ped');if(!b)return;b.open=true;b.scrollIntoView({behavior:'smooth',block:'start'})},60)};$('#fc_rp').onclick=()=>{S.preCli=c;S.preRep=1;S.tab='pedidos';shell()};$('#fc_ec').onclick=()=>estadoCuenta(c);notasFicha(c,'#fc_nt');$('#fc_nt').addEventListener('click',e=>{if(e.target.closest('#nt_g'))setTimeout(()=>{if(S.fc==c.id){const y=scrollY;S.fcTab='his';fichaCliente(c).then(()=>scrollTo(0,y))}},1300)});$('#fc_ng')&&($('#fc_ng').onclick=()=>negociar(c));$('#fc_pd')&&($('#fc_pd').onclick=()=>marcarPerdido(c));
   $('#fc_kc')&&($('#fc_kc').onclick=async()=>{const{error}=await sb.from('clientes').update({cuenta_clave:!c.cuenta_clave}).eq('id',c.id);if(error)return toast(error.message,1);c.cuenta_clave=!c.cuenta_clave;toast(c.cuenta_clave?'Marcado como cuenta clave 👑':'Ya no es cuenta clave.');fichaCliente(c)});$('#fc_gl').onclick=()=>guionLlamada(c);
   $('#fc_co').onclick=()=>{S.preCob=c.id;S.tab='cobranza';shell()};fichaExtra22(c);fichaExtra23(c);
   $('#fc_ed').onclick=()=>{$('#fc_edit').hidden=false;bindDias()};$('#fc_fj').onclick=()=>editarFijo(c);$('#e_x').onclick=()=>{$('#fc_edit').hidden=true};
@@ -1474,23 +1492,33 @@ async function fichaCliente(c){
   const anio=String(new Date().getFullYear());
   oportunidades(c);puntosFicha(c);pactadosFicha(c);proxFicha(c).catch(()=>{});
   cargarEtq().then(()=>{const b=$('#fc_etq');if(b&&S.fc==c.id)b.innerHTML=etqChips(c)+`<button class="etq-add" id="fc_eta">${IC('tag',13)} ${(c.etiquetas||[]).length?'Cambiar':'Etiqueta'}</button>`;$('#fc_eta')&&($('#fc_eta').onclick=()=>etiquetasModal(c,()=>fichaCliente(c)))}).catch(()=>{});comprasMes(c).catch(()=>{});
-  cargarEstados().then(E=>{const b=$('#fc_est');if(b&&S.fc==c.id&&E[c.id]){const e=E[c.id];b.innerHTML=estChip(c.id)+`<small>${esc(e.why)}</small>`;
+  cargarEstados().then(E=>{const e0=E[c.id];if(e0&&S.fc==c.id&&$('#fc_sal')){const h=e0.hace,cd=e0.cada;
+      $('#fk_m').textContent=e0.t90>0?$k(e0.t90/3):'—';$('#fk_c').textContent=cd?cd+(cd==1?' día':' días'):'—';$('#fk_u').textContent=h==null?'Nunca':h==0?'Hoy':h==1?'Ayer':'Hace '+h+' d';
+      const falta=cd&&h!=null?cd-h:null,diaTxt=n=>{const d=new Date();d.setDate(d.getDate()+n);return n<=0?'hoy':n==1?'mañana':d.toLocaleDateString('es-AR',{weekday:'long'})};
+      const SAL={ok:['v',`Al día: ${cd?'pide cada '+cd+' días':'compró '+e0.hTxt}${falta!=null&&falta>0&&falta<=10?', le toca '+diaTxt(falta):''}`],toca:['a',`Le toca comprar: ${e0.why.toLowerCase()}`],dormido:['r',`Se está enfriando: hace ${h} días que no pide${cd?' (suele cada '+cd+')':''}`],debe:['r',`Debe ${$m0(e0.venc)} vencido`],nuevo:['n',h==null?'Todavía no hizo su primer pedido':'Cliente nuevo: '+e0.why.toLowerCase()],sin:['n','Nunca compró']}[e0.k]||['n',e0.why];
+      $('#fc_sal').className='fc-sal s-'+SAL[0];$('#fc_sal').innerHTML=`<span class="fc-sd"></span><span>${esc(SAL[1])}</span>${h==null?`<button class="alt" id="fc_sl">${IC('tag',14)} Mandarle la lista</button>`:e0.k=='toca'||e0.k=='dormido'?`<button class="alt" id="fc_sl">${IC('chat',14)} Escribirle</button>`:e0.k=='debe'?`<button class="alt" id="fc_sl">${IC('cash',14)} Cobrar</button>`:''}`;
+      const sl=$('#fc_sl');if(sl)sl.onclick=()=>e0.k=='debe'?$('#fc_co').click():h==null?$('#fc_ml').click():window.open('https://wa.me/'+telWA(c.telefono||''),'_blank')}
+    const b=$('#fc_est');if(b&&S.fc==c.id&&E[c.id]){const e=E[c.id];b.innerHTML=estChip(c.id);
     if(e.sc!=null&&!$('#fc_sc')){const d=e.scd;$('.fc-tit').insertAdjacentHTML('beforeend',`<button class="fc-sc" id="fc_sc" title="Puntaje de salud">${scRing(c.id,1)}<small>Salud</small></button>`);
       $('#fc_sc').onclick=()=>toast(`Puntaje ${e.sc} de 100 · frecuencia ${d.fr}/40 · cuánto compra ${d.mo}/25 · paga a tiempo ${d.pa}/20 · tendencia ${d.te}/15`)}}}).catch(()=>{});
-  const[sa,fe,re,pe,nt,ct]=await Promise.all([
+  const[sa,fe,re,pe,nt,ct,au]=await Promise.all([
     sb.from('saldos_clientes').select('*').eq('cliente_id',c.id).maybeSingle(),
     sb.from('facturas_estado').select('*').eq('cliente_id',c.id).gt('pendiente',0.005).order('vencimiento'),
     sb.from('recibos').select('*').eq('cliente_id',c.id).eq('anulado',false).order('numero',{ascending:false}).limit(10),
     sb.from('pedidos').select('*,pedido_items(producto_id,cantidad)').eq('cliente_id',c.id).order('numero',{ascending:false}).limit(30),
     sb.from('notas_cliente').select('id,texto,creado_en,audio').eq('cliente_id',c.id).order('creado_en',{ascending:false}).limit(30).then(r=>r,()=>({data:[]})),
-    sb.from('contactos_clientes').select('fecha,tipo,detalle').eq('cliente_id',c.id).order('fecha',{ascending:false}).limit(30).then(r=>r,()=>({data:[]}))]);
+    sb.from('contactos_clientes').select('fecha,tipo,detalle').eq('cliente_id',c.id).order('fecha',{ascending:false}).limit(30).then(r=>r,()=>({data:[]})),
+    S.perfil.rol=='dueno'?sb.from('auditoria').select('fecha,usuario_id,datos_antes,datos_despues').eq('tabla','clientes').eq('registro_id',c.id).eq('accion','UPDATE').order('fecha',{ascending:false}).limit(40).then(r=>r,()=>({data:[]})):Promise.resolve({data:[]})]);
+  if(S.fc!=c.id||!$('#fc_pe'))return;await equipo().catch(()=>{});
   // saldo
+  {const sd=+sa.data?.saldo||0,fk=$('#fk_s');if(fk){fk.textContent=sa.error?'—':$m0(sd);fk.classList.toggle('pos',sd>0.005)}}
   if(sa.error)kp('f1','—','No se pudo leer');else kp('f1',$m0(sa.data?.saldo),'Facturado '+$m0(sa.data?.facturado)+' · cobrado '+$m0(sa.data?.cobrado),Number(sa.data?.saldo)>0.005?'':'ok');
   // facturas
   if(fe.error){kp('f2','—','');$('#fc_fa').innerHTML='<p class="err">'+esc(fe.error.message)+'</p>'}else{
-    const F=fe.data,V=F.filter(x=>x.dias_mora>0),tv=V.reduce((a,x)=>a+Number(x.pendiente||0),0);
+    const F=fe.data,V=F.filter(x=>x.dias_mora>0),tv=V.reduce((a,x)=>a+Number(x.pendiente||0),0);$('#fk_sw')?.classList.toggle('venc',V.length>0);
     kp('f2',$m0(tv),V.length?V.length+(V.length==1?' factura':' facturas')+' · hasta '+Math.max(...V.map(x=>x.dias_mora))+(Math.max(...V.map(x=>x.dias_mora))==1?' día':' días'):'Nada vencido',V.length?'alerta':'ok');
     $('#fc_fa').innerHTML=F.length?'<table><tr><th>Factura</th><th>Vence</th><th class="n">Debe</th></tr>'+F.map(x=>`<tr><td>${x.tipo} ${x.numero}</td><td class="${x.dias_mora>0?'mora':''}">${fd(x.vencimiento)}${x.dias_mora>0?' · '+x.dias_mora+' d':''}</td><td class="n">${$m(x.pendiente)}</td></tr>`).join('')+'</table>':vacioHTML('No tiene facturas pendientes.','check',null,1)}
+  {const R2=re.data||[],MD={efectivo:'Efectivo',transferencia:'Transferencia',cheque:'Cheque',mercadopago:'Mercado Pago'};$('#fc_pg').innerHTML=R2.length?R2.map(x=>`<div class="fc-pr"><div><b>${$m0(x.importe)}</b><small>${fd(x.fecha)} · ${esc(MD[x.medio]||x.medio||'')} · recibo ${x.numero}</small></div></div>`).join(''):vacioHTML('Todavía no registraste pagos de este cliente.','cash',null,1)}
   // pedidos
   if(pe.error){$('#fc_pe').innerHTML='<p class="err">'+esc(pe.error.message)+'</p>';kp('f3','—','');kp('f4','—','')}else{
     const P=pe.data,val=P.filter(o=>o.estado!='cancelado');
@@ -1502,14 +1530,24 @@ async function fichaCliente(c){
     const H=[...P.map(o=>({f:o.creado_en,ic:'cart',k:'ped',h:`<b>Pedido N° ${o.numero}</b> · ${$m0(o.total)} <span class="badge b-${o.estado}">${EST_TXT[o.estado]||o.estado}</span>`,x:`<a class="lnk" data-pdf="${o.id}">${IC('print',14)} Imprimir</a>${['pendiente','cancelado'].includes(o.estado)?'':`<a class="lnk" data-rm="${o.id}">${IC('doc',14)} Remito</a>`}${o.estado=='entregado'?`<a class="lnk" data-dv="${o.id}">${IC('repeat',14)} Devolución</a>`:''}`})),
       ...(re.data||[]).map(x=>({f:x.fecha,ic:'cash',k:'pag',h:`<b>Pagó ${$m0(x.importe)}</b> · ${esc(MED[x.medio]||x.medio||'')} <small>(recibo ${x.numero})</small>`})),
       ...(nt.data||[]).map(n=>({f:n.creado_en,ic:n.audio?'mic':'note',k:'not',h:n.audio&&!n.texto?'<b>Nota de voz</b>':`<b>Nota:</b> ${esc(n.texto||'')}`})),
-      ...(ct.data||[]).map(x=>{const t=TC[x.tipo]||['chat','Mensaje'];return{f:x.fecha,ic:t[0],k:x.tipo=='visita'?'vis':'msj',h:`<b>${t[1]}</b>${x.detalle?' · '+esc(x.detalle):x.tipo&&!TC[x.tipo]?' · '+esc(x.tipo):''}`}})]
+      ...(ct.data||[]).map(x=>{const t=TC[x.tipo]||['chat','Mensaje'];return{f:x.fecha,ic:t[0],k:x.tipo=='visita'?'vis':'msj',h:`<b>${t[1]}</b>${x.detalle?' · '+esc(x.detalle):x.tipo&&!TC[x.tipo]?' · '+esc(x.tipo):''}`}}),
+      ...(au.data||[]).map(x=>{const CL={razon_social:'la razón social',nombre_fantasia:'el nombre',cuit:'el CUIT',telefono:'el teléfono',domicilio:'el domicilio',barrio:'el barrio',ciudad:'la localidad',zona:'la zona',lista:'la lista',condicion_pago_dias:'los días de pago',limite_credito:'el límite de crédito',condicion_iva:'la condición de IVA',rubro:'el rubro',vendedor_id:'el vendedor',dias_visita:'los días de visita',activo:'si está activo',etiquetas:'las etiquetas',email:'el mail',contacto:'el contacto',descuento_pct:'el descuento',recibe_desde:'el horario',recibe_hasta:'el horario',cuenta_clave:'cuenta clave'};
+        const A=x.datos_antes||{},D=x.datos_despues||{},vv=(k,v)=>v==null||v===''?'—':k=='vendedor_id'?nomU(v):k=='lista'?nomL(v):typeof v=='boolean'?(v?'sí':'no'):Array.isArray(v)?(v.join(', ')||'—'):k=='limite_credito'?$m0(v):String(v);
+        const C=Object.keys(CL).filter(k=>JSON.stringify(A[k]??null)!==JSON.stringify(D[k]??null));if(!C.length)return null;
+        return{f:x.fecha,ic:'pencil',k:'cam',h:`<b>${esc(x.usuario_id&&x.usuario_id!=S.perfil.id?nomU(x.usuario_id):'Vos')}</b> cambió ${C.slice(0,3).map(k=>`${CL[k]}: <s>${esc(vv(k,A[k]))}</s> → <b>${esc(vv(k,D[k]))}</b>`).join(' · ')}${C.length>3?' y '+(C.length-3)+' más':''}`}}).filter(Boolean)]
       .filter(x=>x.f).sort((a,b)=>String(b.f).localeCompare(String(a.f)));
     const fH=f=>{const d=new Date(f),n=Math.floor((Date.now()-d)/864e5);return n<1&&d.getDate()==new Date().getDate()?'Hoy':n<2?'Ayer':d.toLocaleDateString('es-AR',{day:'numeric',month:'short'}).replace('.','')};
     const hItem=x=>`<div class="tl-i tl-${x.k}"><span class="tl-ic">${IC(x.ic,16)}</span><div class="tl-c"><div class="tl-h">${x.h}</div>${x.x?`<div class="tl-x">${x.x}</div>`:''}</div><small class="tl-f">${fH(x.f)}</small></div>`;
-    $('#fc_pe').innerHTML=H.length?`<div class="tl">${H.slice(0,12).map(hItem).join('')}</div>${H.length>12?`<button class="alt tl-mas" id="fc_hm">Ver todo (${H.length})</button>`:''}`:vacioHTML('Todavía no hay movimientos con este cliente.','clock',['Cargarle un pedido',"document.getElementById('fc_np').click()"],1);
+    const HF=[['','Todo'],['ped','Pedidos'],['pag','Pagos'],['not','Notas'],['vis','Visitas y mensajes'],['cam','Cambios']].filter(([k])=>!k||H.some(x=>k=='vis'?['vis','msj'].includes(x.k):x.k==k));S.fcHf=HF.some(x=>x[0]==S.fcHf)?S.fcHf:'';
+    const pintaH=()=>{const L=H.filter(x=>!S.fcHf||(S.fcHf=='vis'?['vis','msj'].includes(x.k):x.k==S.fcHf));$('#fc_hf').innerHTML=HF.length>2?HF.map(([k,t])=>`<button class="${S.fcHf==k?'on':''}" data-hf="${k}">${t}</button>`).join(''):'';
+      $$('#fc_hf [data-hf]').forEach(b=>b.onclick=()=>{S.fcHf=b.dataset.hf;pintaH()});
+      $('#fc_pe').innerHTML=L.length?`<div class="tl">${L.slice(0,12).map(hItem).join('')}</div>${L.length>12?`<button class="alt tl-mas" id="fc_hm">Ver todo (${L.length})</button>`:''}`:vacioHTML('Todavía no hay movimientos con este cliente.','clock',['Cargarle un pedido',"document.getElementById('fc_np').click()"],1);
+      $('#fc_hm')&&($('#fc_hm').onclick=()=>{$('#fc_pe .tl').innerHTML=L.map(hItem).join('');$('#fc_hm').remove();hBind()});hBind()};
     const hBind=()=>{$$('#fc_pe [data-pdf]').forEach(a=>a.onclick=()=>pedidoPDF(P.find(o=>o.id==a.dataset.pdf)));$$('#fc_pe [data-rm]').forEach(a=>a.onclick=()=>remitos([P.find(o=>o.id==a.dataset.rm)]));$$('#fc_pe [data-dv]').forEach(a=>a.onclick=()=>devolucion(P.find(o=>o.id==a.dataset.dv),()=>fichaCliente(c)))};
-    $('#fc_hm')&&($('#fc_hm').onclick=()=>{$('#fc_pe .tl').innerHTML=H.map(hItem).join('');$('#fc_hm').remove();hBind()});
-    hBind();
+    pintaH();
+    /* pestaña Pedidos */
+    $('#fc_pl').innerHTML=P.length?`<div class="fc-pl">${P.map(o=>`<div class="fc-pr"><div><b>N° ${o.numero}</b> <span class="badge b-${o.estado}">${EST_TXT[o.estado]||o.estado}</span><small>${fechaDe(o)?fd(fechaDe(o)):''} · ${(o.pedido_items||[]).length} producto${(o.pedido_items||[]).length==1?'':'s'}</small></div><b class="fc-pt">${$m0(o.total)}</b><a class="lnk" data-pdf2="${o.id}" aria-label="Imprimir">${IC('print',16)}</a></div>`).join('')}</div>`:vacioHTML('Todavía no tiene pedidos.','cart',['Cargarle el primero',"document.getElementById('fc_np').click()"],1);
+    $$('#fc_pl [data-pdf2]').forEach(a=>a.onclick=()=>pedidoPDF(P.find(o=>o.id==a.dataset.pdf2)));
     const cnt={};for(const o of val)for(const it of o.pedido_items||[]){const k=it.producto_id;cnt[k]=cnt[k]||{n:0,q:0};cnt[k].n++;cnt[k].q+=Number(it.cantidad)||0}
     const top=Object.entries(cnt).sort((a,b)=>b[1].n-a[1].n||b[1].q-a[1].q).slice(0,8);
     $('#fc_pr').innerHTML=top.length?'<table><tr><th>Producto</th><th class="n">Pedidos</th><th class="n">Unidades</th></tr>'+top.map(([id,x])=>`<tr><td>${esc(S.productos.find(p=>p.producto_id==id)?.descripcion||'Producto')}</td><td class="n">${x.n}</td><td class="n">${nf(x.q)}</td></tr>`).join('')+'</table>':vacioHTML('Cuando haga pedidos, acá vas a ver sus productos habituales.','box',null,1)}
@@ -3292,7 +3330,7 @@ async function proxModal(c,actual,alGuardar){const m=document.createElement('div
     if(r.error){$('#px_g').disabled=false;return toast(r.error.message,1)}m.remove();toast('Próximo paso: '+t+' · '+proxCuando(f).t+'.');await cargarProx(true);alGuardar&&alGuardar()}}
 async function proxFicha(c){const b=$('#fc_px');if(!b)return;await Promise.all([cargarProx(true),equipo()]).catch(()=>{});if(!$('#fc_px')||S.fc!=c.id)return;const p=S.prox?.[c.id];
   b.innerHTML=p?(()=>{const w=proxCuando(p.fecha);return`<div class="box prox ${w.k}"><div class="prox-i">${IC('flag',20)}</div><div class="prox-t"><small>Próximo paso · ${esc(w.t)}${p.asignado_a&&p.asignado_a!=S.perfil.id?' · lo hace '+esc(nomU(p.asignado_a)):''}</small><b>${esc(p.titulo)}</b></div><div class="prox-a"><button data-px="ok">${IC('check',16)} Hecho</button><button class="alt" data-px="ed" aria-label="Cambiar">${IC('pencil',16)}</button></div></div>`})()
-    :`<button class="alt prox-n" data-px="nv">${IC('flag',17)} Agregar próximo paso</button>`;
+    :`<button class="alt prox-n" data-px="nv">${IC('flag',16)} <span>Sin próximo paso</span> <b>Agregar</b></button>`;
   b.querySelectorAll('[data-px]').forEach(x=>x.onclick=async()=>{const a=x.dataset.px;if(a=='nv')return proxModal(c,null,()=>proxFicha(c));if(a=='ed')return proxModal(c,p,()=>proxFicha(c));
     x.disabled=true;const{error}=await sb.from('tareas').update({hecha:true,hecha_en:new Date().toISOString()}).eq('id',p.id);if(error){x.disabled=false;return toast(error.message,1)}
     sb.from('contactos_clientes').insert({cliente_id:c.id,tipo:'seguimiento',detalle:'Hecho: '+p.titulo}).then(()=>{},()=>{});toast('¡Hecho! ¿Cuál es el siguiente?');await cargarProx(true);proxFicha(c);proxModal(c,null,()=>proxFicha(c))})}

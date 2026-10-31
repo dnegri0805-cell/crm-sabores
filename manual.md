@@ -379,6 +379,13 @@ Desde **Más → Cuenta y ajustes → Usuarios y accesos** (solo lo ve el dueño
 - **Quién cambió qué** (*Más → Cuenta y ajustes*, solo el dueño): todos los cambios de pedidos, clientes, productos, cobros, facturas y gastos, día por día, con quién, a qué hora y qué había antes y qué quedó. Se filtra por persona, por tipo y por fecha, o se busca. En el panel de cada pedido (**Ver cambios**) y en la ficha de cada cliente (*Más acciones*) se ven solo los cambios de ese pedido o cliente.
 - **Tu propia contraseña:** **Más → Cuenta y ajustes → Cambiar mi contraseña**.
 
+### Ficha del cliente (versión nueva)
+- **Arriba:** nombre, rubro y barrio; estado y etiquetas; una frase de **cómo está el cliente** (🟢 al día y cuándo le toca, 🟠 le toca comprar, 🔴 se está enfriando o debe), con un botón directo (Mandarle la lista, Escribirle o Cobrar).
+- **Cinta de números:** cuánto compra por mes, cada cuántos días pide, último pedido y saldo (en rojo si hay vencido; tocándolo vas a Cuenta).
+- **Acciones en una fila:** Pedido, WhatsApp, Llamar, Lista y Mapa. Teléfono, dirección y CUIT a un toque (el CUIT se copia). **Más** (arriba a la derecha) tiene el resto: repetir último, registrar cobro, estado de cuenta, pedido fijo, guion, negociar, góndola, documentos, vacaciones, horario, cuenta clave…
+- **Próximo paso** en una línea, con fecha.
+- **Pestañas:** *Resumen* (oportunidades, lo que más compra, compras de 6 meses), *Historial* (todo junto con filtros: pedidos, pagos, notas, visitas y **cambios en sus datos**, y la nota rápida arriba), *Pedidos*, *Cuenta* (saldo, vencido, facturas y pagos) y *Precios* (pactados, puntos y link de pedidos online).
+
 ## 13. Rutina diaria y preguntas frecuentes
 
 Repartís de lunes a sábado y los pedidos cierran a las 20:00 para el día siguiente.
