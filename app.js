@@ -1,10 +1,32 @@
 
-const VERSION='2026-10-31.9';
+const VERSION='2026-10-31.10';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
   if(v&&v!==VERSION&&u.searchParams.get('v')!==v){u.searchParams.set('v',v);location.replace(u.href)}}).catch(()=>{})}catch(e){}})();
 const sb=supabase.createClient('https://ggfqdkgqtpnkvxoykoty.supabase.co','sb_publishable_kfvkZgS8FewPabohJrKf9Q_UDyEcQiR');
+/* Costos protegidos en la base: el vendedor no puede leer costos ni márgenes (permisos por columna).
+   Dueño y resto del equipo leen esas tablas por las vistas *_c (mismas filas, con costo). Si se agregan columnas a estas tablas: select columnas_privadas_refrescar(); y sumarlas acá */
+const PRIV={productos:{h:['costo','costo_usd'],c:'id,codigo,ean,descripcion,familia,marca,proveedor_id,stock_minimo,stock_maximo,es_privado,activo,creado_en,actualizado_en,codigo_fabricante,unidades_bulto,tipo_bulto,alicuota_iva,foto,ultimo_conteo,nuevo_hasta,pvp,solo_bulto,por_peso,peso_pieza,unidades_display,bultos_pallet,precio_fijo'},
+  pedido_items:{h:['costo_unitario'],c:'id,pedido_id,producto_id,cantidad,precio_unitario,descuento_pct,subtotal,promo,peso_real,precio_kg,lote,precio_manual,precio_lista'},
+  aprobaciones_precio:{h:['costo','margen'],c:'id,pedido_id,item_id,producto_id,cliente_id,vendedor_id,precio,precio_lista,estado,resuelto_por,resuelto_en,creado_en'}};
+const verCostos=()=>!!(S.perfil&&S.perfil.rol&&S.perfil.rol!='vendedor');
+function selTop(s){const r=[];let d=0,c='';for(const ch of s){if(ch=='(')d++;else if(ch==')')d--;if(ch==','&&!d){r.push(c);c=''}else c+=ch}if(c.trim())r.push(c);return r}
+function selFix(s,t,ver,ocultar){const P=PRIV[t];
+  const L=selTop(s==null?'*':String(s).replace(/\s+/g,'')).map(x=>{
+    const m=x.match(/^(\.\.\.)?(?:(\w+):)?(\w+)((?:![\w]+)*)\(([\s\S]*)\)$/);
+    if(m){const[,sp,al,nm,hint,inner]=m;
+      if(PRIV[nm]&&ver)return `${sp||''}${sp?'':(al||nm)+':'}${nm}_c${hint}(${selFix(inner,nm,ver,false)})`;
+      return `${sp||''}${al?al+':':''}${nm}${hint}(${selFix(inner,nm,ver,!ver&&!!PRIV[nm])})`}
+    if(!P||!ocultar)return x;
+    if(x=='*')return P.c;
+    const col=x.replace(/^\w+:/,'').split(/::|->/)[0];return P.h.includes(col)?null:x}).filter(v=>v!=null);
+  return L.join(',')||'id'}
+{const _f=sb.from.bind(sb);
+  sb.from=t=>{const ver=verCostos(),q=_f(t),sel=q.select.bind(q);
+    q.select=(c,o)=>PRIV[t]&&ver?_f(t+'_c').select(selFix(c,t,true,false),o):sel(selFix(c,t,ver,!!PRIV[t]),o);
+    for(const k of['insert','update','upsert','delete']){if(typeof q[k]!='function')continue;const f=q[k].bind(q);q[k]=(...a)=>{const b=f(...a);if(b&&typeof b.select=='function'){const s=b.select.bind(b);b.select=(c,o)=>s(selFix(c,t,ver,!!PRIV[t]),o)}return b}}
+    return q}}
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s),app=$('#app');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const $m=n=>'$\u00a0'+Number(n||0).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
