@@ -1,0 +1,3 @@
+-- Papelera (90 días) y copia afuera por mail: ver migraciones papelera_y_copias_afuera y papelera_recuperar_v2 en Supabase.
+-- Tablas/funciones: copias_registro, copia_mail_clave_guardar(text), copia_mail_clave(), copia_mail_estado(),
+-- papelera_lista(), papelera_recuperar(bigint), trigger trg_auditar en pedido_items.
