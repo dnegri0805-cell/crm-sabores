@@ -131,6 +131,12 @@ El envío se suma solo: **gratis desde $ 150.000**, si no **$ 15.000**. Para pro
 
 ## 5. Clientes y prospectos
 
+**La lista de clientes:**
+- Cada cliente es un **renglón compacto**: el círculo con el color de su rubro, el nombre y abajo el **dato útil** (*Último pedido hace 4 días · $ 403 mil en 90 días*, *Tiene $ 45.000 vencido*, *Sin compras todavía*, los días de visita y el barrio). El cartelito de color aparece solo cuando importa: **Le toca**, **Debe** o **Dormido**.
+- A la derecha, dos botones: **WhatsApp** y **Nuevo pedido** (deslizando el renglón siguen estando *Llamar* y *Lista de precios*).
+- Los filtros van en **una sola fila** que se desliza: *Todos*, los estados (*Le toca comprar*, *Deben*, *Dormidos*, *Nuevos*), las etiquetas y los rubros, cada uno con su cantidad. Tocando uno de nuevo se saca. Al final: el **orden** (por nombre, por puntaje o por última compra) y **cómo agrupar** (*Por rubro* o *A–Z* con letras, como los contactos del celular).
+- Si faltan datos, arriba aparece un aviso (*1 sin teléfono · 2 sin CUIT*) con **Completar**, que te los va mostrando uno por uno.
+
 - **Deslizar (celular):** deslizá un cliente a la izquierda para WhatsApp, Llamar o mandar su Lista; a la derecha, para cargarle un pedido.
 - **Anillo de color** alrededor de las iniciales: verde al día, amarillo le toca comprar, rojo debe, gris dormido, azul nuevo.
 - **Lista:** agrupada por rubro, con buscador por nombre o CUIT y filtros por rubro. Cada cliente muestra cuándo compró por última vez y tres botones: lista de precios, WhatsApp y llamar.

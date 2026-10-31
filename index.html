@@ -1441,12 +1441,33 @@ html.oscuro .rhoy .rh{background:#18202f;border-color:#273246}html.oscuro .rhoy 
 .pv-b{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}.pv-b button{width:auto}.pv-u{color:var(--tx2);font-size:13.5px;margin:0;max-width:420px}
 .bpq{margin-top:8px}.bpq>small{display:block;margin:4px 0;color:var(--tx2)}.bpn{font-weight:800;color:var(--m);min-width:56px;font-variant-numeric:tabular-nums}.bpq .r{display:flex;align-items:center;gap:10px}.bpq .r>span:nth-child(2){flex:1;display:flex;flex-direction:column;min-width:0}.bpt{font-variant-numeric:tabular-nums}
 html.oscuro .presu b{color:#e3e6ee}
+
+/* Clientes: renglones compactos */
+.cl-row{display:flex!important;align-items:center;gap:12px;padding:9px 12px!important}
+.cl-row .cl-ini{flex:none;width:42px;height:42px;font-size:14px}
+.cl-row .cl-mid{flex:1;min-width:0}
+.cl-row .cl-top{display:flex;align-items:center;gap:8px;min-width:0}.cl-row .cl-top b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.cl-row .cl-sub{font-size:12.5px;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.cl-row .cl-bts{display:flex;gap:6px;flex:none}.cl-row .cl-bt{width:38px;height:38px;padding:0!important;justify-content:center;border-radius:50%}
+.cl-row .cl-bt.wa{color:#1d7a46;border-color:#bfe3cb;background:#f1faf4}.cl-row .cl-bt.pd{color:var(--m);border-color:color-mix(in srgb,var(--m) 25%,#fff)}
+.cl-row .etq-l,.cl-row .cl-etq{margin-top:3px}
+.cl-grid{gap:8px!important}
+.cfil{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.cfil::-webkit-scrollbar{display:none}
+.cfil>.sub{display:contents!important}.cfil button{flex:none;white-space:nowrap}
+.cfil .ecb.on{background:var(--m)!important;color:#fff!important;border-color:var(--m)!important}
+.cl-dq{display:flex;align-items:center;gap:8px;background:#fff8e6;border:1px solid #f0dca8;border-radius:12px;padding:8px 10px;margin:10px 0;font-size:13.5px;color:#6b4e00}.cl-dq span{flex:1}.cl-dq button{width:auto;flex:none;padding:6px 12px}
+.cl-let{font-size:15px!important;color:var(--m)!important;margin:14px 0 6px!important}
+/* Pestañas que muestran que hay más */
+.sub.tabs{-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);mask-image:linear-gradient(90deg,#000 85%,transparent);padding-right:28px}
+html.oscuro .cl-dq{background:#2a2310;border-color:#4a3c14;color:#e9cf8a}
+.cl-row.cl-av{padding-left:12px!important}.cl-row .cl-ini{position:static!important;transform:none!important;margin:0!important}
+.cfil button b{margin-left:5px}
 </style>
 </head>
 <body>
 <div id="app"><div class="splash"><img src="logo.png" alt="Sabores de mi País"><i></i></div></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
-<script src="app.js?v=2026-10-31.16"></script>
+<script src="app.js?v=2026-10-31.17"></script>
 </body>
 </html>

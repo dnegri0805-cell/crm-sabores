@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-31.16';
+const VERSION='2026-10-31.17';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -928,25 +928,35 @@ function vClientes(){
   if(S.cs!='lista'){$('#v').innerHTML=`${cabClientes()}${subs}<div id="cs"><span class="skl" role="status" aria-label="Cargando"></span></div>`;$$('[data-cs2]').forEach(b=>b.onclick=()=>{S.cs=b.dataset.cs2;vClientes()});enlazarCab();
     marcarUso('clientes:'+S.cs);
     return ({ruta:vRutaHoy,semana:vAgendaSemana,recorridos:vRecorridos,agenda:vAgenda,prospectos:vProspectos,fijos:vFijos,dormidos:vDormidos,mapa:vMapa})[S.cs]()}
-  $('#v').innerHTML=`${cabClientes()}${subs}<div class="cl-pega"><input id="q" type="search" placeholder="Buscar cliente o CUIT"><div class="clis" id="clis"></div><div class="sub cest" id="cest"></div><div class="sub cest" id="cetq"></div><div class="sub" id="cfam"></div></div><div id="ct"></div>`;
+  $('#v').innerHTML=`${cabClientes()}${subs}<div class="cl-pega"><input id="q" type="search" placeholder="Buscar cliente o CUIT"><div class="clis" id="clis"></div><div class="cfil"><div class="sub cest" id="cest"></div><div class="sub cest" id="cetq"></div><div class="sub" id="cfam"></div><div class="sub cest" id="cord"></div></div></div><div id="cdq"></div><div id="ct"></div>`;
   const ORD=[...FAM_CLI.map(x=>x[0]),'❔ Sin rubro'],FAM_FIJAS=['🥖 Panaderías','🍦 Heladerías','🧀 Fiambrerías','🛒 Supermercados'];S.cfam=S.cfam||'';
   const fCol=famCol,fTxt=f=>String(f).replace(/^\S+\s+/,''),inic=inicCli;
   const condTag=c=>{const t=[];if(c.lista&&c.lista!='mayorista')t.push(c.lista=='especial'?'gastronomía':c.lista);if(+c.condicion_pago_dias)t.push(c.condicion_pago_dias+' días');return t.length?`<small class="cl-cond">${esc(t.join(' · '))}</small>`:''};
   const rsSimil=c=>{const f=x=>norm(x||'').replace(/\b(s\.?r\.?l|s\.?a|s\.?a\.?s|s\.?h|y cia)\b\.?/g,'').replace(/[^a-z0-9]/g,'');const a=f(c.nombre_fantasia),b=f(c.razon_social);return !a||!b||a==b||b.includes(a)||a.includes(b)};
   const ultTxt=c=>{const e=S.estCli?.[c.id];if(!e)return '<span class="cl-ultw"></span>';return `<span class="cl-ultw">${scRing(c.id)}${estChip(c.id)}${e.hTxt?`<span class="cl-ult">${e.hTxt=='hoy'||e.hTxt=='ayer'?'Compró '+e.hTxt:e.hTxt}</span>`:''}</span>`};
-  const fila=c=>{const tel=telWA(c.telefono||'');return `<div class="cl-swp" data-sw="${c.id}"><div class="cl-sw">${tel?`<a class="sw-wa" data-wa="${esc(tel)}">${IC('chat',20)}<span>WhatsApp</span></a><a class="sw-tel" href="tel:${esc(c.telefono)}" data-no="1">${IC('phone',20)}<span>Llamar</span></a>`:''}<a class="sw-lp" data-lp="${c.id}">${IC('tag',20)}<span>Lista</span></a></div><div class="sw-ped">${IC('cart',22)}<span>Nuevo pedido</span></div><div class="cl-card clic cl-av" data-fc="${c.id}"><span class="cl-ini${S.estCli?.[c.id]?' an-'+S.estCli[c.id].k:''}" style="background:${fCol(famCli(c))}">${esc(inic(c))}</span><div class="cl-top"><b>${esc(nomVis(c))}</b>${condTag(c)}</div>
-    <div class="cl-sub">${esc([(c.nombre_fantasia||'').trim()&&!rsSimil(c)?tituloCaso(c.razon_social):'',c.barrio||c.ciudad,c.rubro?'':'sin rubro'].filter(Boolean).join(' · '))}</div>
-    ${etqChips(c)}${proxLinea(c.id)}<div class="cl-acc">${ultTxt(c)}<span class="cl-bts">${tel?`<a class="cl-bt lp" data-lp="${c.id}" aria-label="Mandar lista de precios" title="Mandar lista de precios por WhatsApp">${IC('tag',18)}</a><a class="cl-bt wa" data-wa="${esc(tel)}" aria-label="WhatsApp">${IC('chat',18)}</a><a class="cl-bt" href="tel:${esc(c.telefono)}" data-no="1" aria-label="Llamar">${IC('phone',18)}</a>`:`<a class="cl-bt tel" data-tel="${c.id}">${IC('plus',15)} Teléfono</a>`}</span></div></div></div>`};
-  const draw=()=>{const q=$('#q').value.toLowerCase(),A=S.clientes.filter(c=>c.activo!==false),cnt={};A.forEach(c=>{const f=famCli(c);cnt[f]=(cnt[f]||0)+1});
-    $('#cfam').innerHTML=`<button class="${S.cfam?'alt':''}" data-cf="">Todas (${A.length})</button>`+ORD.filter(f=>cnt[f]||S.cfam==f).map(f=>`<button class="${S.cfam==f?'':'alt'}" data-cf="${esc(f)}"><i class="cl-dot" style="background:${fCol(f)}"></i>${esc(fTxt(f))} (${cnt[f]||0})</button>`).join('');
+  /* Renglón compacto (como HubSpot/Attio): nombre, dato útil, y botones de WhatsApp y Pedido. El color del círculo es el rubro. */
+  const DIAS_C=['','lun','mar','mié','jue','vie','sáb','dom'];
+  const datoUtil=c=>{const e=S.estCli?.[c.id];const p=[];
+    if(e){if(e.k=='debe')p.push(e.why);else if(e.hace!=null)p.push('Último pedido '+(e.hTxt||'')+(e.t90?' · '+$k(e.t90)+' en 90 días':''));else p.push('Sin compras todavía')}
+    const dv=(c.dias_visita||[]).filter(d=>d>=1&&d<=7);if(dv.length)p.push('Visita '+dv.map(d=>DIAS_C[d]).join(', '));
+    const bz=c.barrio||c.ciudad;if(bz)p.push(bz);return p.join(' · ')};
+  const chipImp=c=>{const k=S.estCli?.[c.id]?.k;return['toca','debe','dormido'].includes(k)?estChip(c.id):''};
+  const fila=c=>{const tel=telWA(c.telefono||'');return `<div class="cl-swp" data-sw="${c.id}"><div class="cl-sw">${tel?`<a class="sw-wa" data-wa="${esc(tel)}">${IC('chat',20)}<span>WhatsApp</span></a><a class="sw-tel" href="tel:${esc(c.telefono)}" data-no="1">${IC('phone',20)}<span>Llamar</span></a>`:''}<a class="sw-lp" data-lp="${c.id}">${IC('tag',20)}<span>Lista</span></a></div><div class="sw-ped">${IC('cart',22)}<span>Nuevo pedido</span></div><div class="cl-card clic cl-av cl-row" data-fc="${c.id}"><span class="cl-ini" style="background:${fCol(famCli(c))}">${esc(inic(c))}</span>
+    <div class="cl-mid"><div class="cl-top"><b>${esc(nomVis(c))}</b>${chipImp(c)}</div><div class="cl-sub">${esc(datoUtil(c))}</div>${etqChips(c)}${proxLinea(c.id)}</div>
+    <span class="cl-bts">${tel?`<a class="cl-bt wa" data-wa="${esc(tel)}" aria-label="WhatsApp" title="WhatsApp">${IC('chat',18)}</a>`:''}<a class="cl-bt pd" data-ped="${c.id}" aria-label="Nuevo pedido" title="Nuevo pedido">${IC('cart',18)}</a></span></div></div>`};
+  const draw=()=>{if(S.cord===true)S.cord='sc';const q=$('#q').value.toLowerCase(),A=S.clientes.filter(c=>c.activo!==false),cnt={};A.forEach(c=>{const f=famCli(c);cnt[f]=(cnt[f]||0)+1});
+    $('#cfam').innerHTML=ORD.filter(f=>cnt[f]||S.cfam==f).map(f=>`<button class="${S.cfam==f?'':'alt'}" data-cf="${esc(f)}"><i class="cl-dot" style="background:${fCol(f)}"></i>${esc(fTxt(f))} <b>${cnt[f]||0}</b></button>`).join('');
     const EK=[['toca','Le toca comprar'],['debe','Deben'],['dormido','Dormidos'],['nuevo','Nuevos']],ec={};if(S.estCli)A.forEach(c=>{const k=S.estCli[c.id]?.k;if(k)ec[k]=(ec[k]||0)+1});
     if(S.cest&&!ec[S.cest])S.cest='';
-    $('#cest').innerHTML=S.estCli?EK.filter(([k])=>ec[k]).map(([k,t])=>`<button class="ecb ${S.cest==k?'on':''}" data-ce="${k}"><i class="cl-est e-${k}"></i>${t} <b>${ec[k]}</b></button>`).join('')+`<button class="ecb ord ${S.cord?'on':''}" id="c_ord">${IC('bars',14)} ${S.cord?'Por puntaje':'Ordenar por puntaje'}</button>`:'';
-    $('#c_ord')&&($('#c_ord').onclick=()=>{S.cord=!S.cord;draw();bind()});
+    const ORDN={'':'Por nombre',sc:'Por puntaje',ult:'Por última compra'};S.cgrp=S.cgrp||(()=>{try{return localStorage.getItem('cli_grp')||'rubro'}catch(e){return'rubro'}})();
+    $('#cest').innerHTML=`<button class="ecb ${S.cest||S.cfam||S.cetq?'':'on'}" data-ce="">Todos <b>${A.length}</b></button>`+(S.estCli?EK.filter(([k])=>ec[k]&&ec[k]<A.length).map(([k,t])=>`<button class="ecb ${S.cest==k?'on':''}" data-ce="${k}"><i class="cl-est e-${k}"></i>${t} <b>${ec[k]}</b></button>`).join(''):'');
+    $('#cord').innerHTML=`<button class="ecb ic-b" id="c_ord" title="Cambiar el orden">${IC('bars',14)} ${ORDN[S.cord||'']}</button><button class="ecb ic-b" id="c_grp" title="Cómo agrupar">${IC(S.cgrp=='az'?'list':'folder',14)} ${S.cgrp=='az'?'A–Z':'Por rubro'}</button>`;
+    $('#c_ord').onclick=()=>{const o=['','sc','ult'];S.cord=o[(o.indexOf(S.cord||'')+1)%3];if(S.cord=='sc'&&!S.estCli)S.cord='ult';draw();bind()};
+    $('#c_grp').onclick=()=>{S.cgrp=S.cgrp=='az'?'rubro':'az';try{localStorage.setItem('cli_grp',S.cgrp)}catch(e){}draw();bind()};
     {const cnt={};A.forEach(c=>(c.etiquetas||[]).forEach(n=>cnt[n]=(cnt[n]||0)+1));const ks=(S.etq||[]).map(x=>x.n).filter(n=>cnt[n]);if(S.cetq&&!cnt[S.cetq])S.cetq='';
      $('#cetq').innerHTML=ks.map(n=>`<button class="ecb etq-f${S.cetq==n?' on':''}" data-cq="${esc(n)}"><i style="background:${etqCol(n)}"></i>${esc(n)} <b>${cnt[n]}</b></button>`).join('');
      $$('#cetq [data-cq]').forEach(b=>b.onclick=()=>{S.cetq=S.cetq==b.dataset.cq?'':b.dataset.cq;draw();bind()})}
-    $$('#cest [data-ce]').forEach(b=>b.onclick=()=>{S.cest=S.cest==b.dataset.ce?'':b.dataset.ce;draw();bind()});
+    $$('#cest [data-ce]').forEach(b=>b.onclick=()=>{if(!b.dataset.ce){S.cest='';S.cfam='';S.cetq=''}else S.cest=S.cest!=b.dataset.ce?b.dataset.ce:'';draw();bind()});
     const L=S.clientes.filter(c=>coincide(c.razon_social+' '+(c.nombre_fantasia||'')+' '+(c.cuit||'')+' '+(c.rubro||''),q)&&(!S.cfam||famCli(c)==S.cfam)&&(!S.cest||S.estCli?.[c.id]?.k==S.cest)&&(!S.cetq||(c.etiquetas||[]).includes(S.cetq))),G={};L.forEach(c=>(G[famCli(c)]=G[famCli(c)]||[]).push(c));
     Object.values(G).forEach(x=>x.sort((a,b)=>nomVis(a).localeCompare(nomVis(b))));
     S._cliV=L;{const LS=listasCli(),act=!!(q||S.cest||S.cetq||S.cfam||S.cord);
@@ -955,17 +965,24 @@ function vClientes(){
       $$('#clis [data-lsx]').forEach(b=>b.onclick=()=>{const k=+b.dataset.lsx,x=LS[k];LS.splice(k,1);guardaListas(LS);draw();bind();
         avisoDeshacer('Lista «'+x.n+'» borrada',()=>{LS.splice(k,0,x);guardaListas(LS);draw();bind()})});
       $('#ls_g')&&($('#ls_g').onclick=()=>{const n=(prompt('Nombre para esta lista (ej.: VIP que les toca comprar):')||'').trim();if(!n)return;LS.push({n,f:{q:$('#q').value,cest:S.cest,cetq:S.cetq,cfam:S.cfam,cord:S.cord}});guardaListas(LS);toast('Lista «'+n+'» guardada.');draw();bind()})}
-    if(S.cord&&S.estCli){const sc=c=>S.estCli[c.id]?.sc??-1,O=[...L].sort((a,b)=>sc(b)-sc(a));S._cliV=O;$('#ct').innerHTML=O.length?`<h4 class="cl-fam">Por puntaje de salud <small>(de mejor a peor)</small></h4><div class="cl-grid">${O.map(fila).join('')}</div>`:vacioHTML('No hay clientes con ese filtro.','user');$$('#cfam [data-cf]').forEach(b=>b.onclick=()=>{S.cfam=b.dataset.cf;draw();bind()});return}
+    $('#cdq').innerHTML=datosIncompletos(A);
+    if(S.cord&&S.estCli){const sc=c=>S.estCli[c.id]?.sc??-1,uh=c=>S.estCli[c.id]?.hace??1e9,O=[...L].sort((a,b)=>S.cord=='sc'?sc(b)-sc(a):uh(a)-uh(b));S._cliV=O;$('#ct').innerHTML=O.length?`<h4 class="cl-fam">${S.cord=='sc'?'Por puntaje de salud <small>(de mejor a peor)</small>':'Por última compra <small>(los más recientes primero)</small>'}</h4><div class="cl-grid">${O.map(fila).join('')}</div>`:vacioHTML('No hay clientes con ese filtro.','user');$$('#cfam [data-cf]').forEach(b=>b.onclick=()=>{S.cfam=S.cfam==b.dataset.cf?'':b.dataset.cf;draw();bind()});return}
+    if(S.cgrp=='az'){const O=[...L].sort((a,b)=>nomVis(a).localeCompare(nomVis(b),'es')),GL={};O.forEach(c=>{const l=norm(nomVis(c)).charAt(0).toUpperCase();const k=/[A-Z]/.test(l)?l:'#';(GL[k]=GL[k]||[]).push(c)});S._cliV=O;
+      $('#ct').innerHTML=Object.keys(GL).length?Object.entries(GL).map(([l,cs])=>`<h4 class="cl-fam cl-let">${l}</h4><div class="cl-grid">${cs.map(fila).join('')}</div>`).join(''):vacioHTML('No hay clientes con ese filtro.','user');$$('#cfam [data-cf]').forEach(b=>b.onclick=()=>{S.cfam=S.cfam==b.dataset.cf?'':b.dataset.cf;draw();bind()});return}
     $('#ct').innerHTML=ORD.filter(f=>G[f]).map(f=>`<h4 class="cl-fam"><i class="cl-dot" style="background:${fCol(f)}"></i>${esc(fTxt(f))} <small>(${G[f].length})</small>${f=='❔ Sin rubro'?' <small>· entrá a la ficha y cargá el rubro</small>':''}</h4><div class="cl-grid">${G[f].map(fila).join('')}</div>`).join('')||vacioHTML(S.cest?'No hay clientes con ese estado'+(S.cfam?' en '+fTxt(S.cfam):'')+'.':S.cfam&&!q?'Todavía no tenés clientes en '+fTxt(S.cfam)+'. Tocá «+ Nuevo cliente» para agregar uno.':'No hay clientes con ese filtro.','user',S.cest||q?null:['+ Nuevo cliente','nuevoCliente()']);
-    $$('#cfam [data-cf]').forEach(b=>b.onclick=()=>{S.cfam=b.dataset.cf;draw();bind()})};
+    $$('#cfam [data-cf]').forEach(b=>b.onclick=()=>{S.cfam=S.cfam==b.dataset.cf?'':b.dataset.cf;draw();bind()})};
   $$('[data-cs2]').forEach(b=>b.onclick=()=>{S.cs=b.dataset.cs2;vClientes()});
-  const bind=()=>{deslizarClientes();$$('#ct [data-fc]').forEach(r=>r.onclick=()=>{if(r.dataset.swp)return;fichaCliente(S.clientes.find(c=>c.id==r.dataset.fc))});$$('#ct [data-wa]').forEach(a=>a.onclick=e=>{e.stopPropagation();window.open('https://wa.me/'+a.dataset.wa,'_blank')});$$('#ct [data-lp]').forEach(a=>a.onclick=e=>{e.stopPropagation();mandarLista(S.clientes.find(x=>x.id==a.dataset.lp))});$$('#ct [data-no]').forEach(a=>a.onclick=e=>e.stopPropagation());
+  const bind=()=>{deslizarClientes();$$('#ct [data-fc]').forEach(r=>r.onclick=()=>{if(r.dataset.swp)return;fichaCliente(S.clientes.find(c=>c.id==r.dataset.fc))});$$('#ct [data-wa]').forEach(a=>a.onclick=e=>{e.stopPropagation();window.open('https://wa.me/'+a.dataset.wa,'_blank')});$$('#ct [data-lp]').forEach(a=>a.onclick=e=>{e.stopPropagation();mandarLista(S.clientes.find(x=>x.id==a.dataset.lp))});$$('#ct [data-ped]').forEach(a=>a.onclick=e=>{e.stopPropagation();S.preCli=S.clientes.find(x=>x.id==a.dataset.ped);S.tab='pedidos';shell()});$$('#ct [data-no]').forEach(a=>a.onclick=e=>e.stopPropagation());
     $$('#ct [data-tel]').forEach(a=>a.onclick=async e=>{e.stopPropagation();const c=S.clientes.find(x=>x.id==a.dataset.tel),t=(prompt('Teléfono de '+nomVis(c)+' (ej.: 11 2345 6789)')||'').trim();if(!t)return;
       const{error}=await sb.from('clientes').update({telefono:t}).eq('id',c.id);if(error)return toast(error.message,1);c.telefono=t;toast('Teléfono guardado.');draw();bind()})};
   $('#q').oninput=()=>{draw();bind()};draw();bind();
+  {const tb=document.querySelector('#v .sub.tabs'),ta=tb&&tb.querySelector('button:not(.alt)');if(ta)tb.scrollLeft=ta.offsetLeft-tb.offsetLeft-16}
   {const fresco=S.estCli&&Date.now()-(S.estT||0)<3e5;Promise.all([fresco?null:cargarEstados(),cargarProx(),cargarEtq()]).then(()=>{if($('#ct')&&$('#q')){draw();bind()}}).catch(()=>{})}
   enlazarCab();if(S.abrirNuevo){S.abrirNuevo=0;nuevoCliente()}
 }
+/* Datos incompletos juntos en un aviso (como HubSpot), en vez de un botón suelto en cada cliente */
+function datosIncompletos(A){const f=[['telefono','sin teléfono'],['cuit','sin CUIT'],['domicilio','sin dirección'],['rubro','sin rubro']].map(([k,t])=>[A.filter(c=>!String(c[k]||'').trim()).length,t]).filter(([n])=>n);
+  if(!f.length)return '';return`<div class="cl-dq">${IC('alert',16)}<span>${f.map(([n,t])=>`<b>${n}</b> ${t}`).join(' · ')}</span><button class="alt" onclick="revisionDatos()">Completar</button></div>`}
 /* Encabezado de Clientes: título, botón para crear y el resto de las herramientas en "Más" */
 function cabClientes(){const n=S.clientes.filter(c=>c.activo!==false).length;
   return `<div class="cab"><h2>Clientes <small>${n} ${n==1?'cargado':'cargados'}</small></h2><div class="acc"><button id="c_new">+ Nuevo cliente</button>
@@ -3036,7 +3053,7 @@ async function cargarEstados(force){if(S.estCli&&!force&&Date.now()-(S.estT||0)<
     else if(L.length<=2&&dd(L[0],hoy)<=30){k='nuevo';t='Nuevo';why='Primer pedido '+(dd(L[0],hoy)<1?'hoy':'hace '+dd(L[0],hoy)+' días')}
     else if(hace>=Math.max(7,Math.round((cada||14)*.9))){k='toca';t='Le toca comprar';why='Compró '+hTxt+(cada?' (suele cada '+cada+')':'')}
     else{k='ok';t='Al día';why='Compró '+hTxt}
-    E[c.id]={k,t,why,hace,cada,venc:V[c.id]||0,hTxt}}
+    E[c.id]={k,t,why,hace,cada,venc:V[c.id]||0,hTxt,t90:T90[c.id]||0}}
   /* Puntaje de salud 0 a 100: frecuencia (40) + cuánto compra (25) + paga a tiempo (20) + tendencia (15) */
   const orden=Object.values(T90).filter(x=>x>0).sort((a,b)=>a-b),pctl=v=>{if(!orden.length||!v)return 0;let i=0;while(i<orden.length&&orden[i]<=v)i++;return i/orden.length};
   for(const c of S.clientes){const e=E[c.id];if(e.hace==null){e.sc=null;continue}
