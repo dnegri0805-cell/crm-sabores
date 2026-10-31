@@ -419,3 +419,9 @@ Una sola vez, en este orden:
 - **Espacio en las listas:** en **Aa**, *Cómoda* o *Compacta*.
 - **Inicio en la compu:** dos columnas de tarjetas; con *Acomodar arrastrando* se ordenan con el mouse.
 
+## Novedades (31 de octubre de 2026)
+- **Factura electrónica ARCA:** Factura C con CAE desde el CRM, factura imprimible con QR, nota de crédito electrónica al cancelar, en devoluciones y pronto pago. Se configura en *Más → Cuenta y ajustes → Factura electrónica (ARCA)* con una guía paso a paso.
+- **Pedidos sin señal reforzados:** guardan nota, fecha de entrega y precios especiales; reintento cada minuto; cartelito con lo pendiente y *Mandar ahora*; sin pedidos duplicados.
+- **Copias automáticas:** todos los domingos 4 a. m., guardadas 4 meses en un depósito privado aparte (*Más → Cuenta y ajustes → Copias de seguridad*).
+- **Qué se usa del CRM:** uso por persona y por pantalla, y herramientas de Ventas sin uso para esconder.
+

@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-31.13';
+const VERSION='2026-10-31.14';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -30,7 +30,7 @@ function selFix(s,t,ver,ocultar){const P=PRIV[t];
 
 /* Pantallas que se usan poco (Contable, Reportes, Folletos, Impresora, Manual, Ventas y otras): están en extras.js,
    que se baja en segundo plano después de abrir y queda guardado en el celular. Así el CRM arranca más liviano. */
-const EXTRAS=["vManual","editarBanner","catalogoPDF","vReportes","vImpresora","leerArchivoLista","partirTexto","importadorLista","conteoPartes","vRecorridos","vendedoresReporte","historialBox","ordenarFamilias","flMsg","flItem","flLineas","flPagina","flArmar","pdfDeJpgs","folletosListos","cajaVender","rrect","lineas","dibujarFolleto","fbPrecio","folletoBilingue","cargarFuenteSC","folletoOfertas","vVentas","vRapido","vToca","vCampanias","vCombos","editarCombo","vNovedades","vReglas","vMenos","vEncuestas","vCantidad","vCupones","vPuntos","vPresupuestos","presupuestoPDF","presupuestoAPedido","mandarSugerido","colaSugeridos","vCarritos","vEsperan","vLiquidar","vRelampago","vBuscan","vABC","vRubros","desafioBox","vFechas","bonifBox","prontoBox","vAumento","vNoCompra","vCompetencia","vMuestras","vNovSemana","vMarcas","vPVP","invEntrega","vInvitar","vMiraron","vPersonal","vBienvenida","vSorteo","vCambiosPrecio","mostrarImgs","vReclamos","sugeridosBox","vNiveles","entregasBox","vPerdidas","vPotencial","vZonas","vEstados","vTarjeta","vPlan","vSemana","combosSugeridos","vBultos","vPreventa","vEmbudo","vRedondeo","vAuto","guardaAuto","vNuevos90","vQR","vRuta","vCaptacion","progBox","metasBox","vCobertura","vContactos","vLlamadas","lanzarZona","lanzBox","vAtaque","vCupo","vLiga","vQuincenal","vAcuerdos","vClave","vRentCli","vSimulador","armarPlanSemana","vPlanSem","cfgIG","hashtagsIG","cajaTexto","topSemana","placaTexto","vIG","armarIG","vIGCal","statsCamp","vIGBio","vIGSorteo","vIGPros","vIGShop","comboDe","vMiCombo","vCheckout","vEmpujar","vPronostico","vTableroInfo","vOnline","listaKg","textoKg","imgListaKg","imprimirKg","vFiambresKg","avisarPorVencer","vRentKg","cierreDia","conciliar","vAnual","menuAplicar","garantiaCfg","vFaq","fraccionar","vVotacion","vBuscarNegocios","vProveedores","vComodatos","frenoBox","vHorarios","vContable","selMes","onMes","ctPedidos","ctResultados","ctRentab","ctStockV","datosIVA","ctIVA","ctRet","ctBancos","ctCheques","ctFlujo","ctContador"];
+const EXTRAS=["vManual","editarBanner","catalogoPDF","vReportes","vImpresora","leerArchivoLista","partirTexto","importadorLista","conteoPartes","vRecorridos","vendedoresReporte","historialBox","ordenarFamilias","flMsg","flItem","flLineas","flPagina","flArmar","pdfDeJpgs","folletosListos","cajaVender","rrect","lineas","dibujarFolleto","fbPrecio","folletoBilingue","cargarFuenteSC","folletoOfertas","vVentas","vRapido","vToca","vCampanias","vCombos","editarCombo","vNovedades","vReglas","vMenos","vEncuestas","vCantidad","vCupones","vPuntos","vPresupuestos","presupuestoPDF","presupuestoAPedido","mandarSugerido","colaSugeridos","vCarritos","vEsperan","vLiquidar","vRelampago","vBuscan","vABC","vRubros","desafioBox","vFechas","bonifBox","prontoBox","vAumento","vNoCompra","vCompetencia","vMuestras","vNovSemana","vMarcas","vPVP","invEntrega","vInvitar","vMiraron","vPersonal","vBienvenida","vSorteo","vCambiosPrecio","mostrarImgs","vReclamos","sugeridosBox","vNiveles","entregasBox","vPerdidas","vPotencial","vZonas","vEstados","vTarjeta","vPlan","vSemana","combosSugeridos","vBultos","vPreventa","vEmbudo","vRedondeo","vAuto","guardaAuto","vNuevos90","vQR","vRuta","vCaptacion","progBox","metasBox","vCobertura","vContactos","vLlamadas","lanzarZona","lanzBox","vAtaque","vCupo","vLiga","vQuincenal","vAcuerdos","vClave","vRentCli","vSimulador","armarPlanSemana","vPlanSem","cfgIG","hashtagsIG","cajaTexto","topSemana","placaTexto","vIG","armarIG","vIGCal","statsCamp","vIGBio","vIGSorteo","vIGPros","vIGShop","comboDe","vMiCombo","vCheckout","vEmpujar","vPronostico","vTableroInfo","vOnline","listaKg","textoKg","imgListaKg","imprimirKg","vFiambresKg","avisarPorVencer","vRentKg","cierreDia","conciliar","vAnual","menuAplicar","garantiaCfg","vFaq","fraccionar","vVotacion","vBuscarNegocios","vProveedores","vComodatos","frenoBox","vHorarios","vContable","selMes","onMes","ctPedidos","ctResultados","ctRentab","ctStockV","datosIVA","ctIVA","ctRet","ctBancos","ctCheques","ctFlujo","ctContador","arcaConfig","queSeUsa","copiasNube"];
 let _extrasP=null;
 function cargarExtras(){return _extrasP||(_extrasP=new Promise((ok,no)=>{const sc=document.createElement('script');sc.src='extras.js?v='+VERSION;
   sc.onload=()=>ok();sc.onerror=()=>{_extrasP=null;sc.remove();no(new Error('sin conexión'))};document.head.appendChild(sc)}))}
@@ -51,6 +51,8 @@ function vibrar(ms){try{navigator.vibrate&&navigator.vibrate(ms)}catch(e){}}
 function contar(el,txt){try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;const m=String(txt).match(/^(\$\s)?([\d.]+)(,\d+)?$/);if(!m)return;const v=parseFloat(m[2].replace(/\./g,'')+(m[3]?'.'+m[3].slice(1):''));if(!(v>0))return;
   const t0=performance.now(),dur=700,f=x=>m[1]?(m[3]?$m(x):$m0(x)):Math.round(x).toLocaleString('es-AR');const paso=t=>{const k=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-k,3);el.textContent=k<1?f(v*e):txt;if(k<1)requestAnimationFrame(paso)};requestAnimationFrame(paso)}catch(e){}}
 const vacioHTML=(t,ic='box',btn,chico)=>`<div class="vacio${chico?' chico':''}"><span class="vac-ic">${IC(ic,chico?24:32)}</span><p>${t}</p>${btn?`<button class="alt vac-b" onclick="${btn[1]}">${btn[0]}</button>`:''}</div>`;
+/* Saber qué se usa: cada pantalla que se abre suma 1 por usuario y por día (el dueño lo ve en Más → Qué se usa) */
+const _uso={};function marcarUso(p){try{if(!S.perfil||!p||/undefined|null/.test(p))return;const t=Date.now();if(_uso[p]>t-20000)return;_uso[p]=t;sb.rpc('uso_marcar',{p:String(p)}).then(()=>{},()=>{})}catch(e){}}
 /* Festejos (como Monday/Asana): confeti breve al llegar a la meta, lograr una racha o cobrar una deuda vieja. Con "clave", una sola vez. */
 function festejo(clave,texto){if(clave){const k='fest_'+(S.perfil?.id||'')+'_'+clave;try{if(localStorage.getItem(k))return;localStorage.setItem(k,'1')}catch(e){}}
   texto&&toast(texto);if(matchMedia('(prefers-reduced-motion: reduce)').matches||document.getElementById('cfti'))return;
@@ -127,6 +129,7 @@ function shell(){
    app.appendChild(bn);bn.querySelectorAll('[data-bt]').forEach(a=>a.onclick=()=>{S.tab=a.dataset.bt;shell();window.scrollTo(0,0)});bn.querySelector('[data-bm]').onclick=()=>menuMas(1)}
   if(S.menuT===undefined){S.menuT=null;cfgJ('menu_tabs',{oc:[]}).then(v=>{S.menuT=v;if((v.oc||[]).length)$$('nav a').forEach(a=>{if(a.dataset.t!='inicio'&&a.dataset.t!=S.tab&&v.oc.includes(a.dataset.t))a.remove()})})}
   if(S.dep===undefined){S.dep=null;cfgJ('impresora_deposito',{}).then(v=>S.dep=v)}
+  marcarUso(S.tab);
   ({impresora:vImpresora,inicio:vInicio,pedidos:vPedidos,ventas:vVentas,reparto:vReparto,caja:vCaja,contable:vContable,clientes:vClientes,cobranza:vCobranza,compras:vCompras,stock:vStock,precios:vPrecios,reportes:vReportes,manual:vManual})[S.tab]();
 }
 
@@ -914,6 +917,7 @@ function vClientes(){
   S.cs=S.cs||'lista';
   const subs=`<div class="sub tabs">${[['lista','Clientes'],['ruta','Ruta de hoy'],['semana','Semana'],...(S.perfil.rol=='dueno'?[['recorridos','Recorridos']]:[]),['agenda','Agenda de visitas'],['mapa','Mapa'],['dormidos','Dormidos'],['prospectos','Prospectos'],['fijos','Pedidos fijos']].map(([k,t])=>`<button class="${S.cs==k?'':'alt'}" data-cs2="${k}">${t}</button>`).join('')}</div>`;
   if(S.cs!='lista'){$('#v').innerHTML=`${cabClientes()}${subs}<div id="cs"><span class="skl" role="status" aria-label="Cargando"></span></div>`;$$('[data-cs2]').forEach(b=>b.onclick=()=>{S.cs=b.dataset.cs2;vClientes()});enlazarCab();
+    marcarUso('clientes:'+S.cs);
     return ({ruta:vRutaHoy,semana:vAgendaSemana,recorridos:vRecorridos,agenda:vAgenda,prospectos:vProspectos,fijos:vFijos,dormidos:vDormidos,mapa:vMapa})[S.cs]()}
   $('#v').innerHTML=`${cabClientes()}${subs}<div class="cl-pega"><input id="q" type="search" placeholder="Buscar cliente o CUIT"><div class="clis" id="clis"></div><div class="sub cest" id="cest"></div><div class="sub cest" id="cetq"></div><div class="sub" id="cfam"></div></div><div id="ct"></div>`;
   const ORD=[...FAM_CLI.map(x=>x[0]),'❔ Sin rubro'],FAM_FIJAS=['🥖 Panaderías','🍦 Heladerías','🧀 Fiambrerías','🛒 Supermercados'];S.cfam=S.cfam||'';
@@ -1600,19 +1604,19 @@ async function vPedidos(){
   $('#p_g').onclick=async()=>{const c=cli();if(!c||!S.items.length)return toast('Elegí un cliente y agregá productos.',1);
     const sub=S.items.reduce((a,i)=>a+pi(i).pu*i.q,0),pe=escalaDe(sub),cu=S.pcup?.pct||0,nv=S.pniv?.pct||0,fac=(1-pe/100)*(1-nv/100)*(1-cu/100);
     const agOff=()=>{const ag={};for(const i of S.items){const P=pi(i),k=i.p.producto_id,a=ag[k]=ag[k]||{q:0,t:0,l:new Set()};a.q+=i.q;a.t+=P.pu*i.q;if(i.mp!=null&&!i.cb)a.mp=1;if(P.r)a.l.add(P.r.nombre+' (−'+nf(P.r.descuento_pct)+' %)');if(P.lab)a.l.add(P.lab)}
-    if(pe)Object.values(ag).forEach(a=>a.l.add('Descuento por monto '+nf(pe)+' %'));if(nv)Object.values(ag).forEach(a=>a.l.add('Nivel '+S.pniv.n+' '+nf(nv)+' %'));if(cu)Object.values(ag).forEach(a=>a.l.add('Cupón '+S.pcup.codigo+' '+nf(cu)+' %'));return ag};if(!navigator.onLine)return pedidoOff(c,agOff(),fac,cu);
+    if(pe)Object.values(ag).forEach(a=>a.l.add('Descuento por monto '+nf(pe)+' %'));if(nv)Object.values(ag).forEach(a=>a.l.add('Nivel '+S.pniv.n+' '+nf(nv)+' %'));if(cu)Object.values(ag).forEach(a=>a.l.add('Cupón '+S.pcup.codigo+' '+nf(cu)+' %'));return ag};if(!navigator.onLine&&!S.edPed){const ob=$('#p_ob').value.trim(),fe=$('#p_fe').value,ex={};if(ob)ex.observaciones=ob;if(fe){ex.fecha_entrega=fe;ex.entrega=fe}return pedidoOff(c,agOff(),fac,cu,ex)}
     if(!await chequearCredito(c,sub*fac))return;
     $('#p_g').disabled=true;
     const ED=S.edPed,ob=$('#p_ob').value.trim(),fe=$('#p_fe').value,ex={};if(ob)ex.observaciones=ob;if(fe){ex.fecha_entrega=fe;ex.entrega=fe}
-    let o,error;const sqlX=e=>/observaciones|fecha_entrega|precio_manual/.test(e?.message||'');
+    let o,error;const sqlX=e=>/observaciones|fecha_entrega|precio_manual/.test(e?.message||'');const pid=crypto.randomUUID();
     if(ED){o=ED;if(ob||fe||ED.observaciones||ED.fecha_entrega||ED.entrega){const r=await sb.from('pedidos').update({observaciones:ob||null,fecha_entrega:fe||null,...(fe||ED.entrega?{entrega:fe||null}:{})}).eq('id',ED.id);error=r.error}
       if(!error){const r=await sb.from('pedido_items').delete().eq('pedido_id',ED.id);error=r.error}}
-    else{if(S.prbOk&&$('#p_prb')?.checked)ex.es_prueba=true;const r=await sb.from('pedidos').insert({cliente_id:c.id,vendedor_id:S.perfil.id,lista:c.lista,descuento_pct:c.descuento_pct,...ex}).select().single();o=r.data;error=r.error}
-    if(error){$('#p_g').disabled=false;if(sqlX(error))return toast('Falta correr pedidos-extra.sql en Supabase (te lo avisa el Inicio).',1);if(!ED&&esRed(error))return pedidoOff(c,agOff(),fac,cu);return toast(error.message,1)}
+    else{if(S.prbOk&&$('#p_prb')?.checked)ex.es_prueba=true;const r=await sb.from('pedidos').insert({id:pid,cliente_id:c.id,vendedor_id:S.perfil.id,lista:c.lista,descuento_pct:c.descuento_pct,...ex}).select().single();o=r.data;error=r.error}
+    if(error){$('#p_g').disabled=false;if(sqlX(error))return toast('Falta correr pedidos-extra.sql en Supabase (te lo avisa el Inicio).',1);if(!ED&&esRed(error))return pedidoOff(c,agOff(),fac,cu,ex,pid);return toast(error.message,1)}
     const ag={};for(const i of S.items){const P=pi(i),k=i.p.producto_id,a=ag[k]=ag[k]||{q:0,t:0,l:new Set()};a.q+=i.q;a.t+=P.pu*i.q;if(i.mp!=null&&!i.cb)a.mp=1;if(P.r)a.l.add(P.r.nombre+' (−'+nf(P.r.descuento_pct)+' %)');if(P.lab)a.l.add(P.lab)}
     if(pe)Object.values(ag).forEach(a=>a.l.add('Descuento por monto '+nf(pe)+' %'));if(nv)Object.values(ag).forEach(a=>a.l.add('Nivel '+S.pniv.n+' '+nf(nv)+' %'));if(cu)Object.values(ag).forEach(a=>a.l.add('Cupón '+S.pcup.codigo+' '+nf(cu)+' %'));
     const{error:e2}=await sb.from('pedido_items').insert(Object.entries(ag).map(([k,a])=>{const x={pedido_id:o.id,producto_id:k,cantidad:a.q,precio_unitario:Math.round(a.t/a.q*fac*100)/100};if(a.l.size)x.promo=[...a.l].join(' + ');if(a.mp)x.precio_manual=true;return x}));
-    if(e2){$('#p_g').disabled=false;return toast(sqlX(e2)?'Falta correr pedidos-extra.sql en Supabase (te lo avisa el Inicio).':'El pedido N° '+o.numero+' quedó sin productos: '+e2.message,1)}
+    if(e2){$('#p_g').disabled=false;if(!ED&&esRed(e2))return pedidoOff(c,agOff(),fac,cu,ex,o.id);return toast(sqlX(e2)?'Falta correr pedidos-extra.sql en Supabase (te lo avisa el Inicio).':'El pedido N° '+o.numero+' quedó sin productos: '+e2.message,1)}
     if(cu&&!ED)await sb.from('cupones_usos').insert({codigo:S.pcup.codigo,cliente_id:c.id,pedido_id:o.id});
     if(!ED)await marcarDebidos(o.numero).catch(()=>{});S.edPed=null;borrarBorr();okAnim('Pedido N° '+o.numero+(ED?' actualizado':' guardado'));
     if(S.perfil.rol=='vendedor'){const{data:ap}=await sb.from('aprobaciones_precio').select('id').eq('pedido_id',o.id).eq('estado','pendiente').then(r=>r,()=>({}));if(ap?.length)setTimeout(()=>toast('El precio especial quedó para que lo apruebe el dueño. Te avisa la campanita.'),1600)}await cargarStock();vPedidos()};
@@ -1636,11 +1640,54 @@ function pasosPedido(o,cls=''){if(!o||o.estado=='cancelado')return '';const k=PA
 const EST_TXT={pendiente:'Por aprobar',aprobado:'Aprobado',en_preparacion:'En preparación',listo:'Listo',en_reparto:'En reparto',entregado:'Entregado',cancelado:'Cancelado'};
 const SIG={aprobado:['en_preparacion','A preparación'],en_preparacion:['listo','Marcar listo'],listo:['en_reparto','Salió a reparto'],en_reparto:['entregado','Entregado']};
 const FILTROS=[['abiertos','En curso'],['pendiente','Por aprobar'],['entregado','Entregados'],['cancelado','Cancelados'],['todos','Todos']];
+/* ======================= FACTURA ELECTRÓNICA (ARCA) =======================
+   Si está activada, "Facturar" pide el CAE a ARCA (Factura C) desde el servidor. La clave del certificado nunca llega al celular. */
+async function arcaEstado(f){if(S.arca&&!f)return S.arca;const{data}=await sb.rpc('arca_estado').then(r=>r,()=>({}));S.arca=data||{activo:false};return S.arca}
+async function arcaLlamar(cuerpo){const{data,error}=await sb.functions.invoke('arca',{body:cuerpo});if(error){let m=error.message;try{const j=await error.context?.json();m=j?.error||m}catch(e){}throw new Error(m)}if(data?.error)throw new Error(data.error);return data}
+/* Nota de crédito interna (devolución, pronto pago) sobre una factura con CAE: se autoriza también en ARCA */
+async function arcaNotaSiCorresponde(numero){try{if(!(await arcaEstado()).activo||!['dueno','administracion'].includes(S.perfil.rol))return;const r=await arcaLlamar({accion:'nota_credito',nota_numero:numero});if(r.nota?.cae)toast('Nota de crédito C '+nroFac({...r.nota,numero:r.nota.numero_arca})+' autorizada por ARCA · CAE '+r.nota.cae+'.')}catch(e){if(!/no es electrónica/.test(e.message))toast('ARCA: '+e.message,1)}}
+const nroFac=f=>f?(f.cae||f.punto_venta>1?String(f.punto_venta||1).padStart(5,'0')+'-'+String(f.numero).padStart(8,'0'):'N° '+f.numero):'';
+/* Comprobante electrónico (Factura C / Nota de crédito C) con CAE y el QR que pide ARCA (RG 4892) */
+const COND_TXT={responsable_inscripto:'IVA Responsable Inscripto',consumidor_final:'Consumidor Final',monotributo:'Responsable Monotributo',exento:'IVA Sujeto Exento'};
+async function comprobanteArca(k){const w=window.open('','_blank');if(!w)return toast('Permití las ventanas emergentes para ver el comprobante.',1);
+  w.document.write('<p style="font:16px system-ui;margin:32px">Armando el comprobante…</p>');
+  const E=await datosEmisor(),c=S.clientes.find(x=>x.id==k.cliente_id)||(await sb.from('clientes').select('*').eq('id',k.cliente_id).maybeSingle()).data||{};
+  const cuitE=String(E.cuit||'').replace(/\D/g,''),docT=+k.doc_tipo||(String(c.cuit||'').replace(/\D/g,'').length==11?80:99),docN=k.doc_nro||String(c.cuit||'').replace(/\D/g,'')||'0';
+  const qrD={ver:1,fecha:String(k.fecha).slice(0,10),cuit:+cuitE,ptoVta:+k.pv,tipoCmp:k.tipo,nroCmp:+k.nro,importe:+(+k.total).toFixed(2),moneda:'PES',ctz:1,tipoDocRec:docT,nroDocRec:+docN||0,tipoCodAut:'E',codAut:+k.cae};
+  const qr=await qrURL('https://www.afip.gob.ar/fe/qr/?p='+btoa(JSON.stringify(qrD)),170).catch(()=>'');
+  const pv=String(k.pv).padStart(5,'0'),nro=String(k.nro).padStart(8,'0'),dias=+c.condicion_pago_dias||0;
+  w.document.open();w.document.write(`<html><head><meta charset="utf-8"><title>${k.titulo} C ${pv}-${nro} - ${esc(c.razon_social||'')}</title><style>body{font:13px system-ui,sans-serif;margin:24px;color:#1c2333;max-width:820px}
+  .cab{display:grid;grid-template-columns:1fr 86px 1fr;border:1px solid #333;border-radius:8px;overflow:hidden}.cab>div{padding:12px 14px}.letra{border-left:1px solid #333;border-right:1px solid #333;text-align:center;padding:8px 0!important}
+  .letra b{display:block;font-size:44px;line-height:1}.letra small{font-size:10px}.der h2{margin:0 0 6px;font-size:20px;letter-spacing:.04em}.em h1{margin:4px 0;font-size:18px}.dat{font-size:12px;line-height:1.55}
+  .rec{border:1px solid #333;border-radius:8px;padding:10px 14px;margin:10px 0;display:grid;grid-template-columns:1fr 1fr;gap:4px 18px;font-size:12.5px}
+  table{width:100%;border-collapse:collapse;margin:10px 0}th,td{padding:6px 8px;border-bottom:1px solid #ddd;text-align:left}.n{text-align:right;white-space:nowrap}
+  .tot{display:flex;justify-content:flex-end;margin-top:6px}.tot div{border:1px solid #333;border-radius:8px;padding:10px 16px;font-size:16px}
+  .pie{display:flex;gap:18px;align-items:center;margin-top:18px;border-top:1px solid #333;padding-top:12px}.pie img{width:120px;height:120px}.ayuda{background:#f6e9ec;padding:10px;border-radius:6px}@media print{.ayuda{display:none}}</style><style>${docCss()}</style></head><body>
+  <p class="ayuda">Para guardarlo en PDF: en la ventana de impresión elegí <b>Guardar como PDF</b>.</p>
+  <div class="cab"><div class="em">${logoImg(60)}<h1>${esc(E.rs||'Sabores de mi País')}</h1><div class="dat">${E.dom?esc(E.dom)+'<br>':''}${esc(E.iva&&/monotrib/i.test(E.iva)?'Responsable Monotributo':E.iva||'')}</div></div>
+    <div class="letra"><b>C</b><small>COD. ${String(k.tipo).padStart(3,'0')}</small></div>
+    <div class="der"><h2>${k.titulo.toUpperCase()}</h2><div class="dat">Punto de venta: <b>${pv}</b> · Comp. Nro: <b>${nro}</b><br>Fecha de emisión: <b>${fd(String(k.fecha).slice(0,10))}</b><br>CUIT: ${esc(cuitFmt(cuitE))}${E.iibb?'<br>Ingresos Brutos: '+esc(E.iibb):''}${E.ini?'<br>Inicio de actividades: '+esc(E.ini):''}</div></div></div>
+  <div class="rec"><div><b>${docT==80?'CUIT':docT==96?'DNI':'Documento'}:</b> ${docT==99?'—':esc(docT==80?cuitFmt(docN):docN)}</div><div><b>Condición frente al IVA:</b> ${esc(COND_TXT[c.condicion_iva]||'Consumidor Final')}</div>
+    <div><b>Apellido y nombre / Razón social:</b> ${esc(c.razon_social||'Consumidor final')}</div><div><b>Condición de venta:</b> ${dias?'Cuenta corriente ('+dias+' días)':'Contado'}</div>
+    ${dirCompleta(c)?`<div style="grid-column:1/-1"><b>Domicilio:</b> ${esc(dirLinda(c))}</div>`:''}${k.asoc?`<div style="grid-column:1/-1"><b>Comprobante asociado:</b> ${esc(k.asoc)}</div>`:''}</div>
+  <table><tr><th>Producto / Servicio</th><th class="n">Cantidad</th><th class="n">Precio unit.</th><th class="n">Subtotal</th></tr>${k.items.map(i=>`<tr><td><div class="dpr">${docFoto(i.id)}<div>${esc(i.d)}</div></div></td><td class="n">${esc(i.qt)}</td><td class="n">${i.puT||$m(i.pu)}</td><td class="n">${$m(i.st)}</td></tr>`).join('')}</table>
+  <div class="tot"><div>Importe total: <b>${$m(k.total)}</b></div></div>
+  <div class="pie">${qr?`<img src="${qr}" alt="QR ARCA">`:''}<div><b>Comprobante autorizado por ARCA</b><br>CAE N°: <b>${esc(k.cae)}</b><br>Fecha de vto. de CAE: <b>${k.cae_vto?fd(k.cae_vto):'—'}</b><br><small>Esta Administración Federal no se responsabiliza por los datos ingresados en el detalle de la operación.</small></div></div>
+  <script>window.onload=()=>setTimeout(()=>window.print(),400)<\/script></body></html>`);w.document.close()}
+async function facturaPDF(f,o){if(!f?.cae)return toast('Esta factura no es electrónica.',1);o=o||(await sb.from('pedidos').select('*').eq('id',f.pedido_id).maybeSingle()).data;
+  let it=o?await itemsPedido(o):null;if(!it||!it.length)it=[{d:'Mercadería según pedido',qt:'1',pu:+f.total,st:+f.total}];
+  const sum=it.reduce((a,i)=>a+(+i.st||0),0);if(Math.abs(sum-f.total)>0.5){const dif=+f.total-sum;it.push({d:o&&Math.abs(dif-(+o.costo_envio||0))<0.5?'Envío':'Envío y ajustes',qt:'1',pu:dif,st:dif})}
+  comprobanteArca({titulo:'Factura',tipo:f.cbte_tipo||11,pv:f.punto_venta,nro:f.numero,fecha:f.fecha||f.creado_en,total:f.total,cae:f.cae,cae_vto:f.cae_vto,cliente_id:f.cliente_id,doc_tipo:f.doc_tipo,doc_nro:f.doc_nro,items:it})}
+async function notaArcaPDF(nc){const{data:f}=nc.factura_id?await sb.from('facturas_venta').select('*').eq('id',nc.factura_id).maybeSingle():{data:null};
+  const it=(nc.items||[]).length?nc.items.map(i=>({id:i.id,d:nomProd(i.id),qt:nf(i.q),pu:+i.pu,st:Math.round(i.q*i.pu*100)/100})):[{d:nc.motivo||'Nota de crédito',qt:'1',pu:+nc.total,st:+nc.total}];
+  comprobanteArca({titulo:'Nota de crédito',tipo:13,pv:nc.punto_venta,nro:nc.numero_arca,fecha:nc.fecha||nc.creado_en,total:nc.total,cae:nc.cae,cae_vto:nc.cae_vto,cliente_id:nc.cliente_id,doc_tipo:f?.doc_tipo,doc_nro:f?.doc_nro,items:it,asoc:f?'Factura C '+nroFac(f):''})}
 async function facturarPedido(o){
   const c=S.clientes.find(x=>x.id==o.cliente_id);if(!c){toast('No encuentro el cliente de este pedido.',1);return null}
   if(!(o.total>0)){toast('El pedido no tiene importe.',1);return null}
   const{data:ya}=await sb.from('facturas_venta').select('tipo,numero').eq('pedido_id',o.id).limit(1);
   if(ya?.length){toast('Este pedido ya tiene la factura '+ya[0].tipo+' N° '+ya[0].numero+'.',1);return null}
+  if((await arcaEstado()).activo){if(!['dueno','administracion'].includes(S.perfil.rol)){toast('Sólo el dueño o administración pueden facturar.',1);return null}
+    toast('Pidiendo el CAE a ARCA…');try{const r=await arcaLlamar({accion:'facturar',pedido_id:o.id});const f=r.factura;toast('Factura C '+nroFac(f)+' autorizada por ARCA · CAE '+f.cae+'.');return f}catch(e){toast(e.message,1);return null}}
   const E=await datosEmisor(),ri=/responsable\s*inscripto/i.test(E.iva||'');
   /* Monotributo o exento: siempre Factura C. Responsable Inscripto: A a otro RI, B al resto. */
   const tipo=!ri?'C':c.condicion_iva=='responsable_inscripto'?'A':'B';
@@ -1654,7 +1701,10 @@ async function cambiarEstado(o,e){const prev=o.estado;const{error}=await sb.from
   if(!S._noUndo&&prev&&prev!==e)snack('Pedido N° '+o.numero+': '+(EST_TXT[e]||e),async()=>{S._noUndo=1;const ok=await cambiarEstado(o,prev);S._noUndo=0;if(ok){toast('Pedido N° '+o.numero+' volvió a '+(EST_TXT[prev]||prev)+'.');if(S.tab=='reparto')vReparto();else if(S.tab=='pedidos'&&typeof listaPedidos=='function')listaPedidos()}});
   if(e=='en_preparacion')sb.from('pedido_items').select('*').eq('pedido_id',o.id).then(({data})=>data&&asignarLotes([{pedido_items:data.filter(i=>!esPeso(i.producto_id))}])).catch(()=>{});return true}
 async function cancelarPedido(o,f){
-  if(f&&f.cae){toast('El pedido tiene factura electrónica con CAE: para anularla hacé una nota de crédito.',1);return false}
+  if(f&&f.cae){if(!(await arcaEstado()).activo){toast('El pedido tiene factura electrónica con CAE y la conexión con ARCA está apagada: activala para hacer la nota de crédito.',1);return false}
+    if(!confirm('¿Cancelar el pedido N° '+o.numero+'?\n\nLa factura C '+nroFac(f)+' tiene CAE de ARCA: se hace una NOTA DE CRÉDITO electrónica por '+$m(f.total)+' que la anula. La mercadería vuelve al stock.'))return false;
+    try{toast('Pidiendo la nota de crédito a ARCA…');const r=await arcaLlamar({accion:'nota_credito',factura_id:f.id});toast('Nota de crédito C '+nroFac({...r.nota,numero:r.nota.numero_arca})+' autorizada · CAE '+r.nota.cae+'.')}catch(e){toast(e.message,1);return false}
+    S._noUndo=1;const ok=await cambiarEstado(o,'cancelado');S._noUndo=0;return ok}
   const sale=['listo','en_reparto','entregado'].includes(o.estado);
   if(!confirm('¿Cancelar el pedido N° '+o.numero+'?\n\n'+(sale?'La mercadería vuelve al stock.':'Se libera la mercadería reservada.')+(f?'\nTambién se anula la Factura '+f.tipo+' N° '+f.numero+' y deja de figurar en la cuenta del cliente.':'')+'\n\nQueda en «Cancelados» y lo podés reactivar.'))return false;
   if(f){const{error}=await sb.from('facturas_venta').update({anulada:true}).eq('id',f.id);if(error){toast(error.message,1);return false}}
@@ -1691,13 +1741,13 @@ async function listaPedidos(){
     /* Clientes nuevos (por ejemplo, dados de alta solos desde el catálogo) que todavía no están en la lista del celular */
     {const fal=[...new Set(data.map(o=>o.cliente_id).filter(id=>id&&!S.clientes.some(c=>c.id==id)))];if(fal.length){const{data:NC}=await sb.from('clientes').select('*').in('id',fal);for(const c of NC||[])S.clientes.push(c);if(NC?.length){S.clientes.sort((a,b)=>String(a.razon_social).localeCompare(String(b.razon_social)));try{guardarCache()}catch(e){}}}}
     const ids=data.map(o=>o.id),fac={};
-    if(ids.length){const{data:F}=await sb.from('facturas_venta').select('id,pedido_id,tipo,numero,cae').eq('anulada',false).in('pedido_id',ids);for(const f of F||[])fac[f.pedido_id]=f}
+    if(ids.length){const{data:F}=await sb.from('facturas_venta').select('id,pedido_id,tipo,numero,punto_venta,cae,cae_vto,total,fecha,cliente_id,doc_tipo,doc_nro,cbte_tipo').eq('anulada',false).in('pedido_id',ids);for(const f of F||[])fac[f.pedido_id]=f}
     $('#pl').innerHTML=data.length?data.map(o=>{const f=fac[o.id],sig=SIG[o.estado],cerr=o.estado=='cancelado';
       const prin=o.estado=='pendiente'&&o.requiere_aprobacion?(S.perfil.rol=='dueno'?`<button data-rap="${o.id}">${IC('tag',16)} Revisar precio especial</button>`:'')
         :o.estado=='pendiente'
         ?(f?`<button data-ap="${o.id}">Aprobar</button>`:`<button data-apf="${o.id}">Aprobar y facturar</button>`)
         :(sig?`<button data-sig="${o.id}">${sig[1]}</button>`:'');
-      const fb=cerr?'':(f?`<span class="fac">${IC('receipt',14)} Factura ${f.tipo} N° ${f.numero}</span>`:(o.estado=='pendiente'?'':`<button data-fa="${o.id}">Facturar</button>`));
+      const fb=cerr?'':(f?(f.cae?`<a class="fac fac-e" data-fpdf="${f.id}" title="Ver la factura electrónica">${IC('receipt',14)} Factura C ${nroFac(f)}</a>`:`<span class="fac">${IC('receipt',14)} Factura ${f.tipo} N° ${f.numero}</span>`):(o.estado=='pendiente'?'':`<button data-fa="${o.id}">Facturar</button>`));
       return `<div class="ped est-${o.estado}" data-pid="${o.id}">
         <div class="ped-top"><div class="ped-q"><a class="cli" data-fc="${o.cliente_id}">${esc(o.clientes?nomVis(o.clientes):"Cliente")}</a><small>N° ${o.numero}${o.creado_en?' · '+cuandoTxt(o.creado_en):''}</small></div><span class="tot">${$m0(o.total)}${+o.costo_envio>0?'<br><small>incluye envío '+$m0(o.costo_envio)+'</small>':''}</span></div>${(o.fecha_entrega||o.entrega)||o.observaciones?`<div class="ped-nota"><small>${(o.fecha_entrega||o.entrega)?IC('calendar',14)+' Entregar el '+fd((o.fecha_entrega||o.entrega)):''}${(o.fecha_entrega||o.entrega)&&o.observaciones?' · ':''}${o.observaciones?IC('note',14)+' '+esc(o.observaciones):''}</small></div>`:''}
         ${pasosPedido(o)}
@@ -1725,6 +1775,7 @@ async function listaPedidos(){
       toast('Pedido N° '+o.numero+(bo?': envío bonificado.':': se cobra el envío.'));cargar()});
     $$('#pl [data-fc]').forEach(a=>a.onclick=()=>{const c=S.clientes.find(x=>x.id==a.dataset.fc);if(c){S.tab='clientes';shell();fichaCliente(c)}});
     $$('#pl [data-pdf]').forEach(b=>b.onclick=()=>pedidoPDF(ped(b.dataset.pdf)));
+    $$('#pl [data-fpdf]').forEach(b=>b.onclick=e=>{e.stopPropagation();const f=Object.values(fac).find(x=>x.id==b.dataset.fpdf);facturaPDF(f,ped(f.pedido_id))});
     $$('#pl [data-prb]').forEach(b=>b.onclick=async()=>{const v=b.dataset.v=='1';const{error}=await sb.from('pedidos').update({es_prueba:v}).eq('id',b.dataset.prb);if(error)return toast(error.message,1);toast(v?'Marcado como prueba. Lo borrás desde el aviso de arriba.':'Ya no es de prueba.');cargar()});$$('#pl [data-edp]').forEach(b=>b.onclick=()=>{S.edPed=ped(b.dataset.edp);vPedidos();window.scrollTo(0,0)});
     $$('#pl [data-rm]').forEach(b=>b.onclick=()=>remitos([ped(b.dataset.rm)]));
     $$('#pl [data-flt]').forEach(b=>b.onclick=()=>faltoAlgo(ped(b.dataset.flt),cargar));
@@ -1896,7 +1947,7 @@ function vCobranza(){setTimeout(()=>{if(S.preCob&&$('#k_c')){$('#k_c').value=S.p
     <div class="rcl">${recUn(r.data||[]).map(x=>`<div class="rci"><div class="rci-t"><b>Recibo N° ${x.numero}</b><small>${fd(x.fecha)} · ${esc(x.medio)}</small></div><b class="rci-m">${$m(x.importe)}</b><span class="rci-b"><button class="alt wa" data-rw="${x.numero}" aria-label="WhatsApp">${IC('chat',18)}</button><button class="alt" data-rp="${x.numero}" aria-label="PDF">${IC('doc',18)}</button>${['dueno','administracion'].includes(S.perfil.rol)?`<button class="alt" data-ran="${x.numero}" aria-label="Anular recibo" title="Anular recibo">${IC('x',18)}</button>`:''}</span></div>`).join('')||'<p><small>Todavía no hay recibos.</small></p>'}</div>`;
     const cli=S.clientes.find(c=>c.id==id),rec=n=>(r.data||[]).find(x=>x.numero==n);
     $$('#k_s [data-ppf]').forEach(b=>b.onclick=async()=>{const x=F.find(y=>y.factura_id==b.dataset.ppf);if(!confirm('¿Aplicar '+nf(PP.pct)+' % de descuento por pronto pago a la factura '+x.tipo+' '+x.numero+'? Se hace una nota de crédito por '+$m(x.pendiente*PP.pct/100)+'.'))return;
-      const{data,error}=await sb.rpc('descuento_pronto_pago',{p_factura:x.factura_id});if(error)return toast(/descuento_pronto_pago/.test(error.message)?'Falta correr ventas-crecer.sql en Supabase.':error.message,1);
+      const{data,error}=await sb.rpc('descuento_pronto_pago',{p_factura:x.factura_id});if(error)return toast(/descuento_pronto_pago/.test(error.message)?'Falta correr ventas-crecer.sql en Supabase.':error.message,1);arcaNotaSiCorresponde(data.numero);
       toast('Nota de crédito N° '+data.numero+' por '+$m(data.descuento)+'. Ahora cobrá '+$m(data.resta)+'.');await $('#k_c').onchange();setTimeout(()=>{const i=document.querySelector('#k_v .v_i');if(i){i.value=(+data.resta).toFixed(2);i.dispatchEvent(new Event('input'))}},300)});
     $$('#k_s [data-rw]').forEach(b=>b.onclick=()=>reciboWA(rec(b.dataset.rw),cli));
     $$('#k_s [data-rp]').forEach(b=>b.onclick=()=>reciboPDF(rec(b.dataset.rp),cli));
@@ -2071,7 +2122,7 @@ async function vReparto(){
   const{data,error}=await sb.from('pedidos').select('*,clientes(razon_social),pedido_items(producto_id,cantidad)').in('estado',['aprobado','en_preparacion','listo','en_reparto']).order('numero');
   if(error){$('#rv_l').innerHTML='<p class="err">'+esc(error.message)+'</p>';return}
   const ids=data.map(o=>o.id),fac={};
-  if(ids.length){const{data:F}=await sb.from('facturas_venta').select('id,pedido_id,tipo,numero,cae').eq('anulada',false).in('pedido_id',ids);for(const f of F||[])fac[f.pedido_id]=f}
+  if(ids.length){const{data:F}=await sb.from('facturas_venta').select('id,pedido_id,tipo,numero,punto_venta,cae,cae_vto,total,fecha,cliente_id,doc_tipo,doc_nro,cbte_tipo').eq('anulada',false).in('pedido_id',ids);for(const f of F||[])fac[f.pedido_id]=f}
   S.rvSel=S.rvSel||[];S.rvSel=S.rvSel.filter(id=>data.some(o=>o.id==id));
   if(!S.rvSel.length)S.rvSel=data.filter(o=>(o.estado=='listo'||o.estado=='en_reparto')&&(!o.entrega||o.entrega<=diaLocal(new Date()))).map(o=>o.id);
   const cl=o=>S.clientes.find(c=>c.id==o.cliente_id)||{razon_social:o.clientes?.razon_social||'Cliente'};
@@ -2138,7 +2189,7 @@ async function vCompras(){
   const{data,error}=await sb.from('proveedores').select('*').eq('activo',true).order('razon_social');
   if(error){$('#cv').innerHTML='<p class="err">No se pudo leer Compras: '+esc(error.message)+'<br>¿Ya corriste compras.sql en Supabase?</p>';return}
   S.prov=data;
-  ({costos:cHistCostos,mejor:cMejorProv,ordenes:cOrdenes,sugerencia:cSugerencia,proveedores:cProveedores,cuenta:cCuenta,pagos:cOrdenesPago})[S.sub]();
+  marcarUso('compras:'+S.sub);  ({costos:cHistCostos,mejor:cMejorProv,ordenes:cOrdenes,sugerencia:cSugerencia,proveedores:cProveedores,cuenta:cCuenta,pagos:cOrdenesPago})[S.sub]();
 }
 
 /* Unificar proveedores repetidos (el mismo proveedor cargado con varios nombres) */
@@ -2548,13 +2599,14 @@ async function configEmisor(){const E=await datosEmisor(),A=await cfgJ('agente_r
     <p><small>Salen arriba en los recibos, órdenes de pago y certificados.</small></p><div class="g">
     <label class="f">Razón social<input id="ce_rs" value="${esc(E.rs||'')}"></label><label class="f">CUIT<input id="ce_cu" inputmode="numeric" value="${esc(E.cuit||'')}"></label>
     <label class="f">Condición de IVA<input id="ce_iv" value="${esc(E.iva||'')}"></label><label class="f">N° de Ingresos Brutos<input id="ce_ib" value="${esc(E.iibb||'')}"></label>
+    <label class="f">Inicio de actividades<input id="ce_in" placeholder="Ej.: 01/03/2015" value="${esc(E.ini||'')}"></label>
     <label class="f" style="grid-column:1/-1">Domicilio<input id="ce_do" value="${esc(E.dom||'')}"></label></div>
     <h4 style="margin:14px 0 4px">Si sos agente de retención</h4><p><small>Hoy no hace falta. Si algún día te designan, activalo y el CRM te sugiere la retención en cada orden de pago (siempre la podés corregir).</small></p>
     <label class="chk"><input type="checkbox" id="ag_ib" ${A.iibb.on?'checked':''}> Retengo Ingresos Brutos</label><div class="g"><label class="f">Jurisdicción<input id="ag_ij" value="${esc(A.iibb.jur||'')}" placeholder="Ej.: CABA"></label><label class="f">Alícuota %<input id="ag_ia" type="number" step="0.01" value="${A.iibb.al||''}"></label><label class="f">Mínimo de base<input id="ag_im" type="number" step="0.01" value="${A.iibb.min||''}"></label></div>
     <label class="chk"><input type="checkbox" id="ag_gn" ${A.gan.on?'checked':''}> Retengo Ganancias</label><div class="g"><label class="f">Régimen<input id="ag_gr" value="${esc(A.gan.reg||'')}" placeholder="Ej.: 078 Compraventa de bienes"></label><label class="f">Alícuota %<input id="ag_ga" type="number" step="0.01" value="${A.gan.al||''}"></label><label class="f">Mínimo no sujeto<input id="ag_gm" type="number" step="0.01" value="${A.gan.min||''}"></label></div>
     <p><small>Las alícuotas y mínimos los define tu contador según tu designación.</small></p><button id="ce_g">Guardar</button></div>`;
   const q=x=>m.querySelector(x);q('#ce_x').onclick=()=>m.remove();m.onclick=e=>{if(e.target===m)m.remove()};
-  q('#ce_g').onclick=async()=>{const e={rs:q('#ce_rs').value.trim(),cuit:q('#ce_cu').value.replace(/\D/g,''),iva:q('#ce_iv').value.trim(),iibb:q('#ce_ib').value.trim(),dom:q('#ce_do').value.trim()};
+  q('#ce_g').onclick=async()=>{const e={rs:q('#ce_rs').value.trim(),cuit:q('#ce_cu').value.replace(/\D/g,''),iva:q('#ce_iv').value.trim(),iibb:q('#ce_ib').value.trim(),dom:q('#ce_do').value.trim(),ini:q('#ce_in').value.trim()};
     const a={iibb:{on:q('#ag_ib').checked,jur:q('#ag_ij').value.trim(),al:+q('#ag_ia').value||0,min:+q('#ag_im').value||0},gan:{on:q('#ag_gn').checked,reg:q('#ag_gr').value.trim(),al:+q('#ag_ga').value||0,min:+q('#ag_gm').value||0}};
     const[r1,r2]=await Promise.all([guardaCfgJ('datos_emisor',e),guardaCfgJ('agente_retencion',a)]);if(r1.error||r2.error)return toast((r1.error||r2.error).message,1);
     S.emisor=e;m.remove();toast('Guardado.');if($('#op_f'))formOP()}}
@@ -3067,9 +3119,9 @@ async function panelPedido(o,alCambiar){if(!o)return;document.getElementById('pd
   document.body.appendChild(w);requestAnimationFrame(()=>w.classList.add('on'));
   const cerrar=()=>{w.classList.remove('on');setTimeout(()=>w.remove(),200);document.removeEventListener('keydown',esc_)},esc_=e=>{if(e.key=='Escape')cerrar()};
   document.addEventListener('keydown',esc_);w.onclick=e=>{if(e.target==w)cerrar()};w.querySelector('.pd-x').onclick=cerrar;
-  const[it,fv]=await Promise.all([itemsPedido(o),sb.from('facturas_venta').select('id,tipo,numero').eq('pedido_id',o.id).eq('anulada',false).maybeSingle().then(r=>r,()=>({}))]);
+  const[it,fv]=await Promise.all([itemsPedido(o),sb.from('facturas_venta').select('*').eq('pedido_id',o.id).eq('anulada',false).maybeSingle().then(r=>r,()=>({}))]);
   if(!it||!document.body.contains(w))return;const f=fv?.data,c=S.clientes.find(x=>x.id==o.cliente_id),sig=SIG[o.estado];
-  w.querySelector('.pd-b').innerHTML=`<div class="pd-est"><span class="badge b-${o.estado}">${EST_TXT[o.estado]||o.estado}</span>${o.origen=='online'?'<span class="badge b-online">Online</span>':''}${f?`<span class="fac">${IC('receipt',14)} Factura ${f.tipo} N° ${f.numero}</span>`:''}${c?estChip(c.id):''}</div>
+  w.querySelector('.pd-b').innerHTML=`<div class="pd-est"><span class="badge b-${o.estado}">${EST_TXT[o.estado]||o.estado}</span>${o.origen=='online'?'<span class="badge b-online">Online</span>':''}${f?(f.cae?`<a class="fac fac-e" id="pd_fe">${IC('receipt',14)} Factura C ${nroFac(f)}</a>`:`<span class="fac">${IC('receipt',14)} Factura ${f.tipo} N° ${f.numero}</span>`):''}${c?estChip(c.id):''}</div>
     ${pasosPedido(o,'pasos-g')}
     <div class="pd-tot"><b>${$m0(o.total)}</b>${+o.costo_envio>0?`<small>incluye envío ${$m0(o.costo_envio)}</small>`:''}</div>
     ${o.fecha_entrega||o.observaciones?`<div class="pd-nota">${o.fecha_entrega?`<span>${IC('calendar',15)} Entregar el ${fd(o.fecha_entrega)}</span>`:''}${o.observaciones?`<span>${IC('note',15)} ${esc(o.observaciones)}</span>`:''}</div>`:''}
@@ -3077,6 +3129,7 @@ async function panelPedido(o,alCambiar){if(!o)return;document.getElementById('pd
     <div class="pd-acc">${o.estado=='pendiente'&&o.requiere_aprobacion?(S.perfil.rol=='dueno'?`<button data-pa="rap">${IC('tag',17)} Revisar precio especial</button>`:'<p class="aviso" style="grid-column:1/-1">⏳ Esperando que el dueño apruebe el precio especial.</p>'):o.estado=='pendiente'?`<button data-pa="ap">${IC('check',17)} Aprobar</button>`:sig?`<button data-pa="sig">${esc(sig[1])}</button>`:''}${!f&&!['pendiente','cancelado'].includes(o.estado)?`<button class="alt" data-pa="fa">${IC('receipt',17)} Facturar</button>`:''}
       <button class="alt" data-pa="pdf">${IC('print',17)} Imprimir</button><button class="alt wa" data-pa="wa">${IC('chat',17)} WhatsApp</button>${c?`<button class="alt" data-pa="fc">${IC('user',17)} Ficha</button>`:''}${S.perfil.rol=='dueno'?`<button class="alt pd-cb" data-pa="cb">${IC('clock',16)} Ver cambios</button>`:''}</div>`;
   const listo=()=>{cerrar();alCambiar&&alCambiar()};
+  w.querySelector('#pd_fe')&&(w.querySelector('#pd_fe').onclick=()=>facturaPDF(f,o));
   w.querySelectorAll('[data-pa]').forEach(b=>b.onclick=async()=>{const a=b.dataset.pa;
     if(a=='pdf')return pedidoPDF(o);if(a=='wa')return enviarWA(o);if(a=='rap'){cerrar();return aprobacionesModal(o.id)}if(a=='cb')return cambiosPedido(o);if(a=='fc'){cerrar();return fichaCliente(c)}
     b.disabled=true;
@@ -3900,13 +3953,14 @@ async function devolucion(o,alTerminar){
     $('#dv_ok').disabled=true;const motivo=$('#dv_m').value+($('#dv_n').value.trim()?' · '+$('#dv_n').value.trim():'');
     const{data,error}=await sb.rpc('registrar_devolucion',{p_pedido:o.id,p_items:items,p_motivo:motivo,p_reponer:$('#dv_r').checked});
     if(error){$('#dv_ok').disabled=false;return toast(error.message,1)}
+    if(data.facturado)arcaNotaSiCorresponde(data.numero);
     await cargarStock();m.innerHTML=`<div class="mc"><h3>Nota de crédito N° ${data.numero}</h3><p>Por <b>${$m(data.total)}</b>. ${data.facturado?'Ya se descontó de la cuenta del cliente.':'El pedido no estaba facturado: no se tocó la cuenta corriente.'}</p>
       <div class="fc-acc"><button id="nc_p">PDF</button><button class="alt wa" id="nc_w">WhatsApp</button><button class="alt" id="nc_x">Listo</button></div></div>`;
     const nc={numero:data.numero,total:data.total,motivo,items:items.map(x=>({...x,pu:I.find(i=>i.id==x.id).pu})),fecha:diaLocal(new Date()),pedido:o.numero};
-    $('#nc_p').onclick=()=>ncPDF(nc,c);$('#nc_w').onclick=()=>window.open('https://wa.me/'+telWA(c.telefono)+'?text='+encodeURIComponent(`Hola! Te pasamos la *nota de crédito N° ${data.numero}* de *Sabores de mi País* por ${$m(data.total)}, por la devolución del pedido N° ${o.numero} (${motivo}).${data.facturado?' Ya está descontada de tu cuenta.':''}`),'_blank');
+    $('#nc_p').onclick=async()=>{const{data:n2}=await sb.from('notas_credito').select('*').eq('numero',data.numero).maybeSingle().then(r=>r,()=>({}));ncPDF(n2?.cae?n2:nc,c)};$('#nc_w').onclick=()=>window.open('https://wa.me/'+telWA(c.telefono)+'?text='+encodeURIComponent(`Hola! Te pasamos la *nota de crédito N° ${data.numero}* de *Sabores de mi País* por ${$m(data.total)}, por la devolución del pedido N° ${o.numero} (${motivo}).${data.facturado?' Ya está descontada de tu cuenta.':''}`),'_blank');
     $('#nc_x').onclick=()=>{m.remove();alTerminar&&alTerminar()}};
 }
-function ncPDF(nc,c){const w=window.open('','_blank');if(!w)return toast('Permití las ventanas emergentes para generar el PDF.',1);
+function ncPDF(nc,c){if(nc&&nc.cae)return notaArcaPDF(nc);const w=window.open('','_blank');if(!w)return toast('Permití las ventanas emergentes para generar el PDF.',1);
   w.document.write(`<html><head><meta charset="utf-8"><title>Nota de crédito ${nc.numero} - ${esc(c.razon_social||'')}</title><style>body{font:14px system-ui,Segoe UI,sans-serif;margin:32px;color:#1c2333;max-width:760px}h1{color:${MARCA.c};margin:0}.top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid ${MARCA.c};padding-bottom:12px}table{width:100%;border-collapse:collapse;margin:16px 0}th,td{border-bottom:1px solid #ccc;padding:6px;text-align:left}.n{text-align:right;white-space:nowrap}.tot td{font-weight:700;font-size:16px;border-bottom:0}.ayuda{background:#f6e9ec;padding:10px;border-radius:6px}@media print{.ayuda{display:none}}</style><style>${docCss()}</style></head><body>
   <p class="ayuda">Para guardarlo en PDF: en la ventana de impresión elegí <b>Guardar como PDF</b> como destino.</p>
   <div class="top"><div>${logoImg()}<h1>Sabores de mi País</h1><div>Nota de crédito X · Documento no válido como factura</div></div><div class="n"><b>N° 0001-${String(nc.numero).padStart(8,'0')}</b><br>${fd(nc.fecha)}<br>Pedido N° ${nc.pedido}</div></div>
@@ -5630,7 +5684,7 @@ function menuMas(todas){const LT=(todas===1?(()=>{const t=tabsMenu();return [...
   m.innerHTML=`<div class="mc"><div class="bh"><h3>Más secciones</h3><button class="alt" id="mm_x">Cerrar</button></div>
   <div class="mmas">${LT.map(t=>`<button class="${S.tab==t?'on':'alt'}" data-mt="${t}">${IC(MAS_IC[t]?.[0]||'box',24)}<span><b>${t=='manual'?'Manual':t[0].toUpperCase()+t.slice(1)}</b><small>${MAS_IC[t]?.[1]||''}</small></span></button>`).join('')}${S.perfil.rol=='dueno'?`<button class="alt" id="mm_dl">${IC('cash',24)}<span><b>Dólar del día</b><small>Costos en dólares</small></span></button>`:''}</div>
   ${S.perfil.rol=='dueno'?`<div id="chk" style="margin-top:10px"></div>`:''}
-  <div class="mmaj"><small>Cuenta y ajustes</small>${(S.perfil.rol=='dueno'?[['users','Usuarios y accesos','usuarios()'],['cash','Mercado Pago: cobros por transferencia','mercadoPago()'],['menu','Elegir pestañas del menú','menuTabsCfg()'],['cash','Comisiones de vendedores','comisionesCfg()'],['clock','Quién cambió qué','cambiosModal()'],['doc','Ver panel completo',"S.inicioModo='completa';S.tab='inicio';shell();scrollTo(0,0)"]]:[]).concat([['sliders','Personalizar el inicio','iniPersonalizar()'],['bulb',S.perfil.rol=='vendedor'?'Ver la guía de nuevo':'Ver la guía para vendedores',"irA('inicio');setTimeout(()=>guiaVendedor(1),900)"],['lock','Cambiar mi contraseña','cambiarClave()']]).map(([i,t,f])=>`<button class="alt" data-mf="${f}">${IC(i,18)}<span>${t}</span><b>›</b></button>`).join('')}</div></div>`;
+  <div class="mmaj"><small>Cuenta y ajustes</small>${(S.perfil.rol=='dueno'?[['users','Usuarios y accesos','usuarios()'],['cash','Mercado Pago: cobros por transferencia','mercadoPago()'],['menu','Elegir pestañas del menú','menuTabsCfg()'],['cash','Comisiones de vendedores','comisionesCfg()'],['clock','Quién cambió qué','cambiosModal()'],['receipt','Factura electrónica (ARCA)','arcaConfig()'],['bars','Qué se usa del CRM','queSeUsa()'],['download','Copias de seguridad','copiasNube()'],['doc','Ver panel completo',"S.inicioModo='completa';S.tab='inicio';shell();scrollTo(0,0)"]]:[]).concat([['sliders','Personalizar el inicio','iniPersonalizar()'],['bulb',S.perfil.rol=='vendedor'?'Ver la guía de nuevo':'Ver la guía para vendedores',"irA('inicio');setTimeout(()=>guiaVendedor(1),900)"],['lock','Cambiar mi contraseña','cambiarClave()']]).map(([i,t,f])=>`<button class="alt" data-mf="${f}">${IC(i,18)}<span>${t}</span><b>›</b></button>`).join('')}</div></div>`;
   m.onclick=e=>{if(e.target==m)m.remove()};m.querySelector('#mm_x').onclick=()=>m.remove();
   m.querySelectorAll('[data-mt]').forEach(b=>b.onclick=()=>{m.remove();S.tab=b.dataset.mt;shell()});m.querySelectorAll('[data-mf]').forEach(b=>b.onclick=()=>{m.remove();(0,eval)(b.dataset.mf)});
   const dl=m.querySelector('#mm_dl');if(dl)dl.onclick=()=>{m.remove();dolarModal()};if(m.querySelector('#chk'))chequeoInicio().catch(()=>{})}
@@ -5936,8 +5990,20 @@ async function accionChofer(a){const run=async()=>{if(a.t=='cobro'){const{error}
   if(!navigator.onLine){guardaOff([...colaOff(),a]);return'off'}try{await run();return'ok'}catch(e){if(esRed(e)){guardaOff([...colaOff(),a]);return'off'}throw e}}
 async function sincronizarOff(){const L=colaOff();if(!L.length||!navigator.onLine)return;const resto=[];let n=0;
   for(const a of L){try{if(a.t=='cobro'){const{error}=await sb.rpc('registrar_cobranza',a.args);if(error)throw error}else if(a.t=='estado'){const{error}=await sb.from('pedidos').update({estado:a.e}).eq('id',a.id);if(error)throw error}else if(a.t=='contacto'){await sb.from('contactos_clientes').insert(a.row)}else if(a.t=='firma'){const{error}=await sb.from('pedidos').update({firma:a.f,firmado_en:a.at,firmado_por:a.p}).eq('id',a.id);if(error)throw error}else if(a.t=='pedido'){await subirPedidoOff(a)}n++}catch(e){if(esRed(e))resto.push(a);else toast('No se pudo sincronizar una acción del reparto: '+(e.message||e),1)}}
-  guardaOff(resto);if(n)toast('📶 Volvió la señal: se sincronizaron '+n+' acciones del reparto.')}
+  guardaOff(resto);offBadge();if(n)toast('📶 Volvió la señal: se sincronizaron '+n+' acciones del reparto.')}
 window.addEventListener('online',()=>setTimeout(sincronizarOff,1500));
+/* Lo pendiente sin señal a la vista: un cartelito arriba con cuántas cosas faltan mandar; se reintenta solo cada minuto */
+function offBadge(){const L=colaOff();let b=document.getElementById('offb');if(!L.length||!S.perfil){b&&b.remove();return}
+  if(!b){b=document.createElement('button');b.id='offb';b.type='button';document.body.appendChild(b);b.onclick=offModal}
+  const np=L.filter(a=>a.t=='pedido').length;b.innerHTML=`${IC('repeat',15)} ${navigator.onLine?'Mandando':'Sin señal'} · ${L.length} ${L.length==1?'pendiente':'pendientes'}${np?` (${np} ${np==1?'pedido':'pedidos'})`:''}`;b.classList.toggle('off',!navigator.onLine)}
+function offModal(){const L=colaOff(),m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  const T={pedido:'Pedido',cobro:'Cobro',estado:'Cambio de estado',contacto:'Visita o llamada',firma:'Firma'};
+  m.innerHTML=`<div class="mc"><div class="bh"><h3>Guardado en el celular</h3><button class="alt" id="of_x">Cerrar</button></div><p><small>Esto se cargó sin señal. Se manda solo cuando vuelve internet (también lo reintenta cada minuto).</small></p>
+    <div class="ofl">${L.map(a=>`<div class="r"><b>${T[a.t]||a.t}</b><small>${esc(a.nom||'')}${a.at?' · '+new Date(a.at).toLocaleString('es-AR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):''}${a.items?' · '+a.items.length+' productos':''}</small></div>`).join('')}</div>
+    <button id="of_y">${IC('send',16)} Mandar ahora</button></div>`;
+  m.querySelector('#of_x').onclick=()=>m.remove();m.querySelector('#of_y').onclick=async()=>{await sincronizarOff();m.remove();if(colaOff().length)toast('Todavía no hay señal: queda guardado y se manda solo.',1)}}
+setInterval(()=>{if(colaOff().length&&navigator.onLine)sincronizarOff().catch(()=>{});offBadge()},60000);
+window.addEventListener('offline',()=>offBadge());setTimeout(offBadge,2500);
 
 /* ======================= ORDEN, VELOCIDAD Y COMODIDAD (tanda 19) ======================= */
 const RAW_SQL='https://raw.githubusercontent.com/dnegri0805-cell/crm-sabores/main/sql/',SUPA_SQL='https://supabase.com/dashboard/project/ggfqdkgqtpnkvxoykoty/sql/new';
@@ -6341,11 +6407,14 @@ async function provDiasCfg(){const[PD,pv]=await Promise.all([cfgJ('prov_dias',{}
   draw()}
 
 /* ---------- Cargar pedidos sin señal ---------- */
-function pedidoOff(c,ag,fac,cu){const items=Object.entries(ag).map(([k,a])=>{const x={producto_id:k,cantidad:a.q,precio_unitario:Math.round(a.t/a.q*fac*100)/100};if(a.l.size)x.promo=[...a.l].join(' + ');return x});
-  guardaOff([...colaOff(),{t:'pedido',ped:{cliente_id:c.id,vendedor_id:S.perfil.id,lista:c.lista,descuento_pct:c.descuento_pct},items,cup:cu?S.pcup?.codigo:null,nom:c.razon_social,at:new Date().toISOString()}]);
-  toast('📴 Sin señal: el pedido de '+c.razon_social+' quedó guardado en el celular y se manda solo cuando vuelva internet.');S.items=[];S.pcli=null;S.pcup=null;vPedidos()}
-async function subirPedidoOff(a){const{data:o,error}=await sb.from('pedidos').insert({...a.ped,observaciones:'Cargado sin señal ('+new Date(a.at).toLocaleString('es-AR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+')'}).select().single();if(error)throw error;
-  const{error:e2}=await sb.from('pedido_items').insert(a.items.map(x=>({...x,pedido_id:o.id})));if(e2){await sb.from('pedidos').delete().eq('id',o.id);throw e2}
+function pedidoOff(c,ag,fac,cu,ex,pid){const items=Object.entries(ag).map(([k,a])=>{const x={producto_id:k,cantidad:a.q,precio_unitario:Math.round(a.t/a.q*fac*100)/100};if(a.l.size)x.promo=[...a.l].join(' + ');if(a.mp)x.precio_manual=true;return x});
+  guardaOff([...colaOff(),{t:'pedido',ped:{id:pid||crypto.randomUUID(),cliente_id:c.id,vendedor_id:S.perfil.id,lista:c.lista,descuento_pct:c.descuento_pct,...(ex||{})},items,cup:cu?S.pcup?.codigo:null,nom:c.razon_social,at:new Date().toISOString()}]);
+  toast('📴 Sin señal: el pedido de '+c.razon_social+' quedó guardado en el celular y se manda solo cuando vuelva internet.');try{borrarBorr()}catch(e){}S.items=[];S.pcli=null;S.pcup=null;offBadge();vPedidos()}
+async function subirPedidoOff(a){const marca='Cargado sin señal ('+new Date(a.at).toLocaleString('es-AR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+')';
+  let o=null;if(a.ped.id){const{data:ya,error:e0}=await sb.from('pedidos').select('*').eq('id',a.ped.id).maybeSingle();if(e0)throw e0;o=ya}
+  if(!o){const{data,error}=await sb.from('pedidos').insert({...a.ped,observaciones:[a.ped.observaciones,marca].filter(Boolean).join(' · ')}).select().single();if(error)throw error;o=data}
+  const{count:ni}=await sb.from('pedido_items').select('id',{count:'exact',head:true}).eq('pedido_id',o.id);
+  if(!ni){const{error:e2}=await sb.from('pedido_items').insert(a.items.map(x=>({...x,pedido_id:o.id})));if(e2){if(!esRed(e2))await sb.from('pedidos').delete().eq('id',o.id);throw e2}}
   if(a.cup)await sb.from('cupones_usos').insert({codigo:a.cup,cliente_id:a.ped.cliente_id,pedido_id:o.id});toast('📶 Se mandó el pedido N° '+o.numero+' de '+a.nom+' que estaba sin señal.')}
 function pedidosOffHTML(){const n=colaOff().filter(a=>a.t=='pedido');return n.length?`<div class="aviso">📴 ${n.length} ${n.length==1?'pedido cargado':'pedidos cargados'} sin señal (${n.map(a=>esc(a.nom)).join(', ')}): se mandan solos cuando vuelve internet.</div>`:''}
 

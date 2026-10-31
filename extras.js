@@ -835,14 +835,16 @@ async function folletoOfertas(opt){
     $('#fo_sh')&&($('#fo_sh').onclick=async()=>{const files=blobs.map((b,k)=>new File([b],nom(k),{type:'image/jpeg'}));
       try{if(navigator.canShare({files}))await navigator.share({files,text:'Ofertas de Sabores de mi País'+(S.telEmp?' · Pedí por WhatsApp '+S.telEmp:'')});else $('#fo_dl').click()}catch(e){}})};
 }
-function vVentas(){
-  S.vs=S.vs||'rapido';const due=S.perfil.rol=='dueno';
-  let GR=[['🚀 Rápido',[['rapido','🚀 Difundir y vender']]],['⚡ Hoy',[['cola','⚡ Cola del día'],['plansem','🗓️ Plan de ataque'],['plan','📋 Plan del día'],['auto','⚙️ Automatizaciones']]],
+/* Todas las herramientas de Ventas (grupo → [clave, nombre]) */
+function ventasGR(){return [['🚀 Rápido',[['rapido','🚀 Difundir y vender']]],['⚡ Hoy',[['cola','⚡ Cola del día'],['plansem','🗓️ Plan de ataque'],['plan','📋 Plan del día'],['auto','⚙️ Automatizaciones']]],
     ['🤝 Clientes',[['toca','📞 Les toca comprar'],['miraron','👀 Miraron el catálogo'],['carritos','🛒 Carritos sin enviar'],['menos','📉 Comprando menos'],['presupuestos','📝 Presupuestos'],['esperan','🔔 Esperan productos'],['clave','👑 Cuentas clave'],['ataque','⚔️ Ataque a la competencia'],['nuevos90','🌱 Primeros 90 días'],['bienvenida','👋 Bienvenida y aniversarios'],['encuestas','⭐ Encuestas'],['reclamos','🆘 Reclamos'],['faq','💬 Preguntas del catálogo'],['votacion','🗳️ Votación de productos'],['muestras','🧪 Muestras'],['comodatos','🧊 Exhibidores']]],
     ['🧲 Prospectos',[['embudo','🧲 Embudo de prospectos'],['ruta','🚶 Ruta de prospección'],['llamadas','📞 Modo llamadas'],['buscarneg','🗺️ Buscar negocios'],['cobertura','🧭 Zonas sin cubrir']]],
     ['🏷️ Ofertas y difusión',[['invitar','🚀 Invitar a pedir online'],['campanias','📣 Campañas'],['novsem','📋 Novedades semanal'],['estados','📱 Estados de WhatsApp'],['tarjeta','🖼️ Tarjeta de producto'],['difusion','🖼️ Folletos y catálogo'],['fiambres','🧀 Fiambres por kilo'],['fechas','📅 Fechas'],['rubros','🏪 Por rubro'],['qr','🔳 QR por campaña'],['contactos','📇 Contactos para WhatsApp'],['puntos','🏆 Puntos y desafío'],['liga','🏆 Liga de clientes'],['sorteo','🎟️ Sorteo del mes'],['cambios','📢 Cambios de precio'],['relampago','⚡ Relámpago'],['cupo','🔥 Oferta por cupo'],['personal','🎯 Ofertas personales'],['combos','🎁 Combos'],['cantidad','🏷️ Precio por cantidad'],['cupones','🎟️ Cupones'],['liquidar','📦 Liquidar stock'],['preventa','🔜 Preventa'],['novedades','✨ Novedades'],['acuerdos','📜 Acuerdos comerciales'],['micombo','🧺 Combo de siempre'],['checkout','🛒 Oferta de último momento'],['empujar','🚀 Productos para empujar'],['online','📲 Premio por pedir online'],['quincenal','📦 Pedido quincenal'],['niveles','🥇 Niveles'],['pvp','💰 Precio sugerido'],['bultos','📦 Venta por bulto'],['redondeo','🏷️ Precios redondeados'],['aumento','📈 Aviso de aumento'],['reglas','💲 Descuentos y mínimo']]],
     ['📸 Instagram',[['ig','📸 Contenido'],['igcal','🗓️ Calendario y reels'],['igbio','🔗 Página para la bio'],['igsorteo','🎁 Sorteo'],['igpros','📥 Prospectos de Instagram'],['igshop','🛍️ Catálogo para Shopping']]],
-    ['📊 Analizar',[['semana','📊 Resumen semanal'],['anual','📆 Año contra año'],['rentkg','🧀 Rentabilidad quesos y fiambres'],['zonasrep','🗺️ Reparto por zona'],['captacion','🧲 Captación'],['pronostico','🔮 Pronóstico del mes'],['tablero','📺 Tablero en vivo'],['rentcli','💼 Rentabilidad por cliente'],['simulador','🧪 Simulador de aumento'],['abc','🅰️ ABC'],['potencial','📊 Potencial'],['competencia','🏁 Competencia'],['nocompra','🚶 Por qué no compran'],['perdidas','💸 Ventas perdidas'],['buscan','🔎 Qué buscan y piden'],['marcas','🏭 Por marca'],['zonas','🗺️ Por zona'],['horarios','🕐 Cuándo piden'],['proveedores','🏭 Metas y reintegros']]]];
+    ['📊 Analizar',[['semana','📊 Resumen semanal'],['anual','📆 Año contra año'],['rentkg','🧀 Rentabilidad quesos y fiambres'],['zonasrep','🗺️ Reparto por zona'],['captacion','🧲 Captación'],['pronostico','🔮 Pronóstico del mes'],['tablero','📺 Tablero en vivo'],['rentcli','💼 Rentabilidad por cliente'],['simulador','🧪 Simulador de aumento'],['abc','🅰️ ABC'],['potencial','📊 Potencial'],['competencia','🏁 Competencia'],['nocompra','🚶 Por qué no compran'],['perdidas','💸 Ventas perdidas'],['buscan','🔎 Qué buscan y piden'],['marcas','🏭 Por marca'],['zonas','🗺️ Por zona'],['horarios','🕐 Cuándo piden'],['proveedores','🏭 Metas y reintegros']]]];}
+function vVentas(){
+  S.vs=S.vs||'rapido';const due=S.perfil.rol=='dueno';
+  let GR=ventasGR();
   /* El vendedor ve sólo las herramientas para vender (las de precios, márgenes y configuración son del dueño) */
   if(S.perfil.rol=='vendedor'){const OK=['rapido','cola','plansem','plan','toca','miraron','carritos','menos','presupuestos','esperan','clave','nuevos90','bienvenida','reclamos','embudo','ruta','llamadas','buscarneg','cobertura','invitar','estados','tarjeta','difusion','fiambres','fechas','rubros','contactos','nocompra','buscan','potencial'];
     GR=GR.map(([g,L])=>[g,L.filter(([k])=>OK.includes(k))]).filter(([,L])=>L.length);if(!OK.includes(S.vs))S.vs='rapido'}
@@ -856,6 +858,7 @@ function vVentas(){
     $('#vsubs').innerHTML=(T||act).map(([k,t,g])=>`<button class="${S.vs==k?'':'alt'}" data-vs="${k}">${t}${T?` <small style="opacity:.6">· ${esc(g.replace(/^\S+\s/,''))}</small>`:''}</button>`).join('')||'<small>No encontré esa pantalla.</small>';
     $$('#vsubs [data-vs]').forEach(b=>b.onclick=()=>{S.vs=b.dataset.vs;S.vg=null;vVentas()})};
   $$('[data-vs]').forEach(b=>b.onclick=()=>{S.vs=b.dataset.vs;vVentas()});
+  marcarUso('ventas:'+S.vs);
   ({rapido:vRapido,invitar:vInvitar,faq:vFaq,votacion:vVotacion,anual:vAnual,zonasrep:()=>{$('#vs').innerHTML='<div class="box"><p>Se abrió la pantalla de zonas de reparto. También está en Reparto → 🗺️ Zonas y camioneta.</p><button onclick="zonasReparto()">Abrir de nuevo</button></div>';zonasReparto()},rentkg:vRentKg,fiambres:vFiambresKg,micombo:vMiCombo,checkout:vCheckout,empujar:vEmpujar,online:vOnline,pronostico:vPronostico,tablero:vTableroInfo,ig:vIG,igcal:vIGCal,igbio:vIGBio,igsorteo:vIGSorteo,igpros:vIGPros,igshop:vIGShop,plansem:vPlanSem,clave:vClave,ataque:vAtaque,cupo:vCupo,acuerdos:vAcuerdos,quincenal:vQuincenal,liga:vLiga,rentcli:vRentCli,simulador:vSimulador,llamadas:vLlamadas,contactos:vContactos,cobertura:vCobertura,cola:vCola,auto:vAuto,nuevos90:vNuevos90,ruta:vRuta,qr:vQR,captacion:vCaptacion,buscarneg:vBuscarNegocios,comodatos:vComodatos,proveedores:vProveedores,horarios:vHorarios,plan:vPlan,semana:vSemana,embudo:vEmbudo,preventa:vPreventa,bultos:vBultos,redondeo:vRedondeo,reclamos:vReclamos,niveles:vNiveles,estados:vEstados,tarjeta:vTarjeta,perdidas:vPerdidas,potencial:vPotencial,zonas:vZonas,miraron:vMiraron,bienvenida:vBienvenida,personal:vPersonal,pvp:vPVP,sorteo:vSorteo,cambios:vCambiosPrecio,muestras:vMuestras,aumento:vAumento,novsem:vNovSemana,marcas:vMarcas,competencia:vCompetencia,nocompra:vNoCompra,carritos:vCarritos,esperan:vEsperan,liquidar:vLiquidar,relampago:vRelampago,buscan:vBuscan,abc:vABC,rubros:vRubros,fechas:vFechas,toca:vToca,menos:vMenos,encuestas:vEncuestas,presupuestos:vPresupuestos,cantidad:vCantidad,cupones:vCupones,puntos:vPuntos,campanias:vCampanias,combos:vCombos,novedades:vNovedades,reglas:vReglas,difusion:()=>{$('#vs').innerHTML='<div class="box" id="pr_vd"></div>';cajaVender()}})[S.vs]();
 }
 async function vRapido(cargar=true){if(cargar&&!(S._rpT>Date.now()-60000&&S.promos)){await Promise.all([cargarPromos(),typeof cargarStock=='function'?cargarStock():0]);S._rpT=Date.now()}if(S.vs!='rapido'||!$('#vs'))return;
@@ -2902,6 +2905,7 @@ function vContable(){
   const mono=!/responsable\s*inscripto/i.test(S.emisor?.iva||'Monotributo'),SUBS=CT_SUBS.filter(([k])=>!(mono&&['iva','ret'].includes(k)));if(!SUBS.some(([k])=>k==S.ct))S.ct='resultados';
   $('#v').innerHTML=`<h2>Contable</h2><div class="sub ctsub tabs ct-pg">${SUBS.map(([k,t])=>`<button class="${S.ct==k?'':'alt'}" data-ct="${k}">${t}</button>`).join('')}</div><div id="ct"><span class="skl" role="status" aria-label="Cargando"></span></div>`;
   $$('[data-ct]').forEach(b=>b.onclick=()=>{S.ct=b.dataset.ct;vContable()});
+  marcarUso('contable:'+S.ct);
   ({resultados:ctResultados,rentab:ctRentab,iva:ctIVA,ret:ctRet,cheques:ctCheques,bancos:ctBancos,flujo:ctFlujo,stockv:ctStockV,contador:ctContador})[S.ct]();
 }
 function selMes(fn){return `<div class="mesbar"><button class="alt" id="ms_a" aria-label="Mes anterior">←</button><input type="month" id="ms_m" value="${S.ctMes}"><button class="alt" id="ms_s" aria-label="Mes siguiente">→</button></div>`}
@@ -3230,3 +3234,71 @@ function ctContador(){
       est('Armando el archivo…');XLSX.writeFile(wb,'Contador Sabores '+m+'.xlsx',{compression:true});est('Listo: se descargó «Contador Sabores '+m+'.xlsx».')}
     catch(e){est('No se pudo armar el Excel: '+(e.message||e))}b.disabled=false};
 }
+
+/* ======================= FACTURA ELECTRÓNICA: configuración paso a paso ======================= */
+async function arcaConfig(){const E=await datosEmisor(),st=await arcaEstado(true),cuit=String(E.cuit||'').replace(/\D/g,'');
+  const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  const pv=st.punto_venta||'',vence=st.cert_vence?new Date(st.cert_vence):null;
+  m.innerHTML=`<div class="mc arca"><div class="bh"><h3>Factura electrónica (ARCA)</h3><button class="alt" id="ar_x">Cerrar</button></div>
+    <p class="ar-est ${st.activo?'ok':''}">${st.activo?`${IC('check',16)} <b>Activa.</b> Al tocar <b>Facturar</b> sale la Factura C con CAE (punto de venta ${pv}).`:`${IC('alert',16)} <b>Todavía no está activa.</b> Hoy las facturas se numeran dentro del CRM, sin CAE.`}${vence?`<br><small>El certificado vence el ${vence.toLocaleDateString('es-AR')}.</small>`:''}</p>
+    <ol class="ar-p">
+    <li class="${cuit.length==11?'hecho':''}"><b>Tus datos</b><p>CUIT ${cuit.length==11?esc(cuitFmt(cuit))+' · '+esc(E.iva||''):'<span class="err">sin cargar</span>'}. <a class="lnk" id="ar_em">Revisar datos de la factura</a> (razón social, domicilio, Ingresos Brutos, inicio de actividades).</p></li>
+    <li class="${st.tiene_csr?'hecho':''}"><b>Bajá el pedido de certificado</b><p>Es un archivo chico que le pide a ARCA un certificado para este CRM. La clave queda guardada en el servidor, nunca en el celular.</p>
+      <button id="ar_csr" ${cuit.length==11?'':'disabled'}>${IC('download',16)} ${st.tiene_cert?'Generar un pedido nuevo':'Bajar pedido de certificado (.csr)'}</button></li>
+    <li class="${st.tiene_cert?'hecho':''}"><b>En la web de ARCA</b> (entrás con tu CUIT y clave fiscal nivel 3)
+      <ol type="a"><li><b>Administración de Certificados Digitales</b> → <i>Agregar alias</i>: escribí <code>crmsabores</code>, elegí el archivo <code>.csr</code> que bajaste y tocá <i>Agregar alias</i>. Después tocá <i>Ver</i> y <b>descargá el certificado</b> (.crt).<br><small>Si no te aparece ese servicio: <i>Administrador de Relaciones de Clave Fiscal → Adherir servicio → ARCA → Servicios interactivos → Administración de Certificados Digitales</i>.</small></li>
+      <li><b>Administrador de Relaciones de Clave Fiscal</b> → <i>Nueva relación</i> → <i>Buscar</i> → ARCA → WebServices → <b>Facturación Electrónica</b>. En <i>Representante</i> tocá <i>Buscar</i>, elegí el computador fiscal <code>crmsabores</code> y <i>Confirmar</i>.</li>
+      <li><b>Administración de puntos de venta y domicilios</b> → tu nombre → <i>A/B/M de puntos de venta</i> → <i>Agregar</i>: un número nuevo (por ejemplo <b>2</b>), sistema <b>"Factura Electrónica - Monotributo - Web Services"</b> y tu domicilio → <i>Aceptar</i>.</li></ol></li>
+    <li class="${st.tiene_cert&&pv?'hecho':''}"><b>Subí el certificado</b><div class="g"><label class="f">Certificado (.crt)<input type="file" id="ar_crt" accept=".crt,.pem,.cer,text/plain"></label><label class="f">N° de punto de venta<input id="ar_pv" type="number" min="1" value="${pv}" placeholder="Ej.: 2"></label></div><button id="ar_sub">${IC('upload',16)} Guardar certificado</button></li>
+    <li><b>Probá la conexión</b><p>Se conecta con ARCA sin facturar nada y te dice si está todo listo.</p><button class="alt" id="ar_pr" ${st.tiene_cert?'':'disabled'}>${IC('bolt',16)} Probar conexión</button><div id="ar_res"></div></li>
+    <li class="${st.activo?'hecho':''}"><b>Activar</b><p>Desde que la activás, <b>Facturar</b> y <b>Aprobar y facturar</b> piden el CAE a ARCA. Si cancelás un pedido facturado, se hace la nota de crédito electrónica.</p>
+      <button id="ar_on" class="${st.activo?'alt':''}" ${st.tiene_cert&&pv?'':'disabled'}>${st.activo?'Apagar la factura electrónica':'Activar la factura electrónica'}</button></li></ol></div>`;
+  const q=x=>m.querySelector(x),re=()=>{m.remove();arcaConfig()};q('#ar_x').onclick=()=>m.remove();
+  q('#ar_em').onclick=()=>{m.remove();configEmisor()};
+  q('#ar_csr').onclick=async()=>{if(st.tiene_cert&&!confirm('Ya tenés un certificado cargado. Si generás un pedido nuevo, el actual deja de servir hasta que subas el nuevo. ¿Seguir?'))return;
+    try{const r=await arcaLlamar({accion:'csr',nuevo:!!st.tiene_cert});const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([r.csr],{type:'application/pkcs10'}));a.download='crmsabores.csr';document.body.appendChild(a);a.click();a.remove();toast('Listo: se bajó crmsabores.csr. Ahora subilo en ARCA (paso 3).');await arcaEstado(true)}catch(e){toast(e.message,1)}};
+  q('#ar_sub').onclick=async()=>{const f=q('#ar_crt').files[0],n=+q('#ar_pv').value;if(!f&&!st.tiene_cert)return toast('Elegí el archivo .crt que bajaste de ARCA.',1);if(!(n>0))return toast('Poné el número de punto de venta.',1);
+    try{if(f)await arcaLlamar({accion:'cert',cert:await f.text(),punto_venta:n});else await arcaLlamar({accion:'config',punto_venta:n});toast('Certificado guardado. Ahora probá la conexión.');await arcaEstado(true);re()}catch(e){toast(e.message,1)}};
+  q('#ar_pr').onclick=async()=>{const b=q('#ar_pr');b.disabled=true;q('#ar_res').innerHTML='<small>Conectando con ARCA…</small>';
+    try{const r=await arcaLlamar({accion:'probar'});q('#ar_res').innerHTML=r.ok?`<p class="aviso okb">${IC('check',16)} <b>¡Conectado!</b> Punto de venta ${r.punto_venta}: la última Factura C es la N° ${r.ultimo_c||0}, así que la próxima va a ser la ${(r.ultimo_c||0)+1}.</p>`:`<p class="err">${esc(r.error||'No se pudo verificar.')}</p>`}catch(e){q('#ar_res').innerHTML=`<p class="err">${esc(e.message)}</p>`}b.disabled=false};
+  q('#ar_on').onclick=async()=>{const on=!st.activo;if(on&&!confirm('¿Activar la factura electrónica? Desde ahora cada factura que hagas se informa a ARCA y no se puede borrar (se anula con nota de crédito).'))return;
+    try{await arcaLlamar({accion:'config',activo:on});await arcaEstado(true);toast(on?'Factura electrónica activada.':'Factura electrónica apagada.');re()}catch(e){toast(e.message,1)}}}
+
+/* ======================= QUÉ SE USA DEL CRM ======================= */
+async function queSeUsa(){const m=document.createElement('div');m.className='modal';document.body.appendChild(m);m.innerHTML='<div class="mc"><span class="skl"></span></div>';
+  const d30=diaLocal(new Date(Date.now()-30*864e5));const[{data:U,error},eq]=await Promise.all([sb.from('uso_pantallas').select('*').gte('dia',d30).limit(20000),equipo().catch(()=>[])]);
+  if(error){m.innerHTML=`<div class="mc"><p class="err">${esc(error.message)}</p><button onclick="this.closest('.modal').remove()">Cerrar</button></div>`;return}
+  const GR=ventasGR(),VN={};GR.forEach(([g,L])=>L.forEach(([k,t])=>VN[k]=t.replace(/^\S+\s/,'')));
+  const CS={ruta:'Ruta de hoy',semana:'Semana',recorridos:'Recorridos',agenda:'Agenda',prospectos:'Prospectos',fijos:'Pedidos fijos',dormidos:'Dormidos',mapa:'Mapa',lista:'Lista'};
+  const nom=p=>{const[a,b]=p.split(':'),t=(TAB_NOM[a]||a.charAt(0).toUpperCase()+a.slice(1)).replace(/^\p{Extended_Pictographic}\uFE0F?\s*/u,'');return b?t+' → '+(a=='ventas'?VN[b]||b:a=='clientes'?CS[b]||b:b):t};
+  const P={},Us={};let desde=null;for(const r of U||[]){P[r.pantalla]=(P[r.pantalla]||0)+r.veces;const u=Us[r.usuario_id]=Us[r.usuario_id]||{v:0,d:new Set()};u.v+=r.veces;u.d.add(r.dia);if(!desde||r.dia<desde)desde=r.dia}
+  const top=Object.entries(P).sort((a,b)=>b[1]-a[1]),mx=top[0]?.[1]||1;
+  const MV=S.menuV||await cfgJ('menu_ventas',{oc:[],fav:[]}),todas=GR.flatMap(([g,L])=>L.map(([k])=>k)),nunca=todas.filter(k=>!P['ventas:'+k]&&!(MV.oc||[]).includes(k));
+  const dias=desde?Math.round((Date.now()-new Date(desde+'T12:00'))/864e5)+1:0;
+  m.innerHTML=`<div class="mc qsu"><div class="bh"><h3>Qué se usa del CRM</h3><button class="alt" id="qs_x">Cerrar</button></div>
+    <p><small>Últimos 30 días${desde?` (se empezó a contar el ${fd(desde)}${dias<30?`: todavía hay ${dias} ${dias==1?'día':'días'} de datos, conviene esperar a juntar un mes antes de esconder cosas`:''})`:''}. Cuenta cada vez que alguien abre una pantalla.</small></p>
+    ${top.length?'':'<p>Todavía no hay datos. Volvé en unos días.</p>'}
+    ${Object.keys(Us).length?`<h4>Por persona</h4><div class="qs-u">${Object.entries(Us).sort((a,b)=>b[1].v-a[1].v).map(([id,u])=>`<div><b>${esc(nomU(id)||'Usuario')}</b><small>${u.d.size} ${u.d.size==1?'día':'días'} activo · ${u.v} pantallas</small></div>`).join('')}</div>`:''}
+    ${top.length?`<h4>Lo más usado</h4><div class="qs-l">${top.slice(0,15).map(([p,v])=>`<div><span>${esc(nom(p))}</span><i style="width:${Math.max(4,v/mx*100).toFixed(0)}%"></i><b>${v}</b></div>`).join('')}</div>`:''}
+    ${top.length>15?`<details><summary>Ver todo (${top.length})</summary><div class="qs-l">${top.slice(15).map(([p,v])=>`<div><span>${esc(nom(p))}</span><i style="width:${Math.max(4,v/mx*100).toFixed(0)}%"></i><b>${v}</b></div>`).join('')}</div></details>`:''}
+    <h4>Herramientas de Ventas que nadie abrió (${nunca.length})</h4><p><small>Escondelas del menú para que Ventas quede más simple. No se borra nada: las volvés a mostrar desde el engranaje de Ventas.</small></p>
+    <div class="qs-n">${nunca.map(k=>`<label class="chk"><input type="checkbox" data-qn="${k}" checked> ${esc(VN[k]||k)}</label>`).join('')||'<small>Se usan todas.</small>'}</div>
+    ${nunca.length?`<button id="qs_oc">${IC('eye',16)} Esconder las marcadas</button>`:''}</div>`;
+  m.querySelector('#qs_x').onclick=()=>m.remove();
+  const b=m.querySelector('#qs_oc');if(b)b.onclick=async()=>{const sel=[...m.querySelectorAll('[data-qn]:checked')].map(c=>c.dataset.qn);if(!sel.length)return toast('No marcaste ninguna.',1);
+    const v={...MV,oc:[...new Set([...(MV.oc||[]),...sel])]};const{error}=await guardaCfgJ('menu_ventas',v);if(error)return toast(error.message,1);S.menuV=v;toast(sel.length+(sel.length==1?' herramienta escondida.':' herramientas escondidas.'));m.remove()}}
+
+/* ======================= COPIAS DE SEGURIDAD AUTOMÁTICAS ======================= */
+async function copiasNube(){const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  const pinta=async()=>{m.innerHTML='<div class="mc"><span class="skl"></span></div>';const{data:L,error}=await sb.storage.from('copias').list('',{limit:100,sortBy:{column:'name',order:'desc'}});
+    const C=(L||[]).filter(f=>f.name.startsWith('copia-'));
+    m.innerHTML=`<div class="mc"><div class="bh"><h3>Copias de seguridad</h3><button class="alt" id="cn_x">Cerrar</button></div>
+      <p class="aviso okb">${IC('check',16)} <b>Automáticas:</b> todos los <b>domingos a las 4 de la mañana</b> se guarda una copia completa (clientes, pedidos, precios, cobros, compras… todo). Se guardan las de los últimos 4 meses.</p>
+      <p><small>Quedan en un depósito privado aparte de la base de datos: si algo se borra o se rompe, se puede volver a una copia. Sólo el dueño las ve.</small></p>
+      ${error?`<p class="err">${esc(error.message)}</p>`:C.length?`<div class="ofl">${C.map(f=>{const d=f.name.match(/copia-(\d{4}-\d{2}-\d{2})-(\d{2})(\d{2})/);return`<div class="r cn-r"><span><b>${d?fd(d[1])+' · '+d[2]+':'+d[3]+' h':esc(f.name)}</b><small>${Math.round((f.metadata?.size||0)/1024)} KB</small></span><button class="alt" data-cn="${esc(f.name)}">${IC('download',16)} Bajar</button></div>`}).join('')}</div>`:'<p>Todavía no hay copias en la nube.</p>'}
+      <div class="fc-acc" style="margin-top:12px"><button id="cn_y">${IC('upload',16)} Hacer una copia ahora</button></div>
+      <p><small>La copia es un archivo comprimido con todos los datos. Para volver a una copia, avisame y la restauro.</small></p></div>`;
+    m.querySelector('#cn_x').onclick=()=>m.remove();
+    m.querySelectorAll('[data-cn]').forEach(b=>b.onclick=async()=>{const{data,error}=await sb.storage.from('copias').createSignedUrl(b.dataset.cn,120,{download:true});if(error)return toast(error.message,1);location.href=data.signedUrl});
+    m.querySelector('#cn_y').onclick=async e=>{const b=e.currentTarget;b.disabled=true;b.textContent='Haciendo la copia…';try{const{data,error}=await sb.functions.invoke('copia',{body:{}});if(error||data?.error)throw new Error(data?.error||error.message);toast('Copia lista: '+data.filas.toLocaleString('es-AR')+' registros de '+data.tablas+' tablas.');pinta()}catch(x){toast(x.message,1);b.disabled=false}}};
+  pinta()}

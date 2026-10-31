@@ -46,6 +46,7 @@ Es el tablero del día. De arriba hacia abajo:
 - **✓ Copias de seguridad al día · Ver:** si todo está bien es un solo renglón. **Ver** abre el *Estado del sistema*.
 - **Copia automática:** se hace sola todas las noches a las 3:00 y guarda las últimas 7.
 - **Copia en tu equipo:** si pasó una semana sin bajar una copia, el pie se abre y aparece **Hacer otra** (o un aviso grande si pasó mucho tiempo).
+- **Copias automáticas en la nube** (*Más → Cuenta y ajustes → Copias de seguridad*): todos los **domingos a las 4 de la mañana** se guarda sola una copia completa de todos los datos, en un depósito privado aparte de la base. Se guardan las de los últimos 4 meses; desde ahí las bajás o hacés una en el momento con **Hacer una copia ahora**.
 
 Lo que antes estaba en el pie (Usuarios y accesos, Mercado Pago, Cambiar mi contraseña, Ver panel completo y Elegir pestañas) ahora está en **Más → Cuenta y ajustes**. El **Dólar del día** está en **Más**.
 
@@ -218,6 +219,25 @@ Dejamos a la vista solo las herramientas que sirven todos los días:
 
 Tus favoritas están en la pestaña **Favoritas**. El resto no se borró: escribiendo su nombre en **Buscar herramienta…** la encontrás, y con el **engranaje** las volvés a mostrar.
 
+## 8 bis. Factura electrónica (ARCA)
+
+Con la factura electrónica activada, **Facturar** y **Aprobar y facturar** piden el **CAE a ARCA** y sale la **Factura C** (monotributo) con su número oficial, sin entrar a la web de ARCA.
+
+**Configurarla una sola vez** (*Más → Cuenta y ajustes → Factura electrónica (ARCA)*); la pantalla te guía paso a paso:
+
+1. Revisá tus datos (CUIT, domicilio, Ingresos Brutos, inicio de actividades).
+2. Tocá **Bajar pedido de certificado**: baja el archivo `crmsabores.csr`.
+3. En la web de ARCA (clave fiscal nivel 3): en **Administración de Certificados Digitales** agregás el alias `crmsabores` con ese archivo y descargás el certificado (.crt); en **Administrador de Relaciones** le das al alias permiso para **Facturación Electrónica**; en **Puntos de venta** creás uno nuevo para *Factura Electrónica - Monotributo - Web Services*.
+4. Subí el certificado y poné el número de punto de venta.
+5. **Probar conexión**: te dice si está todo listo y cuál va a ser el próximo número.
+6. **Activar**.
+
+**En el día a día:**
+- En cada pedido facturado aparece **Factura C 00002-00000015**: tocándola ves e imprimís la factura con el **CAE, su vencimiento y el código QR** de ARCA.
+- Si **cancelás** un pedido con factura electrónica, el CRM hace la **nota de crédito electrónica** que la anula (las facturas con CAE no se borran).
+- Las **devoluciones** y los descuentos por **pronto pago** sobre una factura electrónica también salen como nota de crédito con CAE.
+- La clave del certificado queda guardada en el servidor; nadie la puede ver desde la app. El certificado dura 2 años: el CRM muestra cuándo vence.
+
 ## 9. Cobranza, Caja y Mercado Pago
 
 **Cobranza:**
@@ -271,6 +291,10 @@ Con el link de **Mandar lista**, el cliente ve su catálogo con sus precios: **b
 - **Mi cuenta:** sus pedidos con seguimiento, saldo, recibos y un botón para mandarte el comprobante de pago.
 
 Cuando envía el pedido, te entra en **Pedidos → Por aprobar**.
+
+**Pedidos sin señal:** si se corta internet (o no hay señal en el lugar), el pedido queda **guardado en el celular** y se manda solo cuando vuelve la conexión; lo reintenta cada minuto. Abajo a la izquierda aparece un cartelito **Sin señal · 1 pendiente**: tocándolo ves qué falta mandar y podés tocar **Mandar ahora**. Se guardan también la nota, la fecha de entrega y los precios especiales (que igual pasan por la aprobación del dueño), y nunca se duplica un pedido aunque la señal se corte a mitad de camino.
+
+**Qué se usa del CRM** (*Más → Cuenta y ajustes*, sólo el dueño): cuántos días entra cada uno, las pantallas más abiertas del último mes y las herramientas de **Ventas** que nadie abrió, con un botón para esconderlas del menú (se vuelven a mostrar desde el engranaje de Ventas).
 
 ## 12. Usuarios y contraseñas
 
