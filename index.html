@@ -1052,12 +1052,42 @@ html.oscuro .act-i{color:#e6e9f0!important;border-color:#232c3c!important}html.o
 .ped[data-pid]{cursor:pointer}.ped[data-pid]:hover{box-shadow:0 4px 14px rgba(20,25,40,.08)}.kb-c{cursor:pointer}
 @media(max-width:640px){.pdrw{top:auto;height:88vh;width:100vw;border-radius:18px 18px 0 0;transform:translateY(100%)}.pdrw-f.on .pdrw{transform:none}}
 html.oscuro .pdrw{background:#141b28}html.oscuro .pd-h,html.oscuro .pd-items,html.oscuro .pd-i{border-color:#232c3c}html.oscuro .pd-nota,html.oscuro .pd-i img,html.oscuro .pd-ph{background:#1c2536}
+
+/* Próximo paso */
+.prox-l{display:flex;align-items:center;gap:6px;font-size:13px;color:#3c4458;margin-top:5px;min-width:0}.prox-l .ic{flex:none;color:var(--m)}.prox-l span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.prox-l b{flex:none;font-weight:600;color:var(--tx2);font-size:12.5px}
+.prox-l.hoy b{color:var(--m)}.prox-l.atr b,.prox-l.atr .ic{color:#b4232f}
+.rc-info .prox-l{margin-top:2px}
+.box.prox{display:flex;align-items:center;gap:12px;padding:12px 14px!important;border-left:4px solid var(--m)}.box.prox.atr{border-left-color:#b4232f;background:#fff7f7}.box.prox.hoy{background:#fbf3f5}
+.prox-i{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#f8eef1;color:var(--m)}.prox.atr .prox-i{background:#fde8ea;color:#b4232f}
+.prox-t{flex:1;min-width:0;display:flex;flex-direction:column}.prox-t small{color:var(--tx2);font-size:12.5px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}.prox.atr .prox-t small{color:#b4232f}.prox-t b{font-size:15.5px}
+.prox-a{display:flex;gap:6px;flex:none}.prox-a button{display:inline-flex;align-items:center;gap:5px;min-height:40px;padding:6px 12px}
+.prox-n{width:100%;display:flex!important;align-items:center;justify-content:center;gap:8px;min-height:46px;border-style:dashed!important;margin-bottom:12px}
+.px-m{max-width:520px}.px-ideas{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 14px}.px-ideas .chip{padding:5px 11px;font-size:13px;border-radius:999px}
+.px-lab{display:block;font-size:14px;font-weight:600;margin-bottom:6px}.px-f{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}.px-f button{border-radius:999px;padding:7px 13px;font-size:14px}.px-f input{max-width:170px}
+#px_g{width:100%;min-height:48px}
+@media(max-width:640px){.box.prox{flex-wrap:wrap}.prox-a{width:100%;justify-content:flex-end}.prox-a button:first-child{flex:1;justify-content:center}}
+html.oscuro .prox-l{color:#c3c9d6}html.oscuro .box.prox.atr{background:#2a1418}html.oscuro .box.prox.hoy{background:#2a1a20}html.oscuro .prox-i{background:#3a1d26}
+/* Ranking de vendedores */
+.rank{padding:14px 16px!important}.rank .mv-top small{color:var(--tx2);font-size:12.5px}
+.rk{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid #f0f1f5}.rk:last-child{border-bottom:0;padding-bottom:0}
+.rk-p{flex:none;width:28px;text-align:center;font-size:18px;font-weight:800;color:var(--tx2);line-height:1.4}
+.rk-c{flex:1;min-width:0}.rk-t{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.rk-t b{font-size:15px}.rk-t b small{font-weight:400;color:var(--tx2)}.rk-t span{font-weight:800;font-size:15.5px;font-variant-numeric:tabular-nums}
+.rk-bar{height:7px;border-radius:999px;background:#eef0f4;margin:6px 0 5px;overflow:hidden}.rk-bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#9c3a50,#7b2d3e)}.rk-bar i.ok{background:#1d7a46}
+.rk small{color:var(--tx2);font-size:12.5px}
+html.oscuro .rk{border-color:#232c3c}html.oscuro .rk-bar{background:#232c3c}
+/* Guía de bienvenida */
+#guia{position:fixed;inset:0;z-index:90}
+.gu-h{position:fixed;border-radius:14px;box-shadow:0 0 0 9999px rgba(15,20,35,.62);transition:all .25s ease;pointer-events:none;outline:3px solid #e9c46a;outline-offset:2px}
+.gu-c{position:fixed;left:16px;right:16px;max-width:420px;margin:0 auto;background:#fff;border-radius:16px;padding:16px 18px;box-shadow:0 18px 40px rgba(0,0,0,.3);animation:fabIn .2s ease both}
+.gu-c small{color:var(--m);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.06em}.gu-c b{display:block;font-size:19px;margin:4px 0 6px}.gu-c p{margin:0 0 14px;color:#3c4458;font-size:15px;line-height:1.45}
+.gu-a{display:flex;justify-content:flex-end;gap:8px}.gu-a button{min-height:42px;padding:6px 16px}
+html.oscuro .gu-c{background:#18202f}html.oscuro .gu-c p{color:#c3c9d6}
 </style>
 </head>
 <body>
 <div id="app"><div class="splash"><img src="logo.png" alt="Sabores de mi País"><i></i></div></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
-<script src="app.js?v=2026-10-30.19"></script>
+<script src="app.js?v=2026-10-31.1"></script>
 </body>
 </html>

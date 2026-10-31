@@ -27,6 +27,8 @@ Es el tablero del día. De arriba hacia abajo:
 - **✅ Todo al día:** los números que están en cero se juntan en un solo renglón verde (por ejemplo *Nada pendiente* o *Sin cobros ni pagos*). Apenas uno tiene algo, vuelve a aparecer como tarjeta.
 - **Metas del mes:** la tarjeta de **Maní JL** y la de **metas en kilos** (BOYA, Tarantela y Salames Familia Grion). Están explicadas en la sección 3.
 - **Tu comisión** (solo el vendedor): cuánto vendió en el mes y cuánto le corresponde.
+- **Vendedores** (solo el dueño, cuando hay vendedores): ranking del mes con lo vendido, pedidos, clientes nuevos, comisión y avance contra la meta de cada uno (tocá *poner meta* para cargarla).
+- **Guía de bienvenida:** la primera vez que entra un vendedor, unos globitos le muestran en 6 pasos dónde está todo. Se vuelve a ver desde *Más → Cuenta y ajustes → Ver la guía*.
 - **Desplegables:** *Vencidas y para reponer*, *Tareas y avisos del día* y *Configuración*. Sin abrirlos ya ves qué hay adentro: un numerito bordó con la cantidad, o *al día* en gris si no hay nada. *Configuración* muestra una barrita con los pasos que faltan (por ejemplo 5 de 11), cada uno con su botón **Ir**.
 
 **El pie del Inicio** (solo el dueño): las copias de seguridad.
@@ -102,6 +104,7 @@ El envío se suma solo: **gratis desde $ 150.000**, si no **$ 15.000**. Para pro
 - **Pestañas:** Clientes · Ruta de hoy · Agenda de visitas · Mapa · Dormidos · Prospectos · Pedidos fijos.
 - **Filtros por estado:** arriba de la lista, **Le toca comprar · Deben · Dormidos · Nuevos** con la cantidad. Tocás uno y ves solo esos; tocándolo de nuevo, todos.
 - **Estado de cada cliente** (cartelito de color en la lista y en la ficha): 🟢 **Al día** · 🟡 **Le toca comprar** (según cada cuánto compra) · 🔴 **Debe** (tiene facturas vencidas) · ⚪ **Dormido** (más de 45 días sin comprar) · 🔵 **Nuevo** (primeros pedidos o recién cargado). En la ficha, al lado, dice por qué (por ejemplo *Compró hace 18 días (suele cada 14)*).
+- **Próximo paso:** cada cliente puede tener una próxima acción con fecha (por ejemplo *Llevarle muestra de Etiqueta Negra · martes*). Se agrega en la ficha con **Agregar próximo paso** (con ideas rápidas y fechas: mañana, en 3 días, el lunes…). Se ve en la ficha, en la lista de clientes y en la Ruta de hoy; el día que toca aparece en *Tareas y avisos del día*. Con **Hecho** queda en el historial y te propone el siguiente. Si se atrasa, se pinta de rojo.
 - **Ruta de hoy:** los clientes que tienen visita hoy, más los que les toca comprar y los que deben, en orden. Cada tarjeta dice por qué ir, **⭐ qué ofrecerle** (Maní JL, BOYA, Etiqueta Negra… lo que todavía no lleva) y tiene **Pedido**, **Cómo llegar** y **No estaba** (queda anotado en su historial). Arriba, **Recorrido** abre todas las paradas en Google Maps.
 - **Nuevo cliente:** botón **+ Nuevo cliente** arriba (o desde Inicio).
 - **Ficha del cliente:** **Nuevo pedido** (con el cliente ya elegido), **Mandar lista** (WhatsApp con un saludo y su link personal para pedir), **WhatsApp**, **Llamar**, **Datos del cliente** con *Editar datos*. Debajo, los números: **Saldo, Vencido, Compró este año y Último pedido**, y el **Historial**: pedidos, pagos, notas, visitas y mensajes en una sola lista por fecha (con Imprimir y Remito en cada pedido). Más abajo, **Notas** (con fecha quedan como tarea) y el link de pedidos online.

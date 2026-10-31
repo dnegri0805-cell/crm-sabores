@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-30.19';
+const VERSION='2026-10-31.1';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -280,7 +280,7 @@ async function vInicio(){
   </div>`;
   $('#v').innerHTML=`<div class="bh ini-h" style="flex-wrap:wrap;gap:8px"><div><h2 style="margin:0">${hr<5?'Buenas noches':hr<13?'Buen día':hr<20?'Buenas tardes':'Buenas noches'}${S.perfil.nombre?', '+esc(String(S.perfil.nombre).trim().split(/\s+/)[0]):''}</h2><small class="ini-f">${hoyD.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}</small></div>
     ${dia?'':'<button class="alt" data-iv="dia">← Volver al inicio simple</button>'}</div>
-  ${dia?`<div id="mesv"></div>${principalesHTML(false)}${kpH}<div id="comv"></div><div id="manijl"></div><div id="metaskg"></div>`:`
+  ${dia?`<div id="mesv"></div>${principalesHTML(false)}${kpH}<div id="rank"></div><div id="comv"></div><div id="manijl"></div><div id="metaskg"></div>`:`
   ${principalesHTML()}<div id="bk"></div><div id="cmpi"></div><div id="cami"></div><div id="equi"></div><div id="doci"></div><div id="midia"></div><div id="mani"></div><div id="resd"></div><div id="tari"></div>
   <div class="herr" id="herr"></div>
   <div id="alm"></div>
@@ -305,7 +305,7 @@ async function vInicio(){
   $('#k6')&&($('#k6').onclick=()=>irA('clientes',{cs:'agenda',agD:Math.min(dvHoy,6)}));
   if(S.perfil.rol=='dueno'){cajaBackup();cajaDolar().catch(()=>{})}
   /* Primero los números del día; los avisos y tareas de abajo se cargan un instante después para que Inicio aparezca más rápido */
-  avisosEnVivo();setTimeout(()=>actContar().catch(()=>{}),1500);setTimeout(()=>{herramientas();generarFijos();alertasMargen();objetivoMes();mesVendidoInicio().catch(()=>{});maniJLInicio().catch(()=>{});metasKgInicio().catch(()=>{});comisionInicio().catch(()=>{});tocaInicio();fidelInicio().catch(()=>{});masInicio().catch(()=>{});crecerInicio().catch(()=>{});fielesInicio().catch(()=>{});servInicio().catch(()=>{});planInicio().catch(()=>{});colaInicio().catch(()=>{});resumenDia().catch(()=>{});tareasInicio().catch(()=>{});chequeoInicio().catch(()=>{});camionetaInicio().catch(()=>{});cuentasInicio().catch(()=>{});equiposInicio().catch(()=>{});comprobantesInicio().catch(()=>{});mananaInicio().catch(()=>{});miDia().catch(()=>{});ocSemanal().catch(()=>{});aplicarAumentosProg().catch(()=>{});sincronizarOff().catch(()=>{});metasInicio().catch(()=>{});empujonBox($('#empi')).catch(()=>{});fechasInicio();},700);
+  avisosEnVivo();setTimeout(()=>actContar().catch(()=>{}),1500);setTimeout(()=>{herramientas();generarFijos();alertasMargen();objetivoMes();mesVendidoInicio().catch(()=>{});rankingInicio().catch(()=>{});if(S.perfil.rol=='vendedor')setTimeout(()=>{try{guiaVendedor()}catch(e){}},1800);maniJLInicio().catch(()=>{});metasKgInicio().catch(()=>{});comisionInicio().catch(()=>{});tocaInicio();fidelInicio().catch(()=>{});masInicio().catch(()=>{});crecerInicio().catch(()=>{});fielesInicio().catch(()=>{});servInicio().catch(()=>{});planInicio().catch(()=>{});colaInicio().catch(()=>{});resumenDia().catch(()=>{});tareasInicio().catch(()=>{});chequeoInicio().catch(()=>{});camionetaInicio().catch(()=>{});cuentasInicio().catch(()=>{});equiposInicio().catch(()=>{});comprobantesInicio().catch(()=>{});mananaInicio().catch(()=>{});miDia().catch(()=>{});ocSemanal().catch(()=>{});aplicarAumentosProg().catch(()=>{});sincronizarOff().catch(()=>{});metasInicio().catch(()=>{});empujonBox($('#empi')).catch(()=>{});fechasInicio();},700);
   const cli=id=>esc(S.clientes.find(c=>c.id==id)?.razon_social||'Cliente');
   const [fv,pe,fe,sp,fp]=await Promise.all([
     sb.from('facturas_venta').select('*').order('id',{ascending:false}).limit(500),
@@ -900,7 +900,7 @@ function vClientes(){
   const ultTxt=c=>{const e=S.estCli?.[c.id];if(!e)return '<span class="cl-ultw"></span>';return `<span class="cl-ultw">${estChip(c.id)}${e.hTxt?`<span class="cl-ult">${e.hTxt=='hoy'||e.hTxt=='ayer'?'Compró '+e.hTxt:e.hTxt}</span>`:''}</span>`};
   const fila=c=>{const tel=telWA(c.telefono||'');return `<div class="cl-card clic cl-av" data-fc="${c.id}"><span class="cl-ini" style="background:${fCol(famCli(c))}">${esc(inic(c))}</span><div class="cl-top"><b>${esc(nomVis(c))}</b>${condTag(c)}</div>
     <div class="cl-sub">${esc([(c.nombre_fantasia||'').trim()&&!rsSimil(c)?tituloCaso(c.razon_social):'',c.barrio||c.ciudad,c.rubro?'':'sin rubro'].filter(Boolean).join(' · '))}</div>
-    <div class="cl-acc">${ultTxt(c)}<span class="cl-bts">${tel?`<a class="cl-bt lp" data-lp="${c.id}" aria-label="Mandar lista de precios" title="Mandar lista de precios por WhatsApp">${IC('tag',18)}</a><a class="cl-bt wa" data-wa="${esc(tel)}" aria-label="WhatsApp">${IC('chat',18)}</a><a class="cl-bt" href="tel:${esc(c.telefono)}" data-no="1" aria-label="Llamar">${IC('phone',18)}</a>`:`<a class="cl-bt tel" data-tel="${c.id}">${IC('plus',15)} Teléfono</a>`}</span></div></div>`};
+    ${proxLinea(c.id)}<div class="cl-acc">${ultTxt(c)}<span class="cl-bts">${tel?`<a class="cl-bt lp" data-lp="${c.id}" aria-label="Mandar lista de precios" title="Mandar lista de precios por WhatsApp">${IC('tag',18)}</a><a class="cl-bt wa" data-wa="${esc(tel)}" aria-label="WhatsApp">${IC('chat',18)}</a><a class="cl-bt" href="tel:${esc(c.telefono)}" data-no="1" aria-label="Llamar">${IC('phone',18)}</a>`:`<a class="cl-bt tel" data-tel="${c.id}">${IC('plus',15)} Teléfono</a>`}</span></div></div>`};
   const draw=()=>{const q=$('#q').value.toLowerCase(),A=S.clientes.filter(c=>c.activo!==false),cnt={};A.forEach(c=>{const f=famCli(c);cnt[f]=(cnt[f]||0)+1});
     $('#cfam').innerHTML=`<button class="${S.cfam?'alt':''}" data-cf="">Todas (${A.length})</button>`+ORD.filter(f=>cnt[f]||S.cfam==f).map(f=>`<button class="${S.cfam==f?'':'alt'}" data-cf="${esc(f)}"><i class="cl-dot" style="background:${fCol(f)}"></i>${esc(fTxt(f))} (${cnt[f]||0})</button>`).join('');
     const EK=[['toca','Le toca comprar'],['debe','Deben'],['dormido','Dormidos'],['nuevo','Nuevos']],ec={};if(S.estCli)A.forEach(c=>{const k=S.estCli[c.id]?.k;if(k)ec[k]=(ec[k]||0)+1});
@@ -916,7 +916,7 @@ function vClientes(){
     $$('#ct [data-tel]').forEach(a=>a.onclick=async e=>{e.stopPropagation();const c=S.clientes.find(x=>x.id==a.dataset.tel),t=(prompt('Teléfono de '+nomVis(c)+' (ej.: 11 2345 6789)')||'').trim();if(!t)return;
       const{error}=await sb.from('clientes').update({telefono:t}).eq('id',c.id);if(error)return toast(error.message,1);c.telefono=t;toast('Teléfono guardado.');draw();bind()})};
   $('#q').oninput=()=>{draw();bind()};draw();bind();
-  {const fresco=S.estCli&&Date.now()-(S.estT||0)<3e5;if(!fresco)cargarEstados().then(()=>{if($('#ct')&&$('#q')){draw();bind()}}).catch(()=>{})}
+  {const fresco=S.estCli&&Date.now()-(S.estT||0)<3e5;Promise.all([fresco?null:cargarEstados(),cargarProx()]).then(()=>{if($('#ct')&&$('#q')){draw();bind()}}).catch(()=>{})}
   enlazarCab();if(S.abrirNuevo){S.abrirNuevo=0;nuevoCliente()}
 }
 /* Encabezado de Clientes: título, botón para crear y el resto de las herramientas en "Más" */
@@ -1431,6 +1431,7 @@ async function fichaCliente(c){
     <div class="fc-big"><button id="fc_np">${IC('cart',21)} Nuevo pedido</button><button class="alt fc-ml" id="fc_ml" title="Le manda por WhatsApp su link con la lista de precios actualizada">${IC('tag')} Mandar lista</button>${telWA(c.telefono||'')?`<a class="btn fc-wa" href="https://wa.me/${esc(telWA(c.telefono))}" target="_blank" rel="noopener">${IC('chat')} WhatsApp</a><a class="btn alt" href="tel:${esc(c.telefono)}">${IC('phone')} Llamar</a>`:`<button class="alt" id="fc_tel">${IC('plus')} Agregar teléfono</button>`}</div>
     <details class="fc-dat"><summary>${IC('doc',18)} Datos del cliente ${IC('down',16)}</summary><div class="fc-datc"><div>${c.cuit?'CUIT '+esc(String(c.cuit).replace(/^(\d{2})(\d{8})(\d)$/,'$1-$2-$3'))+' · ':''}${IVA[c.condicion_iva]||esc(c.condicion_iva||'')}</div><div>${c.razon_social?'Razón social: '+esc(tituloCaso(c.razon_social)):''}</div><div>${c.telefono?'Tel. '+esc(c.telefono):'Sin teléfono'}</div><div>${dirCompleta(c)?esc(tituloCaso(dirCompleta(c)).replace(/, ([a-z])/g,(m,x)=>', '+x.toUpperCase()).replace(/\bCaba\b/g,'CABA').replace(/, CABA, Buenos Aires/,', CABA').replace(/\bCp\b/g,'CP')):'Sin dirección'}</div><button class="alt" id="fc_ed">${IC('pencil',16)} Editar datos</button></div></details>
     <details class="fc-mas"><summary>Más acciones ${IC('down',16)}</summary><div class="fc-acc"><button class="alt" id="fc_rp">🔁 Repetir último</button><button class="alt" id="fc_po">🛒 Pedido online</button><button class="alt" id="fc_co">Registrar cobro</button><button class="alt" id="fc_ec">📄 Estado de cuenta</button><button class="alt" id="fc_lp">Lista de precios</button><button class="alt" id="fc_fj">Pedido fijo</button><button class="alt" id="fc_gl">📞 Guion de llamada</button><button class="alt" id="fc_ng">🧮 Negociar</button><button class="alt" id="fc_gon">📸 Góndola</button><button class="alt" id="fc_doc">📂 Documentos</button><button class="alt" id="fc_vac">${vacBtn(c)}</button><button class="alt" id="fc_hr">${horarioTxt(c)||'🕐 Horario de recepción'}</button>${'cuenta_clave' in c?`<button class="alt" id="fc_kc">${c.cuenta_clave?'👑 Es cuenta clave':'☆ Cuenta clave'}</button><button class="alt" id="fc_pd">${c.perdido_en?'🚩 Perdido ('+esc(c.perdido_con||'')+')':'🚩 Se fue a la competencia'}</button>`:''}</div></details></div>
+  <div id="fc_px"></div>
   <div id="fc_edit" hidden class="box"><div class="g">
     ${'nombre_fantasia' in c?`<label class="f">Nombre del negocio (como lo conocés)<input id="e_nf" value="${esc(c.nombre_fantasia||'')}" placeholder="Ej.: Juancito"></label>`:''}<label class="f">Razón social (para facturas)<input id="e_n" value="${esc(c.razon_social)}"></label><label class="f">CUIT<input id="e_c" value="${esc(c.cuit)}"></label>
     <label class="f">Teléfono<input id="e_t" value="${esc(c.telefono)}"></label><label class="f">Domicilio (calle y número)<input id="e_d" value="${esc(c.domicilio)}"></label>${'codigo_postal' in c?`<div class="f" style="grid-column:1/-1"><span>Barrio · Localidad · Provincia · CP</span><div class="g">${dirCampos('e',c)}</div></div>`:''}
@@ -1488,7 +1489,7 @@ async function fichaCliente(c){
     Object.assign(c,cambios);toast('Datos guardados.');fichaCliente(c)};
   const kp=(id,num,det,cls)=>{const b=$('#'+id);b.querySelector('.num').textContent=num;contar(b.querySelector('.num'),num);b.querySelector('.det').textContent=det||'';if(cls)b.classList.add(cls)};
   const anio=String(new Date().getFullYear());
-  oportunidades(c);puntosFicha(c);pactadosFicha(c);
+  oportunidades(c);puntosFicha(c);pactadosFicha(c);proxFicha(c).catch(()=>{});
   cargarEstados().then(E=>{const b=$('#fc_est');if(b&&S.fc==c.id&&E[c.id])b.innerHTML=estChip(c.id)+`<small>${esc(E[c.id].why)}</small>`}).catch(()=>{});
   const[sa,fe,re,pe,nt,ct]=await Promise.all([
     sb.from('saldos_clientes').select('*').eq('cliente_id',c.id).maybeSingle(),
@@ -3179,7 +3180,7 @@ const estChip=id=>{const e=S.estCli?.[id];return e?`<span class="cl-est e-${e.k}
 /* ======================= RUTA DE HOY (vendedor en la calle) =======================
    Los clientes del día de visita, más los que les toca comprar y los que deben. Cada uno con qué ofrecerle. */
 async function vRutaHoy(){const box=$('#cs');if(!box)return;
-  const hoy=new Date(),dow=hoy.getDay()||7,E=await cargarEstados(),act=S.clientes.filter(c=>c.activo!==false);
+  const hoy=new Date(),dow=hoy.getDay()||7,E=await cargarEstados();await cargarProx().catch(()=>{});const act=S.clientes.filter(c=>c.activo!==false);
   const vis=act.filter(c=>(c.dias_visita||[]).includes(dow)).sort((a,b)=>(a.orden_visita||0)-(b.orden_visita||0)||nomVis(a).localeCompare(nomVis(b)));
   const ya=new Set(vis.map(c=>c.id)),pri={debe:3,toca:2,dormido:1};
   const extra=act.filter(c=>!ya.has(c.id)&&pri[E[c.id]?.k]).sort((a,b)=>(pri[E[b.id].k]-pri[E[a.id].k])||((E[b.id].hace||0)/(E[b.id].cada||14)-(E[a.id].hace||0)/(E[a.id].cada||14)));
@@ -3197,7 +3198,7 @@ async function vRutaHoy(){const box=$('#cs');if(!box)return;
   box.innerHTML=`<div class="ruta-h"><div><h3>Ruta de hoy</h3><small>${esc(hoy.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'}))} · ${R.length} ${R.length==1?'cliente':'clientes'}</small></div>${R.some(dir)?`<button class="alt" id="ru_map">${IC('map',17)} Recorrido</button>`:''}</div>
     ${R.length?`<div class="ruta">${R.map((c,i)=>{const e=E[c.id]||{},of=ofrecer(c),d=dir(c),hecho=nst[c.id];return`<div class="rcard${hecho?' hecho':''}" data-rc="${c.id}">
       <div class="rc-top"><b class="parada">${i+1}</b><div class="rc-n"><a class="vi-nm" data-fc="${c.id}">${esc(nomVis(c))}</a><small>${esc([c.domicilio,c.barrio||c.ciudad].filter(Boolean).join(' · ')||'Sin domicilio')}</small></div>${estChip(c.id)}</div>
-      <div class="rc-info">${ya.has(c.id)?`<span>${IC('calendar',15)} Visita de hoy</span>`:''}<span>${esc(e.why||'')}</span>${of.length?`<span class="rc-of">⭐ Ofrecele: <b>${esc(of.join(' · '))}</b></span>`:''}${hecho?`<span class="rc-ok">✓ ${esc(hecho)}</span>`:''}</div>
+      <div class="rc-info">${ya.has(c.id)?`<span>${IC('calendar',15)} Visita de hoy</span>`:''}<span>${esc(e.why||'')}</span>${of.length?`<span class="rc-of">⭐ Ofrecele: <b>${esc(of.join(' · '))}</b></span>`:''}${proxLinea(c.id)}${hecho?`<span class="rc-ok">✓ ${esc(hecho)}</span>`:''}</div>
       <div class="rc-acc"><button data-rp="${c.id}">${IC('cart',17)} Pedido</button>${d?`<a class="alt btnl" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(d)}">Cómo llegar</a>`:''}<button class="alt" data-rn="${c.id}">No estaba</button></div></div>`}).join('')}</div>`
       :vacioHTML('Hoy no tenés visitas cargadas y nadie te espera. Cargá los días de visita en la ficha de cada cliente (Editar datos) o en Agenda de visitas.','map')}`;
   const cli=id=>S.clientes.find(c=>c.id==id),marca=(id,t)=>{nst[id]=t;try{localStorage.setItem('ruta_'+diaLocal(hoy),JSON.stringify(nst))}catch(e){}};
@@ -3316,6 +3317,71 @@ async function actividad(){const m=document.createElement('div');m.className='mo
   m.querySelectorAll('[data-ai]').forEach(b=>b.onclick=()=>{m.remove();A[+b.dataset.ai].ir()});
   try{localStorage.setItem('act_visto_'+S.perfil.id,new Date().toISOString())}catch(e){}const n=document.getElementById('hb_n');if(n)n.hidden=true}
 setInterval(()=>{if(S.perfil&&!document.hidden)actContar().catch(()=>{})},120000);
+
+/* ======================= PRÓXIMO PASO DE CADA CLIENTE =======================
+   Una acción con fecha por cliente (se guarda como tarea). Se ve en la ficha, la lista y la Ruta de hoy; el día que toca, en el Inicio. */
+async function cargarProx(force){if(S.prox&&!force&&Date.now()-(S.proxT||0)<12e4)return S.prox;
+  const{data,error}=await sb.from('tareas').select('id,titulo,fecha,cliente_id').eq('hecha',false).not('cliente_id','is',null).order('fecha');
+  const P={};if(!error)for(const t of data||[])if(!P[t.cliente_id])P[t.cliente_id]=t;S.prox=P;S.proxT=Date.now();return P}
+const proxCuando=f=>{const h=diaLocal(new Date()),d=Math.round((new Date(f+'T12:00')-new Date(h+'T12:00'))/864e5);
+  return d<0?{t:'atrasado '+(d==-1?'1 día':-d+' días'),k:'atr'}:d==0?{t:'hoy',k:'hoy'}:d==1?{t:'mañana',k:''}:d<7?{t:new Date(f+'T12:00').toLocaleDateString('es-AR',{weekday:'long'}),k:''}:{t:fd(f),k:''}};
+const proxLinea=id=>{const p=S.prox?.[id];if(!p)return '';const w=proxCuando(p.fecha);return `<div class="prox-l ${w.k}">${IC('flag',14)}<span>${esc(p.titulo)}</span><b>${esc(w.t)}</b></div>`};
+function proxModal(c,actual,alGuardar){const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  const hoy=new Date(),mas=n=>diaLocal(new Date(hoy.getFullYear(),hoy.getMonth(),hoy.getDate()+n)),lun=(()=>{const d=new Date(hoy);do d.setDate(d.getDate()+1);while(d.getDay()!=1);return diaLocal(d)})();
+  const OP=[['Mañana',mas(1)],['En 3 días',mas(3)],['El lunes',lun],['En una semana',mas(7)],['En 15 días',mas(15)]];let f=actual?.fecha||mas(1);
+  const IDEAS=['Llamarlo','Pasar a visitarlo','Llevarle muestra','Mandarle la lista','Cobrarle','Ofrecerle Etiqueta Negra'];
+  m.innerHTML=`<div class="mc px-m"><div class="bh"><h3>Próximo paso con ${esc(nomVis(c))}</h3><button class="alt" id="px_x">Cancelar</button></div>
+    <label class="f">¿Qué hay que hacer?<input id="px_t" value="${esc(actual?.titulo||'')}" placeholder="Ej.: llevarle muestra de Etiqueta Negra"></label>
+    <div class="px-ideas">${IDEAS.map(t=>`<button class="alt chip" data-pi="${esc(t)}">${esc(t)}</button>`).join('')}</div>
+    <span class="px-lab">¿Cuándo?</span><div class="px-f">${OP.map(([t,d])=>`<button class="${d==f?'':'alt'}" data-pf="${d}">${t}</button>`).join('')}<input type="date" id="px_d" value="${f}"></div>
+    <button id="px_g">Guardar próximo paso</button></div>`;
+  const pin=()=>m.querySelectorAll('[data-pf]').forEach(b=>b.className=b.dataset.pf==f?'':'alt');
+  m.onclick=e=>{if(e.target==m)m.remove()};$('#px_x').onclick=()=>m.remove();setTimeout(()=>$('#px_t').focus(),50);
+  m.querySelectorAll('[data-pi]').forEach(b=>b.onclick=()=>{$('#px_t').value=b.dataset.pi;$('#px_t').focus()});
+  m.querySelectorAll('[data-pf]').forEach(b=>b.onclick=()=>{f=b.dataset.pf;$('#px_d').value=f;pin()});$('#px_d').onchange=e=>{f=e.target.value;pin()};
+  $('#px_g').onclick=async()=>{const t=$('#px_t').value.trim();if(!t)return toast('Escribí qué hay que hacer.',1);if(!f)return toast('Elegí la fecha.',1);$('#px_g').disabled=true;
+    const r=actual?await sb.from('tareas').update({titulo:t,fecha:f}).eq('id',actual.id):await sb.from('tareas').insert({titulo:t,fecha:f,cliente_id:c.id});
+    if(r.error){$('#px_g').disabled=false;return toast(r.error.message,1)}m.remove();toast('Próximo paso: '+t+' · '+proxCuando(f).t+'.');await cargarProx(true);alGuardar&&alGuardar()}}
+async function proxFicha(c){const b=$('#fc_px');if(!b)return;await cargarProx(true).catch(()=>{});if(!$('#fc_px')||S.fc!=c.id)return;const p=S.prox?.[c.id];
+  b.innerHTML=p?(()=>{const w=proxCuando(p.fecha);return`<div class="box prox ${w.k}"><div class="prox-i">${IC('flag',20)}</div><div class="prox-t"><small>Próximo paso · ${esc(w.t)}</small><b>${esc(p.titulo)}</b></div><div class="prox-a"><button data-px="ok">${IC('check',16)} Hecho</button><button class="alt" data-px="ed" aria-label="Cambiar">${IC('pencil',16)}</button></div></div>`})()
+    :`<button class="alt prox-n" data-px="nv">${IC('flag',17)} Agregar próximo paso</button>`;
+  b.querySelectorAll('[data-px]').forEach(x=>x.onclick=async()=>{const a=x.dataset.px;if(a=='nv')return proxModal(c,null,()=>proxFicha(c));if(a=='ed')return proxModal(c,p,()=>proxFicha(c));
+    x.disabled=true;const{error}=await sb.from('tareas').update({hecha:true,hecha_en:new Date().toISOString()}).eq('id',p.id);if(error){x.disabled=false;return toast(error.message,1)}
+    sb.from('contactos_clientes').insert({cliente_id:c.id,tipo:'seguimiento',detalle:'Hecho: '+p.titulo}).then(()=>{},()=>{});toast('¡Hecho! ¿Cuál es el siguiente?');await cargarProx(true);proxFicha(c);proxModal(c,null,()=>proxFicha(c))})}
+
+/* ======================= RANKING DE VENDEDORES (Inicio del dueño) ======================= */
+async function rankingInicio(){const box=$('#rank');if(!box||S.perfil.rol!='dueno')return;
+  const m=mesHoy(),[a,b]=mesRango(m),mes=mesNom(m).split(' ')[0];
+  const[pf,pe,cl,MV]=await Promise.all([sb.from('perfiles').select('id,nombre,rol,activo,comision_pct'),todo(()=>sb.from('pedidos').select('vendedor_id,total,cliente_id').not('estado','in','(pendiente,cancelado)').or('es_prueba.is.null,es_prueba.eq.false').gte('creado_en',tsAR(a)).lt('creado_en',tsAR(b)).order('creado_en')),
+    todo(()=>sb.from('clientes').select('vendedor_id,creado_en').gte('creado_en',tsAR(a)).lt('creado_en',tsAR(b)).order('creado_en')),cfgJ('metas_vendedores',{})]);
+  const U=(pf.data||[]).filter(u=>u.activo!==false&&['vendedor','dueno','administracion'].includes(u.rol));if(!U.some(u=>u.rol=='vendedor')){box.innerHTML='';return}
+  const R=U.map(u=>{const P=(pe.data||[]).filter(o=>o.vendedor_id==u.id),v=P.reduce((s,o)=>s+(+o.total||0),0);return{u,v,n:P.length,cn:(cl.data||[]).filter(c=>c.vendedor_id==u.id).length,meta:+MV[u.id]||0,com:u.rol=='vendedor'?v/1.21*(+u.comision_pct||0)/100:0}})
+    .filter(r=>r.u.rol=='vendedor'||r.v>0).sort((x,y)=>y.v-x.v);
+  const top=Math.max(1,...R.map(r=>r.meta||r.v)),med=['🥇','🥈','🥉'];
+  box.innerHTML=`<div class="box rank"><div class="mv-top"><span class="mv-ey">Vendedores · ${esc(mes.toLowerCase())}</span><small>${R.length} en el equipo</small></div>
+    ${R.map((r,i)=>{const pc=r.meta?Math.min(1,r.v/r.meta):r.v/top;return`<div class="rk"><span class="rk-p">${r.v>0&&i<3?med[i]:i+1}</span><div class="rk-c"><div class="rk-t"><b>${esc(String(r.u.nombre||'Sin nombre').trim())}${r.u.rol!='vendedor'?' <small>(socio)</small>':''}</b><span>${$m0(r.v)}</span></div>
+      <div class="rk-bar"><i style="width:${(pc*100).toFixed(1)}%" class="${r.meta&&r.v>=r.meta?'ok':''}"></i></div>
+      <small>${r.n} ${r.n==1?'pedido':'pedidos'} · ${r.cn} ${r.cn==1?'cliente nuevo':'clientes nuevos'}${r.com?' · comisión '+$m0(r.com):''}${r.u.rol=='vendedor'?` · <a class="lnk" data-rkm="${r.u.id}">${r.meta?'meta '+$m0(r.meta)+' ('+Math.round(r.v/r.meta*100)+' %)':'poner meta'}</a>`:''}</small></div></div>`}).join('')}</div>`;
+  box.querySelectorAll('[data-rkm]').forEach(a=>a.onclick=async()=>{const u=U.find(x=>x.id==a.dataset.rkm),x=prompt('Meta de ventas de '+(u.nombre||'este vendedor')+' por mes (en pesos):',MV[u.id]?String(MV[u.id]):'');if(x===null)return;const n=numAR(x);if(!(n>=0))return toast('Escribí un importe.',1);
+    const{error}=await guardaCfgJ('metas_vendedores',{...MV,[u.id]:n});error?toast(error.message,1):(toast('Meta guardada.'),rankingInicio())})}
+
+/* ======================= GUÍA DE BIENVENIDA (vendedores) ======================= */
+function guiaVendedor(forzar){if(document.getElementById('guia'))return;const k='guia_v1_'+S.perfil.id;try{if(!forzar&&localStorage.getItem(k))return}catch(e){}
+  const P=[['.ppal button:first-child','Nuevo pedido','Desde acá cargás un pedido: elegís el cliente, buscás los productos (con foto) y guardás. También podés pegar el mensaje de WhatsApp del cliente o dictarlo.'],
+    ['[data-g="ruta"]','Ruta de hoy','Tus clientes del día en orden: a quién visitar, por qué y qué ofrecerle. Con los botones Pedido, Cómo llegar y No estaba.'],
+    ['[data-g="cli"]','Mis clientes','Tus clientes, con un cartelito de color: verde al día, amarillo le toca comprar, rojo debe. Arriba los filtrás con un toque.'],
+    ['#comv','Tu comisión','Lo que vendiste en el mes y la comisión que te corresponde. Se actualiza solo con cada pedido aprobado.'],
+    ['#fab_b','Botón +','Desde cualquier pantalla: nuevo pedido, nuevo cliente, cobro, nota o visita.'],
+    ['.hbell','Novedades','La campanita te avisa lo que pasó con tus clientes: pedidos online, entregas, pagos.']];
+  const L=P.filter(([s])=>{const e=document.querySelector(s);return e&&e.offsetParent!==null});if(!L.length)return;let i=0;
+  const o=document.createElement('div');o.id='guia';document.body.appendChild(o);
+  const fin=()=>{o.remove();try{localStorage.setItem(k,'1')}catch(e){}};
+  const paso=()=>{const[s,t,d]=L[i],e=document.querySelector(s);if(!e)return fin();e.scrollIntoView({block:'center'});
+    setTimeout(()=>{const r=e.getBoundingClientRect(),p=8,abajo=r.top<innerHeight/2;
+      o.innerHTML=`<div class="gu-h" style="top:${r.top-p}px;left:${r.left-p}px;width:${r.width+2*p}px;height:${r.height+2*p}px"></div>
+        <div class="gu-c" style="${abajo?'top:'+(r.bottom+16):'bottom:'+(innerHeight-r.top+16)}px"><small>Paso ${i+1} de ${L.length}</small><b>${t}</b><p>${d}</p><div class="gu-a"><button class="alt" id="gu_s">${i==L.length-1?'Cerrar':'Saltar'}</button><button id="gu_n">${i==L.length-1?'¡Listo!':'Siguiente'}</button></div></div>`;
+      $('#gu_s').onclick=fin;$('#gu_n').onclick=()=>{i++;i<L.length?paso():fin()}},250)};
+  paso()}
 
 /* ======================= OBJETIVO DEL MES (Inicio) ======================= */
 async function objetivoMes(){const box=$('#obj');if(!box)return;
@@ -7687,14 +7753,14 @@ function menuMas(todas){const LT=(todas===1?(()=>{const t=tabsMenu();return [...
   m.innerHTML=`<div class="mc"><div class="bh"><h3>Más secciones</h3><button class="alt" id="mm_x">Cerrar</button></div>
   <div class="mmas">${LT.map(t=>`<button class="${S.tab==t?'on':'alt'}" data-mt="${t}">${IC(MAS_IC[t]?.[0]||'box',24)}<span><b>${t=='manual'?'Manual':t[0].toUpperCase()+t.slice(1)}</b><small>${MAS_IC[t]?.[1]||''}</small></span></button>`).join('')}${S.perfil.rol=='dueno'?`<button class="alt" id="mm_dl">${IC('cash',24)}<span><b>Dólar del día</b><small>Costos en dólares</small></span></button>`:''}</div>
   ${S.perfil.rol=='dueno'?`<div id="chk" style="margin-top:10px"></div>`:''}
-  <div class="mmaj"><small>Cuenta y ajustes</small>${(S.perfil.rol=='dueno'?[['users','Usuarios y accesos','usuarios()'],['cash','Mercado Pago: cobros por transferencia','mercadoPago()'],['menu','Elegir pestañas del menú','menuTabsCfg()'],['doc','Ver panel completo',"S.inicioModo='completa';S.tab='inicio';shell();scrollTo(0,0)"]]:[]).concat([['lock','Cambiar mi contraseña','cambiarClave()']]).map(([i,t,f])=>`<button class="alt" data-mf="${f}">${IC(i,18)}<span>${t}</span><b>›</b></button>`).join('')}</div></div>`;
+  <div class="mmaj"><small>Cuenta y ajustes</small>${(S.perfil.rol=='dueno'?[['users','Usuarios y accesos','usuarios()'],['cash','Mercado Pago: cobros por transferencia','mercadoPago()'],['menu','Elegir pestañas del menú','menuTabsCfg()'],['doc','Ver panel completo',"S.inicioModo='completa';S.tab='inicio';shell();scrollTo(0,0)"]]:[]).concat([['bulb',S.perfil.rol=='vendedor'?'Ver la guía de nuevo':'Ver la guía para vendedores',"irA('inicio');setTimeout(()=>guiaVendedor(1),900)"],['lock','Cambiar mi contraseña','cambiarClave()']]).map(([i,t,f])=>`<button class="alt" data-mf="${f}">${IC(i,18)}<span>${t}</span><b>›</b></button>`).join('')}</div></div>`;
   m.onclick=e=>{if(e.target==m)m.remove()};m.querySelector('#mm_x').onclick=()=>m.remove();
   m.querySelectorAll('[data-mt]').forEach(b=>b.onclick=()=>{m.remove();S.tab=b.dataset.mt;shell()});m.querySelectorAll('[data-mf]').forEach(b=>b.onclick=()=>{m.remove();(0,eval)(b.dataset.mf)});
   const dl=m.querySelector('#mm_dl');if(dl)dl.onclick=()=>{m.remove();dolarModal()};if(m.querySelector('#chk'))chequeoInicio().catch(()=>{})}
 const irA=(tab,extra)=>{Object.assign(S,extra||{});S.tab=tab;shell()};
 /* 6. Botones grandes (celular) */
 /* Inicio: los 4 accesos de todos los días, grandes, y el resto chico */
-const principalesHTML=(sec=true)=>`<div class="ppal"><button onclick="irA('pedidos')"><span>${IC('cart',30)}</span>Nuevo pedido</button><button class="alt" onclick="irA('clientes',{cs:'lista',abrirNuevo:1})"><span>${IC('user',30)}</span>Nuevo cliente</button>${S.perfil?.rol=='vendedor'?`<button class="alt" onclick="irA('clientes',{cs:'lista'})"><span>${IC('users',30)}</span>Mis clientes</button><button class="alt" onclick="irA('clientes',{cs:'ruta'})"><span>${IC('map',30)}</span>Ruta de hoy</button>`:`<button class="alt" onclick="irA('compras',{sub:'proveedores'})"><span>${IC('building',30)}</span>Proveedores</button><button class="alt" onclick="irA('compras',{sub:'ordenes'})"><span>${IC('box',30)}</span>Compras</button>`}<button class="alt" onclick="irA('ventas',{vs:'rapido'})"><span>${IC('chart',30)}</span>Ventas</button><button class="alt" onclick="folletosListos()"><span>${IC('folder',30)}</span>Folletos</button></div>
+const principalesHTML=(sec=true)=>`<div class="ppal"><button onclick="irA('pedidos')"><span>${IC('cart',30)}</span>Nuevo pedido</button><button class="alt" onclick="irA('clientes',{cs:'lista',abrirNuevo:1})"><span>${IC('user',30)}</span>Nuevo cliente</button>${S.perfil?.rol=='vendedor'?`<button class="alt" data-g="cli" onclick="irA('clientes',{cs:'lista'})"><span>${IC('users',30)}</span>Mis clientes</button><button class="alt" data-g="ruta" onclick="irA('clientes',{cs:'ruta'})"><span>${IC('map',30)}</span>Ruta de hoy</button>`:`<button class="alt" onclick="irA('compras',{sub:'proveedores'})"><span>${IC('building',30)}</span>Proveedores</button><button class="alt" onclick="irA('compras',{sub:'ordenes'})"><span>${IC('box',30)}</span>Compras</button>`}<button class="alt" onclick="irA('ventas',{vs:'rapido'})"><span>${IC('chart',30)}</span>Ventas</button><button class="alt" onclick="folletosListos()"><span>${IC('folder',30)}</span>Folletos</button></div>
   ${sec?`<div class="atsec">${[['📥 Por aprobar',"irA('pedidos',{pf:'pendiente'})"],['🧺 Armar',"hojaArmado()"],['🚚 Reparto',"irA('reparto')"],['💵 Cobrar',"irA('cobranza')"],['⚡ Cola del día',"irA('ventas',{vs:'cola'})"]].map(([t,f])=>`<button class="alt" onclick="${f}">${t}</button>`).join('')}</div>`:''}`;
 const atajosHTML=()=>`<div class="atajos">${[['🛒','Nuevo pedido',"irA('pedidos')"],['⚡','Cola del día',"irA('ventas',{vs:'cola'})"],['📥','Por aprobar',"irA('pedidos',{pf:'pendiente'})"],['🧺','Armar',"hojaArmado()"],['🚚','Reparto',"irA('reparto')"],['💵','Cobrar',"irA('cobranza')"]].map(([i,t,f])=>`<button class="at" onclick="${f}"><span>${i}</span>${t}</button>`).join('')}</div>`;
 
