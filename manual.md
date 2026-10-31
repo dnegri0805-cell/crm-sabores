@@ -397,6 +397,16 @@ Desde **Más → Cuenta y ajustes → Usuarios y accesos** (solo lo ve el dueño
 - **Elegir varios:** marcás productos (o *Todos los del filtro*) y abajo: *Subir / bajar %* (queda en amarillo hasta *Guardar costos cambiados*), *Cambiar familia* o *Quitar precio fijo*.
 - **Margen por familia:** cada familia muestra un ejemplo de precio y cómo cambia mientras escribís el ajuste; el botón *Guardar* queda fijo abajo.
 
+### Stock (versión nueva)
+- **Pestañas:** *Stock*, *Para pedir*, *Vencimientos*, *Movimientos* y *Cargar y contar* (conteo por partes, conteo del día, fraccionar, merma y planilla de Excel).
+- Si todavía no cargaste el stock, arriba te dice cómo empezar.
+- **Cada producto muestra cuánto hay** (rojo sin stock, amarillo bajo el mínimo) y **para cuántos días alcanza** según lo que vendés. Con **−** y **+** lo corregís ahí mismo; abajo aparece la barra *N cambios · Guardar*.
+- **Avisos que filtran:** 🔴 sin stock, 🟡 bajo el mínimo, ⏰ vencen en 30 días, 💡 sin mínimo (con un **mínimo sugerido** de dos semanas de venta que aceptás con *usar*), y el **valor del stock** a costo (solo el dueño).
+- Filtros: *Se vendieron (90 días)* y *Ver inactivos*.
+- **Para pedir:** lo que está bajo el mínimo por proveedor, con **Armar orden de compra** (abre la sugerencia de compra de ese proveedor).
+- **Vencimientos:** semáforo (vencidos, esta semana, este mes, más adelante); el formulario aparece con *+ Cargar vencimiento*.
+- **Movimientos:** qué entró, qué salió y por qué (pedido, compra, ajuste), con quién y cuándo.
+
 ## 13. Rutina diaria y preguntas frecuentes
 
 Repartís de lunes a sábado y los pedidos cierran a las 20:00 para el día siguiente.

@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-31.30';
+const VERSION='2026-10-31.31';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -428,15 +428,39 @@ function bajos(){return S.productos.map(p=>({p,d:stk(p.producto_id).d,m:S.min[p.
   .filter(x=>x.a&&x.m>0&&x.d<=x.m).sort((a,b)=>(a.d-a.m)-(b.d-b.m))}
 
 /* ---------- Stock ---------- */
+/* Stock → Para pedir: lo que está bajo el mínimo (o sin stock y se vende), agrupado por proveedor */
+async function stockParaPedir(){const box=$('#s_ped');if(!box)return;const{data:pv}=await sb.from('proveedores').select('id,razon_social').eq('activo',true);
+  const nomP=id=>(pv||[]).find(x=>x.id==id)?.razon_social||'Sin proveedor asignado',G={};
+  for(const x of bajos()){if(!x.a)continue;const m=x.m,vende=(S.stVel?.q90?.[x.p.producto_id]||0)>0;if(!((m>0&&x.d<=m)||(S.inv&&x.d<=0&&vende)))continue;const k=S.min[x.p.producto_id]?.pv||'';(G[k]=G[k]||[]).push(x)}
+  const K=Object.keys(G).sort((a,b)=>G[b].length-G[a].length);
+  box.innerHTML=`<div class="bh"><h3 style="margin:0">${IC('cart',18)} Para pedir</h3></div><p><small>Productos bajo el mínimo (o sin stock y que se venden), por proveedor. <b>Armar orden de compra</b> te calcula cuánto pedir según lo que vendés.</small></p>
+    ${K.length?K.map(k=>`<div class="pp-g"><div class="pp-h"><b>${esc(nomP(k))}</b><span class="badge">${G[k].length}</span>${k?`<button class="alt" data-oc="${k}">${IC('note',15)} Armar orden de compra</button>`:''}</div>${G[k].slice(0,8).map(x=>`<div class="pp-r"><span>${esc(x.p.descripcion)}</span><small class="${x.d<=0?'mora':'bajo'}">${x.d<=0?'Sin stock':'Hay '+nf(x.d)+' · mín. '+nf(x.m)}</small></div>`).join('')}${G[k].length>8?`<small>y ${G[k].length-8} más</small>`:''}</div>`).join('')
+      :`<p class="st-ok">${IC('check',16)} ${S.inv?'Nada para pedir: todo está sobre el mínimo.':'Cuando cargues el stock y los mínimos, acá vas a ver qué pedir a cada proveedor.'}</p>`}`;
+  box.querySelectorAll('[data-oc]').forEach(b=>b.onclick=()=>{S.sg=Object.assign(S.sg||{dias:30,cob:15,bul:true},{pv:b.dataset.oc});irA('compras',{sub:'sugerencia'})})}
+/* Stock → Movimientos: por qué cambió cada número */
+async function stockMovs(){const box=$('#s_mov');if(!box)return;await equipo().catch(()=>{});const{data,error}=await sb.from('movimientos_stock').select('producto_id,tipo,cantidad,referencia,usuario_id,fecha').order('fecha',{ascending:false}).limit(150);
+  if(error){box.innerHTML='<p class="err">'+esc(error.message)+'</p>';return}
+  const T={compra:['Entró','sube'],venta:['Salió','baja'],ajuste:['Ajuste',''],devolucion_cliente:['Volvió (devolución)','sube'],devolucion_proveedor:['Devuelto al proveedor','baja'],baja:['Baja','baja'],merma:['Merma','baja'],reserva:['Reservado',''],liberacion:['Liberado',''],fraccionado:['Fraccionado','']};
+  const q=S.stMq||'',L=(data||[]).filter(x=>!q||coincide(nomProd(x.producto_id)+' '+(x.referencia||''),q));
+  box.innerHTML=`<div class="bh"><h3 style="margin:0">${IC('repeat',18)} Movimientos</h3></div><input id="sm_q" placeholder="Filtrar por producto o pedido" value="${esc(q)}">
+    ${L.length?`<div class="sm-l">${L.slice(0,80).map(x=>{const t=T[x.tipo]||[x.tipo,''],c=+x.cantidad||0;return`<div class="sm-r"><span class="sm-i ${t[1]}">${t[1]=='sube'?'+':t[1]=='baja'?'−':'±'}</span><div><b>${esc(nomProd(x.producto_id))}</b><small>${esc(t[0])} ${nf(Math.abs(c))}${x.referencia?' · '+esc(x.referencia):''}${x.usuario_id?' · '+esc(x.usuario_id==S.perfil.id?'vos':nomU(x.usuario_id)):''}</small></div><time>${new Date(x.fecha).toLocaleDateString('es-AR',{day:'numeric',month:'numeric'})}</time></div>`}).join('')}</div>`:'<p><small>Todavía no hay movimientos'+(q?' con ese filtro':'')+'.</small></p>'}`;
+  const i=$('#sm_q');i.oninput=()=>{S.stMq=i.value;clearTimeout(stockMovs._t);stockMovs._t=setTimeout(()=>{stockMovs().then(()=>{const j=$('#sm_q');if(j){j.focus();j.setSelectionRange(j.value.length,j.value.length)}})},350)}}
 async function vStock(){
   $('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Stock</h2><div class="fc-acc"><button id="s_cn">📋 Conteo por partes</button><button class="alt" onclick="conteoDia()">📦 Conteo del día</button><button class="alt" onclick="fraccionar()">🔪 Fraccionar</button><button class="alt" onclick="equipos()">🛠️ Equipos</button><button class="alt" onclick="merma()">📉 Merma</button><button class="alt" onclick="buscarLote()">🔎 Lotes</button><button class="alt" onclick="temperatura()">🌡️ Temperatura</button><button class="alt" onclick="excelStock()">📥 Bajar Excel</button></div></div>
-  <div class="box"><div class="g"><div class="conscan"><input id="s_q" placeholder="Buscar producto o código" autocomplete="off">${btnScan('s_sc')}</div>
-    <div class="s-fil"><label class="chk"><input type="checkbox" id="s_b" ${S.soloBajo?'checked':''}> Bajo el mínimo</label><label class="chk"><input type="checkbox" id="s_kg" ${S.soloKg?'checked':''}> Quesos y fiambres</label></div></div><p id="s_kgr"></p>
-    <p class="st-ay"><small>Tocá un producto para escribir lo que <b>contaste</b> o cambiar el <b>mínimo</b> (desde cuánto te avisa). Después, <b>Guardar cambios</b>.</small></p>
+  <div class="pr-tabs st-tabs" role="tablist">${[['stk','Stock'],['ped','Para pedir'],['ven','Vencimientos'],['mov','Movimientos'],['car','Cargar y contar']].map(([k,t])=>`<button role="tab" data-st="${k}">${t}</button>`).join('')}</div>
+  <div id="s_ini"></div>
+  <div class="box" data-sp="stk"><div class="g"><div class="conscan"><input id="s_q" placeholder="Buscar producto o código" autocomplete="off">${btnScan('s_sc')}</div>
+    <div class="s-fil"><label class="chk"><input type="checkbox" id="s_b" ${S.soloBajo?'checked':''}> Bajo el mínimo</label><label class="chk"><input type="checkbox" id="s_kg" ${S.soloKg?'checked':''}> Quesos y fiambres</label><label class="chk"><input type="checkbox" id="s_vd" ${S.stVen?'checked':''}> Se vendieron (90 días)</label><label class="chk"><input type="checkbox" id="s_in" ${S.stIn?'checked':''}> Ver inactivos</label></div></div>
+    <div class="pr-av" id="s_av"></div><p id="s_kgr"></p>
+    <p class="st-ay"><small>Con <b>−</b> y <b>+</b> corregís lo que hay; tocando el producto escribís lo que <b>contaste</b> o el <b>mínimo</b>. Después, <b>Guardar</b> (abajo).</small></p>
     <div class="tw"><table id="s_t"></table></div>
     <div class="g" style="margin-top:10px"><input id="s_mot" placeholder="Motivo (opcional, ej.: inventario inicial)"></div>
     <button id="s_g">Guardar cambios</button> <span id="s_n"></span></div>
-  <details class="box" id="s_imp"><summary><b>Cargar muchos productos de una vez (planilla de Excel)</b></summary>
+  <div class="st-bar" id="s_bar" hidden><span id="s_bn"></span><button id="s_bg">Guardar</button></div>
+  <div class="box" data-sp="ped" id="s_ped"><span class="skl"></span></div>
+  <div class="box" data-sp="mov" id="s_mov"><span class="skl"></span></div>
+  <div class="box" data-sp="car"><h3>Contar el depósito</h3><p><small>Elegí cómo contar: por partes (una familia por vez, ideal para el inventario completo) o el conteo rápido del día (los productos que más se mueven).</small></p><div class="fc-acc"><button id="s_cn2">${IC('note',16)} Conteo por partes</button><button class="alt" onclick="conteoDia()">${IC('box',16)} Conteo del día</button><button class="alt" onclick="fraccionar()">${IC('cut',16)} Fraccionar</button><button class="alt" onclick="merma()">📉 Merma</button></div></div>
+  <details class="box" id="s_imp" data-sp="car" open><summary><b>Cargar muchos productos de una vez (planilla de Excel)</b></summary>
     <p><b>Lo más fácil:</b> bajá la planilla con todos tus productos, completá la columna <b>Cantidad</b> con lo que contaste (los que dejes vacíos no se tocan) y subila de nuevo.</p>
     <div class="fc-acc"><button id="s_xd">📥 Descargar planilla con mis productos</button><label class="xlup">📤 Subir planilla completada<input type="file" id="s_xu" accept=".xlsx,.xls,.csv" hidden></label></div>
     <p><small>O, si preferís, copiá las filas desde Excel y pegalas abajo:</small></p>
@@ -446,14 +470,28 @@ SDMP-01279	10	2
 SDMP-01281	36</pre>
     <textarea id="s_pg" rows="8" placeholder="Pegá acá las filas copiadas de la planilla"></textarea>
     <button class="alt" id="s_rev">Revisar</button> <div id="s_res"></div></details>
-  <div class="box" id="s_ven"></div>`;vencimientosBox();
-  $('#s_cn').onclick=conteoPartes;
+  <div class="box" id="s_ven" data-sp="ven"></div>`;vencimientosBox();
+  $('#s_cn').onclick=conteoPartes;$('#s_cn2').onclick=conteoPartes;
+  {S.stTab=S.stTab||'stk';const ap=()=>{$$('#v .st-tabs [data-st]').forEach(b=>b.classList.toggle('on',b.dataset.st==S.stTab));$$('#v [data-sp]').forEach(x=>x.classList.toggle('pt-oc',x.dataset.sp!=S.stTab));if(S.stTab=='ped')stockParaPedir();if(S.stTab=='mov')stockMovs();if(S.stTab!='stk')$('#s_bar')&&($('#s_bar').hidden=true)};S._stTabs=ap;
+   $$('#v .st-tabs [data-st]').forEach(b=>b.onclick=()=>{S.stTab=b.dataset.st;ap();marcarUso('stock:'+S.stTab)});ap()}
   await cargarStock();
+  /* sin inventario cargado: guía para empezar */
+  $('#s_ini').innerHTML=S.inv?'':`<div class="box st-ini"><b>${IC('box',18)} Todavía no cargaste el stock</b><p><small>Mientras no cargues lo que hay en el depósito, los números de stock quedan en cero y no hay avisos. Lo más rápido: <b>Conteo por partes</b> (familia por familia) o bajar la <b>planilla</b>, completar la cantidad y subirla.</small></p><div class="fc-acc"><button id="s_i1">Conteo por partes</button><button class="alt" id="s_i2">Usar la planilla de Excel</button></div></div>`;
+  $('#s_i1')&&($('#s_i1').onclick=conteoPartes);$('#s_i2')&&($('#s_i2').onclick=()=>{S.stTab='car';S._stTabs()});
+  /* ventas de los últimos 90 días por producto: para "alcanza ~N días", "Se vendieron" y el mínimo sugerido */
+  if(!S.stVel||Date.now()-S.stVel.t>10*60e3){const{data:pv}=await todo(()=>sb.from('pedidos').select('creado_en,pedido_items(producto_id,cantidad)').not('estado','in','(pendiente,cancelado)').or('es_prueba.is.null,es_prueba.eq.false').gte('creado_en',new Date(Date.now()-90*864e5).toISOString()).order('numero'));
+    const q90={},q30={},lim30=Date.now()-30*864e5;for(const o of pv||[])for(const i of o.pedido_items||[]){q90[i.producto_id]=(q90[i.producto_id]||0)+(+i.cantidad||0);if(new Date(o.creado_en).getTime()>=lim30)q30[i.producto_id]=(q30[i.producto_id]||0)+(+i.cantidad||0)}S.stVel={t:Date.now(),q90,q30}}
+  const porDia=id=>{const a=S.stVel?.q30?.[id]||0,b=(S.stVel?.q90?.[id]||0)/3;return Math.max(a,b)/30};
   if(!S.stockOk){$('#s_t').innerHTML='<tr><td class="err">No se pudo leer el stock. Corré stock.sql en Supabase.</td></tr>';return}
   const cont={},mins={};
-  const upd=()=>{const n=new Set([...Object.keys(cont),...Object.keys(mins)]).size;$('#s_n').textContent=n?n+(n==1?' producto con cambios':' productos con cambios'):''};
+  const upd=()=>{const n=new Set([...Object.keys(cont),...Object.keys(mins)]).size;$('#s_n').textContent=n?n+(n==1?' producto con cambios':' productos con cambios'):'';const b=$('#s_bar');if(b){b.hidden=!n||S.stTab!='stk';$('#s_bn').textContent=n+(n==1?' cambio':' cambios')}};
   const draw=()=>{const q=$('#s_q').value.toLowerCase().trim(),sb_=$('#s_b').checked;
-    let L=S.productos.filter(p=>S.min[p.producto_id]?.a!==false);
+    let L=S.productos.filter(p=>S.stIn||S.min[p.producto_id]?.a!==false);
+    if(S.stVen)L=L.filter(p=>(S.stVel?.q90?.[p.producto_id]||0)>0);
+    {const A=S.productos.filter(p=>S.min[p.producto_id]?.a!==false),sin=S.inv?A.filter(p=>stk(p.producto_id).d<=0):[],bj=bajos().filter(x=>x.a&&x.m>0&&x.d<=x.m&&x.d>0),val=A.reduce((a,p)=>a+Math.max(0,stk(p.producto_id).f)*(+p.costo||0),0),sinMin=A.filter(p=>!(S.min[p.producto_id]?.m>0)&&porDia(p.producto_id)>0).length;
+     $('#s_av').innerHTML=[sin.length?`<button data-sf="sin" class="${S.stF=='sin'?'on':''} av-mb">🔴 <b>${sin.length}</b> sin stock</button>`:'',bj.length?`<button data-sf="bajo" class="${S.stF=='bajo'?'on':''}">🟡 <b>${bj.length}</b> bajo el mínimo</button>`:'',S.stVenc?`<button data-sf="venc">⏰ <b>${S.stVenc}</b> vencen en 30 días</button>`:'',sinMin?`<button data-sf="smin" class="${S.stF=='smin'?'on':''}">💡 <b>${sinMin}</b> sin mínimo (te sugiero uno)</button>`:'',verCostos()&&S.inv&&val>0?`<span class="st-val">Valor del stock: <b>${$k(val)}</b> a costo</span>`:''].join('');
+     $$('#s_av [data-sf]').forEach(b=>b.onclick=()=>{const k=b.dataset.sf;if(k=='venc'){S.stTab='ven';return S._stTabs()}S.stF=S.stF==k?'':k;S.stN=40;draw()})}
+    if(S.stF=='sin')L=L.filter(p=>stk(p.producto_id).d<=0);if(S.stF=='bajo'){const m=p=>S.min[p.producto_id]?.m||0;L=L.filter(p=>m(p)>0&&stk(p.producto_id).d<=m(p))}if(S.stF=='smin')L=L.filter(p=>!(S.min[p.producto_id]?.m>0)&&porDia(p.producto_id)>0);
     if(q)L=L.filter(p=>coincide(txtProd(p),q));
     if(sb_){const ids=new Set(bajos().map(x=>x.p.producto_id));L=L.filter(p=>ids.has(p.producto_id))}
     if(S.soloKg)L=L.filter(p=>esPeso(p.producto_id));
@@ -462,15 +500,22 @@ SDMP-01281	36</pre>
     S.stN=S.stN||40;if(draw._q!==q){draw._q=q;S.stN=40}const V=L.slice(0,S.stN);S._stkV=L;
     $('#s_t').innerHTML='<tr><th>Producto</th><th class="n">Físico</th><th class="n">Reservado</th><th class="n">Disponible</th><th class="n">Mínimo</th><th class="n">Contado</th></tr>'+
       V.map(p=>{const id=p.producto_id,s=stk(id),m=S.min[id]?.m||0,U=esKg(id)?' kg':'',Z=ppz(id);
-        const est=!S.inv?'':s.d<=0?'<span class="st-e mal">Sin stock</span>':m&&s.d<=m?`<span class="st-e med">Bajo el mínimo · ${nf(s.d)}${U}</span>`:`<span class="st-e ok">Disponible ${nf(s.d)}${U}</span>`,ft=S.min[id]?.foto;
-        return `<tr class="srow${cont[id]!=null||mins[id]!=null?' ab':''}"><td><div class="st-p">${ft?`<img src="${esc(ft)}" alt="" loading="lazy">`:'<span class="st-ph"></span>'}<div><b>${esc(p.descripcion)}</b> <small class="pcod">${esc(p.codigo)}</small>${est?'<br>'+est:''}</div><span class="st-ch">${IC('down',16)}</span></div></td><td class="n">${nf(s.f)}${U}</td><td class="n">${nf(s.r)}${U}</td><td class="n ${S.inv&&s.d<=0?'mora':(m&&s.d<=m?'bajo':'')}">${nf(s.d)}${U}${Z?`<br><small>≈ ${kgTxt(s.d*Z)}</small>`:''}</td>
+        const pd=porDia(id),dias=pd>0&&s.d>0?Math.floor(s.d/pd):null,sug=!m&&pd>0?Math.max(1,Math.ceil(pd*14)):0,val=cont[id]!=null?+cont[id]:s.f;
+        const est=!S.inv?'':s.d<=0?'<span class="st-e mal">Sin stock</span>':m&&s.d<=m?`<span class="st-e med">${nf(s.d)}${U} · bajo el mínimo (${nf(m)})</span>`:`<span class="st-e ok">${nf(s.d)}${U}</span>`,ft=S.min[id]?.foto;
+        const extra=(dias!=null?`<small class="st-dias ${dias<7?'baja':''}">alcanza ~${dias} día${dias==1?'':'s'}</small>`:'')+(sug&&mins[id]==null?`<a class="lnk st-sug" data-sug="${id}" data-sv="${sug}" title="Dos semanas de lo que vendés">💡 mínimo sugerido: ${nf(sug)} · usar</a>`:'');
+        return `<tr class="srow${cont[id]!=null||mins[id]!=null?' ab':''}"><td><div class="st-p">${ft?`<img src="${esc(ft)}" alt="" loading="lazy">`:'<span class="st-ph"></span>'}<div><b>${esc(p.descripcion)}</b> <small class="pcod">${esc(p.codigo)}</small>${est||extra?'<br>'+est+extra:''}</div><span class="st-q"><button class="alt" data-sm="${id}" aria-label="Uno menos">−</button><b class="${cont[id]!=null?'cam':''}">${nf(val)}${U}</b><button class="alt" data-sp2="${id}" aria-label="Uno más">+</button></span><span class="st-ch">${IC('down',16)}</span></div></td><td class="n">${nf(s.f)}${U}</td><td class="n">${nf(s.r)}${U}</td><td class="n ${S.inv&&s.d<=0?'mora':(m&&s.d<=m?'bajo':'')}">${nf(s.d)}${U}${Z?`<br><small>≈ ${kgTxt(s.d*Z)}</small>`:''}</td>
         <td class="n"><input type="number" min="0" step="1" class="mn" data-id="${id}" value="${mins[id]??''}" placeholder="${m?nf(m):'—'}"></td>
         <td class="n"><input type="number" min="0" step="${esKg(id)?'0.001':'1'}" class="cnt" data-id="${id}" value="${cont[id]??''}" placeholder="${nf(s.f)}"></td></tr>`}).join('')+
       (L.length>V.length?`<tr class="vmas-r"><td colspan="6"><button class="alt vmas" id="s_mas">Ver más productos (${V.length} de ${L.length})</button></td></tr>`:'')+
       (L.length?'':'<tr><td colspan="6"><small>No hay productos para mostrar.</small></td></tr>');
     {const b=$('#s_mas');if(b)b.onclick=()=>{S.stN+=40;draw()}}
     $('#s_t').onclick=e=>{if(e.target.closest('input,button,a'))return;const tr=e.target.closest('tr.srow');if(tr)tr.classList.toggle('ab')};$$('.cnt').forEach(e=>e.oninput=()=>{e.value===''?delete cont[e.dataset.id]:cont[e.dataset.id]=e.value;upd()});
-    $$('.mn').forEach(e=>e.oninput=()=>{e.value===''?delete mins[e.dataset.id]:mins[e.dataset.id]=e.value;upd()})};
+    $$('.mn').forEach(e=>e.oninput=()=>{e.value===''?delete mins[e.dataset.id]:mins[e.dataset.id]=e.value;upd()});
+    const paso=id=>esKg(id)?0.5:1;
+    $$('#s_t [data-sm],#s_t [data-sp2]').forEach(b=>b.onclick=e=>{e.stopPropagation();const id=b.dataset.sm||b.dataset.sp2,base=cont[id]!=null?+cont[id]:stk(id).f;cont[id]=String(Math.max(0,Math.round((base+(b.dataset.sm?-1:1)*paso(id))*1000)/1000));draw();upd()});
+    $$('#s_t [data-sug]').forEach(a=>a.onclick=e=>{e.stopPropagation();mins[a.dataset.sug]=a.dataset.sv;draw();upd();toast('Mínimo sugerido: '+a.dataset.sv+'. Tocá Guardar para dejarlo.')})};
+  $('#s_bg').onclick=()=>$('#s_g').click();$('#s_vd').onchange=()=>{S.stVen=$('#s_vd').checked;S.stN=40;draw()};$('#s_in').onchange=()=>{S.stIn=$('#s_in').checked;S.stN=40;draw()};
+  sb.from('vencimientos').select('id',{count:'exact',head:true}).eq('retirado',false).lte('vence',diaLocal(new Date(Date.now()+30*864e5))).then(r=>{S.stVenc=r.count||0;if(S.stVenc&&S.tab=='stock')draw()},()=>{});
   $('#s_q').oninput=draw;$('#s_kg').onchange=()=>{S.soloKg=$('#s_kg').checked;draw()};$('#s_b').onchange=()=>{S.soloBajo=$('#s_b').checked;draw()};draw();
   $('#s_sc').onclick=()=>escanear('Contar con el escáner: cada lectura suma 1',p=>{const id=p.producto_id;cont[id]=(+cont[id]||0)+1;
     $('#s_q').value=p.codigo;$('#s_b').checked=false;draw();upd();return '✔ '+p.descripcion+' · contados: '+cont[id]});
@@ -3271,7 +3316,7 @@ async function tableroPedidos(){const box=$('#pl');if(!box)return;
 function fabPintar(){let f=document.getElementById('fab');if(!S.perfil){f&&f.remove();return}
   if(!f){f=document.createElement('div');f.id='fab';f.innerHTML=`<div class="fab-m" id="fab_m" hidden></div><button class="fab-b" id="fab_b" aria-label="Agregar" aria-expanded="false">${IC('plus',26)}</button>`;document.body.appendChild(f);
     f.querySelector('#fab_b').onclick=e=>{e.stopPropagation();fabMenu()};document.addEventListener('click',e=>{if(!f.contains(e.target))fabCerrar()})}
-  f.hidden=!!document.querySelector('.modal:not(.fab-sh)')||(S.tab=='pedidos'&&!!S.pcli)||!!document.getElementById('pr_bulk');if(!document.querySelector('.fab-sh')&&$('#fab_m')?.hidden!==false)f.querySelector('#fab_b')?.classList.remove('on')}
+  f.hidden=!!document.querySelector('.modal:not(.fab-sh)')||(S.tab=='pedidos'&&!!S.pcli)||!!document.getElementById('pr_bulk')||!!document.querySelector('#s_bar:not([hidden])');if(!document.querySelector('.fab-sh')&&$('#fab_m')?.hidden!==false)f.querySelector('#fab_b')?.classList.remove('on')}
 function fabCerrar(){const m=document.getElementById('fab_m'),b=document.getElementById('fab_b');if(m)m.hidden=true;if(document.querySelector('.fab-sh'))return;if(b){b.classList.remove('on');b.setAttribute('aria-expanded','false')}}
 function fabMenu(){
   /* en Pedidos (sin cliente elegido), el + va directo a elegir cliente */
@@ -4225,10 +4270,14 @@ async function vencimientosBox(){const box=$('#s_ven');if(!box)return;
   if(error){box.innerHTML='<h3>Vencimientos</h3><p><small>Para controlar vencimientos, corré control.sql en Supabase.</small></p>';return}
   const hoy=diaLocal(new Date()),d=x=>Math.round((new Date(x+'T12:00')-new Date(hoy+'T12:00'))/864e5);
   const est=x=>{const n=d(x.vence);return n<0?['mora','Vencido hace '+(-n)+' d']:n<=30?['bajo','Vence en '+n+' d']:['','Vence el '+fd(x.vence)]};
-  box.innerHTML=`<div class="bh"><h3>Vencimientos</h3><small>${data.filter(x=>d(x.vence)<0).length} vencidos · ${data.filter(x=>d(x.vence)>=0&&d(x.vence)<=30).length} en 30 días</small></div>
-    <div class="g"><div class="conscan"><input id="vn_q" placeholder="Producto (nombre o código)" autocomplete="off">${btnScan('vn_sc')}</div><label class="f">Vence<input type="date" id="vn_f"></label><input id="vn_c" type="number" min="0" placeholder="Cantidad"><input id="vn_l" placeholder="Lote (opcional)"></div><div id="vn_r"></div><p id="vn_p"></p>
-    <button id="vn_g">Guardar vencimiento</button>
+  const G3=[['Vencidos',data.filter(x=>d(x.vence)<0),'r'],['Vencen esta semana',data.filter(x=>d(x.vence)>=0&&d(x.vence)<=7),'a'],['Vencen este mes',data.filter(x=>d(x.vence)>7&&d(x.vence)<=30),'y'],['Más adelante',data.filter(x=>d(x.vence)>30),'v']];
+  box.innerHTML=`<div class="bh"><h3>Vencimientos</h3><button id="vn_nv">${IC('plus',16)} Cargar vencimiento</button></div>
+    <div class="vn-sem">${G3.map(([t,L,k])=>`<div class="vn-s vn-${k}"><b>${L.length}</b><small>${t}</small></div>`).join('')}</div>
+    ${data.some(x=>d(x.vence)<=30)?'<p class="aviso"><small>💡 Vendé primero el lote que vence antes (y si ya está cerca, armale una promo).</small></p>':''}
+    <div id="vn_form" hidden><div class="g"><div class="conscan"><input id="vn_q" placeholder="Producto (nombre o código)" autocomplete="off">${btnScan('vn_sc')}</div><label class="f">Vence<input type="date" id="vn_f"></label><input id="vn_c" type="number" min="0" placeholder="Cantidad"><input id="vn_l" placeholder="Lote (opcional)"></div><div id="vn_r"></div><p id="vn_p"></p>
+    <button id="vn_g">Guardar vencimiento</button></div>
     ${data.length?`<div class="tw" style="margin-top:10px"><table><tr><th>Producto</th><th>Vence</th><th class="n">Cant.</th><th></th></tr>${data.map(x=>{const[e,t]=est(x);return`<tr><td>${esc(nomProd(x.producto_id))}${x.lote?'<br><small>Lote '+esc(x.lote)+'</small>':''}</td><td class="${e}"><b>${t}</b></td><td class="n">${x.cantidad!=null?nf(x.cantidad):'—'}</td><td><a class="lnk" data-vr="${x.id}">Retirado / vendido</a></td></tr>`}).join('')}</table></div>`:'<p><small>No cargaste vencimientos todavía. También se cargan al recibir mercadería de una orden de compra.</small></p>'}`;
+  $('#vn_nv').onclick=()=>{const f=$('#vn_form');f.hidden=!f.hidden;if(!f.hidden)setTimeout(()=>$('#vn_q').focus(),60)};
   let sel=null;const pick=p=>{sel=p;$('#vn_p').innerHTML='Producto: <b>'+esc(p.descripcion)+'</b>'};
   buscador('#vn_q','#vn_r',pick);$('#vn_sc').onclick=()=>escanear('Producto con vencimiento',p=>{pick(p);return '✔ '+p.descripcion});
   $('#vn_g').onclick=async()=>{if(!sel)return toast('Elegí el producto.',1);if(!$('#vn_f').value)return toast('Poné la fecha de vencimiento.',1);

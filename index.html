@@ -1794,12 +1794,31 @@ html.oscuro .fab-g button,html.oscuro .fav{background:#18202f!important;border-c
 @media(min-width:900px){.pr-stk{bottom:0}}
 .mf-ej{font-size:12.5px;white-space:nowrap}.mf-ej small{color:var(--tx2)}.mf-ej s{color:#9aa0ad;font-weight:400}
 html.oscuro .pr-av button{background:#1f2836!important;border-color:#273246!important;color:#d6dbe6!important}html.oscuro .pr-stk{background:linear-gradient(transparent,#18202f 30%)}
+
+/* Stock v2 */
+.st-ini{border-color:#f1dca8!important;background:#fffbf0!important}.st-ini>b{display:flex;align-items:center;gap:6px}
+.st-q{display:inline-flex;align-items:center;gap:4px;flex:none;margin-left:auto}.st-q button{min-width:34px!important;min-height:34px!important;padding:0!important;font-size:18px!important;font-weight:700;border-radius:9px!important}
+.st-q b{min-width:34px;text-align:center;font-variant-numeric:tabular-nums;font-size:14px}.st-q b.cam{color:#b35c00;background:#fff4dd;border-radius:6px;padding:2px 4px}
+.st-dias{display:inline-block;margin-left:6px;font-size:11.5px;color:var(--tx2)}.st-dias.baja{color:#b3261e;font-weight:700}
+.st-sug{display:block;font-size:12px;margin-top:2px}
+.st-val{flex:none;font-size:12.5px;color:var(--tx2);align-self:center;padding:0 4px}
+.st-bar{position:sticky;bottom:calc(70px + env(safe-area-inset-bottom));z-index:12;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#17213a;color:#fff;border-radius:14px;padding:10px 12px;margin:8px 0;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.st-bar[hidden]{display:none}.st-bar button{padding:8px 16px!important}
+@media(min-width:900px){.st-bar{bottom:16px}}
+.vn-sem{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:6px 0 10px}.vn-s{border-radius:10px;padding:8px;display:grid;text-align:center;background:#f2f3f6}.vn-s b{font-size:20px}.vn-s small{font-size:11px;color:var(--tx2)}
+.vn-r b{color:#b3261e}.vn-r{background:#fdeeee}.vn-a{background:#fff1dd}.vn-a b{color:#b35c00}.vn-y{background:#fffbe6}.vn-v{background:#eaf6ef}.vn-v b{color:#1d7a46}
+.pp-g{border-top:1px solid var(--l,#eceef2);padding:10px 0}.pp-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.pp-h button{margin-left:auto;padding:6px 10px!important;font-size:13px;display:inline-flex;align-items:center;gap:5px}
+.pp-r{display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:13.5px}.pp-r small{flex:none}.st-ok{display:flex;align-items:center;gap:6px;color:#1d7a46}
+.sm-l{display:grid;margin-top:8px}.sm-r{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--l,#eceef2)}.sm-r>div{flex:1;min-width:0;display:grid}.sm-r b{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sm-r small{color:var(--tx2);font-size:12px}.sm-r time{font-size:12px;color:var(--tx2)}
+.sm-i{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:#eef0f4;color:#4a5164}.sm-i.sube{background:#e6f5ec;color:#1d7a46}.sm-i.baja{background:#fdeeee;color:#b3261e}
+html.oscuro .st-ini{background:#2a2416!important}html.oscuro .vn-s{background:#1f2836}
+#v .s-fil{display:flex;flex-wrap:wrap;gap:6px}#v .s-fil .chk{margin:0!important;padding:5px 10px!important;font-size:13px!important}
 </style>
 </head>
 <body>
 <div id="app"><div class="splash"><img src="logo.png" alt="Sabores de mi País"><i></i></div></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
-<script src="app.js?v=2026-10-31.30"></script>
+<script src="app.js?v=2026-10-31.31"></script>
 </body>
 </html>
