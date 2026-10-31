@@ -161,6 +161,20 @@ Foto con fondo liso y buena luz. Con 10 por día, en un par de semanas completá
 
 ## 7. Compras
 
+**📦 Llegó mercadería** (botón grande arriba en Compras, en **Recibir** de cada orden, en *Por recibir* y en el botón +): todo en un solo paso.
+
+1. Elegí el **proveedor**. Si tiene órdenes pendientes, te trae lo que pediste (si hay una sola, ya la elige).
+2. Ajustá lo que **llegó** de cada producto con − y +, o **+ Caja**. Si no estaba en la orden, buscalo o tocá la **cámara** y escaneá cada caja (suma una caja por lectura y hace bip). Cada renglón se pinta: verde completo, amarillo faltan, rojo sobran.
+3. Revisá el **costo**: si es distinto al de la orden o subió más de 3 %, te avisa y te muestra cómo queda tu precio mayorista; podés tildar *Mantener costo anterior*. Opcional: **vencimiento** y, en fiambres y quesos, los **kilos** que llegaron.
+4. Cargá la **factura** (tipo, número, fecha, percepciones): el neto y el IVA salen solos.
+5. **Confirmar: entra al stock.** Queda todo: stock, costos, vencimientos, la factura con la deuda y el vencimiento de pago.
+
+Al terminar te muestra lo que **faltó** (con el botón para **reclamarle al proveedor por WhatsApp**; lo que falta queda pendiente en la orden), lo que **volvió a haber** (les avisa la campanita a los vendedores) y si algún **precio pactado** quedó con poco margen (*Revisar y actualizar*).
+
+**Por recibir** (en Órdenes de compra): las órdenes enviadas con la fecha en que tienen que llegar; en rojo las atrasadas, con **Recibir**.
+
+**Factura sin productos:** si cargás una factura de proveedor sin productos, el CRM te avisa que así el stock no se actualiza y te ofrece cargarlos.
+
 Pestañas: Órdenes de compra · Facturas · Órdenes de pago · Proveedores · Sugerencia de compra · Mejor proveedor · Historial de costos.
 
 1. **Orden de compra:** tocá **+ Nueva orden de compra**, elegís el proveedor, la fecha de entrega y los productos, y guardás. Se manda al proveedor por WhatsApp.

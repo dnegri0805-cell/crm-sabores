@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-31.7';
+const VERSION='2026-10-31.8';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -2263,7 +2263,7 @@ const provSel=(id,sel)=>`<select id="${id}"><option value="">Elegí un proveedor
 const prodNom=id=>S.productos.find(p=>p.producto_id==id)?.descripcion||('Producto '+id);
 
 async function vCompras(){
-  $('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Compras</h2><button class="alt" onclick="facturaFoto()">🧾 Factura por foto</button></div><div class="sub tabs">${[['ordenes','Órdenes de compra'],['cuenta','Facturas'],['pagos','Órdenes de pago'],['proveedores','Proveedores'],['sugerencia','Sugerencia de compra'],['mejor','🏷️ Mejor proveedor'],['costos','📈 Historial de costos']].map(([k,t])=>`<button class="${S.sub==k?'':'alt'}" data-s="${k}">${t}</button>`).join('')}</div><div id="cv"><span class="skl" role="status" aria-label="Cargando"></span></div>`;
+  $('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Compras</h2><div class="fc-acc"><button onclick="llegoMercaderia()">📦 Llegó mercadería</button><button class="alt" onclick="facturaFoto()">🧾 Factura por foto</button></div></div><div class="sub tabs">${[['ordenes','Órdenes de compra'],['cuenta','Facturas'],['pagos','Órdenes de pago'],['proveedores','Proveedores'],['sugerencia','Sugerencia de compra'],['mejor','🏷️ Mejor proveedor'],['costos','📈 Historial de costos']].map(([k,t])=>`<button class="${S.sub==k?'':'alt'}" data-s="${k}">${t}</button>`).join('')}</div><div id="cv"><span class="skl" role="status" aria-label="Cargando"></span></div>`;
   $$('[data-s]').forEach(b=>b.onclick=()=>{S.sub=b.dataset.s;vCompras()});
   const{data,error}=await sb.from('proveedores').select('*').eq('activo',true).order('razon_social');
   if(error){$('#cv').innerHTML='<p class="err">No se pudo leer Compras: '+esc(error.message)+'<br>¿Ya corriste compras.sql en Supabase?</p>';return}
@@ -2346,7 +2346,7 @@ async function cOrdenes(){
   $('#cv').innerHTML=`<details class="box nform" id="o_new"><summary>${IC('plus',18)} Nueva orden de compra</summary><div class="g ncf" style="margin-top:8px"><label class="f">Proveedor${provSel('o_p')}</label><label class="f">Entrega esperada<input id="o_f" type="date"></label></div>
   <div class="conscan"><input id="o_q" placeholder="Buscar producto o código">${btnScan('o_sc')}</div><div id="o_r"></div><table id="o_i"></table><p><b id="o_t"></b></p>
   <input id="o_o" placeholder="Observaciones (opcional)"><button id="o_g">Guardar orden</button></details>
-  <div id="rx"></div><h3>Órdenes</h3><table id="ol"></table>`;
+  <div id="prx"></div><div id="rx"></div><h3>Órdenes</h3><table id="ol"></table>`;porRecibirBox().catch(()=>{});
   const drawI=()=>{let t=0;if(S.oc.length&&$('#o_new'))$('#o_new').open=true;
     $('#o_i').innerHTML=S.oc.length?'<tr><th>Producto</th><th>Cant.</th><th>Costo unit.</th><th>Subtotal</th><th></th></tr>'+S.oc.map((i,k)=>{const s=i.c*i.q;t+=s;
       return `<tr><td>${esc(i.p.descripcion)}</td><td style="white-space:nowrap"><input type="number" min="1" value="${i.q}" data-k="${k}" class="oq">${bul(i.p.producto_id)?` <button class="alt qb bb" data-ob="${k}">+ ${esc(bul(i.p.producto_id).t)} (${bul(i.p.producto_id).n}${bul(i.p.producto_id).kg?' kg':''})</button><br><small class="eq">${enBultos(i.p.producto_id,i.q)?'= '+enBultos(i.p.producto_id,i.q):''}</small>`:''}</td><td><input type="number" min="0" step="0.01" value="${i.c}" data-k="${k}" class="oc" style="width:110px"></td><td>${$m(s)}</td><td><a data-x="${k}">Quitar</a></td></tr>`}).join(''):'';
@@ -2386,7 +2386,7 @@ async function cOrdenes(){
   $$('#ol [data-e]').forEach(s=>s.onchange=async()=>{
     if(s.value=='anulada'&&!confirm('¿Anular la orden N° '+s.dataset.e+'?'))return cOrdenes();
     const{error}=await sb.from('ordenes_compra').update({estado:s.value}).eq('id',s.dataset.e);error?toast(error.message,1):(toast('Estado actualizado.'),cOrdenes())});
-  $$('#ol [data-r]').forEach(b=>b.onclick=()=>recibir(data.find(o=>o.id==b.dataset.r)));
+  $$('#ol [data-r]').forEach(b=>b.onclick=()=>{const o=data.find(o=>o.id==b.dataset.r);llegoMercaderia(o.proveedor_id,o.id)});
   $$('#ol [data-ow]').forEach(b=>b.onclick=()=>ocWhatsApp(data.find(o=>o.id==b.dataset.ow)));
   $$('#ol [data-pr]').forEach(b=>b.onclick=()=>imprimirOC(data.find(o=>o.id==b.dataset.pr)));
 }
@@ -2474,7 +2474,7 @@ function cCuenta(){
       <label class="f">Percepción IVA<input id="f_pi" type="number" step="0.01" min="0" value="0"></label>
       <label class="f">Percepción IIBB<input id="f_pb" type="number" step="0.01" min="0" value="0"></label>
       <label class="f">Otras percepciones<input id="f_pe" type="number" step="0.01" min="0" value="0"></label>
-    </div><details class="plg" id="f_pd"><summary>📦 Productos que vinieron en la factura <small>(opcional: entran al stock)</small></summary>
+    </div><details class="plg" id="f_pd" open><summary>📦 Productos que vinieron en la factura <small>(así entran al stock)</small></summary>
       <p><small>Escribí <b>tu código, el código del proveedor</b> o el nombre. Al guardar la factura se arma la compra y te abre la recepción para confirmar: ahí entra al stock.</small></p>
       <div class="conscan"><input id="f_q" placeholder="Código del proveedor, tu código o nombre" autocomplete="off" enterkeyhint="done"></div><div id="f_r"></div><div id="f_its"></div></details>
     <p><small>Total: <b id="f_tot">${$m(0)}</b> · vence a ${pv.dias_pago||0} días</small></p><button id="f_g">Guardar factura</button>
@@ -2496,6 +2496,7 @@ function cCuenta(){
     $('#f_q').onkeydown=e=>{if(e.key!='Enter')return;e.preventDefault();const pp=prodPorCodProv($('#f_q').value,id);if(pp){$('#f_q').value='';$('#f_r').innerHTML='';agFI(pp)}else{const r=$('#f_r .r');r?r.click():toast('No encontré ese código.',1)}};
     $('#f_g').onclick=async()=>{const n=$('#f_n').value.trim();if(!n||!(tot()>0))return toast('Completá número e importes de la factura.',1);
       if(FI.some(x=>!(x.q>0)))return toast('Hay un producto sin cantidad.',1);
+      if(!FI.length&&!+$('#f_o').value&&$('#f_t').value!='NC'&&confirm('Esta factura no tiene productos cargados, así que el STOCK NO SE ACTUALIZA.\n\n¿Querés cargar ahora lo que llegó?\n(Aceptar = cargar los productos · Cancelar = guardar la factura igual)')){const d=$('#f_pd');d.open=true;d.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>$('#f_q')?.focus(),300);return}
       const v=new Date($('#f_f').value+'T12:00');v.setDate(v.getDate()+(pv.dias_pago||0));
       const fila={proveedor_id:id,tipo:$('#f_t').value,numero:n,fecha:$('#f_f').value,vencimiento:v.toISOString().slice(0,10),
         orden_id:+$('#f_o').value||null,neto:+$('#f_ne').value||0,iva:+$('#f_iv').value||0,percepciones:+perc().toFixed(2),perc_iva:+$('#f_pi').value||0,perc_iibb:+$('#f_pb').value||0};
@@ -3299,7 +3300,7 @@ function fabPintar(){let f=document.getElementById('fab');if(!S.perfil){f&&f.rem
   f.hidden=!!document.querySelector('.modal')||(S.tab=='pedidos'&&!!S.pcli)}
 function fabCerrar(){const m=document.getElementById('fab_m'),b=document.getElementById('fab_b');if(m)m.hidden=true;if(b){b.classList.remove('on');b.setAttribute('aria-expanded','false')}}
 function fabMenu(){const m=$('#fab_m'),b=$('#fab_b');if(!m.hidden)return fabCerrar();
-  const O=[['cart','Nuevo pedido',()=>irA('pedidos')],['user','Nuevo cliente',()=>irA('clientes',{cs:'lista',abrirNuevo:1})],['cash','Registrar cobro',()=>irA('cobranza')],...(S.perfil.rol=='dueno'?[['receipt','Cargar gasto',()=>{irA('caja');const t=setInterval(()=>{const d=document.getElementById('cj_gas');if(d){clearInterval(t);d.open=true;d.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>document.getElementById('g_i')?.focus(),350)}},150);setTimeout(()=>clearInterval(t),5000)}]]:[]),['note','Nota a un cliente',()=>fabCliente('Nota para…',c=>{fichaCliente(c);setTimeout(()=>{const i=$('#nt_t');if(i){i.scrollIntoView({behavior:'smooth',block:'center'});i.focus()}},700)})],['pin','Registrar visita',()=>fabCliente('Visita a…',c=>visita(c,()=>toast('Visita registrada.')))]];
+  const O=[['cart','Nuevo pedido',()=>irA('pedidos')],['user','Nuevo cliente',()=>irA('clientes',{cs:'lista',abrirNuevo:1})],['cash','Registrar cobro',()=>irA('cobranza')],...(['dueno','administracion','deposito'].includes(S.perfil.rol)?[['box','Llegó mercadería',()=>llegoMercaderia()]]:[]),...(S.perfil.rol=='dueno'?[['receipt','Cargar gasto',()=>{irA('caja');const t=setInterval(()=>{const d=document.getElementById('cj_gas');if(d){clearInterval(t);d.open=true;d.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>document.getElementById('g_i')?.focus(),350)}},150);setTimeout(()=>clearInterval(t),5000)}]]:[]),['note','Nota a un cliente',()=>fabCliente('Nota para…',c=>{fichaCliente(c);setTimeout(()=>{const i=$('#nt_t');if(i){i.scrollIntoView({behavior:'smooth',block:'center'});i.focus()}},700)})],['pin','Registrar visita',()=>fabCliente('Visita a…',c=>visita(c,()=>toast('Visita registrada.')))]];
   m.innerHTML=O.map(([i,t],k)=>`<button data-fo="${k}"><span>${t}</span><i>${IC(i,20)}</i></button>`).join('');m.hidden=false;b.classList.add('on');b.setAttribute('aria-expanded','true');
   m.querySelectorAll('[data-fo]').forEach(x=>x.onclick=()=>{fabCerrar();O[+x.dataset.fo][2]()})}
 function fabCliente(tit,fn){const m=document.createElement('div');m.className='modal';document.body.appendChild(m);fabPintar();
@@ -3336,6 +3337,7 @@ async function panelPedido(o,alCambiar){if(!o)return;document.getElementById('pd
 /* ======================= CAMPANITA DE ACTIVIDAD =======================
    Lo que pasó en los últimos 7 días: pedidos online o de vendedores, entregas, comprobantes, reclamos y pedidos del catálogo. */
 async function actDatos(){const d7=new Date(Date.now()-7*864e5).toISOString(),d2=new Date(Date.now()-2*864e5).toISOString(),due=['dueno','administracion'].includes(S.perfil.rol),sf=p=>Promise.resolve(p).then(r=>r||{},()=>({}));
+  const nv=await sf(sb.from('novedades_stock').select('producto_id,cantidad,creado_en').eq('volvio',true).gt('creado_en',d2).order('creado_en',{ascending:false}).limit(20));
   const ap=await sf(sb.from('aprobaciones_precio').select('id,estado,precio,producto_id,cliente_id,creado_en,resuelto_en,pedidos(numero)').or(due?'estado.eq.pendiente':'resuelto_en.gt.'+d7).order('creado_en',{ascending:false}).limit(20));
   const[pe,en,co,rc,pr]=await Promise.all([sf(sb.from('pedidos').select('id,numero,total,cliente_id,origen,vendedor_id,creado_en').or(due?'origen.in.(online,fijo),vendedor_id.neq.'+S.perfil.id:'origen.in.(online,fijo)').gt('creado_en',d7).order('creado_en',{ascending:false}).limit(40)),
     sf(sb.from('pedidos').select('id,numero,total,cliente_id,entregado_en').eq('estado','entregado').gt('entregado_en',d2).order('entregado_en',{ascending:false}).limit(20)),
@@ -3345,6 +3347,7 @@ async function actDatos(){const d7=new Date(Date.now()-7*864e5).toISOString(),d2
   const pN=id=>S.productos.find(x=>x.producto_id==id)?.descripcion||'un producto';
   const A=[...(ap.data||[]).map(x=>due?{f:x.creado_en,ic:'tag',k:'rec',t:`<b>Precio para aprobar:</b> ${$m(x.precio)} en ${esc(pN(x.producto_id))} para ${esc(nomCli(x.cliente_id)||'un cliente')} (pedido N° ${x.pedidos?.numero||''})`,ir:()=>aprobacionesModal()}
       :{f:x.resuelto_en,ic:x.estado=='aprobado'?'check':'x',k:x.estado=='aprobado'?'ent':'rec',t:`Tu precio de ${$m(x.precio)} en ${esc(pN(x.producto_id))} fue <b>${x.estado=='aprobado'?'aprobado':'rechazado'}</b>${x.estado=='rechazado'?' (quedó el de lista)':''}`,ir:()=>{S.tab='pedidos';shell()}}),
+    ...(nv.data||[]).map(x=>({f:x.creado_en,ic:'box',k:'ent',t:`<b>Volvió a haber</b> ${esc(nomProd(x.producto_id))}${+x.cantidad?' · entraron '+nf(+x.cantidad):''}`,ir:()=>{S.tab='pedidos';shell()}})),
     ...(pe.data||[]).map(o=>({f:o.creado_en,ic:'cart',k:'ped',t:['online','fijo'].includes(o.origen)?`<b>Pedido online N° ${o.numero}</b> de ${esc(nomCli(o.cliente_id)||'un cliente')} · ${$m0(o.total)}`:`<b>${esc(S.vendNom?.[o.vendedor_id]||'Tu vendedor')}</b> cargó el pedido N° ${o.numero} de ${esc(nomCli(o.cliente_id)||'un cliente')} · ${$m0(o.total)}`,ir:()=>{S.tab='pedidos';S.pf='abiertos';shell()}})),
     ...(en.data||[]).map(o=>({f:o.entregado_en,ic:'truck',k:'ent',t:`<b>Entregado</b> el pedido N° ${o.numero} de ${esc(nomCli(o.cliente_id)||'un cliente')}`,ir:()=>{S.tab='pedidos';S.pf='entregado';shell()}})),
     ...(co.data||[]).map(x=>({f:x.creado_en,ic:'cash',k:'pag',t:`<b>${esc(nomCli(x.cliente_id)||'Un cliente')}</b> mandó un comprobante de pago${+x.monto?' por '+$m0(x.monto):''}`,ir:()=>{S.tab='cobranza';shell()}})),
@@ -3642,6 +3645,102 @@ async function cambiosModal(f={}){const m=document.createElement('div');m.classN
   if(!f.ids){m.querySelector('#cb_q').oninput=e=>{q=e.target.value;pinta()};m.querySelector('#cb_u').onchange=e=>{usr=e.target.value;pinta()};m.querySelector('#cb_t').onchange=e=>{tab=e.target.value;pinta()};m.querySelector('#cb_d').onchange=e=>{dias=+e.target.value;pinta()}}
   pinta()}
 async function cambiosPedido(o){const{data}=await sb.from('pedido_items').select('id,producto_id').eq('pedido_id',o.id);const P={};(data||[]).forEach(i=>P[i.id]=nomProd(i.producto_id));cambiosModal({ids:[o.id,...(data||[]).map(i=>i.id)],titulo:'Cambios del pedido N° '+o.numero,prodDe:P})}
+
+/* ======================= 📦 LLEGÓ MERCADERÍA (recepción en un solo paso) =======================
+   Proveedor → lo que se pidió (o lo que llegó, buscando o escaneando) → factura. Al confirmar: entra al stock, se actualizan costos,
+   vencimientos y lotes, queda la factura con la deuda, se avisa lo que faltó y lo que volvió a haber. */
+async function llegoMercaderia(pvId,ocId){
+  const{data:PV}=await sb.from('proveedores').select('id,razon_social,telefono,dias_pago').eq('activo',true).order('razon_social');
+  const m=document.createElement('div');m.className='modal lmm';document.body.appendChild(m);
+  let pv=pvId||S.lmPv||'',OC=[],oc=ocId?String(ocId):'',L=[],fac={on:true,tipo:'A',num:'',fecha:diaLocal(new Date()),perc:0},paso='items';
+  const prov=()=>(PV||[]).find(x=>x.id==pv),nomP=id=>S.productos.find(p=>p.producto_id==id),pend=x=>x.oc_item_id?Math.max(0,x.pedido-x.recibido):null;
+  const costoAnt=id=>{const p=nomP(id);if(!p)return 0;return esPeso(id)&&ppz(id)?+p.costo/ppz(id)*ppz(id):+p.costo};
+  const neto=()=>Math.round(L.reduce((s,x)=>s+(+x.llega||0)*(+x.costo||0),0)*100)/100,iva=()=>fac.tipo=='A'?Math.round(neto()*21)/100:0,total=()=>neto()+iva()+(+fac.perc||0);
+  const cargarOC=async()=>{OC=[];if(!pv)return;const{data}=await sb.from('ordenes_compra').select('id,fecha,fecha_entrega,estado,total').eq('proveedor_id',pv).in('estado',['borrador','enviada','recibida_parcial']).order('id',{ascending:false});OC=data||[];
+    if(!oc&&OC.length==1)oc=String(OC[0].id);if(oc&&!OC.some(o=>o.id==oc))oc='';await cargarItems()};
+  const cargarItems=async()=>{L=L.filter(x=>!x.oc_item_id);if(!oc)return;const{data}=await sb.from('ordenes_compra_items').select('*').eq('orden_id',oc).order('id');
+    L=[...(data||[]).map(i=>({id:i.producto_id,oc_item_id:i.id,pedido:+i.cantidad,recibido:+i.cantidad_recibida,llega:Math.max(0,+i.cantidad-+i.cantidad_recibida),costo:+i.costo_unitario||0,costoOC:+i.costo_unitario||0,vence:'',kg:'',mant:false})),...L]};
+  const agregar=(p,q)=>{if(!p)return;const id=p.producto_id;let x=L.find(y=>y.id==id);if(!x){x={id,oc_item_id:null,pedido:0,recibido:0,llega:0,costo:+p.costo>0?+p.costo:0,costoOC:0,vence:'',kg:'',mant:false};L.unshift(x)}x.llega=(+x.llega||0)+(q||1);return x};
+  const fila=(x,i)=>{const p=nomP(x.id),pe=pend(x),b=bul(x.id),ant=costoAnt(x.id),sube=ant>0&&x.costo>0?(x.costo-ant)/ant*100:0,difOC=x.costoOC>0&&Math.abs(x.costo-x.costoOC)/x.costoOC>.01,ft=S.min[x.id]?.foto;
+    const st=pe==null?'':+x.llega==pe?'ok':+x.llega<pe?'falta':'sobra';
+    const pm=+p?.precio_mayorista||0,pmN=+p?.precio_fijo>0||!ant?pm:Math.round(pm*x.costo/ant);
+    return`<div class="lm-i ${st}" data-li="${i}"><div class="lm-t">${ft?`<img src="${esc(ft)}" alt="" loading="lazy">`:'<span class="lm-ph"></span>'}<div><b>${esc(p?.descripcion||'Producto')}</b><small>${esc(p?.codigo||'')}${S.min[x.id]?.cf?' · prov. '+esc(S.min[x.id].cf):''}</small>
+      ${pe!=null?`<span class="lm-e">Pedido ${nf(x.pedido)}${x.recibido?' · ya llegó '+nf(x.recibido):''} · ${st=='ok'?'✓ completo':st=='falta'?'faltan '+nf(pe-x.llega):'sobran '+nf(x.llega-pe)}</span>`:'<span class="lm-e nuevo">No estaba en la orden</span>'}</div>${pe==null?`<button class="alt lm-x" data-lx="${i}" aria-label="Quitar">${IC('x',15)}</button>`:''}</div>
+      <div class="lm-r"><label>Llegó<span class="lm-q"><button class="alt" data-lm="${i}" data-d="-1">−</button><input inputmode="decimal" data-lq="${i}" value="${nf(+x.llega||0)}"><button class="alt" data-lm="${i}" data-d="1">+</button></span>${b&&!b.kg?`<button class="alt lm-b" data-lb="${i}">+ ${esc(b.t)} (${b.n})</button>`:''}</label>
+        <label>Costo c/u sin IVA<input inputmode="decimal" data-lc="${i}" value="${x.costo?nf(Math.round(x.costo*100)/100):''}" placeholder="${ant?nf(Math.round(ant*100)/100):''}"></label>
+        <label>Vence <small>(opcional)</small><input type="date" data-lv="${i}" value="${x.vence}"></label>${ppz(x.id)?`<label>⚖️ Kilos que llegaron<input inputmode="decimal" data-lk="${i}" value="${x.kg}" placeholder="3,4 + 3,6"></label>`:''}</div>
+      ${difOC?`<p class="lm-a">${IC('alert',14)} El precio es distinto al de la orden (${$m(x.costoOC)}).</p>`:''}
+      ${Math.abs(sube)>=3?`<p class="lm-a ${sube>0?'':'baja'}">${sube>0?'⬆️':'⬇️'} Costo ${$m(ant)} → ${$m(x.costo)} (${sube>0?'+':''}${nf(Math.round(sube*10)/10)} %)${pm?` · tu mayorista ${+p?.precio_fijo>0?'queda fijo en '+$m0(pm):'pasa de '+$m0(pm)+' a <b>'+$m0(pmN)+'</b>'}`:''}${sube>0?`<label class="chk"><input type="checkbox" data-lt="${i}" ${x.mant?'checked':''}> Mantener costo anterior</label>`:''}</p>`:''}</div>`};
+  const pinta=()=>{const P=prov();
+    m.innerHTML=`<div class="mc lm"><div class="lm-h"><div class="bh"><h3>📦 Llegó mercadería</h3><button class="alt" id="lm_x">Cerrar</button></div>
+      <select id="lm_p"><option value="">¿De qué proveedor?</option>${(PV||[]).map(p=>`<option value="${p.id}" ${p.id==pv?'selected':''}>${esc(p.razon_social)}</option>`).join('')}</select>
+      ${pv?`<div class="lm-oc">${OC.map(o=>{const at=o.fecha_entrega&&o.fecha_entrega<diaLocal(new Date());return`<button class="${oc==o.id?'on':''}${at?' atr':''}" data-oc="${o.id}">OC ${o.id} · ${fd(o.fecha)}${o.estado=='recibida_parcial'?' · parcial':''}${at?' · atrasada':''}</button>`}).join('')}<button class="${oc?'':'on'}" data-oc="">Sin orden</button></div>`:''}</div>
+      ${pv?`<div class="lm-b2"><div class="lm-add"><div class="conscan"><input id="lm_q" placeholder="Código del proveedor, tu código o nombre" autocomplete="off" enterkeyhint="done"><button class="alt" id="lm_sc" aria-label="Escanear">${IC('camera',20)}</button></div><div id="lm_r"></div></div>
+        <div class="lm-l">${L.length?L.map(fila).join(''):vacioHTML(oc?'Esta orden no tiene productos.':'Buscá o escaneá lo que llegó.','box',null,1)}</div>
+        ${L.length?`<div class="box lm-f"><label class="chk"><input type="checkbox" id="lm_fo" ${fac.on?'checked':''}> <b>Cargar la factura del proveedor</b> (queda la deuda)</label>
+          ${fac.on?`<div class="g"><label class="f">Tipo<select id="lm_ft">${['A','B','C'].map(t=>`<option ${fac.tipo==t?'selected':''}>${t}</option>`).join('')}</select></label><label class="f">Número<input id="lm_fn" value="${esc(fac.num)}" placeholder="0003-00001234"></label><label class="f">Fecha<input type="date" id="lm_ff" value="${fac.fecha}"></label><label class="f">Percepciones<input inputmode="decimal" id="lm_fp" value="${fac.perc||''}" placeholder="0"></label></div>
+          <p class="lm-tot">Neto ${$m(neto())}${iva()?' + IVA '+$m(iva()):''}${+fac.perc?' + perc. '+$m(+fac.perc):''} = <b>${$m(total())}</b> · vence a ${P?.dias_pago||0} días</p>`:'<p><small>Sin factura: entra al stock pero no queda la deuda con el proveedor. La podés cargar después en Facturas.</small></p>'}</div>
+          <input id="lm_rm" placeholder="N° de remito (opcional)"><button id="lm_ok" class="lm-ok">${IC('check',18)} Confirmar: entra al stock</button>`:''}</div>`
+      :`<p class="lm-ay"><small>Elegí el proveedor. Si tiene órdenes de compra pendientes, te traigo lo que pediste para tildar lo que llegó. Si no, lo cargás buscando, escaneando las cajas o <a class="lnk" id="lm_ff2">leyendo la factura por foto</a>.</small></p>`}</div>`;
+    const q=s=>m.querySelector(s);q('#lm_x').onclick=()=>m.remove();
+    q('#lm_p').onchange=async e=>{pv=e.target.value;S.lmPv=pv;oc='';L=[];await cargarOC();pinta()};
+    m.querySelectorAll('[data-oc]').forEach(b=>b.onclick=async()=>{oc=b.dataset.oc;await cargarItems();pinta()});
+    q('#lm_ff2')&&(q('#lm_ff2').onclick=()=>{m.remove();facturaFoto()});
+    if(!pv)return;
+    buscador('#lm_q','#lm_r',p=>{agregar(p);pinta();setTimeout(()=>m.querySelector('#lm_q')?.focus(),30)},p=>S.min[p.producto_id]?.cf?`<small>· prov. ${esc(S.min[p.producto_id].cf)}</small>`:'');
+    q('#lm_q').onkeydown=e=>{if(e.key!='Enter')return;e.preventDefault();const p=prodPorCodProv(q('#lm_q').value,pv);if(p){agregar(p);pinta();setTimeout(()=>m.querySelector('#lm_q')?.focus(),30)}else{const r=q('#lm_r .r');r?r.click():toast('No encontré ese código.',1)}};
+    q('#lm_sc').onclick=()=>escanear('Escaneá cada caja que llegó',p=>{const b=bul(p.producto_id),n=b&&!b.kg?b.n:1,x=agregar(p,n);pinta();const pe=pend(x);vibrar(20);return '✔ '+p.descripcion+' · llevás '+nf(x.llega)+(pe!=null?(x.llega==pe?' · ✓ completo':x.llega<pe?' · faltan '+nf(pe-x.llega):' · ⚠ sobran '+nf(x.llega-pe)):'')});
+    const nv=(e,k,f)=>{const i=+e.dataset[k];L[i][f]=f=='vence'||f=='kg'?e.value:(numAR(e.value)||0)};
+    m.querySelectorAll('[data-lq]').forEach(e=>e.onchange=()=>{nv(e,'lq','llega');pinta()});m.querySelectorAll('[data-lc]').forEach(e=>e.onchange=()=>{nv(e,'lc','costo');pinta()});
+    m.querySelectorAll('[data-lv]').forEach(e=>e.onchange=()=>nv(e,'lv','vence'));m.querySelectorAll('[data-lk]').forEach(e=>e.onchange=()=>nv(e,'lk','kg'));
+    m.querySelectorAll('[data-lm]').forEach(b=>b.onclick=()=>{const x=L[+b.dataset.lm];x.llega=Math.max(0,(+x.llega||0)+ +b.dataset.d);pinta()});
+    m.querySelectorAll('[data-lb]').forEach(b=>b.onclick=()=>{const x=L[+b.dataset.lb];x.llega=(+x.llega||0)+bul(x.id).n;pinta()});
+    m.querySelectorAll('[data-lx]').forEach(b=>b.onclick=()=>{L.splice(+b.dataset.lx,1);pinta()});
+    m.querySelectorAll('[data-lt]').forEach(c=>c.onchange=()=>{L[+c.dataset.lt].mant=c.checked});
+    q('#lm_fo')&&(q('#lm_fo').onchange=e=>{fac.on=e.target.checked;pinta()});
+    q('#lm_ft')&&(q('#lm_ft').onchange=e=>{fac.tipo=e.target.value;pinta()});q('#lm_fn')&&(q('#lm_fn').oninput=e=>fac.num=e.target.value);q('#lm_ff')&&(q('#lm_ff').onchange=e=>fac.fecha=e.target.value);q('#lm_fp')&&(q('#lm_fp').onchange=e=>{fac.perc=numAR(e.target.value)||0;pinta()});
+    q('#lm_ok')&&(q('#lm_ok').onclick=()=>confirmar())};
+  const confirmar=async()=>{const V=L.filter(x=>+x.llega>0),P=prov();if(!V.length)return toast('No cargaste ninguna cantidad.',1);
+    if(fac.on&&!fac.num.trim())return toast('Escribí el número de la factura, o destildá "Cargar la factura".',1);
+    if(V.some(x=>pend(x)!=null&&x.llega>pend(x))&&!confirm('Hay productos que llegaron en más cantidad de la pedida. ¿Confirmás igual?'))return;
+    const b=m.querySelector('#lm_ok');b.disabled=true;b.innerHTML='Guardando…';const err=t=>{b.disabled=false;b.innerHTML=IC('check',18)+' Confirmar: entra al stock';toast(t,1)};
+    const antes={};V.forEach(x=>antes[x.id]=stk(x.id).d);
+    let ocId=oc?+oc:null;
+    if(!ocId){const{data:o,error}=await sb.from('ordenes_compra').insert({proveedor_id:pv,estado:'enviada',observaciones:'Llegó mercadería'+(fac.on?' · factura '+fac.tipo+' '+fac.num:'')}).select('id').single();if(error)return err(error.message);ocId=o.id}
+    for(const x of V.filter(x=>x.oc_item_id&&Math.abs(x.costo-x.costoOC)>.004)){await sb.from('ordenes_compra_items').update({costo_unitario:x.costo}).eq('id',x.oc_item_id)}
+    const nuevos=V.filter(x=>!x.oc_item_id);if(nuevos.length){const{data:ins,error}=await sb.from('ordenes_compra_items').insert(nuevos.map(x=>({orden_id:ocId,producto_id:x.id,cantidad:x.llega,costo_unitario:x.costo||0}))).select('id,producto_id');if(error)return err(error.message);
+      nuevos.forEach(x=>x.oc_item_id=(ins||[]).find(r=>r.producto_id==x.id)?.id)}
+    const{error:er}=await sb.rpc('recibir_orden',{p_orden_id:ocId,p_remito:m.querySelector('#lm_rm')?.value.trim()||'',p_items:V.map(x=>({oc_item_id:x.oc_item_id,cantidad:+x.llega}))});if(er)return err(er.message);
+    const mant=V.filter(x=>x.mant&&costoAnt(x.id)>0).map(x=>({id:x.id,costo:Math.round(costoAnt(x.id)/(ppz(x.id)||1)*100)/100}));if(mant.length)await sb.rpc('fijar_costos',{p_items:mant}).then(()=>{},()=>{});
+    for(const x of V){const z=ppz(x.id);if(z&&x.costo>0&&!x.mant)await sb.from('productos').update({costo:Math.round(x.costo/z*100)/100}).eq('id',x.id);const kg=sumaKg(x.kg);if(z&&kg>0)await aprenderPeso(x.id,kg,+x.llega,.5).catch(()=>{})}
+    const VV=V.filter(x=>x.vence);if(VV.length)await sb.from('vencimientos').insert(VV.map(x=>({producto_id:x.id,vence:x.vence,cantidad:+x.llega,lote:'OC '+ocId}))).then(()=>{},()=>{});
+    guardarCostosProv(pv,V.filter(x=>x.costo>0).map(x=>({id:x.id,costo:x.costo/(ppz(x.id)||1)})),'recepción OC '+ocId);
+    let facOk=null;if(fac.on){const v=new Date(fac.fecha+'T12:00');v.setDate(v.getDate()+(P?.dias_pago||0));
+      const{error:ef}=await sb.from('facturas_proveedor').insert({proveedor_id:pv,tipo:fac.tipo,numero:fac.num.trim(),fecha:fac.fecha,vencimiento:diaLocal(v),orden_id:ocId,neto:neto(),iva:iva(),percepciones:+fac.perc||0});
+      facOk=ef?(ef.code=='23505'?'Esa factura ya estaba cargada.':ef.message):true}
+    sb.from('novedades_stock').insert(V.map(x=>({producto_id:x.id,cantidad:+x.llega,volvio:(antes[x.id]??0)<=0}))).then(()=>{},()=>{});
+    await recargarProductos().catch(()=>{});await cargarStock().catch(()=>{});
+    const falt=V.length?L.filter(x=>pend(x)!=null&&+x.llega<pend(x)):[],ids=new Set(V.map(x=>x.id)),PB=(await pactadosBajos().catch(()=>[])).filter(y=>ids.has(y.p.producto_id)),volv=V.filter(x=>(antes[x.id]??0)<=0);
+    const txtF=falt.map(x=>'• '+nf(pend(x)-(+x.llega||0))+' × '+(nomP(x.id)?.descripcion||'producto')).join('\n');
+    m.innerHTML=`<div class="mc lm lm-fin"><div class="lm-okc">${IC('check',34)}</div><h3>Listo: entró al stock</h3>
+      <ul><li><b>${V.length}</b> ${V.length==1?'producto':'productos'} · ${nf(V.reduce((s,x)=>s+(+x.llega||0),0))} unidades · ${$m(neto())} sin IVA</li>
+      ${fac.on?`<li>${facOk===true?`Factura ${fac.tipo} ${esc(fac.num)} cargada: le debés ${$m(total())}`:'⚠️ La factura no se guardó: '+esc(facOk)}</li>`:'<li>Sin factura cargada (la podés cargar después en Facturas).</li>'}
+      ${volv.length?`<li>🔔 Volvió a haber: ${volv.slice(0,4).map(x=>esc(nomP(x.id)?.descripcion||'')).join(', ')}${volv.length>4?' y '+(volv.length-4)+' más':''}. Les avisa la campanita a los vendedores y la Cola a los clientes que lo esperaban.</li>`:''}</ul>
+      ${falt.length?`<div class="aviso"><b>Faltaron ${falt.length} ${falt.length==1?'producto':'productos'}</b><br><small>${esc(txtF).replace(/\n/g,'<br>')}</small><br><small>Quedan pendientes en la orden N° ${ocId}.</small>${P?.telefono?`<div style="margin-top:8px"><button class="alt wa" id="lm_rc">${IC('chat',16)} Reclamar al proveedor por WhatsApp</button></div>`:''}</div>`:''}
+      ${PB.length?`<div class="aviso"><b>${PB.length} ${PB.length==1?'precio pactado quedó':'precios pactados quedaron'} con poco margen</b> por el aumento.<div style="margin-top:8px"><button class="alt" id="lm_pb">Revisar y actualizar</button></div></div>`:''}
+      <button id="lm_fin">Listo</button></div>`;
+    const q=s=>m.querySelector(s);q('#lm_fin').onclick=()=>{m.remove();if(S.tab=='compras')vCompras()};
+    q('#lm_rc')&&(q('#lm_rc').onclick=()=>window.open('https://wa.me/'+telWA(P.telefono)+'?text='+encodeURIComponent('Hola, ¿cómo va? Te escribo de *Sabores de mi País*. Recibimos la mercadería de la orden N° '+ocId+', pero faltó:\n'+txtF+'\n\n¿Me confirmás cuándo lo mandan? ¡Gracias!'),'_blank'));
+    q('#lm_pb')&&(q('#lm_pb').onclick=()=>modalPactados(PB));
+    okAnim('Mercadería ingresada')};
+  m.onclick=e=>{if(e.target==m&&confirm('¿Cerrar sin confirmar? Lo que cargaste no entra al stock.'))m.remove()};
+  if(pv)await cargarOC();pinta()}
+
+/* Tablero "Por recibir": órdenes enviadas, con la fecha en que tienen que llegar */
+async function porRecibirBox(){const box=$('#prx');if(!box)return;const{data}=await sb.from('ordenes_compra').select('id,proveedor_id,fecha,fecha_entrega,estado,total,proveedores(razon_social)').in('estado',['enviada','recibida_parcial']).order('fecha_entrega',{ascending:true,nullsFirst:false});
+  if(!data?.length){box.innerHTML='';return}const hoy=diaLocal(new Date());
+  box.innerHTML=`<div class="box prx"><div class="bh"><h3 style="margin:0">Por recibir</h3><small>${data.length} ${data.length==1?'orden':'órdenes'}</small></div>${data.map(o=>{const at=o.fecha_entrega&&o.fecha_entrega<hoy,hy=o.fecha_entrega==hoy;return`<div class="prx-i${at?' atr':hy?' hoy':''}"><div><b>${esc(o.proveedores?.razon_social||'Proveedor')}</b><small>OC ${o.id} · ${$m0(o.total)}${o.estado=='recibida_parcial'?' · llegó una parte':''}</small></div><span class="prx-f">${o.fecha_entrega?(at?'Atrasada · '+fd(o.fecha_entrega):hy?'Llega hoy':'Llega '+fd(o.fecha_entrega)):'Sin fecha'}</span><button data-prx="${o.id}" data-pv="${o.proveedor_id}">Recibir</button></div>`}).join('')}</div>`;
+  box.querySelectorAll('[data-prx]').forEach(b=>b.onclick=()=>llegoMercaderia(b.dataset.pv,b.dataset.prx))}
 
 /* ======================= OBJETIVO DEL MES (Inicio) ======================= */
 async function objetivoMes(){const box=$('#obj');if(!box)return;

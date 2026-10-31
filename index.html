@@ -1200,7 +1200,7 @@ html.oscuro .st-p img,html.oscuro .st-ph{background:#1c2536;border-color:#2a3446
 /* Encabezado que se achica */
 .htit{display:none}
 @media(max-width:640px){header .htit{display:block;position:absolute;left:16px;right:170px;top:50%;transform:translateY(-50%);font-size:16.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transition:opacity .18s;pointer-events:none}
-  header{position:sticky;top:0;z-index:30}.cl-pega,.pr-pega{top:var(--hh,52px)!important}
+  header{position:sticky;top:0;z-index:19}.cl-pega,.pr-pega{top:var(--hh,52px)!important}
   body.tit-on header .htit{opacity:1}body.tit-on header .mjhn,body.tit-on header .hlogo{opacity:0}header .mjhn,header .hlogo{transition:opacity .18s}header:has(#hback:not([hidden])) .htit{left:64px}}
 /* Avatares con anillo de estado */
 .cl-ini[class*=" an-"]{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--an,#cfd3dc)}
@@ -1257,12 +1257,34 @@ html.oscuro .sm-d{background:#141b28}html.oscuro .sm-d.hoy{background:#2a1a20}ht
 .cb-t{font-size:14px}.cb-d{font-size:13.5px;color:#3c4458;margin-top:2px;line-height:1.45}.cb-d s{color:var(--tx2)}.cb-alta .cb-d{color:#1d7a46}.cb-baja .cb-d{color:#b4232f}
 .pd-cb{grid-column:1/-1}
 html.oscuro .cb-i{border-color:#232c3c}html.oscuro .cb-d{color:#c3c9d6}
+
+/* Llegó mercadería */
+.lmm{padding:0!important;align-items:stretch!important}.lmm .mc.lm{max-width:820px;width:100%;margin:0 auto;min-height:100%;border-radius:0;padding:0;display:flex;flex-direction:column}
+.lm-h{position:sticky;top:0;z-index:3;background:#fff;padding:14px 16px 10px;border-bottom:1px solid #eceef3}.lm-h .bh{margin-bottom:8px}.lm-h h3{margin:0}
+.lm-oc{display:flex;gap:6px;overflow-x:auto;margin-top:8px;padding-bottom:2px}.lm-oc button{flex:none;border-radius:999px;padding:6px 12px;font-size:13.5px;background:#fff;border:1px solid #e3e6ee;color:#1c2333;font-weight:600;min-height:0}.lm-oc button.on{background:var(--m);color:#fff;border-color:var(--m)}.lm-oc button.atr:not(.on){border-color:#d13b47;color:#b4232f}
+.lm-b2{padding:12px 16px 40px;display:flex;flex-direction:column;gap:10px}.lm-ay{padding:16px}
+.lm-l{display:flex;flex-direction:column;gap:8px}
+.lm-i{background:#fff;border:1px solid #e6e8ed;border-left:4px solid #b9bfcc;border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.lm-i.ok{border-left-color:#1d7a46}.lm-i.falta{border-left-color:#d49b00}.lm-i.sobra{border-left-color:#c0392b}
+.lm-t{display:flex;gap:10px;align-items:flex-start}.lm-t img,.lm-ph{width:44px;height:44px;border-radius:9px;object-fit:contain;background:#f6f7fa;border:1px solid #eceef3;flex:none}.lm-t>div{flex:1;min-width:0;display:flex;flex-direction:column}.lm-t b{font-size:14.5px}.lm-t small{color:var(--tx2);font-size:12px}
+.lm-e{font-size:12.5px;font-weight:600;margin-top:3px;color:#5b6274}.ok .lm-e{color:#1d7a46}.falta .lm-e{color:#9a6200}.sobra .lm-e{color:#b4232f}.lm-e.nuevo{color:#2457c5}
+.lm-x{width:34px;height:34px;padding:0!important;display:grid!important;place-items:center;flex:none;min-height:0!important}
+.lm-r{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}.lm-r label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--tx2);font-weight:600}.lm-r input{margin:0}
+.lm-q{display:flex;gap:4px}.lm-q input{text-align:center;min-width:0;font-weight:700;font-size:16px}.lm-q button{width:40px;flex:none;padding:0!important;font-size:18px}.lm-b{margin-top:4px;font-size:12.5px!important;padding:4px 8px!important;min-height:0!important}
+.lm-a{margin:0;font-size:13px;background:#fff7f0;border-radius:8px;padding:6px 9px;color:#9a4a00;display:flex;flex-wrap:wrap;align-items:center;gap:6px}.lm-a.baja{background:#eef8f2;color:#1d7a46}.lm-a .chk{margin:0;font-weight:600;color:#1c2333}
+.lm-f{display:flex;flex-direction:column;gap:8px;padding:12px 14px!important}.lm-tot{margin:0;font-size:14px}.lm-tot b{font-size:16px}
+.lm-ok{width:100%;min-height:52px;font-size:16.5px!important;display:inline-flex!important;align-items:center;justify-content:center;gap:8px;background:#1d7a46!important;border-color:#1d7a46!important}
+.lm-fin{padding:28px 18px!important;align-items:center;text-align:center;gap:12px;max-width:520px!important}.lm-fin ul{text-align:left;padding-left:18px;margin:0;display:flex;flex-direction:column;gap:6px;font-size:14.5px}.lm-fin .aviso{text-align:left;width:100%}#lm_fin{width:100%;min-height:48px}
+.lm-okc{width:72px;height:72px;border-radius:50%;background:#e7f6ec;color:#1d7a46;display:grid;place-items:center}
+.prx{padding:12px 14px!important}.prx-i{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f0f1f5}.prx-i:last-child{border-bottom:0}.prx-i>div{flex:1;min-width:0;display:flex;flex-direction:column}.prx-i small{color:var(--tx2);font-size:12.5px}
+.prx-f{font-size:12.5px;font-weight:700;color:var(--tx2);white-space:nowrap}.prx-i.atr .prx-f{color:#b4232f}.prx-i.hoy .prx-f{color:var(--m)}.prx-i button{flex:none;min-height:38px;padding:6px 12px}
+html.oscuro .lm-h{background:#141b28;border-color:#232c3c}html.oscuro .lm-i{background:#18202f;border-color:#273246}html.oscuro .lm-oc button{background:#18202f;border-color:#2a3446;color:#e6e9f0}html.oscuro .lm-a{background:#2a1f12;color:#f1c56a}html.oscuro .lm-t img,html.oscuro .lm-ph{background:#1c2536;border-color:#2a3446}
 </style>
 </head>
 <body>
 <div id="app"><div class="splash"><img src="logo.png" alt="Sabores de mi País"><i></i></div></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
-<script src="app.js?v=2026-10-31.7"></script>
+<script src="app.js?v=2026-10-31.8"></script>
 </body>
 </html>

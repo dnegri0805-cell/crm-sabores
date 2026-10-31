@@ -305,6 +305,8 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 
 ## 10. Compras, stock, precios y reportes
 
+- **📦 Llegó mercadería** (Compras, Recibir, Por recibir y botón +): proveedor → lo que se pidió (o buscando o escaneando cajas) → costo, vencimiento y kilos → factura. Al confirmar entra al stock, actualiza costos, guarda vencimientos y la factura con la deuda. Avisa lo que faltó (reclamo por WhatsApp), lo que volvió a haber (campanita) y los precios pactados con poco margen.
+- **Por recibir:** órdenes enviadas con fecha de llegada, atrasadas en rojo. Una factura de proveedor sin productos avisa que el stock no se actualiza.
 - **Compras:** Órdenes de compra (con botón **WhatsApp** que le manda el pedido armado al proveedor y la marca como enviada) · **Sugerencia de compra** (qué reponer según lo que se vende) · **🏷️ Mejor proveedor** · Proveedores · Facturas y pagos a proveedores.
 - **📈 Historial de costos** (Compras): cuánto subió cada producto y cada proveedor (30, 90, 180 días o un año), con gráfico por producto y ⚠️ en los que subieron mucho más que el resto.
 - **Mínimo y descuento por proveedor** (en la Sugerencia de compra): cargás el mínimo de compra y el descuento por volumen de cada proveedor; te avisa cuánto falta y con **Completar** suma lo que más rota. La orden semanal automática también completa el mínimo.
