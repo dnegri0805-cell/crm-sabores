@@ -10,6 +10,7 @@ Las funciones del CRM tal como quedaron, en el orden en que las usás en el día
 - **Si salís y volvés:** el CRM retoma la pantalla donde estabas (hasta 3 horas) y el pedido a medio cargar (hasta 24 horas).
 - **Botón + (abajo a la derecha):** desde cualquier pantalla, Nuevo pedido, Nuevo cliente, Registrar cobro, Nota a un cliente o Registrar visita.
 - **Barra de abajo:** Inicio · Pedidos · Clientes · Precios · **Más**. Compras y Ventas se abren desde los botones del Inicio. En **Más** están las demás secciones (Cobranza, Caja, Stock, Contable, este Manual y **Dólar del día**) y, abajo, **Cuenta y ajustes**: Usuarios y accesos, Mercado Pago, Elegir pestañas del menú, Ver panel completo y Cambiar mi contraseña.
+- **🔔 Campanita** (arriba, al lado de la lupa): lo que pasó en los últimos 7 días (pedidos online o de vendedores, entregas, comprobantes de pago, reclamos y pedidos del catálogo). El numerito dice cuántas novedades no viste; tocando cada una vas directo.
 - **Arriba:** la lupa busca un cliente, un producto o un pedido desde cualquier pantalla; **?** abre la ayuda de la pantalla en la que estás; **Aa** cambia el tamaño de letra y el modo oscuro.
 - **Avisos de pedidos:** en **Aa → 📲 Activar en este celular** te llega una notificación por cada pedido nuevo, aunque el CRM esté cerrado. Con el CRM abierto, además suena un timbre que se repite hasta que tocás **Ver pedido** (probalo en **Aa → Probar la alarma**).
 - **Se actualiza solo:** cuando hay una mejora, la página se recarga sola. Si algo no aparece, cerrá la app del todo y volvé a abrirla.
@@ -82,6 +83,8 @@ El envío se suma solo: **gratis desde $ 150.000**, si no **$ 15.000**. Para pro
 **Cómo se leen las cantidades** en la nota de pedido, el remito y las listas: *10 u.* son 10 unidades sueltas; *20 (1 caja + 8 u.)* es una caja cerrada más 8 sueltas.
 
 **En la compu, Lista o Tablero:** con **Tablero** los pedidos se ven en columnas (Por aprobar, Aprobado, Armando, Listo, En reparto y Entregado de los últimos 3 días) con la cantidad y el total de cada una. Arrastrás la tarjeta a otra columna y cambia de estado (para aprobar te hace las mismas preguntas que el botón). Para facturar, pesar o imprimir, volvé a **Lista**.
+
+**Panel del pedido:** tocando cualquier pedido (en la lista o en el tablero) se abre al costado (abajo en el celular) con sus productos, notas y total, y los botones Aprobar o el paso que sigue, Facturar, Imprimir, WhatsApp y Ficha.
 
 **Después de guardarlo**, en *Últimos pedidos* cada tarjeta muestra un solo botón grande con el paso que sigue:
 
@@ -176,7 +179,7 @@ Tus favoritas están en la pestaña **Favoritas**. El resto no se borró: escrib
 
 1. **Registrar un cobro** (arriba de todo): buscás el cliente, ves sus facturas pendientes, cargás cómo pagó y se genera el **recibo**.
 2. **Te deben / Vencido:** el total que te deben y cuánto está vencido.
-3. **Clientes que deben:** cada uno con botón de WhatsApp con el resumen de su cuenta, en tono amable o firme.
+3. **Clientes que deben:** cada uno con **un botón con lo que conviene hacer hoy**: *Cobrar en la visita de hoy* (si hoy lo visitás), *Llamar* (más de un mes vencido), *Mandar recordatorio* (si hace una semana o más que no le avisaste) o *Esperar el pago* (si ya le avisaste). El resto (Cobrar, WhatsApp con su deuda, Llamar, Resumen en PDF y Anotar promesa) está en **•••**.
 
 Al final, **Configurar avisos y cobros**: tono del mensaje, datos para transferir (CVU y alias **dsabores**), link de Mercado Pago y qué pasa si un cliente supera su límite de crédito.
 

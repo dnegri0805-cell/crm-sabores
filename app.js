@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-30.18';
+const VERSION='2026-10-30.19';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -68,7 +68,7 @@ async function init(){
   datosEmisor().catch(()=>{});shell();if(S._fcVolver){const cl=S.clientes.find(x=>x.id==S._fcVolver);S._fcVolver=null;if(cl&&S.tab=='clientes')try{fichaCliente(cl)}catch(e){}}huellaArranque();programarManana();llegueArranque();
 }
 function shell(){
-  app.innerHTML=`<header><b><a id="hback" class="hback" onclick="volver()" title="Volver a la pantalla anterior" aria-label="Volver" hidden>${IC('back',22)}</a>${MARCA.logo?`<img class="hlogo" src="${MARCA.logo}" alt="Sabores de mi País"><span class="mjhn">Sabores<span class="hn2"> de mi País</span></span>`:'Sabores de mi País'}</b><nav>${tabsMenu().pri.map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${nomTab(t)}</a>`).join('')}${tabsMenu().sec.length?`<a data-mas="1" class="${tabsMenu().sec.includes(S.tab)?'on':''}">${tabsMenu().sec.includes(S.tab)?nomTab(S.tab)+' ▾':'Más ▾'}</a>`:''}</nav><span><a class="hbt" onclick="buscarTodo()" title="Buscar (Ctrl+K)" aria-label="Buscar">${IC('search',22)}</a><a class="hbt" onclick="ayuda()" title="Ayuda de esta pantalla (?)" aria-label="Ayuda">${IC('help',22)}</a><a class="hbt" onclick="vistaCfg()" title="Letra, colores y avisos">Aa</a><details class="umenu"><summary title="${esc(S.perfil.nombre)}" aria-label="Mi usuario">${esc((S.perfil.nombre||'?').trim().charAt(0).toUpperCase())}</summary><div class="umc"><b>${esc(S.perfil.nombre)}</b><small>${S.perfil.rol=='dueno'?'Dueño':esc(S.perfil.rol)} · versión ${VERSION}</small><button class="alt" onclick="out()">Salir</button></div></details></span></header><main id="v"></main>`;
+  app.innerHTML=`<header><b><a id="hback" class="hback" onclick="volver()" title="Volver a la pantalla anterior" aria-label="Volver" hidden>${IC('back',22)}</a>${MARCA.logo?`<img class="hlogo" src="${MARCA.logo}" alt="Sabores de mi País"><span class="mjhn">Sabores<span class="hn2"> de mi País</span></span>`:'Sabores de mi País'}</b><nav>${tabsMenu().pri.map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${nomTab(t)}</a>`).join('')}${tabsMenu().sec.length?`<a data-mas="1" class="${tabsMenu().sec.includes(S.tab)?'on':''}">${tabsMenu().sec.includes(S.tab)?nomTab(S.tab)+' ▾':'Más ▾'}</a>`:''}</nav><span><a class="hbt" onclick="buscarTodo()" title="Buscar (Ctrl+K)" aria-label="Buscar">${IC('search',22)}</a><a class="hbt hbell" onclick="actividad()" title="Actividad" aria-label="Actividad">${IC('bell',22)}<i id="hb_n" hidden></i></a><a class="hbt" onclick="ayuda()" title="Ayuda de esta pantalla (?)" aria-label="Ayuda">${IC('help',22)}</a><a class="hbt" onclick="vistaCfg()" title="Letra, colores y avisos">Aa</a><details class="umenu"><summary title="${esc(S.perfil.nombre)}" aria-label="Mi usuario">${esc((S.perfil.nombre||'?').trim().charAt(0).toUpperCase())}</summary><div class="umc"><b>${esc(S.perfil.nombre)}</b><small>${S.perfil.rol=='dueno'?'Dueño':esc(S.perfil.rol)} · versión ${VERSION}</small><button class="alt" onclick="out()">Salir</button></div></details></span></header><main id="v"></main>`;
   $$('nav a[data-t]').forEach(a=>a.onclick=()=>{S.tab=a.dataset.t;shell()});$$('nav a[data-mas]').forEach(a=>a.onclick=menuMas);
   {const B=bottomTabs(),dentro=B.includes(S.tab),bn=document.createElement('nav');bn.className='bnav';
    bn.innerHTML=B.map(t=>`<a data-bt="${t}" class="${S.tab==t?'on':''}">${IC(BN_IC[t],23)}${t=='precios'?'Precios':nomTab(t)}</a>`).join('')+`<a data-bm="1" class="${dentro?'':'on'}">${IC('menu',23)}${dentro?'Más':esc(nomTab(S.tab).replace(/^📖 /,''))}</a>`;
@@ -305,7 +305,7 @@ async function vInicio(){
   $('#k6')&&($('#k6').onclick=()=>irA('clientes',{cs:'agenda',agD:Math.min(dvHoy,6)}));
   if(S.perfil.rol=='dueno'){cajaBackup();cajaDolar().catch(()=>{})}
   /* Primero los números del día; los avisos y tareas de abajo se cargan un instante después para que Inicio aparezca más rápido */
-  avisosEnVivo();setTimeout(()=>{herramientas();generarFijos();alertasMargen();objetivoMes();mesVendidoInicio().catch(()=>{});maniJLInicio().catch(()=>{});metasKgInicio().catch(()=>{});comisionInicio().catch(()=>{});tocaInicio();fidelInicio().catch(()=>{});masInicio().catch(()=>{});crecerInicio().catch(()=>{});fielesInicio().catch(()=>{});servInicio().catch(()=>{});planInicio().catch(()=>{});colaInicio().catch(()=>{});resumenDia().catch(()=>{});tareasInicio().catch(()=>{});chequeoInicio().catch(()=>{});camionetaInicio().catch(()=>{});cuentasInicio().catch(()=>{});equiposInicio().catch(()=>{});comprobantesInicio().catch(()=>{});mananaInicio().catch(()=>{});miDia().catch(()=>{});ocSemanal().catch(()=>{});aplicarAumentosProg().catch(()=>{});sincronizarOff().catch(()=>{});metasInicio().catch(()=>{});empujonBox($('#empi')).catch(()=>{});fechasInicio();},700);
+  avisosEnVivo();setTimeout(()=>actContar().catch(()=>{}),1500);setTimeout(()=>{herramientas();generarFijos();alertasMargen();objetivoMes();mesVendidoInicio().catch(()=>{});maniJLInicio().catch(()=>{});metasKgInicio().catch(()=>{});comisionInicio().catch(()=>{});tocaInicio();fidelInicio().catch(()=>{});masInicio().catch(()=>{});crecerInicio().catch(()=>{});fielesInicio().catch(()=>{});servInicio().catch(()=>{});planInicio().catch(()=>{});colaInicio().catch(()=>{});resumenDia().catch(()=>{});tareasInicio().catch(()=>{});chequeoInicio().catch(()=>{});camionetaInicio().catch(()=>{});cuentasInicio().catch(()=>{});equiposInicio().catch(()=>{});comprobantesInicio().catch(()=>{});mananaInicio().catch(()=>{});miDia().catch(()=>{});ocSemanal().catch(()=>{});aplicarAumentosProg().catch(()=>{});sincronizarOff().catch(()=>{});metasInicio().catch(()=>{});empujonBox($('#empi')).catch(()=>{});fechasInicio();},700);
   const cli=id=>esc(S.clientes.find(c=>c.id==id)?.razon_social||'Cliente');
   const [fv,pe,fe,sp,fp]=await Promise.all([
     sb.from('facturas_venta').select('*').order('id',{ascending:false}).limit(500),
@@ -1764,7 +1764,7 @@ async function listaPedidos(){
         ?(f?`<button data-ap="${o.id}">Aprobar</button>`:`<button data-apf="${o.id}">Aprobar y facturar</button>`)
         :(sig?`<button data-sig="${o.id}">${sig[1]}</button>`:'');
       const fb=cerr?'':(f?`<span class="fac">${IC('receipt',14)} Factura ${f.tipo} N° ${f.numero}</span>`:(o.estado=='pendiente'?'':`<button data-fa="${o.id}">Facturar</button>`));
-      return `<div class="ped est-${o.estado}">
+      return `<div class="ped est-${o.estado}" data-pid="${o.id}">
         <div class="ped-top"><div class="ped-q"><a class="cli" data-fc="${o.cliente_id}">${esc(o.clientes?nomVis(o.clientes):"Cliente")}</a><small>N° ${o.numero}${o.creado_en?' · '+cuandoTxt(o.creado_en):''}</small></div><span class="tot">${$m0(o.total)}${+o.costo_envio>0?'<br><small>incluye envío '+$m0(o.costo_envio)+'</small>':''}</span></div>${(o.fecha_entrega||o.entrega)||o.observaciones?`<div class="ped-nota"><small>${(o.fecha_entrega||o.entrega)?IC('calendar',14)+' Entregar el '+fd((o.fecha_entrega||o.entrega)):''}${(o.fecha_entrega||o.entrega)&&o.observaciones?' · ':''}${o.observaciones?IC('note',14)+' '+esc(o.observaciones):''}</small></div>`:''}
         <div class="ped-acc"><span class="badge b-${o.estado}">${EST_TXT[o.estado]||o.estado}</span>${o.es_prueba?'<span class="badge b-prueba">Prueba</span>':''}${o.origen=='online'?'<span class="badge b-online">Online</span>':''}${o.grupo?'<span class="badge b-online">Grupo '+esc(o.grupo)+'</span>':''}${o.cliente_ausente?'<span class="badge b-cancelado">Avisó que no va a estar</span>':''}${fb}${prin?'<span class="ped-br"></span>'+prin:''}
           <button class="alt wa pwa" data-w="${o.id}" aria-label="WhatsApp">${IC('chat',18)}</button><details class="mas pmas"><summary aria-label="Más opciones" title="Más opciones">•••</summary><div class="masc">${o.estado=='pendiente'&&!f?`<button class="alt" data-ap="${o.id}">✅ Aprobar sin facturar</button>`:''}<button class="alt" data-pdf="${o.id}">🖨️ Imprimir</button>${S.prbOk?`<button class="alt" data-prb="${o.id}" data-v="${o.es_prueba?0:1}">${o.es_prueba?'Ya no es de prueba':'🧪 Marcar como prueba'}</button>`:''}${['pendiente','aprobado'].includes(o.estado)&&!f?`<button class="alt" data-edp="${o.id}">✏️ Agregar o editar productos</button>`:''}${['pendiente','cancelado'].includes(o.estado)?'':`<button class="alt" data-rm="${o.id}">Remito</button>`}${['aprobado','en_preparacion','listo'].includes(o.estado)?`<button class="alt" data-flt="${o.id}">📦 Faltó algo</button>`:''}${o.foto_remito?`<button class="alt" data-vr="${o.id}">🧾 Firmado</button>`:''}${o.firma?`<button class="alt" data-rm="${o.id}">✍️ Firmado</button>`:''}${['en_reparto','entregado'].includes(o.estado)&&!o.firma?`<button class="alt" data-fi="${o.id}">✍️ Firma</button>`:''}${['en_reparto','entregado'].includes(o.estado)?`<button class="alt wa" data-av="${o.id}">📲 Avisar</button>`:''}${o.estado=='entregado'?`<button class="alt" data-dv="${o.id}">Devolución</button>`:''}${o.estado=='cancelado'?`<button class="alt" data-rea="${o.id}">♻️ Reactivar</button>`:`<button class="alt pcan" data-can="${o.id}">${IC('trash',16)} Cancelar pedido</button>`}${!f&&!cerr&&o.estado!='entregado'&&+o.costo_envio>0?`<button class="alt" data-eb="${o.id}" data-ev="1">🚚 Bonificar envío</button>`:''}${!f&&!cerr&&o.estado!='entregado'&&o.envio_bonificado&&envioDe(+o.total)>0?`<button class="alt" data-eb="${o.id}" data-ev="0">🚚 Cobrar envío</button>`:''}
@@ -1783,6 +1783,7 @@ async function listaPedidos(){
       if(e=='cancelado'){s.value='';if(await cancelarPedido(o,fac[o.id]))cargar();return}
       if(await cambiarEstado(o,e))toast('Pedido N° '+o.numero+': '+EST_TXT[e]+'.');cargar()});
     $$('#pl [data-w]').forEach(b=>b.onclick=()=>enviarWA(ped(b.dataset.w)));
+    $$('#pl .ped[data-pid]').forEach(d=>d.addEventListener('click',e=>{if(e.target.closest('button,a,summary,select,details,input,label'))return;panelPedido(ped(d.dataset.pid),cargar)}));
     $$('#pl [data-eb]').forEach(b=>b.onclick=async()=>{const o=ped(b.dataset.eb),bo=b.dataset.ev=='1';b.disabled=true;
       const{error}=await sb.from('pedidos').update({envio_bonificado:bo}).eq('id',o.id);if(error){b.disabled=false;return toast(/envio_bonificado/.test(error.message)?'Falta correr envio-costo.sql en Supabase.':error.message,1)}
       toast('Pedido N° '+o.numero+(bo?': envío bonificado.':': se cobra el envío.'));cargar()});
@@ -2069,13 +2070,21 @@ async function morosos(){
     toast(error?'Se usa en este mensaje, pero no se pudo guardar: corré avisos-deuda.sql.':'Datos para el pago guardados.',!!error)};
   const V=(S.morF=='vencidos'?L.filter(g=>g.v>0):L).sort((a,b)=>b.v-a.v||b.t-a.t);
   const hace=d=>{if(!d)return'Nunca';const n=Math.floor((Date.now()-new Date(d))/864e5);return n<=0?'Hoy':n==1?'Ayer':'Hace '+n+' días'};
+  /* Acción sugerida: lo que conviene hacer hoy con cada cliente que debe */
+  const dowH=new Date().getDay()||7,sug=g=>{const vis=(g.c.dias_visita||[]).includes(dowH),dA=ult[g.id]?Math.floor((Date.now()-new Date(ult[g.id]))/864e5):null;
+    if(vis)return{a:'mc',t:'Cobrar en la visita de hoy',s:'Hoy lo visitás',ic:'cash'};
+    if(g.mora>30&&g.c.telefono)return{a:'tel',t:'Llamar',s:'Lleva más de un mes vencida'+(dA!=null?' · último aviso '+hace(ult[g.id]).toLowerCase():''),ic:'phone'};
+    if(g.mora>0&&(dA==null||dA>=7))return{a:'mw',t:'Mandar recordatorio',s:dA==null?'Todavía no le avisaste':'Último aviso hace '+dA+' días',ic:'chat'};
+    if(g.mora>0)return{a:'mc',t:'Esperar el pago',s:'Le avisaste '+hace(ult[g.id]).toLowerCase()+' · registrá el cobro cuando pague',ic:'clock',sv:1};
+    return{a:'mc',t:'Cobrar',s:'Todavía no venció',ic:'cash',sv:1}};
   $('#mo_l').innerHTML=V.length?`<div class="tw"><table class="morc"><tr><th>Cliente</th><th class="n">Debe</th><th class="n">Vencido</th><th>Mora</th><th>Último aviso</th><th></th></tr>${V.map(g=>`<tr class="mrow ${g.mora>30?'sem-r':g.mora>0?'sem-a':'sem-v'}">
     <td class="mcli">${avatar(g.c)}<a class="lnk" data-fc="${g.id}">${esc(nomVis(g.c))}</a><br><small>${g.F.length} ${g.F.length==1?'factura':'facturas'}${g.c.telefono?'':' · sin teléfono'}</small>${promTxt(g.id)}</td>
     <td class="n mdebe" data-l="Debe">${$m(g.t)}</td><td class="n mven ${g.v?'mora':''}" data-l="Vencido">${g.v?$m(g.v):'—'}${recargoG(g.F,g.id)>0?`<br><small>+ recargo ${$m(recargoG(g.F,g.id))}<br><a class="lnk" data-rgp="${g.id}">perdonar o cobrado</a></small>`:''}</td><td class="mmor">${g.mora?`<span class="badge ${g.mora>30?'b-mora30':'b-pendiente'}">Vencida hace ${g.mora} ${g.mora==1?'día':'días'}</span>`:'<span class="badge b-entregado">Al día</span>'}</td>
     <td class="mav"><small>${sinAvisos?'—':ult[g.id]?'Último aviso: '+hace(ult[g.id]):'Sin avisos enviados'}</small></td>
-    <td class="macc" style="white-space:nowrap"><button data-mc="${g.id}">Cobrar</button> <button class="alt wa" data-mw="${g.id}">WhatsApp</button> <button class="alt" data-mp="${g.id}">PDF</button> <button class="alt" data-mpr="${g.id}">Promesa</button></td></tr>`).join('')}</table></div>`
+    <td class="macc">${(x=>`<div class="msug${x.sv?' suave':''}"><button class="${x.sv?'alt':''}" data-sg="${g.id}" data-sga="${x.a}">${IC(x.ic,17)} ${x.t}</button><small>${esc(x.s)}</small></div>`)(sug(g))}<details class="mas pmas msm"><summary aria-label="Más opciones">•••</summary><div class="masc"><button class="alt" data-mc="${g.id}">💵 Cobrar</button><button class="alt" data-mw="${g.id}">💬 WhatsApp con su deuda</button>${g.c.telefono?`<a class="btn alt" href="tel:${esc(g.c.telefono)}">📞 Llamar</a>`:''}<button class="alt" data-mp="${g.id}">📄 Resumen en PDF</button><button class="alt" data-mpr="${g.id}">🤝 Anotar promesa de pago</button></div></details></td></tr>`).join('')}</table></div>`
     :vacioHTML(S.morF=='vencidos'?'Nadie te debe plata vencida 👍':'Nadie te debe nada 👍','check');
   const gr=id=>V.find(g=>g.id==id);
+  $$('#mo_l [data-sg]').forEach(b=>b.onclick=()=>{const a=b.dataset.sga,id=b.dataset.sg;if(a=='tel'){const c=gr(id).c;location.href='tel:'+String(c.telefono).replace(/[^\d+]/g,'');return}const t=$('#mo_l').querySelector(`[data-${a}="${id}"]`);t&&t.click()});
   $$('#mo_l [data-fc]').forEach(a=>a.onclick=()=>{S.tab='clientes';shell();fichaCliente(S.clientes.find(c=>c.id==a.dataset.fc))});
   $$('#mo_l [data-mc]').forEach(b=>b.onclick=async()=>{$('#k_c').value=b.dataset.mc;try{await $('#k_c').onchange()}catch(e){}setTimeout(()=>{const k=$('#k_sel');if(k){k.style.scrollMarginTop='72px';k.scrollIntoView({behavior:'smooth',block:'start'})}},80)});
   $$('#mo_l [data-mp]').forEach(b=>b.onclick=()=>resumenPDF(gr(b.dataset.mp)));
@@ -3229,6 +3238,7 @@ async function tableroPedidos(){const box=$('#pl');if(!box)return;
   box.innerHTML=`<div class="kb">${COLS_T.map(([e,t])=>{const L=P.filter(o=>o.estado==e),tot=L.reduce((s,o)=>s+(+o.total||0),0);return`<div class="kb-col" data-kc="${e}"><div class="kb-h"><b>${t}</b><span>${L.length}</span></div><small class="kb-s">${L.length?$m0(tot):''}</small><div class="kb-l">${L.map(card).join('')||'<p class="kb-v">Arrastrá un pedido acá</p>'}</div></div>`}).join('')}</div>
     <p class="kb-ay"><small>Arrastrá cada pedido a la columna que corresponde. Entregados: los de los últimos 3 días. Para facturar, pesar o imprimir, volvé a <a class="lnk" id="kb_ls">Lista</a>.</small></p>`;
   $$('#pl [data-fc]').forEach(a=>a.onclick=e=>{e.stopPropagation();const c=S.clientes.find(x=>x.id==a.dataset.fc);c&&fichaCliente(c)});
+  $$('#pl [data-kb]').forEach(c=>c.addEventListener('click',e=>{if(e.target.closest('a'))return;panelPedido(ped(c.dataset.kb),tableroPedidos)}));
   $('#kb_ls').onclick=()=>{S.pvista='lista';listaPedidos()};
   let arr=null;
   $$('#pl [data-kb]').forEach(c=>{c.ondragstart=e=>{arr=c.dataset.kb;c.classList.add('arr');e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain',arr)}catch(x){}};c.ondragend=()=>{c.classList.remove('arr');$$('#pl .kb-col').forEach(k=>k.classList.remove('sobre'))}});
@@ -3256,6 +3266,56 @@ function fabCliente(tit,fn){const m=document.createElement('div');m.className='m
     m.querySelectorAll('[data-fa]').forEach(x=>x.onclick=()=>{m.remove();fabPintar();fn(S.clientes.find(c=>c.id==x.dataset.fa))})};
   m.onclick=e=>{if(e.target==m){m.remove();fabPintar()}};$('#fa_x').onclick=()=>{m.remove();fabPintar()};$('#fa_q').oninput=pinta;pinta();setTimeout(()=>$('#fa_q').focus(),50)}
 setInterval(()=>{try{fabPintar()}catch(e){}},700);
+
+/* ======================= PANEL LATERAL DEL PEDIDO =======================
+   Al tocar un pedido (lista o tablero) se abre a la derecha con el detalle y las acciones, sin salir de la pantalla. */
+async function panelPedido(o,alCambiar){if(!o)return;document.getElementById('pdrw')?.remove();
+  const w=document.createElement('div');w.id='pdrw';w.className='pdrw-f';w.innerHTML=`<aside class="pdrw" role="dialog" aria-label="Pedido N° ${o.numero}"><div class="pd-h"><div><small>Pedido N° ${o.numero}${o.creado_en?' · '+cuandoTxt(o.creado_en):''}</small><h3>${esc((S.clientes.find(x=>x.id==o.cliente_id)?nomCli(o.cliente_id):o.clientes&&nomVis(o.clientes))||'Cliente')}</h3></div><button class="alt pd-x" aria-label="Cerrar">${IC('x',20)}</button></div><div class="pd-b"><span class="skl" role="status" aria-label="Cargando"></span></div></aside>`;
+  document.body.appendChild(w);requestAnimationFrame(()=>w.classList.add('on'));
+  const cerrar=()=>{w.classList.remove('on');setTimeout(()=>w.remove(),200);document.removeEventListener('keydown',esc_)},esc_=e=>{if(e.key=='Escape')cerrar()};
+  document.addEventListener('keydown',esc_);w.onclick=e=>{if(e.target==w)cerrar()};w.querySelector('.pd-x').onclick=cerrar;
+  const[it,fv]=await Promise.all([itemsPedido(o),sb.from('facturas_venta').select('id,tipo,numero').eq('pedido_id',o.id).eq('anulada',false).maybeSingle().then(r=>r,()=>({}))]);
+  if(!it||!document.body.contains(w))return;const f=fv?.data,c=S.clientes.find(x=>x.id==o.cliente_id),sig=SIG[o.estado];
+  w.querySelector('.pd-b').innerHTML=`<div class="pd-est"><span class="badge b-${o.estado}">${EST_TXT[o.estado]||o.estado}</span>${o.origen=='online'?'<span class="badge b-online">Online</span>':''}${f?`<span class="fac">${IC('receipt',14)} Factura ${f.tipo} N° ${f.numero}</span>`:''}${c?estChip(c.id):''}</div>
+    <div class="pd-tot"><b>${$m0(o.total)}</b>${+o.costo_envio>0?`<small>incluye envío ${$m0(o.costo_envio)}</small>`:''}</div>
+    ${o.fecha_entrega||o.observaciones?`<div class="pd-nota">${o.fecha_entrega?`<span>${IC('calendar',15)} Entregar el ${fd(o.fecha_entrega)}</span>`:''}${o.observaciones?`<span>${IC('note',15)} ${esc(o.observaciones)}</span>`:''}</div>`:''}
+    <div class="pd-items">${it.map(i=>`<div class="pd-i">${S.min[i.id]?.foto?`<img src="${esc(S.min[i.id].foto)}" alt="" loading="lazy">`:'<span class="pd-ph"></span>'}<div><b>${esc(i.d)}</b><small>${esc(i.qt)}${i.puT?' · '+esc(i.puT):''}</small></div><span>${$m0(i.st)}</span></div>`).join('')}</div>
+    <div class="pd-acc">${o.estado=='pendiente'?`<button data-pa="ap">${IC('check',17)} Aprobar</button>`:sig?`<button data-pa="sig">${esc(sig[1])}</button>`:''}${!f&&!['pendiente','cancelado'].includes(o.estado)?`<button class="alt" data-pa="fa">${IC('receipt',17)} Facturar</button>`:''}
+      <button class="alt" data-pa="pdf">${IC('print',17)} Imprimir</button><button class="alt wa" data-pa="wa">${IC('chat',17)} WhatsApp</button>${c?`<button class="alt" data-pa="fc">${IC('user',17)} Ficha</button>`:''}</div>`;
+  const listo=()=>{cerrar();alCambiar&&alCambiar()};
+  w.querySelectorAll('[data-pa]').forEach(b=>b.onclick=async()=>{const a=b.dataset.pa;
+    if(a=='pdf')return pedidoPDF(o);if(a=='wa')return enviarWA(o);if(a=='fc'){cerrar();return fichaCliente(c)}
+    b.disabled=true;
+    if(a=='ap'){if((S.insG||{})[o.id]<0&&!confirm('Con este pedido perdés plata. ¿Lo aprobás igual?'))return b.disabled=false;if(!await chequearCredito(c,o.total))return b.disabled=false;await agregarDebidos(o);if(await cambiarEstado(o,'aprobado')){toast('Pedido N° '+o.numero+' aprobado.');modalAvisos([o],'conf')}return listo()}
+    if(a=='sig'){const n=sig[0];if(await cambiarEstado(o,n)){toast('Pedido N° '+o.numero+': '+EST_TXT[n]+'.');if(n=='en_reparto')modalAvisos([o],'sale');if(n=='entregado')firmaRemito(o,()=>modalAvisos([o],'entrega'))}return listo()}
+    if(a=='fa'){const r=await facturarPedido(o);if(r)toast('Factura '+r.tipo+' N° '+r.numero+' por '+$m(r.total)+'.');return listo()}})}
+
+/* ======================= CAMPANITA DE ACTIVIDAD =======================
+   Lo que pasó en los últimos 7 días: pedidos online o de vendedores, entregas, comprobantes, reclamos y pedidos del catálogo. */
+async function actDatos(){const d7=new Date(Date.now()-7*864e5).toISOString(),d2=new Date(Date.now()-2*864e5).toISOString(),due=['dueno','administracion'].includes(S.perfil.rol),sf=p=>Promise.resolve(p).then(r=>r||{},()=>({}));
+  const[pe,en,co,rc,pr]=await Promise.all([sf(sb.from('pedidos').select('id,numero,total,cliente_id,origen,vendedor_id,creado_en').or(due?'origen.in.(online,fijo),vendedor_id.neq.'+S.perfil.id:'origen.in.(online,fijo)').gt('creado_en',d7).order('creado_en',{ascending:false}).limit(40)),
+    sf(sb.from('pedidos').select('id,numero,total,cliente_id,entregado_en').eq('estado','entregado').gt('entregado_en',d2).order('entregado_en',{ascending:false}).limit(20)),
+    sf(sb.from('comprobantes_cliente').select('id,cliente_id,monto,creado_en,estado').gt('creado_en',d7).order('creado_en',{ascending:false}).limit(20)),
+    sf(sb.from('reclamos').select('id,cliente_id,tipo,creado_en').gt('creado_en',d7).order('creado_en',{ascending:false}).limit(20)),
+    sf(sb.from('presupuestos').select('id,numero,nombre,total,origen,creado_en').eq('estado','aceptado').gt('creado_en',d7).order('creado_en',{ascending:false}).limit(20))]);
+  const A=[...(pe.data||[]).map(o=>({f:o.creado_en,ic:'cart',k:'ped',t:['online','fijo'].includes(o.origen)?`<b>Pedido online N° ${o.numero}</b> de ${esc(nomCli(o.cliente_id)||'un cliente')} · ${$m0(o.total)}`:`<b>${esc(S.vendNom?.[o.vendedor_id]||'Tu vendedor')}</b> cargó el pedido N° ${o.numero} de ${esc(nomCli(o.cliente_id)||'un cliente')} · ${$m0(o.total)}`,ir:()=>{S.tab='pedidos';S.pf='abiertos';shell()}})),
+    ...(en.data||[]).map(o=>({f:o.entregado_en,ic:'truck',k:'ent',t:`<b>Entregado</b> el pedido N° ${o.numero} de ${esc(nomCli(o.cliente_id)||'un cliente')}`,ir:()=>{S.tab='pedidos';S.pf='entregado';shell()}})),
+    ...(co.data||[]).map(x=>({f:x.creado_en,ic:'cash',k:'pag',t:`<b>${esc(nomCli(x.cliente_id)||'Un cliente')}</b> mandó un comprobante de pago${+x.monto?' por '+$m0(x.monto):''}`,ir:()=>{S.tab='cobranza';shell()}})),
+    ...(rc.data||[]).map(x=>({f:x.creado_en,ic:'alert',k:'rec',t:`<b>Reclamo</b> de ${esc(nomCli(x.cliente_id)||'un cliente')}: ${esc(x.tipo||'')}`,ir:()=>{S.tab='ventas';S.vs='reclamos';shell()}})),
+    ...(pr.data||[]).map(p=>({f:p.creado_en,ic:'globe',k:'cat',t:p.origen=='catalogo'?`<b>Pedido del catálogo público</b>: ${esc(p.nombre||'')} · ${$m0(p.total)}`:`<b>Aceptaron el presupuesto N° ${p.numero}</b> · ${$m0(p.total)}`,ir:()=>{S.tab='ventas';S.vs='presupuestos';shell()}}))]
+    .filter(x=>x.f).sort((a,b)=>String(b.f).localeCompare(String(a.f))).slice(0,40);
+  S.act=A;return A}
+const actVisto=()=>{try{return localStorage.getItem('act_visto_'+S.perfil.id)||''}catch(e){return ''}};
+async function actContar(){if(!S.perfil)return;const A=await actDatos().catch(()=>[]),v=actVisto(),n=A.filter(x=>String(x.f)>v).length,b=document.getElementById('hb_n');if(b){b.hidden=!n;b.textContent=n>9?'9+':n}}
+async function actividad(){const m=document.createElement('div');m.className='modal act-m';document.body.appendChild(m);
+  m.innerHTML=`<div class="mc act"><div class="bh"><h3>Actividad</h3><button class="alt" id="ac_x">Cerrar</button></div><div id="ac_l"><span class="skl" role="status" aria-label="Cargando"></span></div></div>`;
+  m.onclick=e=>{if(e.target==m)m.remove()};m.querySelector('#ac_x').onclick=()=>m.remove();
+  const A=await actDatos().catch(()=>[]),v=actVisto();
+  const fH=f=>{const n=Math.floor((Date.now()-new Date(f))/6e4);return n<1?'recién':n<60?'hace '+n+' min':n<1440?'hace '+Math.floor(n/60)+' h':n<2880?'ayer':'hace '+Math.floor(n/1440)+' días'};
+  m.querySelector('#ac_l').innerHTML=A.length?`<div class="act-l">${A.map((x,i)=>`<button class="act-i act-${x.k}${String(x.f)>v?' nuevo':''}" data-ai="${i}"><span class="act-ic">${IC(x.ic,18)}</span><span class="act-t">${x.t}<small>${fH(x.f)}</small></span></button>`).join('')}</div>`:vacioHTML('Sin novedades en los últimos 7 días.','bell');
+  m.querySelectorAll('[data-ai]').forEach(b=>b.onclick=()=>{m.remove();A[+b.dataset.ai].ir()});
+  try{localStorage.setItem('act_visto_'+S.perfil.id,new Date().toISOString())}catch(e){}const n=document.getElementById('hb_n');if(n)n.hidden=true}
+setInterval(()=>{if(S.perfil&&!document.hidden)actContar().catch(()=>{})},120000);
 
 /* ======================= OBJETIVO DEL MES (Inicio) ======================= */
 async function objetivoMes(){const box=$('#obj');if(!box)return;
@@ -5454,7 +5514,7 @@ function avisosEnVivo(){if(S.vivo)return;S.vivo=true;sb.from('perfiles').select(
     desde=ahora;const N=[...(pe.data||[]).map(o=>({t:(['online','fijo'].includes(o.origen)?'🛒 Pedido online N° ':'🧑‍💼 '+(S.vendNom?.[o.vendedor_id]||'Tu vendedor')+' cargó el pedido N° ')+o.numero+' de '+(nomCli(o.cliente_id)||'un cliente')+' · '+$m(o.total),tab:'pedidos'})),
       ...(rc.data||[]).map(r=>({t:'🆘 Reclamo de '+(nomCli(r.cliente_id)||'un cliente')+': '+r.tipo,tab:'ventas',vs:'reclamos'})),
       ...(pw.data||[]).map(p=>({t:(p.origen=='catalogo'?'🌐 Pedido desde el catálogo público: ':'📝 Aceptaron el presupuesto N° '+p.numero+' · ')+(p.nombre||'')+' '+$m(p.total),tab:'ventas'}))];
-    if(!N.length)return;const NP=(pe.data||[]).length||(pw.data||[]).length;if(NP)alarmaPedido(N.filter(n=>n.tab=='pedidos'||/catálogo/i.test(n.t)));else bip();
+    if(!N.length)return;actContar().catch(()=>{});const NP=(pe.data||[]).length||(pw.data||[]).length;if(NP)alarmaPedido(N.filter(n=>n.tab=='pedidos'||/catálogo/i.test(n.t)));else bip();
     let box=$('#vivos');if(!box){box=document.createElement('div');box.id='vivos';document.body.appendChild(box)}
     const M=N.length>3?[...N.slice(0,2),{t:'…y '+(N.length-2)+' avisos más',tab:'pedidos'}]:N;
     for(const n of M){const d=document.createElement('div');d.className='vivo';d.innerHTML=`<b>${esc(n.t)}</b><button>Ver</button><a>✕</a>`;box.appendChild(d);

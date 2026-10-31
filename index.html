@@ -1013,12 +1013,51 @@ html.oscuro .fab-m button span,html.oscuro .fab-m button i{background:#18202f;co
 .fa-r{display:grid;gap:6px;margin-top:10px;max-height:60vh;overflow:auto}.fa-r button{display:flex;align-items:center;gap:10px;text-align:left;padding:8px 10px}.fa-r button span{display:flex;flex-direction:column}.fa-r small{color:var(--tx2)}
 @media print{#fab{display:none!important}}
 @media(max-width:899px){#v{padding-bottom:84px}}
+
+/* Cobranza: acción sugerida */
+.morc td.macc,table.morc tr td.macc{display:flex!important;flex-wrap:nowrap!important;align-items:flex-start;gap:8px!important;grid-template-columns:none!important}.morc td.macc .msm>summary{width:auto!important}table.morc td.macc .msm .masc button{padding:9px 12px!important;border-radius:8px!important;font-size:14.5px!important}
+.morc td.macc .msug{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.morc td.macc .msug button,table.morc td.macc .msug button{width:100%;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 12px!important;font-size:15px!important;font-weight:700;border-radius:12px!important}
+.morc td.macc .msug small{color:var(--tx2);font-size:12.5px;text-align:center}
+.morc td.macc .msug.suave button{font-weight:600}
+.morc td.macc .msm{flex:none}.morc td.macc .msm>summary{min-height:44px;display:grid;place-items:center;padding:0 14px!important;border-radius:12px}
+.morc td.macc .msm .masc{right:0;left:auto;min-width:230px}.morc td.macc .msm .masc button,.morc td.macc .msm .masc .btn{width:100%;text-align:left;border-radius:8px!important;padding:9px 12px!important;font-size:14.5px!important;display:block;text-decoration:none}
+/* Campanita */
+@media(max-width:460px){header:has(#hback:not([hidden])) .mjhn{display:none}header .hbt{padding-left:6px;padding-right:6px}}
+.hbell{position:relative}.hbell #hb_n{position:absolute;top:2px;right:0;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#e0a21c;color:#1c2333;font:700 11px/18px Inter,system-ui,sans-serif;font-style:normal;text-align:center;box-shadow:0 0 0 2px var(--n,#17213a)}
+.hbell #hb_n[hidden]{display:none}
+.act{max-width:520px}.act-l{display:flex;flex-direction:column}
+.act-i{display:flex!important;align-items:flex-start;gap:12px;text-align:left;background:none!important;border:0!important;border-bottom:1px solid #f0f1f5!important;border-radius:0!important;padding:12px 6px!important;color:#1c2333!important;font-weight:400!important;box-shadow:none;min-height:0!important;width:100%}
+.act-i:last-child{border-bottom:0!important}.act-i:hover{background:#f8f9fb!important}
+.act-ic{flex:none;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:#f3f4f7;color:var(--tx2)}
+.act-ped .act-ic{background:#f8eef1;color:var(--m)}.act-ent .act-ic{background:#e7f6ec;color:#1d7a46}.act-pag .act-ic{background:#e7f6ec;color:#1d7a46}.act-rec .act-ic{background:#fde8ea;color:#b4232f}.act-cat .act-ic{background:#e8f0ff;color:#2457c5}
+.act-t{flex:1;min-width:0;font-size:14.5px;line-height:1.4;display:flex;flex-direction:column}.act-t small{color:var(--tx2);font-size:12.5px;margin-top:2px}
+.act-i.nuevo .act-t::before{content:'';position:absolute;margin:7px 0 0 -10px;width:6px;height:6px;border-radius:50%;background:var(--m)}.act-i.nuevo{position:relative}.act-i.nuevo .act-t{font-weight:500}
+html.oscuro .act-i{color:#e6e9f0!important;border-color:#232c3c!important}html.oscuro .act-i:hover{background:#1c2536!important}html.oscuro .act-ic{background:#232c3c}
+/* Panel lateral del pedido */
+.pdrw-f{position:fixed;inset:0;z-index:70;background:rgba(23,33,58,0);transition:background .2s}.pdrw-f.on{background:rgba(23,33,58,.35)}
+.pdrw{position:absolute;top:0;right:0;bottom:0;width:min(440px,100vw);background:#fff;box-shadow:-12px 0 32px rgba(20,25,40,.18);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .22s ease}
+.pdrw-f.on .pdrw{transform:none}
+.pd-h{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:16px 18px 12px;border-bottom:1px solid #eceef3}.pd-h small{color:var(--tx2);font-size:13px}.pd-h h3{margin:2px 0 0;font-size:20px}
+.pd-x{width:40px;height:40px;padding:0!important;display:grid!important;place-items:center;border-radius:50%!important;flex:none}
+.pd-b{flex:1;overflow:auto;padding:14px 18px 18px;display:flex;flex-direction:column;gap:12px}
+.pd-est{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.pd-est .fac{font-size:13px;color:#1d7a46;display:inline-flex;gap:4px;align-items:center}
+.pd-tot b{font-size:28px;font-weight:800;letter-spacing:-.015em;font-variant-numeric:tabular-nums}.pd-tot small{display:block;color:var(--tx2);font-size:13px}
+.pd-nota{display:flex;flex-direction:column;gap:4px;background:#f8f9fb;border-radius:10px;padding:10px 12px;font-size:14px}.pd-nota span{display:flex;gap:6px;align-items:flex-start}
+.pd-items{border:1px solid #eceef3;border-radius:12px;overflow:hidden}
+.pd-i{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid #f0f1f5}.pd-i:last-child{border-bottom:0}
+.pd-i img,.pd-ph{width:40px;height:40px;border-radius:8px;object-fit:contain;background:#f6f7fa;flex:none;border:1px solid #eceef3}
+.pd-i>div{flex:1;min-width:0;display:flex;flex-direction:column}.pd-i b{font-size:14px;font-weight:600}.pd-i small{color:var(--tx2);font-size:12.5px}.pd-i>span{font-weight:700;font-size:14px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.pd-acc{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:auto}.pd-acc button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px}.pd-acc button:first-child:not(.alt){grid-column:1/-1}
+.ped[data-pid]{cursor:pointer}.ped[data-pid]:hover{box-shadow:0 4px 14px rgba(20,25,40,.08)}.kb-c{cursor:pointer}
+@media(max-width:640px){.pdrw{top:auto;height:88vh;width:100vw;border-radius:18px 18px 0 0;transform:translateY(100%)}.pdrw-f.on .pdrw{transform:none}}
+html.oscuro .pdrw{background:#141b28}html.oscuro .pd-h,html.oscuro .pd-items,html.oscuro .pd-i{border-color:#232c3c}html.oscuro .pd-nota,html.oscuro .pd-i img,html.oscuro .pd-ph{background:#1c2536}
 </style>
 </head>
 <body>
 <div id="app"><div class="splash"><img src="logo.png" alt="Sabores de mi País"><i></i></div></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
-<script src="app.js?v=2026-10-30.18"></script>
+<script src="app.js?v=2026-10-30.19"></script>
 </body>
 </html>

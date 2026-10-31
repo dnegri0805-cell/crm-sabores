@@ -18,6 +18,7 @@ Guía ordenada por sección para consultar o pasarle al equipo. Cada punto dice 
 - **Aa Cómo se ve:** letra normal, grande o muy grande, modo claro u oscuro, y **🔔 avisos en este equipo** (notificación cuando entra un pedido online, aunque estés en otra app, mientras el CRM esté abierto). Se guarda por equipo.
 - **Atajos en la PC:** N nuevo pedido · C Cola del día · I Inicio · R Reparto · B o Ctrl + K buscar · ? ayuda.
 - **Abre más rápido:** guarda en el equipo los clientes y productos y los actualiza solos por detrás.
+- **🔔 Campanita:** junta la actividad de los últimos 7 días (pedidos online o de vendedores, entregas, comprobantes, reclamos, pedidos del catálogo) con un numerito de lo no visto; cada aviso lleva a su pantalla.
 - **🔎 Buscar:** arriba a la derecha (o **Ctrl + K**) buscás un cliente, un producto (con precio, costo y stock) o un pedido por su número, desde cualquier pantalla.
 - **Menú principal:** en el celular, la barra de abajo es Inicio · Pedidos · Clientes · Precios · **Más**. En **Más** están las otras secciones (Cobranza, Caja, Stock, Contable, Manual), el **Dólar del día** y **Cuenta y ajustes** (Usuarios y accesos, Mercado Pago, Elegir pestañas del menú, Ver panel completo, Cambiar mi contraseña). En la compu, las pestañas van arriba. Los números en rojo indican cosas pendientes.
 - **Botón + flotante** (abajo a la derecha, en todas las pantallas): Nuevo pedido, Nuevo cliente, Registrar cobro, Nota a un cliente y Registrar visita.
@@ -89,6 +90,8 @@ Debajo aparecen tarjetas de aviso; cada una lleva a la pantalla donde se actúa:
 **Pedidos online:** los que hace el cliente desde su catálogo entran en *Por aprobar*. Revisalos y aprobalos. Cada pedido por aprobar muestra **cuánto te deja**: 🟢 bien, 🟡 debajo de tu margen mínimo, 🔴 perdés plata, ya descontado el costo de reparto de su zona (el que cargás en Zonas y camioneta). Si perdés plata, antes de aprobar te pregunta.
 
 **Tarjetas de la lista:** cada pedido muestra cliente, número, total, estado y, a la derecha, **WhatsApp** y **•••** (Aprobar sin facturar, Imprimir, Remito, Agregar o editar productos, Marcar como prueba, Cambiar estado). El botón del paso que sigue (*Aprobar y facturar*, *Salió a reparto*…) va a la izquierda.
+
+**Panel del pedido:** al tocar un pedido (lista o tablero) se abre un panel con productos (con foto), notas, total, estado y factura, y los botones Aprobar / paso siguiente, Facturar, Imprimir, WhatsApp y Ficha.
 
 **Estados:** A preparación → Marcar listo → Salió a reparto → Entregado. Si te equivocás, abajo aparece **Deshacer** unos segundos (también al cambiar costos en Precios). Los cancelados se ven en **Cancelados** y se pueden **♻️ Reactivar**. El cliente ve el seguimiento en su cuenta.
 
@@ -273,7 +276,7 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 - **💰 Cuánto te dejó el reparto:** al terminar el **Modo chofer** ves lo entregado, la ganancia de la mercadería, los km aproximados y el combustible (con las cargas de 🚐 Camioneta), y cuánto te dejó el reparto. Queda guardado en **Reparto → 📈 Repartos** con el total del mes. Requiere **visitas.sql**.
 - **🗓️ Calendario** (Reparto): el mes a la vista con los pedidos de cada día de entrega, los feriados y los días sin reparto. Tocás un día y ves qué sale.
 - **🚐 Camioneta al día** (Reparto): patente, kilómetros, vencimientos (VTV, seguro, patente, matafuego, licencia, RUTA), service cada X km con **✅ Hice el service hoy**, y las **⛽ cargas de combustible** (km del tablero, litros, importe; si querés se anotan también como gasto de caja). Con dos tanques llenos te calcula el **consumo (km por litro)** y **cuánto te cuesta cada kilómetro** (combustible más service, seguro y arreglos que cargues en Caja). Requiere **practico.sql**.
-- **Cobranza:** quién debe y cuánto, con filtro *Con deuda vencida*. Registrás pagos (efectivo, transferencia, cheque) y se genera el **recibo**. El botón **pronto pago** aplica el descuento si paga dentro del plazo.
+- **Cobranza:** quién debe y cuánto, con filtro *Con deuda vencida*. Cada cliente trae una **acción sugerida** (Cobrar en la visita de hoy, Llamar, Mandar recordatorio o Esperar el pago) y el resto en **•••**. Registrás pagos (efectivo, transferencia, cheque) y se genera el **recibo**. El botón **pronto pago** aplica el descuento si paga dentro del plazo.
 - **🤝 Promesas de pago** (Cobranza → Clientes que deben → **🤝 Promesa**): anotás cuándo te dijo que paga y cuánto. Ese día aparece en Inicio; se marca **cumplida** sola cuando registrás el cobro, y si no pagó, al otro día la Cola le manda el recordatorio. En cada cliente ves cuántas promesas cumple.
 - **💸 Recargo por mora** (Cobranza → Clientes que deben): lo activás con el interés por mes y los días de gracia. A cada cliente con deuda vencida le aparece el recargo, que va en el WhatsApp de deuda, el resumen en PDF y el estado de cuenta. Con **perdonar o cobrado** vuelve a cero desde ese día.
 - **💵 Contar billetes** (Caja → Cierre, al lado de Efectivo contado): ponés cuántos billetes hay de cada uno y te arma el total y la diferencia; el detalle queda en la nota del cierre.
