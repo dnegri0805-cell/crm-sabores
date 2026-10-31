@@ -974,12 +974,51 @@ html.oscuro .rcard{background:#18202f;border-color:#273246}html.oscuro .rc-n .vi
 .mv-bar{position:relative;height:8px;border-radius:999px;background:#eef0f4;overflow:visible}.mv-bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#9c3a50,#7b2d3e)}.mv-bar span{position:absolute;top:-3px;width:2px;height:14px;background:#1c2333;opacity:.35;border-radius:2px}
 .mv-d{display:block;margin-top:8px;color:var(--tx2);font-size:13px}
 html.oscuro .mv-meta{background:#232c3c!important;border-color:#2a3446!important;color:#c3c9d6!important}html.oscuro .mv-bar{background:#232c3c}html.oscuro .mv-bar span{background:#fff}
+
+/* Filtros por estado (Clientes) */
+.cest{margin:8px 0 2px}.cest:empty{display:none}
+.ecb{display:inline-flex!important;align-items:center;gap:6px;background:#fff!important;border:1px solid #e3e6ee!important;color:#1c2333!important;border-radius:999px!important;padding:5px 12px!important;font-size:13.5px!important;font-weight:500!important;min-height:0!important;white-space:nowrap;box-shadow:none}
+.ecb b{font-weight:700;color:var(--tx2)}.ecb i.cl-est{width:9px;height:9px;padding:0;border-radius:50%;background:currentColor!important}.ecb i.cl-est::before{display:none}
+.ecb.on{border-color:var(--m)!important;background:#f8eef1!important;color:var(--m)!important}.ecb.on b{color:var(--m)}
+html.oscuro .ecb{background:#18202f!important;border-color:#2a3446!important;color:#e6e9f0!important}html.oscuro .ecb.on{background:#3a1d26!important;color:#f0b3c2!important}
+/* Tablero de pedidos */
+.pvis{display:inline-flex;gap:0;margin-left:auto}.pvis button{display:inline-flex;align-items:center;gap:6px;border-radius:0!important}.pvis button:first-child{border-radius:999px 0 0 999px!important}.pvis button:last-child{border-radius:0 999px 999px 0!important}
+#pfil{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.kb{display:grid;grid-template-columns:repeat(6,minmax(180px,1fr));gap:10px;overflow-x:auto;padding-bottom:6px;align-items:start;position:relative;left:50%;transform:translateX(-50%);width:min(1560px,calc(100vw - 48px))}.kb-col{min-width:0}
+.kb-col{background:#f3f4f7;border-radius:14px;padding:10px;min-height:220px;border:2px dashed transparent;transition:border-color .15s,background .15s}
+.kb-col.sobre{border-color:var(--m);background:#f8eef1}
+.kb-h{display:flex;justify-content:space-between;align-items:center;font-size:14px}.kb-h span{background:#fff;border-radius:999px;padding:0 8px;font-size:12.5px;font-weight:700;color:var(--tx2)}
+.kb-s{display:block;color:var(--tx2);font-size:12.5px;margin:2px 0 8px;min-height:16px;font-variant-numeric:tabular-nums}
+.kb-l{display:grid;gap:8px;grid-template-columns:minmax(0,1fr)}.kb-c{min-width:0}
+.kb-c{background:#fff;border:1px solid #e6e8ed;border-left:4px solid #b9bfcc;border-radius:10px;padding:9px 10px;cursor:grab;box-shadow:0 1px 2px rgba(20,25,40,.05)}
+.kb-c.arr{opacity:.45}.kb-c:hover{box-shadow:0 4px 12px rgba(20,25,40,.1)}
+.kb-c>.cli{display:block;font-weight:700;font-size:14px;color:#1c2333;text-decoration:none;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.kb-ct{display:flex;justify-content:space-between;gap:6px;align-items:baseline;margin-top:2px}.kb-ct b{font-size:13.5px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.kb-c small{color:var(--tx2);font-size:12px}.kb-tg{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}.kb-tg .badge{font-size:11px}
+.kb-v{color:var(--tx2);font-size:12.5px;text-align:center;margin:18px 0}
+.kb-c.est-pendiente{border-left-color:#d49b00}.kb-c.est-aprobado{border-left-color:#3b6fd8}.kb-c.est-en_preparacion{border-left-color:#7a5af0}.kb-c.est-listo{border-left-color:#0f8f8a}.kb-c.est-en_reparto{border-left-color:#2457c5}.kb-c.est-entregado{border-left-color:#1d7a46}
+.kb-ay{margin-top:8px}
+html.oscuro .kb-col{background:#141b28}html.oscuro .kb-col.sobre{background:#3a1d26}html.oscuro .kb-c{background:#18202f;border-color:#273246}html.oscuro .kb-c>.cli{color:#e6e9f0}html.oscuro .kb-h span{background:#232c3c}
+/* Botón flotante + */
+#fab{position:fixed;right:16px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:60;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+#fab[hidden]{display:none}
+.fab-b{width:58px;height:58px;border-radius:50%!important;padding:0!important;display:grid!important;place-items:center;background:var(--m)!important;color:#fff!important;border:0!important;box-shadow:0 10px 24px -8px rgba(123,45,62,.65),0 2px 6px rgba(0,0,0,.15);transition:transform .2s}
+.fab-b.on{transform:rotate(45deg)}
+.fab-m{display:flex;flex-direction:column;align-items:flex-end;gap:8px}.fab-m[hidden]{display:none}
+.fab-m button{display:flex;align-items:center;gap:10px;background:none!important;border:0!important;padding:0!important;box-shadow:none;min-height:0!important;animation:fabIn .18s ease both}
+.fab-m button span{background:#fff;color:#1c2333;font-weight:600;font-size:14.5px;padding:7px 12px;border-radius:10px;box-shadow:0 4px 14px rgba(20,25,40,.18)}
+.fab-m button i{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:#fff;color:var(--m);box-shadow:0 4px 14px rgba(20,25,40,.18)}
+@keyframes fabIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media(min-width:900px){#fab{bottom:24px;right:24px}}
+html.oscuro .fab-m button span,html.oscuro .fab-m button i{background:#18202f;color:#e6e9f0}
+.fa-r{display:grid;gap:6px;margin-top:10px;max-height:60vh;overflow:auto}.fa-r button{display:flex;align-items:center;gap:10px;text-align:left;padding:8px 10px}.fa-r button span{display:flex;flex-direction:column}.fa-r small{color:var(--tx2)}
+@media print{#fab{display:none!important}}
+@media(max-width:899px){#v{padding-bottom:84px}}
 </style>
 </head>
 <body>
 <div id="app"><div class="splash"><img src="logo.png" alt="Sabores de mi País"><i></i></div></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
-<script src="app.js?v=2026-10-30.16"></script>
+<script src="app.js?v=2026-10-30.18"></script>
 </body>
 </html>

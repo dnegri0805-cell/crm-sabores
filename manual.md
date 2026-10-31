@@ -8,6 +8,7 @@ Las funciones del CRM tal como quedaron, en el orden en que las usás en el día
 - **La primera vez:** si te dieron una contraseña temporal, el CRM te pide que elijas una propia (mínimo 8 caracteres) antes de entrar.
 - **Usalo como app:** en Chrome, menú ⋮ → *Agregar a pantalla de inicio*. Ganás pantalla y el celular lo cierra menos cuando cambiás a WhatsApp.
 - **Si salís y volvés:** el CRM retoma la pantalla donde estabas (hasta 3 horas) y el pedido a medio cargar (hasta 24 horas).
+- **Botón + (abajo a la derecha):** desde cualquier pantalla, Nuevo pedido, Nuevo cliente, Registrar cobro, Nota a un cliente o Registrar visita.
 - **Barra de abajo:** Inicio · Pedidos · Clientes · Precios · **Más**. Compras y Ventas se abren desde los botones del Inicio. En **Más** están las demás secciones (Cobranza, Caja, Stock, Contable, este Manual y **Dólar del día**) y, abajo, **Cuenta y ajustes**: Usuarios y accesos, Mercado Pago, Elegir pestañas del menú, Ver panel completo y Cambiar mi contraseña.
 - **Arriba:** la lupa busca un cliente, un producto o un pedido desde cualquier pantalla; **?** abre la ayuda de la pantalla en la que estás; **Aa** cambia el tamaño de letra y el modo oscuro.
 - **Avisos de pedidos:** en **Aa → 📲 Activar en este celular** te llega una notificación por cada pedido nuevo, aunque el CRM esté cerrado. Con el CRM abierto, además suena un timbre que se repite hasta que tocás **Ver pedido** (probalo en **Aa → Probar la alarma**).
@@ -80,6 +81,8 @@ El envío se suma solo: **gratis desde $ 150.000**, si no **$ 15.000**. Para pro
 
 **Cómo se leen las cantidades** en la nota de pedido, el remito y las listas: *10 u.* son 10 unidades sueltas; *20 (1 caja + 8 u.)* es una caja cerrada más 8 sueltas.
 
+**En la compu, Lista o Tablero:** con **Tablero** los pedidos se ven en columnas (Por aprobar, Aprobado, Armando, Listo, En reparto y Entregado de los últimos 3 días) con la cantidad y el total de cada una. Arrastrás la tarjeta a otra columna y cambia de estado (para aprobar te hace las mismas preguntas que el botón). Para facturar, pesar o imprimir, volvé a **Lista**.
+
 **Después de guardarlo**, en *Últimos pedidos* cada tarjeta muestra un solo botón grande con el paso que sigue:
 
 - **⚖️ Pesar:** si lleva fiambres o quesos sin pesar. Escribís el peso de la etiqueta de cada pieza (si son varias, sumalas con +: 3,52 + 3,61). El importe se ajusta solo y te ofrece avisarle al cliente el total final.
@@ -94,6 +97,7 @@ El envío se suma solo: **gratis desde $ 150.000**, si no **$ 15.000**. Para pro
 
 - **Lista:** agrupada por rubro, con buscador por nombre o CUIT y filtros por rubro. Cada cliente muestra cuándo compró por última vez y tres botones: lista de precios, WhatsApp y llamar.
 - **Pestañas:** Clientes · Ruta de hoy · Agenda de visitas · Mapa · Dormidos · Prospectos · Pedidos fijos.
+- **Filtros por estado:** arriba de la lista, **Le toca comprar · Deben · Dormidos · Nuevos** con la cantidad. Tocás uno y ves solo esos; tocándolo de nuevo, todos.
 - **Estado de cada cliente** (cartelito de color en la lista y en la ficha): 🟢 **Al día** · 🟡 **Le toca comprar** (según cada cuánto compra) · 🔴 **Debe** (tiene facturas vencidas) · ⚪ **Dormido** (más de 45 días sin comprar) · 🔵 **Nuevo** (primeros pedidos o recién cargado). En la ficha, al lado, dice por qué (por ejemplo *Compró hace 18 días (suele cada 14)*).
 - **Ruta de hoy:** los clientes que tienen visita hoy, más los que les toca comprar y los que deben, en orden. Cada tarjeta dice por qué ir, **⭐ qué ofrecerle** (Maní JL, BOYA, Etiqueta Negra… lo que todavía no lleva) y tiene **Pedido**, **Cómo llegar** y **No estaba** (queda anotado en su historial). Arriba, **Recorrido** abre todas las paradas en Google Maps.
 - **Nuevo cliente:** botón **+ Nuevo cliente** arriba (o desde Inicio).

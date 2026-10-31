@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-30.16';
+const VERSION='2026-10-30.18';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -892,7 +892,7 @@ function vClientes(){
   const subs=`<div class="sub tabs">${[['lista','Clientes'],['ruta','Ruta de hoy'],['agenda','Agenda de visitas'],['mapa','Mapa'],['dormidos','Dormidos'],['prospectos','Prospectos'],['fijos','Pedidos fijos']].map(([k,t])=>`<button class="${S.cs==k?'':'alt'}" data-cs2="${k}">${t}</button>`).join('')}</div>`;
   if(S.cs!='lista'){$('#v').innerHTML=`${cabClientes()}${subs}<div id="cs"><span class="skl" role="status" aria-label="Cargando"></span></div>`;$$('[data-cs2]').forEach(b=>b.onclick=()=>{S.cs=b.dataset.cs2;vClientes()});enlazarCab();
     return ({ruta:vRutaHoy,agenda:vAgenda,prospectos:vProspectos,fijos:vFijos,dormidos:vDormidos,mapa:vMapa})[S.cs]()}
-  $('#v').innerHTML=`${cabClientes()}${subs}<div class="cl-pega"><input id="q" type="search" placeholder="Buscar cliente o CUIT"><div class="sub" id="cfam"></div></div><div id="ct"></div>`;
+  $('#v').innerHTML=`${cabClientes()}${subs}<div class="cl-pega"><input id="q" type="search" placeholder="Buscar cliente o CUIT"><div class="sub cest" id="cest"></div><div class="sub" id="cfam"></div></div><div id="ct"></div>`;
   const ORD=[...FAM_CLI.map(x=>x[0]),'❔ Sin rubro'],FAM_FIJAS=['🥖 Panaderías','🍦 Heladerías','🧀 Fiambrerías','🛒 Supermercados'];S.cfam=S.cfam||'';
   const fCol=famCol,fTxt=f=>String(f).replace(/^\S+\s+/,''),inic=inicCli;
   const condTag=c=>{const t=[];if(c.lista&&c.lista!='mayorista')t.push(c.lista=='especial'?'gastronomía':c.lista);if(+c.condicion_pago_dias)t.push(c.condicion_pago_dias+' días');return t.length?`<small class="cl-cond">${esc(t.join(' · '))}</small>`:''};
@@ -903,9 +903,13 @@ function vClientes(){
     <div class="cl-acc">${ultTxt(c)}<span class="cl-bts">${tel?`<a class="cl-bt lp" data-lp="${c.id}" aria-label="Mandar lista de precios" title="Mandar lista de precios por WhatsApp">${IC('tag',18)}</a><a class="cl-bt wa" data-wa="${esc(tel)}" aria-label="WhatsApp">${IC('chat',18)}</a><a class="cl-bt" href="tel:${esc(c.telefono)}" data-no="1" aria-label="Llamar">${IC('phone',18)}</a>`:`<a class="cl-bt tel" data-tel="${c.id}">${IC('plus',15)} Teléfono</a>`}</span></div></div>`};
   const draw=()=>{const q=$('#q').value.toLowerCase(),A=S.clientes.filter(c=>c.activo!==false),cnt={};A.forEach(c=>{const f=famCli(c);cnt[f]=(cnt[f]||0)+1});
     $('#cfam').innerHTML=`<button class="${S.cfam?'alt':''}" data-cf="">Todas (${A.length})</button>`+ORD.filter(f=>cnt[f]||S.cfam==f).map(f=>`<button class="${S.cfam==f?'':'alt'}" data-cf="${esc(f)}"><i class="cl-dot" style="background:${fCol(f)}"></i>${esc(fTxt(f))} (${cnt[f]||0})</button>`).join('');
-    const L=S.clientes.filter(c=>coincide(c.razon_social+' '+(c.nombre_fantasia||'')+' '+(c.cuit||'')+' '+(c.rubro||''),q)&&(!S.cfam||famCli(c)==S.cfam)),G={};L.forEach(c=>(G[famCli(c)]=G[famCli(c)]||[]).push(c));
+    const EK=[['toca','Le toca comprar'],['debe','Deben'],['dormido','Dormidos'],['nuevo','Nuevos']],ec={};if(S.estCli)A.forEach(c=>{const k=S.estCli[c.id]?.k;if(k)ec[k]=(ec[k]||0)+1});
+    if(S.cest&&!ec[S.cest])S.cest='';
+    $('#cest').innerHTML=S.estCli?EK.filter(([k])=>ec[k]).map(([k,t])=>`<button class="ecb ${S.cest==k?'on':''}" data-ce="${k}"><i class="cl-est e-${k}"></i>${t} <b>${ec[k]}</b></button>`).join(''):'';
+    $$('#cest [data-ce]').forEach(b=>b.onclick=()=>{S.cest=S.cest==b.dataset.ce?'':b.dataset.ce;draw();bind()});
+    const L=S.clientes.filter(c=>coincide(c.razon_social+' '+(c.nombre_fantasia||'')+' '+(c.cuit||'')+' '+(c.rubro||''),q)&&(!S.cfam||famCli(c)==S.cfam)&&(!S.cest||S.estCli?.[c.id]?.k==S.cest)),G={};L.forEach(c=>(G[famCli(c)]=G[famCli(c)]||[]).push(c));
     Object.values(G).forEach(x=>x.sort((a,b)=>nomVis(a).localeCompare(nomVis(b))));
-    $('#ct').innerHTML=ORD.filter(f=>G[f]).map(f=>`<h4 class="cl-fam"><i class="cl-dot" style="background:${fCol(f)}"></i>${esc(fTxt(f))} <small>(${G[f].length})</small>${f=='❔ Sin rubro'?' <small>· entrá a la ficha y cargá el rubro</small>':''}</h4><div class="cl-grid">${G[f].map(fila).join('')}</div>`).join('')||vacioHTML(S.cfam&&!q?'Todavía no tenés clientes en '+fTxt(S.cfam)+'. Tocá «+ Nuevo cliente» para agregar uno.':'No hay clientes con ese filtro.','user');
+    $('#ct').innerHTML=ORD.filter(f=>G[f]).map(f=>`<h4 class="cl-fam"><i class="cl-dot" style="background:${fCol(f)}"></i>${esc(fTxt(f))} <small>(${G[f].length})</small>${f=='❔ Sin rubro'?' <small>· entrá a la ficha y cargá el rubro</small>':''}</h4><div class="cl-grid">${G[f].map(fila).join('')}</div>`).join('')||vacioHTML(S.cest?'No hay clientes con ese estado'+(S.cfam?' en '+fTxt(S.cfam):'')+'.':S.cfam&&!q?'Todavía no tenés clientes en '+fTxt(S.cfam)+'. Tocá «+ Nuevo cliente» para agregar uno.':'No hay clientes con ese filtro.','user');
     $$('#cfam [data-cf]').forEach(b=>b.onclick=()=>{S.cfam=b.dataset.cf;draw();bind()})};
   $$('[data-cs2]').forEach(b=>b.onclick=()=>{S.cs=b.dataset.cs2;vClientes()});
   const bind=()=>{$$('#ct [data-fc]').forEach(r=>r.onclick=()=>fichaCliente(S.clientes.find(c=>c.id==r.dataset.fc)));$$('#ct [data-wa]').forEach(a=>a.onclick=e=>{e.stopPropagation();window.open('https://wa.me/'+a.dataset.wa,'_blank')});$$('#ct [data-lp]').forEach(a=>a.onclick=e=>{e.stopPropagation();mandarLista(S.clientes.find(x=>x.id==a.dataset.lp))});$$('#ct [data-no]').forEach(a=>a.onclick=e=>e.stopPropagation());
@@ -1736,12 +1740,14 @@ async function borrarPruebas(){document.querySelectorAll('.modal').forEach(m=>{i
   const{data,error}=await sb.rpc('borrar_pedidos_prueba');if(error)return toast(/borrar_pedidos_prueba/.test(error.message)?'Falta correr pedidos-prueba.sql en Supabase (SQL Editor).':error.message,1);
   okAnim((data?.pedidos||n)==1?'Pedido de prueba borrado':(data?.pedidos||n)+' pedidos de prueba borrados');S.ultPed=null;try{await cargarStock()}catch(e){}if(S.tab=='pedidos')vPedidos()}
 async function listaPedidos(){
-  S.pf=S.pf||'abiertos';
+  S.pf=S.pf||'abiertos';if(!S.pvista)try{S.pvista=localStorage.getItem('ped_vista')||'lista'}catch(e){S.pvista='lista'}
   if(!$('#pl'))return;$('#pfil')?.remove();$('#plof')?.remove();
   $('#plcat')?.remove();
-  $('#pl').outerHTML=`<div id="plcat"></div><div id="plof">${pedidosOffHTML()}</div><div class="sub" id="pfil">${FILTROS.map(([k,t])=>`<button class="${S.pf==k?'':'alt'}" data-pf="${k}">${t}</button>`).join('')}</div><div id="pl"><span class="skl" role="status" aria-label="Cargando"></span></div>`;
+  $('#pl').outerHTML=`<div id="plcat"></div><div id="plof">${pedidosOffHTML()}</div><div class="sub" id="pfil">${S.pvista=='tablero'&&tableroOk()?'':FILTROS.map(([k,t])=>`<button class="${S.pf==k?'':'alt'}" data-pf="${k}">${t}</button>`).join('')}${tableroOk()?`<span class="pvis"><button class="${S.pvista=='tablero'?'alt':''}" data-pv="lista">${IC('list',16)} Lista</button><button class="${S.pvista=='tablero'?'':'alt'}" data-pv="tablero">${IC('bars',16)} Tablero</button></span>`:''}</div><div id="pl"><span class="skl" role="status" aria-label="Cargando"></span></div>`;
   $$('[data-pf]').forEach(b=>b.onclick=()=>{S.pf=b.dataset.pf;$$('[data-pf]').forEach(x=>x.className=x.dataset.pf==S.pf?'':'alt');cargar()});
+  $$('[data-pv]').forEach(b=>b.onclick=()=>{S.pvista=b.dataset.pv;try{localStorage.setItem('ped_vista',S.pvista)}catch(e){}listaPedidos()});
   const cargar=async()=>{
+    if(S.pvista=='tablero'&&tableroOk())return tableroPedidos();
     await prbAviso().catch(()=>{});
     sb.from('presupuestos').select('id,numero,nombre,total').eq('origen','catalogo').eq('estado','aceptado').is('pedido_id',null).then(({data})=>{const b=$('#plcat');if(!b)return;
       b.innerHTML=data?.length?`<div class="aviso" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span style="flex:1;min-width:180px">🌐 <b>${data.length==1?'1 pedido':data.length+' pedidos'} del catálogo público</b> para confirmar: ${data.map(x=>esc(x.nombre||'')+' · '+$m(x.total)).join(' · ')}</span><button id="plcat_v">Ver y pasar a pedido</button></div>`:'';
@@ -3207,6 +3213,49 @@ async function mesVendidoInicio(){const box=$('#mesv');if(!box||S.perfil.rol!='d
     <small class="mv-d">Hoy ${$m0(vHoy)}${v>0&&dh>2?` · a este ritmo cerrás en <b>${$m0(proy)}</b>`:''}</small></div>`;
   $('#mv_e').onclick=async()=>{const x=prompt('Meta de ventas de '+mes.toLowerCase()+' (en pesos, con IVA):',meta?String(meta):'');if(x===null)return;const n=numAR(x);if(!(n>0))return toast('Escribí un importe, por ejemplo 15000000.',1);
     const{error}=await sb.from('config_app').upsert({clave:k,valor:String(n)});error?toast(error.message,1):(toast('Meta guardada.'),mesVendidoInicio())}}
+
+/* ======================= TABLERO DE PEDIDOS (columnas, en la compu) =======================
+   Se arrastra una tarjeta a otra columna para cambiarle el estado. Para aprobar pide las mismas confirmaciones que el botón. */
+const COLS_T=[['pendiente','Por aprobar'],['aprobado','Aprobado'],['en_preparacion','Armando'],['listo','Listo'],['en_reparto','En reparto'],['entregado','Entregado']];
+const tableroOk=()=>matchMedia('(min-width:900px)').matches;
+async function tableroPedidos(){const box=$('#pl');if(!box)return;
+  const d3=new Date();d3.setDate(d3.getDate()-3);
+  const[ab,en]=await Promise.all([sb.from('pedidos').select('*,clientes(razon_social,nombre_fantasia)').in('estado',['pendiente','aprobado','en_preparacion','listo','en_reparto']).order('numero',{ascending:false}).limit(200),
+    sb.from('pedidos').select('*,clientes(razon_social,nombre_fantasia)').eq('estado','entregado').gte('creado_en',d3.toISOString()).order('numero',{ascending:false}).limit(60)]);
+  if(ab.error){box.innerHTML='<p class="err">'+esc(ab.error.message)+'</p>';return}
+  const P=[...(ab.data||[]),...(en.data||[])],ped=id=>P.find(o=>o.id==id);
+  const card=o=>`<div class="kb-c est-${o.estado}" draggable="true" data-kb="${o.id}"><a class="cli" data-fc="${o.cliente_id}">${esc(o.clientes?nomVis(o.clientes):'Cliente')}</a>
+    <div class="kb-ct"><small>N° ${o.numero}${o.creado_en?' · '+cuandoTxt(o.creado_en):''}</small><b>${$m0(o.total)}</b></div>${o.origen=='online'||o.es_prueba||o.fecha_entrega?`<div class="kb-tg">${o.origen=='online'?'<span class="badge b-online">Online</span>':''}${o.es_prueba?'<span class="badge b-prueba">Prueba</span>':''}${o.fecha_entrega?`<span class="badge">${IC('calendar',12)} ${fd(o.fecha_entrega)}</span>`:''}</div>`:''}</div>`;
+  box.innerHTML=`<div class="kb">${COLS_T.map(([e,t])=>{const L=P.filter(o=>o.estado==e),tot=L.reduce((s,o)=>s+(+o.total||0),0);return`<div class="kb-col" data-kc="${e}"><div class="kb-h"><b>${t}</b><span>${L.length}</span></div><small class="kb-s">${L.length?$m0(tot):''}</small><div class="kb-l">${L.map(card).join('')||'<p class="kb-v">Arrastrá un pedido acá</p>'}</div></div>`}).join('')}</div>
+    <p class="kb-ay"><small>Arrastrá cada pedido a la columna que corresponde. Entregados: los de los últimos 3 días. Para facturar, pesar o imprimir, volvé a <a class="lnk" id="kb_ls">Lista</a>.</small></p>`;
+  $$('#pl [data-fc]').forEach(a=>a.onclick=e=>{e.stopPropagation();const c=S.clientes.find(x=>x.id==a.dataset.fc);c&&fichaCliente(c)});
+  $('#kb_ls').onclick=()=>{S.pvista='lista';listaPedidos()};
+  let arr=null;
+  $$('#pl [data-kb]').forEach(c=>{c.ondragstart=e=>{arr=c.dataset.kb;c.classList.add('arr');e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain',arr)}catch(x){}};c.ondragend=()=>{c.classList.remove('arr');$$('#pl .kb-col').forEach(k=>k.classList.remove('sobre'))}});
+  $$('#pl .kb-col').forEach(k=>{k.ondragover=e=>{e.preventDefault();k.classList.add('sobre')};k.ondragleave=e=>{if(!k.contains(e.relatedTarget))k.classList.remove('sobre')};
+    k.ondrop=async e=>{e.preventDefault();k.classList.remove('sobre');const o=ped(arr||e.dataTransfer.getData('text/plain')),nuevo=k.dataset.kc;arr=null;if(!o||o.estado==nuevo)return;
+      if(o.estado=='pendiente'&&nuevo!='pendiente'){if((S.insG||{})[o.id]<0&&!confirm('Con este pedido perdés plata. ¿Lo aprobás igual?'))return;if(!await chequearCredito(S.clientes.find(c=>c.id==o.cliente_id),o.total))return;await agregarDebidos(o)}
+      if(nuevo=='entregado'&&!confirm('¿Marcar el pedido N° '+o.numero+' como entregado?'))return;
+      if(await cambiarEstado(o,nuevo)){toast('Pedido N° '+o.numero+': '+EST_TXT[nuevo]+'.');if(nuevo=='aprobado')modalAvisos([o],'conf');if(nuevo=='en_reparto')modalAvisos([o],'sale')}tableroPedidos()}})}
+
+/* ======================= BOTÓN FLOTANTE "+" =======================
+   Desde cualquier pantalla: nuevo pedido, cliente, cobro, nota o visita. */
+function fabPintar(){let f=document.getElementById('fab');if(!S.perfil){f&&f.remove();return}
+  if(!f){f=document.createElement('div');f.id='fab';f.innerHTML=`<div class="fab-m" id="fab_m" hidden></div><button class="fab-b" id="fab_b" aria-label="Agregar" aria-expanded="false">${IC('plus',26)}</button>`;document.body.appendChild(f);
+    f.querySelector('#fab_b').onclick=e=>{e.stopPropagation();fabMenu()};document.addEventListener('click',e=>{if(!f.contains(e.target))fabCerrar()})}
+  f.hidden=!!document.querySelector('.modal')||(S.tab=='pedidos'&&!!S.pcli)}
+function fabCerrar(){const m=document.getElementById('fab_m'),b=document.getElementById('fab_b');if(m)m.hidden=true;if(b){b.classList.remove('on');b.setAttribute('aria-expanded','false')}}
+function fabMenu(){const m=$('#fab_m'),b=$('#fab_b');if(!m.hidden)return fabCerrar();
+  const O=[['cart','Nuevo pedido',()=>irA('pedidos')],['user','Nuevo cliente',()=>irA('clientes',{cs:'lista',abrirNuevo:1})],['cash','Registrar cobro',()=>irA('cobranza')],['note','Nota a un cliente',()=>fabCliente('Nota para…',c=>{fichaCliente(c);setTimeout(()=>{const i=$('#nt_t');if(i){i.scrollIntoView({behavior:'smooth',block:'center'});i.focus()}},700)})],['pin','Registrar visita',()=>fabCliente('Visita a…',c=>visita(c,()=>toast('Visita registrada.')))]];
+  m.innerHTML=O.map(([i,t],k)=>`<button data-fo="${k}"><span>${t}</span><i>${IC(i,20)}</i></button>`).join('');m.hidden=false;b.classList.add('on');b.setAttribute('aria-expanded','true');
+  m.querySelectorAll('[data-fo]').forEach(x=>x.onclick=()=>{fabCerrar();O[+x.dataset.fo][2]()})}
+function fabCliente(tit,fn){const m=document.createElement('div');m.className='modal';document.body.appendChild(m);fabPintar();
+  m.innerHTML=`<div class="mc"><div class="bh"><h3>${esc(tit)}</h3><button class="alt" id="fa_x">Cerrar</button></div><input id="fa_q" type="search" placeholder="Buscar cliente" autocomplete="off"><div id="fa_r" class="fa-r"></div></div>`;
+  const pinta=()=>{const q=$('#fa_q').value,L=S.clientes.filter(c=>c.activo!==false&&coincide(c.razon_social+' '+(c.nombre_fantasia||''),q)).sort((a,b)=>nomVis(a).localeCompare(nomVis(b))).slice(0,12);
+    $('#fa_r').innerHTML=L.map(c=>`<button class="alt" data-fa="${c.id}">${avatar(c)}<span>${esc(nomVis(c))}<small>${esc(c.barrio||c.ciudad||'')}</small></span></button>`).join('')||'<p><small>No encontré ese cliente.</small></p>';
+    m.querySelectorAll('[data-fa]').forEach(x=>x.onclick=()=>{m.remove();fabPintar();fn(S.clientes.find(c=>c.id==x.dataset.fa))})};
+  m.onclick=e=>{if(e.target==m){m.remove();fabPintar()}};$('#fa_x').onclick=()=>{m.remove();fabPintar()};$('#fa_q').oninput=pinta;pinta();setTimeout(()=>$('#fa_q').focus(),50)}
+setInterval(()=>{try{fabPintar()}catch(e){}},700);
 
 /* ======================= OBJETIVO DEL MES (Inicio) ======================= */
 async function objetivoMes(){const box=$('#obj');if(!box)return;

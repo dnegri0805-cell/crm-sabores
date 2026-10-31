@@ -20,6 +20,7 @@ Guía ordenada por sección para consultar o pasarle al equipo. Cada punto dice 
 - **Abre más rápido:** guarda en el equipo los clientes y productos y los actualiza solos por detrás.
 - **🔎 Buscar:** arriba a la derecha (o **Ctrl + K**) buscás un cliente, un producto (con precio, costo y stock) o un pedido por su número, desde cualquier pantalla.
 - **Menú principal:** en el celular, la barra de abajo es Inicio · Pedidos · Clientes · Precios · **Más**. En **Más** están las otras secciones (Cobranza, Caja, Stock, Contable, Manual), el **Dólar del día** y **Cuenta y ajustes** (Usuarios y accesos, Mercado Pago, Elegir pestañas del menú, Ver panel completo, Cambiar mi contraseña). En la compu, las pestañas van arriba. Los números en rojo indican cosas pendientes.
+- **Botón + flotante** (abajo a la derecha, en todas las pantallas): Nuevo pedido, Nuevo cliente, Registrar cobro, Nota a un cliente y Registrar visita.
 - **Letra:** el CRM usa su propia tipografía (Inter), igual en todos los equipos.
 
 ## 2. Inicio
@@ -69,7 +70,7 @@ Debajo aparecen tarjetas de aviso; cada una lleva a la pantalla donde se actúa:
 
 ## 3. Pedidos
 
-**Dónde:** menú *Pedidos*. Pestañas: En curso · Por aprobar · Entregados · Todos.
+**Dónde:** menú *Pedidos*. Pestañas: En curso · Por aprobar · Entregados · Todos. En la compu, **Lista o Tablero**: el tablero muestra los pedidos en columnas (Por aprobar → Aprobado → Armando → Listo → En reparto → Entregado) y se cambian de estado arrastrándolos.
 
 **Cargar un pedido** (botón *+ Nuevo pedido*):
 
@@ -237,6 +238,7 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 
 **Dónde:** menú *Clientes*. Pestañas: Clientes · Ruta de hoy · Agenda de visitas · Mapa · Dormidos · Prospectos · Pedidos fijos.
 
+- **Filtros por estado** (arriba de la lista): Le toca comprar · Deben · Dormidos · Nuevos, con la cantidad.
 - **Estado de cada cliente:** cartelito de color en la lista y la ficha: Al día · Le toca comprar · Debe · Dormido · Nuevo, con el motivo en la ficha.
 - **Ruta de hoy:** visitas del día más los que les toca comprar y los que deben, con qué ofrecerle a cada uno (los productos de las metas que todavía no lleva) y botones **Pedido · Cómo llegar · No estaba**. **Recorrido** abre las paradas en Google Maps.
 - **Historial** (en la ficha): pedidos, pagos, notas, visitas y mensajes en una línea de tiempo por fecha.
