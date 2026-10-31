@@ -1490,12 +1490,45 @@ html.oscuro .rp-bub{background:#1f3b2c;color:#e3e6ee}
 .rp-seg button{all:unset;cursor:pointer;padding:8px 14px;font-size:14px;color:var(--n)}.rp-seg button+button{border-left:1px solid var(--l)}.rp-seg button.on{background:var(--m);color:#fff;font-weight:600}
 .rp-n{font-weight:700;opacity:.7;margin-left:4px}
 .rp-seg button{text-transform:capitalize}
+
+/* Contable · Resultados */
+.ct-acc{display:flex;gap:8px;flex-wrap:wrap}.ct-acc button{width:auto;display:inline-flex;align-items:center;gap:6px}
+.ct-vac{text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;padding:24px 16px}.ct-vac p{color:var(--tx2);max-width:460px;margin:0}
+.ct-vi{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--m) 8%,#fff);color:var(--m)}
+.ct-rt{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-weight:700;font-size:16px;margin-bottom:10px}
+.ct-big{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.ct-big>div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ct-big small{color:var(--tx2);font-weight:600}.ct-big b{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ct-big span{font-size:12px;color:var(--tx2)}
+.ct-big .pos b{color:var(--ok)}.ct-big .neg b{color:var(--er)}
+@media(max-width:520px){.ct-big{grid-template-columns:1fr 1fr}.ct-big>div:last-child{grid-column:1/-1;border-top:1px solid var(--l);padding-top:8px}}
+.ct-fl{font-size:12px;font-weight:700}.ct-fl.sube{color:var(--ok)}.ct-fl.baja{color:var(--er)}
+.ct-cas{display:flex;height:12px;border-radius:999px;overflow:hidden;margin:14px 0 6px;background:#eef0f4}.ct-cas i{display:block;height:100%}
+.ct-cas .c,.ct-ley i.c{background:#b9bfcc}.ct-cas .g,.ct-ley i.g{background:#e0a21c}.ct-cas .r,.ct-ley i.r{background:var(--ok)}
+.ct-ley{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--tx2)}.ct-ley span{display:inline-flex;align-items:center;gap:5px}.ct-ley i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.ct-ley i.v{background:color-mix(in srgb,var(--m) 25%,#fff)}
+.ct-al{display:flex;gap:6px;align-items:flex-start;font-size:13px;color:#8a5300;margin:8px 0 0}
+.ct-gr{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;align-items:end;height:150px;margin:6px 0 8px}
+.ct-gc{display:flex;flex-direction:column;align-items:center;gap:4px;height:100%}.ct-gc small{color:var(--tx2);font-size:11.5px}.ct-gc.on small{color:var(--m);font-weight:700}
+.ct-gb{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center;gap:3px;border-bottom:1px solid var(--l)}
+.ct-gb i{width:38%;max-width:22px;border-radius:5px 5px 0 0;min-height:2px}.ct-gb i.v{background:color-mix(in srgb,var(--m) 25%,#fff)}.ct-gb i.r{background:var(--ok)}.ct-gb i.r.neg{background:var(--er)}
+.ct-cards{display:none;gap:8px;flex-direction:column}
+.ct-card{border:1px solid var(--l);border-radius:12px;padding:10px 12px}.ct-card.on{border-color:var(--m)}
+.ct-ch{display:flex;justify-content:space-between;align-items:baseline}.ct-ch span{font-weight:800;font-size:18px;font-variant-numeric:tabular-nums}
+.ct-cs{font-size:12.5px;color:var(--tx2);margin:2px 0 8px}
+.ct-cg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.ct-cg span{display:flex;flex-direction:column;font-size:13px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ct-cg small{font-size:11px;color:var(--tx2)}
+@media(max-width:640px){.ct-cards{display:flex}.ct-tab{display:none}}
+.ct-fx{position:sticky;left:0;background:#fff;z-index:1}html.oscuro .ct-fx{background:#18202f}
+.ct-er small{color:var(--tx2);font-weight:500}
+.ct-pg{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none}.ct-pg::-webkit-scrollbar{display:none}.ct-pg button{flex:none;white-space:nowrap}
+.ct-gb i{display:block;padding:0!important;font-size:0;flex:none}.ct-gb i.cero{background:#dfe2e8!important;height:2px!important}
+.ct-rt .ct-acc button{padding:6px 12px;font-size:13.5px}
+@media(max-width:640px){.ct-rt .ct-acc{width:100%;flex-wrap:nowrap}.ct-rt .ct-acc button{flex:1;justify-content:center}}
+th.ct-fx{position:static;background:none}
 </style>
 </head>
 <body>
 <div id="app"><div class="splash"><img src="logo.png" alt="Sabores de mi País"><i></i></div></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
-<script src="app.js?v=2026-10-31.18"></script>
+<script src="app.js?v=2026-10-31.19"></script>
 </body>
 </html>

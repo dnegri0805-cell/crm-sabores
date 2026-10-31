@@ -290,6 +290,13 @@ La credencial queda guardada en el servidor y nadie la puede volver a ver desde 
 
 ## 10. Stock y Contable
 
+**Contable → Resultados:**
+- Arriba, el **resultado del mes** en tres números grandes: *Vendiste · Gastaste · Te quedó*, con la flechita contra el mes anterior y una barra que muestra en qué se va cada peso vendido (mercadería, gastos y ganancia).
+- El **gráfico de los últimos 6 meses** pone ventas y ganancia lado a lado.
+- El **comparativo mensual** en el celular sale como tarjetas, una por mes; en la compu es una tabla con el mes siempre a la vista.
+- **Mandar al contador** arma el resultado del mes en PDF (el Excel completo con libros de IVA, gastos, cobros y bancos sigue en la pestaña *Para el contador*).
+- Si todavía no hay ventas ni gastos, en lugar de tablas en cero aparece una tarjeta que lo explica.
+
 **Stock:** cada producto es un renglón con su foto y un cartelito: 🔴 *Sin stock*, 🟡 *Bajo el mínimo* o 🟢 *Disponible*. Tocándolo se abre con Físico (lo que hay), Reservado (lo comprometido en pedidos) y Disponible.
 
 - **Contar:** escribí en **Contado** lo que hay y en **Mínimo** desde cuánto querés que te avise. Después, **Guardar cambios**.

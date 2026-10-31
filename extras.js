@@ -2911,6 +2911,7 @@ function vContable(){
   const mono=!/responsable\s*inscripto/i.test(S.emisor?.iva||'Monotributo'),SUBS=CT_SUBS.filter(([k])=>!(mono&&['iva','ret'].includes(k)));if(!SUBS.some(([k])=>k==S.ct))S.ct='resultados';
   $('#v').innerHTML=`<h2>Contable</h2><div class="sub ctsub tabs ct-pg">${SUBS.map(([k,t])=>`<button class="${S.ct==k?'':'alt'}" data-ct="${k}">${t}</button>`).join('')}</div><div id="ct"><span class="skl" role="status" aria-label="Cargando"></span></div>`;
   $$('[data-ct]').forEach(b=>b.onclick=()=>{S.ct=b.dataset.ct;vContable()});
+  {const tb=document.querySelector('#v .ct-pg'),ta=tb&&tb.querySelector('button:not(.alt)');if(ta)tb.scrollLeft=ta.offsetLeft-tb.offsetLeft-16}
   marcarUso('contable:'+S.ct);
   ({resultados:ctResultados,rentab:ctRentab,iva:ctIVA,ret:ctRet,cheques:ctCheques,bancos:ctBancos,flujo:ctFlujo,stockv:ctStockV,contador:ctContador})[S.ct]();
 }
@@ -2939,28 +2940,58 @@ async function ctResultados(){
   const{data:NCR}=await sb.from('notas_credito').select('fecha,items,repuesto').gte('fecha',d0).lt('fecha',d1);
   for(const n of NCR||[]){const x=R.find(r=>r.m==String(n.fecha).slice(0,7));if(!x)continue;
     for(const it of n.items||[]){const al=S.ctMono?0:alic(it.id),q=Number(it.q);x.v-=q*Number(it.pu)/(1+al/100);if(n.repuesto)x.c-=q*Number(it.cu||costoAct(it.id))/(1+al/100)}x.mb=x.v-x.c;x.r=x.v-x.c-x.g;x.nc=(x.nc||0)+1}
-  const a=R[5],b=R[4],cmp=(x,y)=>y>0&&x>0?`<small class="${x>=y?'sube':'baja'}">${x>=y?'▲':'▼'} ${pc1(Math.abs(x-y)/Math.abs(y))} vs mes anterior</small>`:'';
-  const gc={};for(const x of a.G)gc[x.categoria]=(gc[x.categoria]||0)+Number(x.importe||0);const gC=Object.entries(gc).sort((x,y)=>y[1]-x[1]),gMax=Math.max(1,...gC.map(x=>x[1]));
-  const maxAbs=Math.max(1,...R.map(x=>Math.abs(x.r)));
-  $('#rs').innerHTML=`<div class="kp">
-    <div class="box"><span class="lab">Ventas${S.ctMono?'':' sin IVA'}</span><span class="num">${$m0(a.v)}</span><span class="det">${a.n} ${a.n==1?'pedido':'pedidos'} ${cmp(a.v,b.v)}</span></div>
-    <div class="box"><span class="lab">Margen bruto</span><span class="num">${$m0(a.mb)}</span><span class="det">${a.v?pc1(a.mb/a.v)+' de las ventas':'—'}</span></div>
-    <div class="box"><span class="lab">Gastos</span><span class="num">${$m0(a.g)}</span><span class="det">${a.G.length} ${a.G.length==1?'gasto cargado':'gastos cargados'}</span></div>
-    <div class="box ${a.r<0?'alerta':'ok'}"><span class="lab">Ganancia del mes</span><span class="num">${$s(a.r)}</span><span class="det">${a.v?pc1(a.r/a.v)+' de las ventas ':''}${cmp(a.r,b.r)}</span></div></div>
-  <div class="dos fc2">
-    <div class="box"><h3>Estado de resultados · ${mesNom(S.ctMes)}</h3><table>
-      <tr><td>Ventas${S.ctMono?'':' (sin IVA)'}</td><td class="n">${$m(a.v)}</td></tr>
-      <tr><td>− Costo de la mercadería vendida${S.ctMono?'':' (sin IVA)'}${a.sinC?' <small class="mora">hay productos sin costo</small>':''}</td><td class="n">− ${$m(a.c)}</td></tr>
-      <tr class="tot"><td><b>Margen bruto</b></td><td class="n"><b>${$m(a.mb)}</b></td></tr>
-      ${gC.map(([k,v])=>`<tr><td>− ${esc(k)}</td><td class="n">− ${$m(v)}</td></tr>`).join('')||'<tr><td>− Gastos</td><td class="n">− '+$m(0)+'</td></tr>'}
-      <tr class="tot"><td><b>Ganancia neta</b></td><td class="n ${a.r<0?'mora':''}"><b>${$s(a.r)}</b></td></tr></table>
-      <p><small>${S.ctMono?'Ventas = pedidos aprobados en adelante, con el precio que cobrás (sos monotributista, no se descuenta IVA). El costo es el que pagaste por cada producto.':'Ventas = pedidos aprobados en adelante, sin IVA. El costo es el de cada producto al momento de la venta, sin IVA.'} Los gastos se toman como se cargaron en Caja.</small></p></div>
-    <div class="box"><h3>Ganancia de los últimos 6 meses</h3>${R.map(x=>`<div class="rbar"><span>${MESES[+x.m.slice(5)-1]+' '+x.m.slice(2,4)}</span><div class="rb"><i class="${x.r<0?'neg':''}" style="width:${(Math.abs(x.r)/maxAbs*100).toFixed(1)}%"></i></div><b class="${x.r<0?'mora':''}">${$s(x.r)}</b></div>`).join('')}
-      ${gC.length?`<h3 style="margin-top:16px">Gastos de ${mesNom(S.ctMes)}</h3>${gC.map(([k,v])=>`<div class="gbar"><span>${esc(k)}</span><b>${$m(v)}</b><i style="width:${(v/gMax*100).toFixed(1)}%"></i></div>`).join('')}`:''}</div></div>
-  <div class="box"><div class="bh"><h3>Comparativo mensual</h3><button class="alt" id="rs_cp">Copiar para Excel</button></div><div class="tscroll"><table><tr><th>Mes</th><th class="n">Ventas${S.ctMono?'':' s/IVA'}</th><th class="n">Costo</th><th class="n">Margen bruto</th><th class="n">Gastos</th><th class="n">Ganancia</th><th class="n">% s/ventas</th></tr>
-    ${R.map(x=>`<tr><td style="white-space:nowrap">${mesNom(x.m).replace(/ de (\d{4})$/,' $1')}</td><td class="n">${$m(x.v)}</td><td class="n">${$m(x.c)}</td><td class="n">${$m(x.mb)}</td><td class="n">${$m(x.g)}</td><td class="n ${x.r<0?'mora':''}"><b>${$s(x.r)}</b></td><td class="n">${x.v?pc1(x.r/x.v):'—'}</td></tr>`).join('')}</table></div></div>`;
+  const $sg=n=>(n<-0.5?'− ':'')+$m0(Math.abs(n)),a=R[5],b=R[4],vacio=R.every(x=>!x.n&&!x.g&&!x.v);
+  const pct=(x,y)=>y?Math.round((x-y)/Math.abs(y)*100):null,fl=(x,y)=>{const p=pct(x,y);return p==null||!isFinite(p)?'':`<span class="ct-fl ${p>=0?'sube':'baja'}">${p>=0?'▲':'▼'} ${Math.abs(p)} %</span>`};
+  const MN=m=>MESES[+m.slice(5)-1],mesL=mesNom(S.ctMes).split(' ')[0].toLowerCase();
+  const gc={};for(const x of a.G)gc[x.categoria||'Otros']=(gc[x.categoria||'Otros']||0)+Number(x.importe||0);const gC=Object.entries(gc).sort((x,y)=>y[1]-x[1]),gMax=Math.max(1,...gC.map(x=>x[1]));
+  const acc=`<div class="ct-acc"><button class="alt" id="rs_pdf">${IC('send',16)} Mandar al contador</button><button class="alt" id="rs_cp">${IC('download',16)} Copiar para Excel</button></div>`;
+  /* Todavía sin datos: una tarjeta chica que explica, en vez de tablas en cero */
+  if(vacio){$('#rs').innerHTML=`<div class="box ct-vac"><span class="ct-vi">${IC('chart',26)}</span><b>Todavía no hay ventas ni gastos para calcular la ganancia</b>
+      <p>La ganancia aparece sola cuando haya pedidos aprobados o entregados. Si ya tenés gastos fijos (alquiler, combustible, sueldos), cargalos en Caja y se descuentan acá.</p>
+      <div class="ct-acc" style="justify-content:center"><button onclick="irA('caja')">${IC('plus',16)} Cargar un gasto</button><button class="alt" onclick="irA('pedidos')">Ir a Pedidos</button></div></div>`;return}
+  /* Resumen del mes: vendiste, gastaste y te quedó, con la "cascada" de en qué se va cada peso */
+  const v=Math.max(0,a.v),pc=x=>v?Math.max(0,Math.min(100,x/v*100)):0,pC=pc(a.c),pG=pc(a.g),pR=Math.max(0,100-pC-pG);
+  const res=`<div class="box ct-res"><div class="ct-rt">Resultado de ${esc(mesL)}${acc}</div>
+    <div class="ct-big"><div><small>Vendiste</small><b>${$m0(a.v)}</b>${fl(a.v,b.v)}<span>${a.n} ${a.n==1?'pedido':'pedidos'}${S.ctMono?'':' · sin IVA'}</span></div>
+      <div><small>Gastaste</small><b>${$m0(a.c+a.g)}</b><span>${$m0(a.c)} mercadería · ${$m0(a.g)} gastos</span></div>
+      <div class="${a.r<-0.5?'neg':a.r>0.5?'pos':''}"><small>Te quedó</small><b>${$sg(a.r)}</b>${fl(a.r,b.r)}<span>${a.v?pc1(a.r/a.v)+' de lo vendido':'—'}</span></div></div>
+    ${a.v>0?`<div class="ct-cas" aria-hidden="true"><i class="c" style="width:${pC.toFixed(1)}%"></i><i class="g" style="width:${pG.toFixed(1)}%"></i><i class="r" style="width:${pR.toFixed(1)}%"></i></div>
+    <div class="ct-ley"><span><i class="c"></i>Mercadería ${Math.round(pC)} %</span><span><i class="g"></i>Gastos ${Math.round(pG)} %</span><span><i class="r"></i>Ganancia ${Math.round(pR)} %</span></div>`:''}
+    ${a.r<0?`<p class="ct-al">${IC('alert',15)} Este mes los gastos superan al margen por ${$m0(-a.r)}.</p>`:''}${a.sinC?`<p class="ct-al">${IC('alert',15)} Hay productos vendidos sin costo cargado: la ganancia sale más alta de lo real.</p>`:''}</div>`;
+  /* Gráfico: ventas y ganancia de cada mes, lado a lado */
+  const mx=Math.max(1,...R.map(x=>Math.max(x.v,Math.abs(x.r))));
+  const graf=`<div class="box"><h3>Ventas y ganancia · últimos 6 meses</h3><div class="ct-gr">${R.map(x=>`<div class="ct-gc ${x.m==S.ctMes?'on':''}"><div class="ct-gb"><i class="v${x.v>0?'':' cero'}" style="height:${(x.v/mx*100).toFixed(1)}%" title="Ventas ${$m0(x.v)}"></i><i class="r ${x.r<0?'neg':''}${Math.abs(x.r)>0.5?'':' cero'}" style="height:${(Math.abs(x.r)/mx*100).toFixed(1)}%" title="Ganancia ${$m0(x.r)}"></i></div><small>${MN(x.m)}</small></div>`).join('')}</div>
+    <div class="ct-ley"><span><i class="v"></i>Ventas</span><span><i class="r"></i>Ganancia</span></div></div>`;
+  /* Estado de resultados del mes */
+  const est=`<div class="box"><h3>Estado de resultados · ${mesNom(S.ctMes)}</h3><table class="ct-er">
+      <tr><td>Ventas${S.ctMono?'':' (sin IVA)'}</td><td class="n">${$m0(a.v)}</td></tr>
+      <tr><td>− Costo de la mercadería vendida</td><td class="n">− ${$m0(a.c)}</td></tr>
+      <tr class="tot"><td><b>Margen bruto</b> <small>${a.v?pc1(a.mb/a.v):''}</small></td><td class="n"><b>${$m0(a.mb)}</b></td></tr>
+      ${gC.map(([k,v])=>`<tr><td>− ${esc(k)}</td><td class="n">− ${$m0(v)}</td></tr>`).join('')||'<tr><td>− Gastos</td><td class="n">− '+$m0(0)+'</td></tr>'}
+      <tr class="tot"><td><b>Ganancia neta</b></td><td class="n ${a.r<0?'mora':''}"><b>${$sg(a.r)}</b></td></tr></table>
+      ${gC.length?`<h4 style="margin:14px 0 6px">En qué se fueron los gastos</h4>${gC.map(([k,v])=>`<div class="gbar"><span>${esc(k)}</span><b>${$m0(v)}</b><i style="width:${(v/gMax*100).toFixed(1)}%"></i></div>`).join('')}`:''}
+      <p><small>${S.ctMono?'Ventas = pedidos aprobados en adelante, con el precio que cobrás (sos monotributista, no se descuenta IVA).':'Ventas = pedidos aprobados en adelante, sin IVA.'} El costo es el de cada producto al momento de la venta. Los gastos, como se cargaron en Caja.</small></p></div>`;
+  /* Comparativo: tarjetas por mes en el celular, tabla con el mes fijo en la compu */
+  const comp=`<div class="box"><h3>Comparativo mensual</h3>
+    <div class="ct-cards">${[...R].reverse().map((x,k,A)=>{const y=A[k+1];return`<div class="ct-card ${x.m==S.ctMes?'on':''}"><div class="ct-ch"><b>${esc(mesNom(x.m).replace(/ de (\d{4})$/,' $1'))}</b><span class="${x.r<0?'mora':''}">${$sg(x.r)}</span></div>
+      <div class="ct-cs">${x.v?pc1(x.r/x.v)+' de lo vendido':'Sin ventas'}${y?' '+fl(x.r,y.r):''}</div>
+      <div class="ct-cg"><span><small>Ventas</small>${$m0(x.v)}</span><span><small>Mercadería</small>${$m0(x.c)}</span><span><small>Margen</small>${$m0(x.mb)}</span><span><small>Gastos</small>${$m0(x.g)}</span></div></div>`}).join('')}</div>
+    <div class="ct-tab tscroll"><table><tr><th class="ct-fx">Mes</th><th class="n">Ventas${S.ctMono?'':' s/IVA'}</th><th class="n">Costo</th><th class="n">Margen bruto</th><th class="n">Gastos</th><th class="n">Ganancia</th><th class="n">% s/ventas</th></tr>
+    ${R.map(x=>`<tr><td class="ct-fx" style="white-space:nowrap">${mesNom(x.m).replace(/ de (\d{4})$/,' $1')}</td><td class="n">${$m0(x.v)}</td><td class="n">${$m0(x.c)}</td><td class="n">${$m0(x.mb)}</td><td class="n">${$m0(x.g)}</td><td class="n ${x.r<0?'mora':''}"><b>${$sg(x.r)}</b></td><td class="n">${x.v?pc1(x.r/x.v):'—'}</td></tr>`).join('')}</table></div></div>`;
+  $('#rs').innerHTML=res+`<div class="dos fc2">${est}${graf}</div>`+comp;
   $('#rs_cp').onclick=()=>copiarTabla(['Mes','Ventas sin IVA','Costo','Margen bruto','Gastos','Ganancia'],R.map(x=>[mesNom(x.m),xl(x.v),xl(x.c),xl(x.mb),xl(x.g),xl(x.r)]));
+  $('#rs_pdf').onclick=()=>informeContador(R,a,gC);
 }
+/* Informe del mes para mandarle al contador (PDF) */
+async function informeContador(R,a,gC){const E=await datosEmisor().catch(()=>({})),w=window.open('','_blank');if(!w)return toast('Permití las ventanas emergentes para armar el informe.',1);
+  w.document.write(`<html><head><meta charset="utf-8"><title>Resultado ${mesNom(S.ctMes)} - ${esc(E.rs||'Sabores de mi País')}</title><style>body{font:13px system-ui,sans-serif;margin:28px;color:#1c2333;max-width:780px}h1{margin:0;color:${MARCA.c}}table{width:100%;border-collapse:collapse;margin:12px 0}th,td{padding:6px 8px;border-bottom:1px solid #ddd;text-align:left}.n{text-align:right;white-space:nowrap}.tot td{font-weight:700;border-top:2px solid #333}.ayuda{background:#f6e9ec;padding:10px;border-radius:6px}@media print{.ayuda{display:none}}</style><style>${docCss()}</style></head><body>
+  <p class="ayuda">Guardalo en PDF (<b>Guardar como PDF</b>) y mandáselo a tu contador. El Excel completo del mes está en <i>Contable → Para el contador</i>.</p>
+  <div class="top"><div>${logoImg(70)}<h1>${esc(E.rs||'Sabores de mi País')}</h1>${E.cuit?'CUIT '+esc(cuitFmt(E.cuit))+' · ':''}${esc(E.iva||'')}</div><div class="n"><b>RESULTADO DEL MES</b><br>${esc(mesNom(S.ctMes))}</div></div>
+  <h3>Estado de resultados</h3><table><tr><td>Ventas${S.ctMono?'':' (sin IVA)'} · ${a.n} pedidos</td><td class="n">${$m(a.v)}</td></tr><tr><td>− Costo de la mercadería vendida</td><td class="n">− ${$m(a.c)}</td></tr><tr class="tot"><td>Margen bruto</td><td class="n">${$m(a.mb)}</td></tr>
+  ${gC.map(([k,v])=>`<tr><td>− ${esc(k)}</td><td class="n">− ${$m(v)}</td></tr>`).join('')}<tr class="tot"><td>Ganancia neta</td><td class="n">${$s(a.r)}</td></tr></table>
+  <h3>Últimos 6 meses</h3><table><tr><th>Mes</th><th class="n">Ventas</th><th class="n">Costo</th><th class="n">Margen</th><th class="n">Gastos</th><th class="n">Ganancia</th></tr>${R.map(x=>`<tr><td>${esc(mesNom(x.m))}</td><td class="n">${$m(x.v)}</td><td class="n">${$m(x.c)}</td><td class="n">${$m(x.mb)}</td><td class="n">${$m(x.g)}</td><td class="n"><b>${$s(x.r)}</b></td></tr>`).join('')}</table>
+  <p><small>${S.ctMono?'Monotributo: las ventas se toman con el precio cobrado.':'Importes sin IVA.'} Gastos según lo cargado en Caja. Generado desde el CRM el ${new Date().toLocaleDateString('es-AR')}.</small></p>
+  <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close()}
 /* ---------- Rentabilidad ---------- */
 async function ctRentab(){
   S.rtP=S.rtP||'3m';S.rtV=S.rtV||'cli';
