@@ -123,7 +123,7 @@ async function vReportes(){
   $$('[data-rt]').forEach(b=>b.onclick=()=>{S.rpTab=b.dataset.rt;$$('[data-rt]').forEach(x=>x.classList.toggle('on',x.dataset.rt==S.rpTab));S.rpTodo=false;tabla()});
   const[pe,co,MV,MG]=await Promise.all([
     todo(()=>sb.from('pedidos').select('id,numero,total,estado,cliente_id,vendedor_id,creado_en,clientes(razon_social),pedido_items(producto_id,cantidad,precio_unitario)').not('estado','in','(pendiente,cancelado)').order('numero',{ascending:false})),
-    todo(()=>sb.from('productos').select('id,costo').order('id')),cfgJ('metas_vendedores',{}),cfgJ('meta_ventas',{monto:0})]);
+    todo(()=>sb.from('productos').select('id,costo').order('id')),cfgJ('metas_vendedores',{}),sb.from('config_app').select('valor').eq('clave','objetivo_'+mesHoy()).maybeSingle().then(r=>({monto:+r.data?.valor||0}),()=>({monto:0}))]);
   let P=pe.data;
   if(pe.error){const r2=await todo(()=>sb.from('pedidos').select('*,clientes(razon_social),pedido_items(producto_id,cantidad,precio_unitario)').not('estado','in','(pendiente,cancelado)').order('numero',{ascending:false}));
     if(r2.error){$('#rp_g').innerHTML='<p class="err">No se pudieron leer los pedidos: '+esc(r2.error.message)+'</p>';return}P=r2.data}
@@ -172,7 +172,7 @@ async function vReportes(){
         <div class="rp-mt2"><span>Llevás <b>${$m0(A.v)}</b> (${Math.round(A.v/m*100)} %)</span><span>A este ritmo cerrás en <b class="${ok?'ok':'er'}">${$m0(proy)}</b></span></div>
         <small>${A.v>=m?'🎉 ¡Meta cumplida!':hab>0?`Te faltan ${$m0(falta)}: <b>${$m0(falta/hab)} por día</b> en los ${hab} días hábiles que quedan.`:'Último día del mes.'}</small></div></div>`}
     $('#rp_me')&&($('#rp_me').onclick=async()=>{const v=prompt('Meta de ventas del mes (en pesos, con IVA):',m?String(Math.round(m)):'');if(v===null)return;const n=+String(v).replace(/[^\d]/g,'');
-      const{error}=await guardaCfgJ('meta_ventas',{monto:n});if(error)return toast(error.message,1);MG.monto=n;toast(n?'Meta guardada.':'Meta borrada.');meta(a,b)})};
+      const{error}=await sb.from('config_app').upsert({clave:'objetivo_'+mesHoy(),valor:String(n)});if(error)return toast(error.message,1);MG.monto=n;toast(n?'Meta guardada.':'Meta borrada.');meta(a,b)})};
   /* Avisos automáticos: lo importante del período en 3 frases */
   const avisos=()=>{const I=[];if(!A.n){$('#rp_in').innerHTML='';return}
     const fs=Object.values(A.fa).filter(x=>x.v>0).map(x=>({...x,ant:B.fa[x.f]?.v||0})).filter(x=>x.ant>0);
