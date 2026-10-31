@@ -7,6 +7,7 @@ Guía ordenada por sección para consultar o pasarle al equipo. Cada punto dice 
 - **CRM (uso interno):** https://dnegri0805-cell.github.io/crm-sabores/ — se entra con usuario y contraseña. Si te dieron una contraseña temporal, la primera vez te pide elegir una propia.
 - **Usuarios y accesos** (**Más → Cuenta y ajustes**, solo el dueño): das de alta a un socio, vendedor, administración o depósito con una contraseña temporal que se manda por WhatsApp; cambiás qué puede hacer, generás una contraseña nueva o lo das de baja. A los vendedores les **asignás clientes** (por zona o de a uno). **Cambiar mi contraseña** está en el mismo lugar.
 - **Comisiones avanzadas** (Más → Cuenta y ajustes → Comisiones): % general por vendedor, % especial por marca, sobre lo vendido o solo lo cobrado, y premio fijo al llegar a la meta.
+- **Quién cambió qué** (Más → Cuenta y ajustes): registro de cambios con persona, hora, antes y después; también por pedido (panel → Ver cambios) y por cliente (ficha → Más acciones).
 - **Vendedores:** cada uno ve solo **sus clientes y sus pedidos**, sin costos, ganancias, proveedores ni compras. En el Inicio ve **Mis clientes**, **Mis pedidos** y su **comisión** del mes (sobre lo vendido sin IVA de sus pedidos aprobados). Si intenta cargar un comercio que ya es cliente, el CRM le avisa que consulte con la oficina.
 - **Si se cierra la sesión** (saliste en otro equipo o venció): el CRM vuelve a la pantalla de ingreso con el aviso *Tu sesión se cerró*. Si ves productos sin precios ni fotos, es eso: salí y volvé a entrar.
 - **Catálogo de cada cliente:** link personal `pedido.html?c=…` que se manda desde la ficha del cliente (botón de WhatsApp). Cada cliente ve sus precios, su cuenta y sus promos.
@@ -245,13 +246,15 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 
 ## 8. Clientes
 
-**Dónde:** menú *Clientes*. Pestañas: Clientes · Ruta de hoy · Agenda de visitas · Mapa · Dormidos · Prospectos · Pedidos fijos.
+**Dónde:** menú *Clientes*. Pestañas: Clientes · Ruta de hoy · Semana · Agenda de visitas · Mapa · Dormidos · Prospectos · Pedidos fijos.
 
 - **Puntaje de salud** (0 a 100): frecuencia, monto, pago a tiempo y tendencia. Anillo de color en la lista y la ficha; **Ordenar por puntaje** en la lista.
 - **Filtros por estado** (arriba de la lista): Le toca comprar · Deben · Dormidos · Nuevos, con la cantidad.
 - **Estado de cada cliente:** cartelito de color en la lista y la ficha: Al día · Le toca comprar · Debe · Dormido · Nuevo, con el motivo en la ficha.
 - **Próximo paso:** una acción con fecha por cliente (ficha → Agregar próximo paso). Se ve en la ficha, la lista y la Ruta de hoy, aparece en Tareas el día que toca y con **Hecho** queda en el historial.
 - **Visitas con ubicación y Recorridos:** cada visita guarda la ubicación y la distancia al negocio (aviso si son más de 300 m). En *Clientes → Recorridos* el dueño ve, por vendedor y día, el mapa del recorrido, las visitas, los pedidos y lo vendido.
+- **Semana:** agenda de 7 días con tareas y próximos pasos (tildar hecho, pasar al día siguiente o arrastrar a otro día), entregas, promesas de pago y visitas; **+ Agregar** una tarea por día.
+- **Etiquetas de clientes:** de colores, creadas por el dueño; se ponen desde la ficha y filtran la lista.
 - **Ruta de hoy:** visitas del día más los que les toca comprar y los que deben, con qué ofrecerle a cada uno (los productos de las metas que todavía no lleva) y botones **Pedido · Cómo llegar · No estaba**. **Recorrido** abre las paradas en Google Maps.
 - **Compras de los últimos 6 meses** (en la ficha): barras por mes, promedio mensual y tendencia (viene comprando más, menos o parejo).
 - **Historial** (en la ficha): pedidos, pagos, notas, visitas y mensajes en una línea de tiempo por fecha.

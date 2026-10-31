@@ -1218,12 +1218,51 @@ html.oscuro .cl-ini[class*=" an-"]{box-shadow:0 0 0 2px #18202f,0 0 0 4px var(--
 @media(hover:hover){.cl-sw,.sw-ped{display:none!important}}
 @media(hover:none) and (max-width:640px){.cl-bts .cl-bt:not(.tel){display:none}}
 html.oscuro .cl-swp .cl-card{background:#18202f}html.oscuro .sw-ay{background:#18202f;border-color:#2a3446}
+
+/* Etiquetas */
+.etqs{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.etq,.fc-chips span.etq{display:inline-flex;align-items:center;font-size:11.5px;font-weight:700;border-radius:6px!important;padding:2px 8px!important;color:var(--ec)!important;background:color-mix(in srgb,var(--ec) 12%,#fff)!important;border:1px solid color-mix(in srgb,var(--ec) 28%,#fff)}
+.fc-chips .fc-etq{background:none!important;padding:0!important;display:inline-flex;flex-wrap:wrap;gap:4px;align-items:center}.fc-etq .etqs{margin:0}
+.fc-chips .etq-add{display:inline-flex;align-items:center;gap:4px;background:none!important;border:1px dashed #cfd3dc!important;color:var(--tx2)!important;border-radius:6px!important;padding:2px 8px!important;font-size:12px!important;min-height:0!important;font-weight:600;box-shadow:none}
+.etq-m{max-width:480px}.etq-l{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 14px}
+.etq-b{display:inline-flex!important;align-items:center;gap:5px;border-radius:999px!important;padding:7px 14px!important;font-size:14px!important;font-weight:600!important;border:1.5px solid color-mix(in srgb,var(--ec) 40%,#fff)!important;color:var(--ec)!important;background:#fff!important;min-height:0!important;box-shadow:none}
+.etq-b.on{background:var(--ec)!important;color:#fff!important;border-color:var(--ec)!important}
+.etq-n{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;border-top:1px solid #eceef3;padding-top:12px;margin-bottom:12px}.etq-n input{grid-column:1/-1}
+.etq-cs{display:flex;gap:6px}.etq-c{width:26px;height:26px;border-radius:50%!important;padding:0!important;border:0!important;min-height:0!important;box-shadow:none}.etq-c.on{box-shadow:0 0 0 2px #fff,0 0 0 4px #1c2333}
+#et_g{width:100%;min-height:46px}
+.etq-f i{width:9px;height:9px;border-radius:3px;display:inline-block}
+html.oscuro .etq{background:color-mix(in srgb,var(--ec) 22%,#18202f);border-color:color-mix(in srgb,var(--ec) 40%,#18202f);color:#e6e9f0}html.oscuro .etq-b{background:#18202f!important;color:#e6e9f0!important}
+/* Agenda de la semana */
+.sm-h{display:flex;align-items:center;gap:8px;margin:6px 0 10px}.sm-h>div{flex:1;display:flex;flex-direction:column;align-items:center}.sm-h small{color:var(--tx2);font-size:12.5px}.sm-h button{min-height:40px;padding:6px 12px}
+.sm-tabs{display:none}
+.sm{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}@media(min-width:901px){.sm{width:min(1560px,calc(100vw - 48px));position:relative;left:50%;transform:translateX(-50%)}}
+.sm-d{background:#f3f4f7;border-radius:14px;padding:8px;min-height:180px;border:2px dashed transparent;display:flex;flex-direction:column;gap:6px}.sm-d.hoy{background:#fbf3f5}.sm-d.sobre{border-color:var(--m)}
+.sm-dh{display:flex;justify-content:space-between;align-items:center;font-size:13.5px;text-transform:capitalize}.sm-dh span{font-size:11px;font-weight:700;color:#fff;background:var(--m);border-radius:999px;padding:1px 7px}
+.sm-i{display:flex;align-items:flex-start;gap:7px;background:#fff;border:1px solid #e6e8ed;border-radius:10px;padding:7px 8px;font-size:13px;line-height:1.3}
+.sm-i>div{flex:1;min-width:0;display:flex;flex-direction:column}.sm-i b{font-weight:600}.sm-i .lnk{font-size:12px;text-decoration:none;color:var(--tx2)}
+.sm-i input{width:18px;height:18px;margin:1px 0 0;flex:none;accent-color:var(--m)}.sm-i.ok{opacity:.55}.sm-i.ok b{text-decoration:line-through}
+.sm-ic{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:#f3f4f7;color:var(--tx2)}.sm-ent .sm-ic{background:#e8f0ff;color:#2457c5}.sm-pro .sm-ic{background:#e7f6ec;color:#1d7a46}
+.sm-tar[draggable=true]{cursor:grab}.sm-i.arr{opacity:.4}
+.sm-m{flex:none;width:28px;height:28px;padding:0!important;display:grid!important;place-items:center;border-radius:8px!important;min-height:0!important}
+.sm-vis{font-size:12.5px;color:var(--tx2)}.sm-vis summary{cursor:pointer;display:flex;align-items:center;gap:4px}.sm-vis a{display:block;padding:2px 0 2px 18px;text-decoration:none}
+.sm-add{margin-top:auto;font-size:12.5px!important;padding:5px!important;min-height:0!important;border-style:dashed!important;display:inline-flex!important;align-items:center;justify-content:center;gap:4px}
+@media(max-width:900px){.sm-tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:10px;padding-bottom:2px}.sm-tabs button{flex:none;display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:7px 12px;text-transform:capitalize;background:#fff;border:1px solid #e3e6ee;color:#1c2333;font-weight:600;min-height:0}.sm-tabs button.on{background:var(--m);color:#fff;border-color:var(--m)}.sm-tabs button.hoy:not(.on){border-color:var(--m);color:var(--m)}.sm-tabs i{font-style:normal;font-size:11px;background:#fff4dc;color:#9a6200;border-radius:999px;padding:0 6px}
+  .sm{display:block}.sm-d{display:none;min-height:0}.sm-d.sel{display:flex}.sm-i{font-size:14.5px;padding:10px}.sm-dh{display:none}}
+html.oscuro .sm-d{background:#141b28}html.oscuro .sm-d.hoy{background:#2a1a20}html.oscuro .sm-i{background:#18202f;border-color:#273246}html.oscuro .sm-tabs button{background:#18202f;border-color:#2a3446;color:#e6e9f0}
+/* Quién cambió qué */
+.cbm{max-width:640px}.cb-f{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px}.cb-f input{grid-column:1/-1}
+.cb-dia{margin:14px 0 6px;font-size:13px;text-transform:capitalize;color:var(--tx2)}
+.cb-i{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid #f0f1f5}.cb-i>div{flex:1;min-width:0}.cb-i small{color:var(--tx2);font-size:12px;flex:none}
+.cb-u{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#f8eef1;color:var(--m);font-weight:800;font-size:13px}
+.cb-t{font-size:14px}.cb-d{font-size:13.5px;color:#3c4458;margin-top:2px;line-height:1.45}.cb-d s{color:var(--tx2)}.cb-alta .cb-d{color:#1d7a46}.cb-baja .cb-d{color:#b4232f}
+.pd-cb{grid-column:1/-1}
+html.oscuro .cb-i{border-color:#232c3c}html.oscuro .cb-d{color:#c3c9d6}
 </style>
 </head>
 <body>
 <div id="app"><div class="splash"><img src="logo.png" alt="Sabores de mi País"><i></i></div></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
-<script src="app.js?v=2026-10-31.5"></script>
+<script src="app.js?v=2026-10-31.6"></script>
 </body>
 </html>
