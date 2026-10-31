@@ -936,12 +936,50 @@ html.oscuro .kphoy .box.vacio .lab{color:#e6e9f0}html.oscuro #kcero .lab{color:#
 .mj .ey{font-size:11.5px!important;letter-spacing:.07em!important}.mj .mjtop .ey,.mj .mjrow .ey{color:var(--tx2)!important}
 .mj .mjh .ey{text-transform:none!important;letter-spacing:0!important;font-size:15px!important;font-weight:600!important;color:rgba(255,255,255,.82)!important}
 .ppal button:nth-child(6){min-height:38px!important;padding:6px 12px!important;background:transparent!important;border-color:transparent!important;box-shadow:none!important;font-size:14px!important;font-weight:600!important;color:var(--m)!important}
+
+/* Estado del cliente */
+.cl-est{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;border-radius:999px;padding:2px 9px;white-space:nowrap;line-height:1.5}
+.cl-est::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
+.cl-est.e-ok{background:#e7f6ec;color:#1d7a46}.cl-est.e-toca{background:#fff4dc;color:#9a6200}.cl-est.e-debe{background:#fde8ea;color:#b4232f}.cl-est.e-dormido{background:#eef0f4;color:#5b6274}.cl-est.e-nuevo{background:#e8f0ff;color:#2457c5}.cl-est.e-sin{background:#f3f4f7;color:#7a8194}
+html.oscuro .cl-est.e-ok{background:#12301f;color:#7fd3a0}html.oscuro .cl-est.e-toca{background:#3a2c0c;color:#f1c56a}html.oscuro .cl-est.e-debe{background:#3d1519;color:#f19aa2}html.oscuro .cl-est.e-dormido,html.oscuro .cl-est.e-sin{background:#232c3c;color:#a3abbd}html.oscuro .cl-est.e-nuevo{background:#14254a;color:#93b4ff}
+.cl-ultw{display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap}.cl-ultw .cl-ult{color:var(--tx2)!important;font-size:12.5px}
+.fc-chips .fc-estw{background:none!important;padding:0!important;display:inline-flex;align-items:center;gap:8px;flex-basis:100%}.fc-estw small{color:var(--tx2);font-size:13px}.fc-estw:empty{display:none}
+/* Historial (línea de tiempo) */
+.fc2 .fc-hist{grid-column:1/-1}
+.tl{position:relative;margin-top:4px}.tl::before{content:'';position:absolute;left:15px;top:8px;bottom:8px;width:2px;background:#eceef3}
+.tl-i{position:relative;display:flex;gap:12px;align-items:flex-start;padding:8px 0}
+.tl-ic{flex:none;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:#fff;border:2px solid #eceef3;color:var(--tx2);position:relative;z-index:1}
+.tl-ped .tl-ic{border-color:#e9cdd4;color:var(--m)}.tl-pag .tl-ic{border-color:#bfe3cc;color:#1d7a46}.tl-vis .tl-ic{border-color:#c9d8f5;color:#2457c5}.tl-not .tl-ic{border-color:#f0dca8;color:#9a6200}
+.tl-c{flex:1;min-width:0;padding-top:5px}.tl-h{font-size:14.5px;line-height:1.4}.tl-h .badge{margin-left:2px;vertical-align:1px}.tl-h small{color:var(--tx2)}
+.tl-x{display:flex;gap:14px;flex-wrap:wrap;margin-top:4px;font-size:13px}.tl-x .lnk{display:inline-flex;align-items:center;gap:4px}
+.tl-f{flex:none;padding-top:7px;color:var(--tx2);font-size:12.5px;white-space:nowrap}
+.tl-mas{width:100%;margin-top:6px}
+html.oscuro .tl::before{background:#2a3446}html.oscuro .tl-ic{background:#18202f;border-color:#2a3446}
+/* Ruta de hoy */
+.ruta-h{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:4px 0 12px}.ruta-h h3{margin:0;font-size:20px}.ruta-h small{color:var(--tx2);font-size:13.5px}
+.ruta{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
+.rcard{background:#fff;border:1px solid #e6e8ed;border-radius:14px;padding:12px 14px;display:grid;gap:10px}
+.rcard.hecho{opacity:.6}
+.rc-top{display:flex;align-items:center;gap:10px}.rc-top .parada{flex:none}.rc-n{flex:1;min-width:0;display:flex;flex-direction:column}.rc-n .vi-nm{font-weight:700;font-size:16px;color:#1c2333;text-decoration:none;cursor:pointer}.rc-n small{color:var(--tx2);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rc-info{display:flex;flex-direction:column;gap:3px;font-size:13.5px;color:#3c4458}.rc-info span{display:flex;align-items:center;gap:6px}
+.rc-of{color:#7a5600!important}.rc-of b{font-weight:700}.rc-ok{color:#1d7a46!important;font-weight:600}
+.rc-acc{display:flex;gap:8px}.rc-acc>*{flex:1;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:42px;padding:6px 8px;font-size:14px;text-decoration:none}
+html.oscuro .rcard{background:#18202f;border-color:#273246}html.oscuro .rc-n .vi-nm{color:#e6e9f0}html.oscuro .rc-info{color:#c3c9d6}html.oscuro .rc-of{color:#e9c46a!important}
+/* Vendido en el mes */
+.mesv{padding:14px 16px!important;margin-bottom:12px}
+.mv-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.mv-ey{font-size:11.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--tx2)}
+.mv-meta{background:#f6f7fa!important;border:1px solid #eceef3!important;color:#3c4458!important;border-radius:999px;padding:3px 10px!important;font-size:12.5px!important;font-weight:600;display:inline-flex;align-items:center;gap:5px;min-height:0!important;box-shadow:none}
+.mv-n{display:flex;align-items:baseline;gap:10px;margin:4px 0 8px}.mv-n b{font-size:28px;font-weight:800;letter-spacing:-.015em;font-variant-numeric:tabular-nums}.mv-n span{font-size:15px;font-weight:700;color:var(--m)}.mv-n span.sube{color:#1d7a46}
+.mv-bar{position:relative;height:8px;border-radius:999px;background:#eef0f4;overflow:visible}.mv-bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#9c3a50,#7b2d3e)}.mv-bar span{position:absolute;top:-3px;width:2px;height:14px;background:#1c2333;opacity:.35;border-radius:2px}
+.mv-d{display:block;margin-top:8px;color:var(--tx2);font-size:13px}
+html.oscuro .mv-meta{background:#232c3c!important;border-color:#2a3446!important;color:#c3c9d6!important}html.oscuro .mv-bar{background:#232c3c}html.oscuro .mv-bar span{background:#fff}
 </style>
 </head>
 <body>
 <div id="app"><div class="splash"><img src="logo.png" alt="Sabores de mi País"><i></i></div></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
-<script src="app.js?v=2026-10-30.14"></script>
+<script src="app.js?v=2026-10-30.16"></script>
 </body>
 </html>

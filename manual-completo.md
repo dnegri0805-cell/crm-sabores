@@ -24,7 +24,7 @@ Guía ordenada por sección para consultar o pasarle al equipo. Cada punto dice 
 
 ## 2. Inicio
 
-Es el tablero del día. **Inicio simple** (el que se abre por defecto): botones grandes (Nuevo pedido, Nuevo cliente, Proveedores, Compras, Ventas y el renglón **Folletos**), *Facturado hoy* (en $ 0 queda en un renglón; cuando facturás se agranda), los números del día (los que están en cero se juntan en un renglón verde **✅ Todo al día**), las **metas del mes** (Maní JL y kilos) y los desplegables *Vencidas y para reponer* y *Tareas y avisos del día*, con un numerito que dice cuántas cosas hay adentro. Al pie, solo para el dueño: **✓ Copias de seguridad al día · Ver** (se abre con *Hacer otra* si pasó una semana sin bajar copia, o un aviso grande si pasó mucho). Usuarios, Mercado Pago, Cambiar mi contraseña, Ver panel completo, Elegir pestañas y Dólar del día están en **Más**.
+Es el tablero del día. **Inicio simple** (el que se abre por defecto): arriba, **Vendido en el mes** (solo el dueño: vendido, % de la meta con barra, hoy y proyección; la meta se cambia tocándola), los botones grandes (Nuevo pedido, Nuevo cliente, Proveedores, Compras, Ventas y el renglón **Folletos**), *Facturado hoy* (en $ 0 queda en un renglón; cuando facturás se agranda), los números del día (los que están en cero se juntan en un renglón verde **✅ Todo al día**), las **metas del mes** (Maní JL y kilos) y los desplegables *Vencidas y para reponer* y *Tareas y avisos del día*, con un numerito que dice cuántas cosas hay adentro. Al pie, solo para el dueño: **✓ Copias de seguridad al día · Ver** (se abre con *Hacer otra* si pasó una semana sin bajar copia, o un aviso grande si pasó mucho). Usuarios, Mercado Pago, Cambiar mi contraseña, Ver panel completo, Elegir pestañas y Dólar del día están en **Más**.
 
 **🥜 Maní JL:** meta de ganancia limpia del mes con los productos de JL (se cambia con el lápiz). El bloque bordó muestra las cajas de la semana con un anillo y cuántas cajas por visita hacen falta; si la meta no llega en el mes, pasa a *Foco: cubrir gastos*. **A fin de mes** (última semana), si el mes ya no llega, el bloque muestra el mes que arranca: *Noviembre arranca · 116 cajas por semana · Meta del mes: 480 cajas*. En **Ver detalle del mes**: barra con el tramo de gastos, Vendiste · Ganancia · Limpio, pallets por mes y ganancia por pallet, el interruptor **Calcular con** (65 y 85 g o toda la línea, se desliza con el dedo) y **A quién visitar**. No cuenta pedidos cancelados ni de prueba.
 
@@ -235,7 +235,11 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 
 ## 8. Clientes
 
-**Dónde:** menú *Clientes*. Pestañas: Clientes · Agenda de visitas · Mapa · Dormidos · Prospectos · Pedidos fijos.
+**Dónde:** menú *Clientes*. Pestañas: Clientes · Ruta de hoy · Agenda de visitas · Mapa · Dormidos · Prospectos · Pedidos fijos.
+
+- **Estado de cada cliente:** cartelito de color en la lista y la ficha: Al día · Le toca comprar · Debe · Dormido · Nuevo, con el motivo en la ficha.
+- **Ruta de hoy:** visitas del día más los que les toca comprar y los que deben, con qué ofrecerle a cada uno (los productos de las metas que todavía no lleva) y botones **Pedido · Cómo llegar · No estaba**. **Recorrido** abre las paradas en Google Maps.
+- **Historial** (en la ficha): pedidos, pagos, notas, visitas y mensajes en una línea de tiempo por fecha.
 
 - **Clientes:** buscador y filtros (con deuda, por zona, por lista). Tocando un cliente se abre su **ficha**.
 - **📂 Documentos** (en la ficha): constancia de CUIT, de Ingresos Brutos, habilitación, contrato de comodato o DNI (foto o PDF). Quedan en una carpeta privada que solo se ve entrando al CRM; si tienen vencimiento te avisa en Inicio un mes antes. Requiere **cuentas.sql**.

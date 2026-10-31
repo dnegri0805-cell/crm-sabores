@@ -18,7 +18,8 @@ Las funciones del CRM tal como quedaron, en el orden en que las usás en el día
 
 Es el tablero del día. De arriba hacia abajo:
 
-- **Botones:** Nuevo pedido (el grande, en bordó), Nuevo cliente, Proveedores, Compras y Ventas, y abajo el renglón **Folletos**. El vendedor ve *Mis clientes* y *Mis pedidos* en lugar de Proveedores y Compras.
+- **Vendido en el mes** (solo el dueño): lo vendido en el mes, el % de la meta con su barra (la rayita es el día de hoy), lo de hoy y a cuánto cerrás a este ritmo. La meta se pone o se cambia tocando **Meta $ …**.
+- **Botones:** Nuevo pedido (el grande, en bordó), Nuevo cliente, Proveedores, Compras y Ventas, y abajo el renglón **Folletos**. El vendedor ve *Mis clientes* y *Ruta de hoy* en lugar de Proveedores y Compras.
 - **Facturado hoy:** siempre a la vista. En $ 0 queda en un solo renglón; cuando facturás, se agranda.
 - **Números del día:** Por aprobar, Visitas de hoy, Te deben, Debés a proveedores y Para entregar. *Te deben* se pinta de rojo solo si hay facturas vencidas.
 - **✅ Todo al día:** los números que están en cero se juntan en un solo renglón verde (por ejemplo *Nada pendiente* o *Sin cobros ni pagos*). Apenas uno tiene algo, vuelve a aparecer como tarjeta.
@@ -92,9 +93,11 @@ El envío se suma solo: **gratis desde $ 150.000**, si no **$ 15.000**. Para pro
 ## 5. Clientes y prospectos
 
 - **Lista:** agrupada por rubro, con buscador por nombre o CUIT y filtros por rubro. Cada cliente muestra cuándo compró por última vez y tres botones: lista de precios, WhatsApp y llamar.
-- **Pestañas:** Clientes · Agenda de visitas · Mapa · Dormidos · Prospectos · Pedidos fijos.
+- **Pestañas:** Clientes · Ruta de hoy · Agenda de visitas · Mapa · Dormidos · Prospectos · Pedidos fijos.
+- **Estado de cada cliente** (cartelito de color en la lista y en la ficha): 🟢 **Al día** · 🟡 **Le toca comprar** (según cada cuánto compra) · 🔴 **Debe** (tiene facturas vencidas) · ⚪ **Dormido** (más de 45 días sin comprar) · 🔵 **Nuevo** (primeros pedidos o recién cargado). En la ficha, al lado, dice por qué (por ejemplo *Compró hace 18 días (suele cada 14)*).
+- **Ruta de hoy:** los clientes que tienen visita hoy, más los que les toca comprar y los que deben, en orden. Cada tarjeta dice por qué ir, **⭐ qué ofrecerle** (Maní JL, BOYA, Etiqueta Negra… lo que todavía no lleva) y tiene **Pedido**, **Cómo llegar** y **No estaba** (queda anotado en su historial). Arriba, **Recorrido** abre todas las paradas en Google Maps.
 - **Nuevo cliente:** botón **+ Nuevo cliente** arriba (o desde Inicio).
-- **Ficha del cliente:** **Nuevo pedido** (con el cliente ya elegido), **Mandar lista** (WhatsApp con un saludo y su link personal para pedir), **WhatsApp**, **Llamar**, **Datos del cliente** con *Editar datos*. Debajo, los números: **Saldo, Vencido, Compró este año y Último pedido**. Después, **Notas** (con fecha quedan como tarea) y el link de pedidos online.
+- **Ficha del cliente:** **Nuevo pedido** (con el cliente ya elegido), **Mandar lista** (WhatsApp con un saludo y su link personal para pedir), **WhatsApp**, **Llamar**, **Datos del cliente** con *Editar datos*. Debajo, los números: **Saldo, Vencido, Compró este año y Último pedido**, y el **Historial**: pedidos, pagos, notas, visitas y mensajes en una sola lista por fecha (con Imprimir y Remito en cada pedido). Más abajo, **Notas** (con fecha quedan como tarea) y el link de pedidos online.
 - **Vendedores:** cada vendedor ve solo **sus clientes** (los que carga él y los que le asigna el dueño). Si intenta cargar un comercio que ya es cliente, el CRM le avisa *Este comercio ya es cliente de Sabores de mi País. Consultá con la oficina*.
 - **Para que el saludo salga bien:** los mensajes saludan con el campo **Contacto** ("¡Hola Mariela!"). Si está vacío, usan el nombre del negocio. En la lista se ve el nombre de fantasía; las facturas y remitos salen con la razón social.
 - **Alguien nuevo te escribe:** mandale el **catálogo público** (precios mayoristas): https://dnegri0805-cell.github.io/crm-sabores/pedido.html?ver=catalogo — está en *Más → Ventas → Folletos y catálogo*. Cuando pide, el CRM lo da de alta solo como cliente (o lo reconoce por el teléfono) y el pedido entra en **Pedidos → Por aprobar** con la nota *🌐 Catálogo · cliente nuevo*: completale los datos en su ficha y desde ahí usá siempre **Mandar lista**.
