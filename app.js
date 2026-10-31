@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-31.32';
+const VERSION='2026-10-31.33';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -2138,12 +2138,13 @@ async function pedidoPDF0(o){
 
 /* ---------- Cobranza ---------- */
 function vCobranza(){setTimeout(()=>{if(S.preCob&&$('#k_c')){$('#k_c').value=S.preCob;S.preCob=null;$('#k_c').onchange()}});
-  $('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Cobranza</h2><div class="fc-acc cob-tools"><button class="alt" onclick="semaforoRiesgo()">🚦 Semáforo de riesgo</button><button class="alt" onclick="creditoInteligente()">💳 Crédito inteligente</button><button class="alt" onclick="conciliar()">🏦 Conciliar transferencias</button></div></div><h3>Registrar un cobro</h3><div class="box"><div id="k_pick"><input id="k_q" type="search" placeholder="Buscar cliente para cobrarle" autocomplete="off"><div id="k_r"></div></div><div id="k_sel" hidden></div><select id="k_c" hidden><option value="">Elegí un cliente</option>${S.clientes.map(c=>`<option value="${c.id}">${esc(c.razon_social)}</option>`).join('')}</select><div id="k_s"></div></div><div id="mor"></div>`;
-  morosos();
+  $('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Cobranza</h2><button class="alt ped-herr" onclick="abrirMasHoja('cb_mh','Herramientas de cobranza')">${IC('sliders',16)} Herramientas</button></div><div hidden id="cb_mh"><button class="alt" onclick="semaforoRiesgo()">🚦 Semáforo de riesgo</button><button class="alt" onclick="creditoInteligente()">💳 Crédito inteligente</button><button class="alt" onclick="conciliar()">🏦 Conciliar transferencias</button><button class="alt" onclick="cobEstadosMasivo()">📲 Mandar estado de cuenta a todos los que deben</button></div>
+  <div id="cb_dash"></div><h3>Registrar un cobro</h3><div class="box"><div id="k_pick"><input id="k_q" type="search" placeholder="Buscar cliente para cobrarle" autocomplete="off"><div id="k_chips" class="k-chips"></div><div id="k_r"></div></div><div id="k_sel" hidden></div><select id="k_c" hidden><option value="">Elegí un cliente</option>${S.clientes.map(c=>`<option value="${c.id}">${esc(c.razon_social)}</option>`).join('')}</select><div id="k_s"></div></div><div id="cb_ult"></div><div id="mor"></div>`;
+  morosos();cobDash().catch(e=>reportarError(e,'cobranza:dash'));cobUltimos().catch(()=>{});
   const kPinta=()=>{const c=S.clientes.find(x=>x.id==$('#k_c').value);$('#k_pick').hidden=!!c;$('#k_sel').hidden=!c;
     $('#k_sel').innerHTML=c?`<div class="r pcr ksel">${avatar(c)}<span><b>${esc(nomVis(c))}</b><small>${esc([(c.nombre_fantasia||'').trim()?tituloCaso(c.razon_social):'',c.barrio||c.ciudad].filter(Boolean).join(' · '))}</small></span><a class="lnk" id="k_cx">Cambiar</a></div>`:'';
     $('#k_cx')&&($('#k_cx').onclick=()=>{$('#k_c').value='';$('#k_c').onchange();setTimeout(()=>$('#k_q').focus(),50)})};
-  $('#k_q').oninput=()=>{const q=$('#k_q').value.trim().toLowerCase(),r=q?S.clientes.filter(c=>c.activo!==false&&coincide(c.razon_social+' '+(c.nombre_fantasia||'')+' '+(c.cuit||''),q)).slice(0,8):[];
+  $('#k_q').oninput=()=>{const ch=$('#k_chips');if(ch)ch.hidden=!!$('#k_q').value.trim();const q=$('#k_q').value.trim().toLowerCase(),r=q?S.clientes.filter(c=>c.activo!==false&&coincide(c.razon_social+' '+(c.nombre_fantasia||'')+' '+(c.cuit||''),q)).slice(0,8):[];
     $('#k_r').innerHTML=q?(r.map(c=>`<div class="r pcr" data-kid="${c.id}">${avatar(c)}<span><b>${esc(nomVis(c))}</b><small>${esc([(c.nombre_fantasia||'').trim()?tituloCaso(c.razon_social):'',c.barrio||c.ciudad].filter(Boolean).join(' · '))}</small></span></div>`).join('')||'<small>No hay clientes con ese nombre.</small>'):'';
     $$('#k_r [data-kid]').forEach(d=>d.onclick=()=>{$('#k_c').value=d.dataset.kid;$('#k_q').value='';$('#k_r').innerHTML='';$('#k_c').onchange()})};
   $('#k_c').onchange=async()=>{kPinta();const id=$('#k_c').value;if(!id){$('#k_s').innerHTML='';return}
@@ -2192,6 +2193,63 @@ async function extrasGuardar(modo,imp,concepto,info={}){if(S.perfil.rol!='dueno'
   if(e)toast('Se guardó, pero no se pudo anotar en bancos/cheques: '+e.message,1)}
 
 /* ---------- Clientes que deben: resumen y aviso ---------- */
+/* Cobranza: tablero (para cobrar hoy, vence pronto, antigüedad, días promedio) */
+async function cobDash(){const box=$('#cb_dash');if(!box)return;const hoy=diaLocal(new Date()),en7=diaLocal(new Date(Date.now()+7*864e5)),h0=tsAR(hoy),mes=hoy.slice(0,7);
+  const ok=q=>Promise.resolve(q).then(x=>x,()=>({}));
+  const[fe,en,lk,rm,imp]=await Promise.all([ok(todo(()=>sb.from('facturas_estado').select('factura_id,cliente_id,tipo,numero,pendiente,vencimiento,dias_mora,fecha').gt('pendiente',0.005).order('vencimiento'))),
+    ok(sb.from('pedidos').select('id,numero,cliente_id,total').eq('estado','entregado').gte('entregado_en',h0)),
+    ok(sb.from('reparto_links').select('eventos,pedidos').gte('creado_en',h0)),
+    ok(sb.from('recibos').select('importe,fecha,cliente_id').eq('anulado',false).gte('fecha',diaLocal(new Date(new Date().getFullYear(),new Date().getMonth()-1,1)))),
+    ok(sb.from('recibo_imputaciones').select('importe,recibos!inner(fecha,anulado),facturas_venta!inner(fecha)').gte('recibos.fecha',diaLocal(new Date(Date.now()-120*864e5))).limit(2000))]);
+  if(!document.body.contains(box))return;
+  if(!S.prom)await cargarPromesas().catch(()=>null);
+  const F=fe.data||[],cl=id=>S.clientes.find(c=>c.id==id)||{},nom=id=>{const c=cl(id);return nomVis(c)||c.razon_social||'Cliente'},R0=rm.data||[];
+  const saldoCli={};F.forEach(f=>saldoCli[f.cliente_id]=(saldoCli[f.cliente_id]||0)+(+f.pendiente||0));
+  /* 1. para cobrar hoy */
+  const H=[];
+  (en.data||[]).forEach(o=>{const c=cl(o.cliente_id);if(!c.condicion_pago_dias&&(saldoCli[o.cliente_id]||0)>1)H.push({k:'ent',cid:o.cliente_id,t:`Contado entregado hoy · pedido N° ${o.numero}`,m:Math.min(+o.total,saldoCli[o.cliente_id])})});
+  (S.prom||[]).filter(p=>p.estado=='pendiente'&&p.fecha<=hoy).forEach(p=>H.push({k:'pro',cid:p.cliente_id,t:p.fecha<hoy?'Prometió pagar el '+fd(p.fecha)+' (atrasada)':'Prometió pagar hoy',m:+p.monto}));
+  (lk.data||[]).forEach(l=>(l.eventos||[]).filter(e=>e.accion=='entregado'&&+e.cobrado>0).forEach(e=>{const o=(en.data||[]).find(x=>x.id==e.pedido);const cid=o?.cliente_id;if(cid)H.push({k:'cho',cid,t:`El chofer cobró (${e.medio||'efectivo'}) · pedido N° ${e.numero}`,m:+e.cobrado})}));
+  /* 2. vence pronto */
+  const VP=F.filter(f=>f.vencimiento&&f.vencimiento>=hoy&&f.vencimiento<=en7);
+  /* 3. antigüedad */
+  const B=[['Al día',f=>!(f.dias_mora>0),'v'],['1 a 30 días',f=>f.dias_mora>0&&f.dias_mora<=30,'a'],['31 a 60',f=>f.dias_mora>30&&f.dias_mora<=60,'n'],['Más de 60',f=>f.dias_mora>60,'r']].map(([t,fn,k])=>{const L=F.filter(fn);return{t,k,n:L.length,m:L.reduce((a,f)=>a+(+f.pendiente||0),0)}});
+  const tot=B.reduce((a,b)=>a+b.m,0);
+  /* 4. días promedio de cobro (ponderado por importe) */
+  const I=(imp.data||[]).filter(x=>!x.recibos?.anulado&&x.facturas_venta?.fecha),dso=L=>{let s=0,w=0;L.forEach(x=>{const d=Math.max(0,Math.round((new Date(String(x.recibos.fecha).slice(0,10)+'T12:00')-new Date(String(x.facturas_venta.fecha).slice(0,10)+'T12:00'))/864e5)),v=+x.importe||0;s+=d*v;w+=v});return w?Math.round(s/w):null};
+  const d1=dso(I.filter(x=>Date.now()-new Date(x.recibos.fecha)<=30*864e5)),d0=dso(I.filter(x=>{const t=Date.now()-new Date(x.recibos.fecha);return t>30*864e5&&t<=60*864e5}));
+  const cobMes=R0.filter(r=>String(r.fecha).slice(0,7)==mes).reduce((a,r)=>a+(+r.importe||0),0),cobMesAnt=R0.filter(r=>String(r.fecha).slice(0,7)<mes).reduce((a,r)=>a+(+r.importe||0),0);
+  S._cobSug=[...new Set([...H.map(x=>x.cid),...Object.entries(saldoCli).sort((a,b)=>b[1]-a[1]).map(x=>x[0])])].slice(0,8);cobChips();
+  box.innerHTML=`${H.length?`<div class="box cb-hoy"><div class="td-h"><h3>${IC('cash',18)} Para cobrar hoy</h3><small>${H.length} · ${$m0(H.reduce((a,x)=>a+(+x.m||0),0))}</small></div>${H.map(x=>`<div class="td-r"><span class="td-i">${esc((nom(x.cid)[0]||'?').toUpperCase())}</span><div class="td-t"><b>${esc(nom(x.cid))}</b><small>${esc(x.t)}</small></div><b class="cb-m">${$m0(x.m)}</b><button class="ib av" data-cbr="${x.cid}" data-cbm="${Math.round(x.m)}">Registrar</button></div>`).join('')}</div>`:''}
+    <div class="cb-kpi"><div class="cb-k"><small>Cobrado en ${new Date().toLocaleDateString('es-AR',{month:'long'})}</small><b>${$k(cobMes)}</b><span>${cobMesAnt?'el mes pasado '+$k(cobMesAnt):''}</span></div>
+      <div class="cb-k"><small>Días promedio de cobro</small><b>${d1!=null?d1+' días':'—'}</b><span>${d1!=null&&d0!=null?(d1<d0?'▼ ':d1>d0?'▲ ':'')+'el mes pasado '+d0:d1==null?'Aparece cuando registres cobros de facturas':''}</span></div></div>
+    ${tot>0?`<div class="box cb-age"><div class="td-h"><h3>${IC('clock',18)} Antigüedad de la deuda</h3></div><div class="cb-bar">${B.filter(b=>b.m>0).map(b=>`<i class="ag-${b.k}" style="width:${(b.m/tot*100).toFixed(1)}%" title="${b.t}: ${$m0(b.m)}"></i>`).join('')}</div><div class="cb-leg">${B.map(b=>`<button class="ag-${b.k}" data-ag="${b.k}"><i></i><span>${b.t}</span><b>${$k(b.m)}</b><small>${b.n} fact.</small></button>`).join('')}</div></div>`:''}
+    ${VP.length?`<div class="box cb-vp"><div class="td-h"><h3>${IC('calendar',18)} Vencen en los próximos 7 días</h3><small>${VP.length} · ${$m0(VP.reduce((a,f)=>a+(+f.pendiente||0),0))}</small></div>${VP.slice(0,6).map(f=>{const c=cl(f.cliente_id),t=telWA(c.telefono||'');return`<div class="td-r"><div class="td-t"><b>${esc(nom(f.cliente_id))}</b><small>${esc(f.tipo+' '+f.numero)} · vence ${f.vencimiento==hoy?'hoy':fd(f.vencimiento)}</small></div><b class="cb-m">${$m0(f.pendiente)}</b>${t?`<a class="ib wa" target="_blank" rel="noopener" href="https://wa.me/${t}?text=${encodeURIComponent(`¡Hola${c.contacto?' '+String(c.contacto).split(' ')[0]:''}! Te escribo de *Sabores de mi País* 😊 Te recuerdo que el ${f.vencimiento==hoy?'hoy':fd(f.vencimiento)} vence la factura ${f.tipo} ${f.numero} por ${$m0(f.pendiente)}.${c.token_pedidos?' Podés verla acá: '+linkCuenta(c):''} ¡Gracias!`)}">${IC('chat',15)} Recordar</a>`:''}</div>`}).join('')}${VP.length>6?`<small>y ${VP.length-6} más</small>`:''}</div>`:''}
+    ${!tot&&!H.length?`<p class="cb-vac">${IC('check',16)} Nadie te debe. ${cobMes?'Este mes cobraste '+$m0(cobMes)+'.':''}</p>`:''}`;
+  box.querySelectorAll('[data-cbr]').forEach(b=>b.onclick=()=>{$('#k_c').value=b.dataset.cbr;$('#k_c').onchange();$('#k_s').scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>{const i=document.querySelector('#k_v .v_i');if(i&&+b.dataset.cbm>0){i.value=b.dataset.cbm;i.dispatchEvent(new Event('input'))}},700)});
+  box.querySelectorAll('[data-ag]').forEach(b=>b.onclick=()=>{const t=document.querySelector('#mor');t&&t.scrollIntoView({behavior:'smooth',block:'start'})})}
+/* chips de clientes probables para cobrar */
+function cobChips(){const b=$('#k_chips');if(!b)return;const L=(S._cobSug||[]).map(id=>S.clientes.find(c=>c.id==id)).filter(Boolean);
+  b.innerHTML=L.length?'<small>Sugeridos:</small>'+L.map(c=>`<button class="chip" data-kc="${c.id}">${esc(nomVis(c)||c.razon_social)}</button>`).join(''):'';
+  b.querySelectorAll('[data-kc]').forEach(x=>x.onclick=()=>{$('#k_c').value=x.dataset.kc;$('#k_c').onchange()})}
+/* últimos cobros de todos los clientes */
+async function cobUltimos(){const box=$('#cb_ult');if(!box)return;await equipo().catch(()=>{});const{data}=await sb.from('recibos').select('*').eq('anulado',false).order('numero',{ascending:false}).limit(30);
+  const L=recUn(data||[]).slice(0,10);if(!L.length){box.innerHTML='';return}
+  box.innerHTML=`<details class="box cb-ult"><summary><b>${IC('receipt',17)} Últimos cobros</b> <small>${L.length}</small></summary><div class="rcl">${L.map(x=>{const c=S.clientes.find(y=>y.id==x.cliente_id)||{razon_social:'Cliente'};return`<div class="rci"><div class="rci-t"><b>${esc(nomVis(c)||c.razon_social)}</b><small>Recibo N° ${x.numero} · ${fd(x.fecha)} · ${esc(x.medio||'')}${x.usuario_id?' · '+esc(x.usuario_id==S.perfil.id?'vos':nomU(x.usuario_id)):''}</small></div><b class="rci-m">${$m(x.importe)}</b><span class="rci-b"><button class="alt wa" data-uw="${x.numero}" aria-label="WhatsApp">${IC('chat',18)}</button><button class="alt" data-up="${x.numero}" aria-label="PDF">${IC('doc',18)}</button></span></div>`}).join('')}</div></details>`;
+  const rec=n=>L.find(x=>x.numero==n),cli=x=>S.clientes.find(c=>c.id==x.cliente_id);
+  box.querySelectorAll('[data-uw]').forEach(b=>b.onclick=()=>{const x=rec(b.dataset.uw);reciboWA(x,cli(x))});box.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>{const x=rec(b.dataset.up);reciboPDF(x,cli(x))})}
+/* mandar el estado de cuenta a todos los que deben, uno por uno */
+async function cobEstadosMasivo(){const{data:F}=await todo(()=>sb.from('facturas_estado').select('cliente_id,pendiente,dias_mora').gt('pendiente',0.005));const S0={};(F||[]).forEach(f=>{const x=S0[f.cliente_id]=S0[f.cliente_id]||{t:0,v:0};x.t+=+f.pendiente||0;if(f.dias_mora>0)x.v+=+f.pendiente||0});
+  const Q=Object.entries(S0).map(([id,x])=>({c:S.clientes.find(c=>c.id==id),...x})).filter(x=>x.c&&telWA(x.c.telefono||'')).sort((a,b)=>b.v-a.v||b.t-a.t);if(!Q.length)return toast('No hay clientes con deuda y WhatsApp cargado.',1);
+  const m=document.createElement('div');m.className='modal';document.body.appendChild(m);let k=0,n=0;
+  const msg=x=>`¡Hola${x.c.contacto?' '+String(x.c.contacto).split(' ')[0]:''}! Te escribo de *Sabores de mi País* 😊 Te paso tu estado de cuenta: saldo *${$m0(x.t)}*${x.v>0?` (vencido ${$m0(x.v)})`:''}.${x.c.token_pedidos?'\nLo ves completo acá'+(S.linkMP?' y podés pagar con Mercado Pago':'')+': '+linkCuenta(x.c):''}\n¡Gracias!`;
+  const paso=()=>{if(k>=Q.length){m.remove();toast(n?`Listo: ${n} estado${n==1?'':'s'} de cuenta.`:'No se mandó ninguno.');return}const x=Q[k];
+    m.innerHTML=`<div class="mc em-pm"><div class="bh"><h3 style="margin:0">${k+1} de ${Q.length} · ${esc(nomVis(x.c)||x.c.razon_social)}</h3><button class="alt" id="ce_x">Terminar</button></div><div class="fl-prog"><i style="width:${Math.round(k/Q.length*100)}%"></i></div>
+      <p><small>Saldo ${$m0(x.t)}${x.v>0?' · vencido '+$m0(x.v):''}</small></p><label class="f">Mensaje<textarea id="ce_t" rows="6">${esc(msg(x))}</textarea></label>
+      <div class="fc-acc"><button class="wa" id="ce_ok">${IC('chat',16)} Abrir WhatsApp</button><button class="alt" id="ce_sk">Saltar</button></div></div>`;
+    m.querySelector('#ce_x').onclick=()=>{k=Q.length;paso()};m.querySelector('#ce_sk').onclick=()=>{k++;paso()};
+    m.querySelector('#ce_ok').onclick=()=>{window.open('https://wa.me/'+telWA(x.c.telefono)+'?text='+encodeURIComponent(m.querySelector('#ce_t').value),'_blank');sb.from('avisos_deuda').insert({cliente_id:x.c.id,medio:'whatsapp',monto:+x.t.toFixed(2)}).then(()=>{},()=>{});n++;k++;paso()}};
+  paso()}
 async function morosos(){
   const box=$('#mor');if(!box)return;box.innerHTML='<div class="box">Cargando deudas…</div>';await cargarRecargo();await cargarPromesas().catch(()=>null);promesasBox();comprobantesBox().catch(()=>{});
   const[fe,av,cf]=await Promise.all([todo(()=>sb.from('facturas_estado').select('*').gt('pendiente',0.005).order('vencimiento')),

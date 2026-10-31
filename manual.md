@@ -416,6 +416,15 @@ Desde **Más → Cuenta y ajustes → Usuarios y accesos** (solo lo ve el dueño
 - **Link al chofer:** le llega por WhatsApp un link (sin usuario ni contraseña, vale hasta mañana) con el recorrido, el mapa, cuánto cobrar y lo que lleva cada uno; marca *Entregado* (y cuánto cobró) o *No estaba*. En Reparto ves lo que va marcando y los **cobros del chofer para registrar** en Cobranza.
 - En *Más opciones* siguen Google Maps, remitos, el modo chofer en este celular y la lista en texto por WhatsApp.
 
+### Cobranza (versión nueva)
+- **Para cobrar hoy:** los contado entregados hoy, las promesas de pago de hoy (o atrasadas) y lo que cobró el chofer con el link, cada uno con **Registrar** (elige al cliente y pone el importe).
+- **Cobrado en el mes** (y el mes pasado) y **días promedio de cobro** (cuánto tardan en pagarte desde la factura).
+- **Antigüedad de la deuda:** barra al día · 1 a 30 · 31 a 60 · más de 60 días.
+- **Vencen en los próximos 7 días,** con **Recordar** por WhatsApp antes de que se venza.
+- Al registrar un cobro, debajo del buscador aparecen **clientes sugeridos** (los que deben o tienen algo para hoy).
+- **Últimos cobros:** los últimos 10 recibos de todos, con WhatsApp y PDF.
+- **Herramientas** (arriba): semáforo de riesgo, crédito inteligente, conciliar transferencias y **mandar estado de cuenta a todos los que deben** (uno por uno por WhatsApp, con su link de cuenta).
+
 ## 13. Rutina diaria y preguntas frecuentes
 
 Repartís de lunes a sábado y los pedidos cierran a las 20:00 para el día siguiente.

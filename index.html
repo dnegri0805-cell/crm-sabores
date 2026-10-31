@@ -1827,12 +1827,28 @@ html.oscuro .st-ini{background:#2a2416!important}html.oscuro .vn-s{background:#1
 .rv-chl{margin:10px 0 0;padding:10px 12px;border-radius:12px;background:#eef4fb;display:grid;gap:3px}.rv-chl b{display:flex;align-items:center;gap:5px;font-size:13.5px}.rv-chl small{color:var(--tx2)}
 .rv-chc{display:grid;gap:3px;margin:4px 0}.rv-chc>div{display:flex;justify-content:space-between;font-size:13px}
 html.oscuro .rv-dia{background:#1f2836}html.oscuro .rv-dia button.on{background:#273246;color:#fff}html.oscuro .rv-chl{background:#1f2836}html.oscuro .rv-cob{background:#2a2416}
+
+/* Cobranza v2 */
+.cb-hoy{border-color:#f1dca8!important;background:#fffbf0!important}.cb-m{flex:none;font-variant-numeric:tabular-nums;font-size:14px}
+.cb-kpi{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0 0 12px}
+.cb-k{background:#fff;border:1px solid var(--l,#e6e8ee);border-radius:14px;padding:10px 12px;display:grid;gap:1px;min-width:0}
+.cb-k small{font-size:12px;color:var(--tx2);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cb-k b{font-size:19px;font-variant-numeric:tabular-nums}.cb-k span{font-size:11.5px;color:var(--tx2)}
+
+.cb-bar{display:flex;height:12px;border-radius:6px;overflow:hidden;background:#eef0f4;margin:4px 0 8px}.cb-bar i{display:block;height:100%}
+.ag-v i,.cb-bar .ag-v{background:#2f9e5b}.ag-a i,.cb-bar .ag-a{background:#e0a100}.ag-n i,.cb-bar .ag-n{background:#e0702a}.ag-r i,.cb-bar .ag-r{background:#d64545}
+.cb-leg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}@media(max-width:480px){.cb-leg{grid-template-columns:1fr 1fr}}
+.cb-leg button{all:unset;cursor:pointer;display:grid;grid-template-columns:auto 1fr;column-gap:6px;align-items:center;padding:6px 8px;border-radius:10px;background:#f6f7f9}
+.cb-leg i{width:9px;height:9px;border-radius:50%;grid-row:span 3}.cb-leg span{font-size:12px;color:var(--tx2)}.cb-leg b{font-size:14px}.cb-leg small{font-size:11px;color:var(--tx2)}
+.cb-vac{display:flex;align-items:center;gap:6px;color:#1d7a46;margin:0 0 10px}
+.k-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:8px 0 0;align-items:center}.k-chips::-webkit-scrollbar{display:none}.k-chips small{flex:none;color:var(--tx2)}.k-chips .chip{flex:none}.k-chips[hidden]{display:none}
+.cb-ult>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px}.cb-ult>summary::-webkit-details-marker{display:none}.cb-ult>summary b{display:flex;align-items:center;gap:6px}.cb-ult>summary small{color:var(--tx2)}
+html.oscuro .cb-k,html.oscuro .cb-leg button{background:#18202f;border-color:#273246}html.oscuro .cb-hoy{background:#2a2416!important}
 </style>
 </head>
 <body>
 <div id="app"><div class="splash"><img src="logo.png" alt="Sabores de mi País"><i></i></div></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
-<script src="app.js?v=2026-10-31.32"></script>
+<script src="app.js?v=2026-10-31.33"></script>
 </body>
 </html>
