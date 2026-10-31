@@ -1082,12 +1082,45 @@ html.oscuro .rk{border-color:#232c3c}html.oscuro .rk-bar{background:#232c3c}
 .gu-c small{color:var(--m);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.06em}.gu-c b{display:block;font-size:19px;margin:4px 0 6px}.gu-c p{margin:0 0 14px;color:#3c4458;font-size:15px;line-height:1.45}
 .gu-a{display:flex;justify-content:flex-end;gap:8px}.gu-a button{min-height:42px;padding:6px 16px}
 html.oscuro .gu-c{background:#18202f}html.oscuro .gu-c p{color:#c3c9d6}
+
+/* Vendido en el mes: barritas por día */
+.mv-g{display:flex;align-items:flex-end;gap:2px;height:40px;margin-top:12px}.mv-g i{flex:1;min-width:0;background:#e3c7cf;border-radius:3px 3px 1px 1px}.mv-g i.hoy{background:var(--m)}.mv-g i.fut{background:#eef0f4;height:2px!important}.mv-g i.dom{opacity:.35}
+.mv-cmp{font-weight:700}.mv-cmp.sube{color:#1d7a46}.mv-cmp.baja{color:#b4232f}
+html.oscuro .mv-g i{background:#5a2c3a}html.oscuro .mv-g i.hoy{background:#c0566f}html.oscuro .mv-g i.fut{background:#232c3c}
+/* Compras por mes (ficha) */
+.fc2 .fc-gr{grid-column:1/-1}.gr-h{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}.gr-h h3{margin:0}
+.gr-t{font-size:13px;font-weight:700;border-radius:999px;padding:3px 10px}.gr-t.sube{background:#e7f6ec;color:#1d7a46}.gr-t.baja{background:#fde8ea;color:#b4232f}.gr-t.igual{background:#f3f4f7;color:#5b6274}
+.gr{display:flex;align-items:flex-end;gap:10px;height:150px;margin:14px 0 6px}
+.gr-c{flex:1;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;min-width:0}
+.gr-c i{width:100%;max-width:46px;border-radius:7px 7px 3px 3px;background:linear-gradient(180deg,#9c3a50,#7b2d3e)}.gr-c.cur i{background:repeating-linear-gradient(135deg,#d8aab6 0 6px,#e8c6cf 6px 12px)}
+.gr-c small{font-size:11.5px;color:#3c4458;font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}.gr-c span{font-size:12.5px;color:var(--tx2);text-transform:capitalize}
+.gr-p{margin:6px 0 0;font-size:14px}.gr-p small{color:var(--tx2)}
+html.oscuro .gr-c small{color:#c3c9d6}html.oscuro .gr-t.sube{background:#12301f;color:#7fd3a0}html.oscuro .gr-t.baja{background:#3d1519;color:#f19aa2}html.oscuro .gr-t.igual{background:#232c3c;color:#a3abbd}
+/* Pantallas vacías */
+.vacio{padding:30px 16px!important;gap:10px!important}
+.vac-ic{width:68px;height:68px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 30% 30%,#fbf3f5,#f3e3e8);color:var(--m)}
+.vac-ic .ic{color:var(--m)!important;stroke-width:1.6!important}
+.vacio p{max-width:340px;font-size:15px!important;line-height:1.45;color:#3c4458!important}
+.vac-b{margin-top:4px;border-radius:999px!important;padding:8px 18px!important}
+.vacio.chico{padding:14px 8px!important;flex-direction:row!important;text-align:left!important;gap:12px!important;justify-content:flex-start}.vacio.chico .vac-ic{width:42px;height:42px;flex:none}.vacio.chico p{font-size:14px!important;flex:1}.vacio.chico .vac-b{margin:0;flex:none}
+@media(max-width:640px){.vacio.chico{flex-wrap:wrap}.vacio.chico .vac-b{margin-left:54px}}
+html.oscuro .vac-ic{background:radial-gradient(circle at 30% 30%,#3a1d26,#2a141b)}html.oscuro .vacio p{color:#c3c9d6!important}
+/* Esqueletos de carga: filas con círculo y dos líneas */
+.skl{position:relative;overflow:hidden;min-height:150px!important;border-radius:12px;background:
+  radial-gradient(circle at 20px 25px,#e9ebf0 17px,transparent 18px) 0 0/100% 50px repeat-y,
+  linear-gradient(180deg,transparent 15px,#e9ebf0 15px,#e9ebf0 25px,transparent 25px) 52px 0/55% 50px repeat-y,
+  linear-gradient(180deg,transparent 31px,#eef0f4 31px,#eef0f4 39px,transparent 39px) 52px 0/32% 50px repeat-y!important;animation:none!important}
+.skl::after{content:'';position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.75) 50%,transparent 70%);background-size:220% 100%;animation:skl 1.3s ease-in-out infinite}
+small>.skl,td>.skl,p>small>.skl{min-height:14px!important;height:14px;background:#e9ebf0!important;border-radius:6px}
+html.oscuro .skl{background:radial-gradient(circle at 20px 25px,#232c3c 17px,transparent 18px) 0 0/100% 50px repeat-y,linear-gradient(180deg,transparent 15px,#232c3c 15px,#232c3c 25px,transparent 25px) 52px 0/55% 50px repeat-y,linear-gradient(180deg,transparent 31px,#1c2536 31px,#1c2536 39px,transparent 39px) 52px 0/32% 50px repeat-y!important}
+html.oscuro .skl::after{background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.06) 50%,transparent 70%);background-size:220% 100%}
+html.oscuro small>.skl,html.oscuro td>.skl{background:#232c3c!important}
 </style>
 </head>
 <body>
 <div id="app"><div class="splash"><img src="logo.png" alt="Sabores de mi País"><i></i></div></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
-<script src="app.js?v=2026-10-31.1"></script>
+<script src="app.js?v=2026-10-31.2"></script>
 </body>
 </html>

@@ -26,7 +26,7 @@ Guía ordenada por sección para consultar o pasarle al equipo. Cada punto dice 
 
 ## 2. Inicio
 
-Es el tablero del día. **Inicio simple** (el que se abre por defecto): arriba, **Vendido en el mes** (solo el dueño: vendido, % de la meta con barra, hoy y proyección; la meta se cambia tocándola), los botones grandes (Nuevo pedido, Nuevo cliente, Proveedores, Compras, Ventas y el renglón **Folletos**), *Facturado hoy* (en $ 0 queda en un renglón; cuando facturás se agranda), los números del día (los que están en cero se juntan en un renglón verde **✅ Todo al día**), las **metas del mes** (Maní JL y kilos) y los desplegables *Vencidas y para reponer* y *Tareas y avisos del día*, con un numerito que dice cuántas cosas hay adentro. Al pie, solo para el dueño: **✓ Copias de seguridad al día · Ver** (se abre con *Hacer otra* si pasó una semana sin bajar copia, o un aviso grande si pasó mucho). Usuarios, Mercado Pago, Cambiar mi contraseña, Ver panel completo, Elegir pestañas y Dólar del día están en **Más**.
+Es el tablero del día. **Inicio simple** (el que se abre por defecto): arriba, **Vendido en el mes** (solo el dueño: vendido, % de la meta con barra, barritas por día, comparación con el mes pasado a esta altura, hoy y proyección; la meta se cambia tocándola), los botones grandes (Nuevo pedido, Nuevo cliente, Proveedores, Compras, Ventas y el renglón **Folletos**), *Facturado hoy* (en $ 0 queda en un renglón; cuando facturás se agranda), los números del día (los que están en cero se juntan en un renglón verde **✅ Todo al día**), las **metas del mes** (Maní JL y kilos) y los desplegables *Vencidas y para reponer* y *Tareas y avisos del día*, con un numerito que dice cuántas cosas hay adentro. Al pie, solo para el dueño: **✓ Copias de seguridad al día · Ver** (se abre con *Hacer otra* si pasó una semana sin bajar copia, o un aviso grande si pasó mucho). Usuarios, Mercado Pago, Cambiar mi contraseña, Ver panel completo, Elegir pestañas y Dólar del día están en **Más**.
 
 **👥 Vendedores** (dueño, cuando hay vendedores): ranking del mes con lo vendido, pedidos, clientes nuevos, comisión y meta de cada uno. **Guía de bienvenida:** la primera vez que entra un vendedor le muestra en 6 pasos dónde está todo (se repite desde Más → Cuenta y ajustes).
 
@@ -247,6 +247,7 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 - **Estado de cada cliente:** cartelito de color en la lista y la ficha: Al día · Le toca comprar · Debe · Dormido · Nuevo, con el motivo en la ficha.
 - **Próximo paso:** una acción con fecha por cliente (ficha → Agregar próximo paso). Se ve en la ficha, la lista y la Ruta de hoy, aparece en Tareas el día que toca y con **Hecho** queda en el historial.
 - **Ruta de hoy:** visitas del día más los que les toca comprar y los que deben, con qué ofrecerle a cada uno (los productos de las metas que todavía no lleva) y botones **Pedido · Cómo llegar · No estaba**. **Recorrido** abre las paradas en Google Maps.
+- **Compras de los últimos 6 meses** (en la ficha): barras por mes, promedio mensual y tendencia (viene comprando más, menos o parejo).
 - **Historial** (en la ficha): pedidos, pagos, notas, visitas y mensajes en una línea de tiempo por fecha.
 
 - **Clientes:** buscador y filtros (con deuda, por zona, por lista). Tocando un cliente se abre su **ficha**.
