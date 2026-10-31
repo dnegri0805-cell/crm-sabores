@@ -5,7 +5,9 @@ Guía ordenada por sección para consultar o pasarle al equipo. Cada punto dice 
 ## 1. Primeros pasos
 
 - **CRM (uso interno):** https://dnegri0805-cell.github.io/crm-sabores/ — se entra con usuario y contraseña. Si te dieron una contraseña temporal, la primera vez te pide elegir una propia.
-- **Usuarios y accesos** (pie del Inicio, solo el dueño): das de alta a un socio, vendedor, administración o depósito con una contraseña temporal que se manda por WhatsApp; cambiás qué puede hacer, generás una contraseña nueva o lo das de baja. **Cambiar mi contraseña** está al lado.
+- **Usuarios y accesos** (**Más → Cuenta y ajustes**, solo el dueño): das de alta a un socio, vendedor, administración o depósito con una contraseña temporal que se manda por WhatsApp; cambiás qué puede hacer, generás una contraseña nueva o lo das de baja. A los vendedores les **asignás clientes** (por zona o de a uno). **Cambiar mi contraseña** está en el mismo lugar.
+- **Vendedores:** cada uno ve solo **sus clientes y sus pedidos**, sin costos, ganancias, proveedores ni compras. En el Inicio ve **Mis clientes**, **Mis pedidos** y su **comisión** del mes (sobre lo vendido sin IVA de sus pedidos aprobados). Si intenta cargar un comercio que ya es cliente, el CRM le avisa que consulte con la oficina.
+- **Si se cierra la sesión** (saliste en otro equipo o venció): el CRM vuelve a la pantalla de ingreso con el aviso *Tu sesión se cerró*. Si ves productos sin precios ni fotos, es eso: salí y volvé a entrar.
 - **Catálogo de cada cliente:** link personal `pedido.html?c=…` que se manda desde la ficha del cliente (botón de WhatsApp). Cada cliente ve sus precios, su cuenta y sus promos.
 - **Catálogo público (sin precios de cliente):** `pedido.html?ver=catalogo` — para redes, folletos y nuevos clientes.
 - **Actualización automática:** cuando hay una mejora, la página se recarga sola. La versión se ve arriba, junto a tu nombre (ej. `v2026-10-11.30`). Si algo "no aparece", cerrá y abrí la pestaña.
@@ -17,13 +19,16 @@ Guía ordenada por sección para consultar o pasarle al equipo. Cada punto dice 
 - **Atajos en la PC:** N nuevo pedido · C Cola del día · I Inicio · R Reparto · B o Ctrl + K buscar · ? ayuda.
 - **Abre más rápido:** guarda en el equipo los clientes y productos y los actualiza solos por detrás.
 - **🔎 Buscar:** arriba a la derecha (o **Ctrl + K**) buscás un cliente, un producto (con precio, costo y stock) o un pedido por su número, desde cualquier pantalla.
-- **Menú principal:** Inicio · Pedidos · Ventas · Reparto · Clientes · Cobranza · Caja · Compras · Stock · Precios · Reportes · Contable · Manual. Los números en rojo indican cosas pendientes.
+- **Menú principal:** en el celular, la barra de abajo es Inicio · Pedidos · Clientes · Precios · **Más**. En **Más** están las otras secciones (Cobranza, Caja, Stock, Contable, Manual), el **Dólar del día** y **Cuenta y ajustes** (Usuarios y accesos, Mercado Pago, Elegir pestañas del menú, Ver panel completo, Cambiar mi contraseña). En la compu, las pestañas van arriba. Los números en rojo indican cosas pendientes.
+- **Letra:** el CRM usa su propia tipografía (Inter), igual en todos los equipos.
 
 ## 2. Inicio
 
-Es el tablero del día. **Inicio simple** (el que se abre por defecto): botones grandes, *Facturado hoy*, los números del día (los que están en cero se juntan en un renglón verde **✅ Todo al día**), la tarjeta **🥜 Maní JL** y los desplegables *Vencidas y para reponer*, *Tareas y avisos del día* y *Configuración*, con un numerito que dice cuántas cosas hay adentro. Al pie: copias de seguridad (la del equipo en amarillo si pasó una semana), Estado del sistema, Dólar (en amarillo con 3 días o más), Usuarios y accesos, Cambiar mi contraseña, Mercado Pago, Ver panel completo y Elegir pestañas.
+Es el tablero del día. **Inicio simple** (el que se abre por defecto): botones grandes (Nuevo pedido, Nuevo cliente, Proveedores, Compras, Ventas y el renglón **Folletos**), *Facturado hoy* (en $ 0 queda en un renglón; cuando facturás se agranda), los números del día (los que están en cero se juntan en un renglón verde **✅ Todo al día**), las **metas del mes** (Maní JL y kilos) y los desplegables *Vencidas y para reponer* y *Tareas y avisos del día*, con un numerito que dice cuántas cosas hay adentro. Al pie, solo para el dueño: **✓ Copias de seguridad al día · Ver** (se abre con *Hacer otra* si pasó una semana sin bajar copia, o un aviso grande si pasó mucho). Usuarios, Mercado Pago, Cambiar mi contraseña, Ver panel completo, Elegir pestañas y Dólar del día están en **Más**.
 
-**🥜 Maní JL:** meta de ganancia limpia del mes con los productos de JL (se cambia con el lápiz). El bloque bordó muestra las cajas de la semana con un anillo y cuántas cajas por visita hacen falta; si la meta no llega en el mes, pasa a *Foco: cubrir gastos*. En **Ver detalle del mes**: barra con el tramo de gastos, Vendiste · Ganancia · Limpio, pallets por mes y ganancia por pallet, el interruptor **Calcular con** (65 y 85 g o toda la línea, se desliza con el dedo) y **A quién visitar**. No cuenta pedidos cancelados ni de prueba.
+**🥜 Maní JL:** meta de ganancia limpia del mes con los productos de JL (se cambia con el lápiz). El bloque bordó muestra las cajas de la semana con un anillo y cuántas cajas por visita hacen falta; si la meta no llega en el mes, pasa a *Foco: cubrir gastos*. **A fin de mes** (última semana), si el mes ya no llega, el bloque muestra el mes que arranca: *Noviembre arranca · 116 cajas por semana · Meta del mes: 480 cajas*. En **Ver detalle del mes**: barra con el tramo de gastos, Vendiste · Ganancia · Limpio, pallets por mes y ganancia por pallet, el interruptor **Calcular con** (65 y 85 g o toda la línea, se desliza con el dedo) y **A quién visitar**. No cuenta pedidos cancelados ni de prueba.
+
+**⚖️ Metas en kilos:** tarjeta con pestañas de foto para **BOYA jamón cocido**, **Tarantela danbo sándwich** y la línea **Salames Familia Grion**, cada una con su meta en kilos (lápiz para cambiarla). El bloque bordó funciona igual que Maní JL (semana en curso o, a fin de mes, los kilos por semana del mes que arranca). En Salames Grion, **⭐ Etiqueta Negra** (el que más te deja) tiene su propia meta y su tarjeta dorada con lo que deja por kilo y cuánto te falta. **Ver detalle del mes:** vendido, facturado y ganancia; en verde cuánto te deja cada kilo y cuánto ganás si llegás; y **A quién visitar** con botón **Pedido**, que abre el pedido con el cliente y los productos cargados.
 
 En el **panel completo**, arriba de todo, si falta algo: **🩺 Falta correr un SQL** (el CRM detecta solo qué archivo falta; botón **📋 Copiar** y **Abrir Supabase**) y **⚙️ Configuración pendiente** (datos de pago, link de Mercado Pago, WhatsApp, gastos fijos, zonas, cámaras, depósito, etc., cada uno con **Ir**). En el celular, arriba aparecen **6 botones grandes**: Nuevo pedido, Cola del día, Por aprobar, Armar, Reparto y Cobrar.
 
@@ -69,6 +74,7 @@ Debajo aparecen tarjetas de aviso; cada una lleva a la pantalla donde se actúa:
 **Cargar un pedido** (botón *+ Nuevo pedido*):
 
 - Elegí el cliente; se aplican solos su lista de precios, **nivel**, **precios pactados** y promos vigentes.
+- Cada renglón muestra la **foto** del producto. **+ Caja / + Pack** suma uno entero (si había unidades sueltas, completa hasta el pack). En el buscador los precios salen redondeados, como en Precios; el pedido y la factura llevan los centavos.
 - **🎤 Dictar:** en el celular tocás Dictar y decís el pedido ("diez kilos de danbo… dos cajas de maní salado"), con una pausa entre producto y producto. Lo reconoce igual que Pegar de WhatsApp.
 - **🔁 Repetir último:** desde la ficha del cliente, carga su último pedido con los precios de hoy.
 - **📷 Foto de la lista** (dentro de Pegar de WhatsApp): sacás o elegís una foto de la lista (en papel o la que te mandó el cliente) y el CRM lee el texto y reconoce los productos. Funciona mejor con letra clara o impresa, buena luz y la hoja derecha; siempre revisá lo que reconoció.
@@ -80,6 +86,8 @@ Debajo aparecen tarjetas de aviso; cada una lleva a la pantalla donde se actúa:
 - **Mandar como presupuesto:** en vez de pedido, genera un presupuesto con link para que el cliente lo acepte (queda en *Ventas → Presupuestos*).
 
 **Pedidos online:** los que hace el cliente desde su catálogo entran en *Por aprobar*. Revisalos y aprobalos. Cada pedido por aprobar muestra **cuánto te deja**: 🟢 bien, 🟡 debajo de tu margen mínimo, 🔴 perdés plata, ya descontado el costo de reparto de su zona (el que cargás en Zonas y camioneta). Si perdés plata, antes de aprobar te pregunta.
+
+**Tarjetas de la lista:** cada pedido muestra cliente, número, total, estado y, a la derecha, **WhatsApp** y **•••** (Aprobar sin facturar, Imprimir, Remito, Agregar o editar productos, Marcar como prueba, Cambiar estado). El botón del paso que sigue (*Aprobar y facturar*, *Salió a reparto*…) va a la izquierda.
 
 **Estados:** A preparación → Marcar listo → Salió a reparto → Entregado. Si te equivocás, abajo aparece **Deshacer** unos segundos (también al cambiar costos en Precios). Los cancelados se ven en **Cancelados** y se pueden **♻️ Reactivar**. El cliente ve el seguimiento en su cuenta.
 
@@ -238,6 +246,7 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 - **🗒️ Notas** (en la ficha): anotás lo que no te querés olvidar del cliente; con fecha, también te queda como tarea. Las notas aparecen al cargarle un pedido y en el Modo chofer. Requiere **cobrar.sql**.
 - **📄 Estado de cuenta** (en la ficha): PDF con el saldo, los comprobantes pendientes (vencidos en rojo), los últimos pagos y tus datos para pagar; también le manda el resumen por WhatsApp.
 - **🧹 Revisión de datos** (arriba en Clientes): lo que conviene completar, con su arreglo: **clientes duplicados** (mismo teléfono, CUIT o nombre) con botón **Unificar** (todos sus pedidos, facturas y cobros pasan a uno; requiere **entregas.sql**), clientes **sin ubicación** (botón para ubicarlos solos en el mapa con su dirección), sin teléfono, sin localidad o sin rubro (se completan ahí mismo) y productos sin costo, sin foto o con margen raro.
+- **Orden de la ficha:** botones (Nuevo pedido, Mandar lista, WhatsApp, Llamar), *Datos del cliente* y *Más acciones*, después los números (**Saldo, Vencido, Compró este año, Último pedido**), las Notas, el link de pedidos online y el historial.
 - **Ficha del cliente:** datos, lista de precios, **rubro**, **cliente desde**, **🎂 cumpleaños**, **👑 cuenta clave**, **🚩 se fue a la competencia** (con quién y por qué), **🧮 Negociar** (hasta cuánto podés bajarle sin perder plata, producto por producto), **quién lo recomendó**, **puntos**, **precios pactados**, historial, deuda y el **📋 guion** de venta. Desde acá se manda su **link de catálogo** por WhatsApp.
 - **Agenda de visitas:** recorrido del día; el botón **📍 Visita** registra la visita y el resultado. También sugiere **prospectos de paso** cerca del recorrido.
 - **📍 Avisarme al llegar** (Clientes, arriba): con el CRM abierto en el celular, cuando llegás a la puerta de un cliente (a menos de 80 m) te muestra su última compra, lo que debe, lo que le debemos, su promesa de pago y sus notas, con botones para el pedido, la ficha, la visita y la góndola.
@@ -363,6 +372,8 @@ Una sola vez, en este orden:
 - **"El cliente perdió su link":** reenvialo desde su ficha.
 - **Seguridad:** nunca compartas la clave secreta de la base de datos; el link de cada cliente es personal.
 - **Mails automáticos:** a las 7:45 llega *Tu cola de hoy* con botón para empezar, y a las 20:30 el resumen del día. Se activan cuando se cargan los datos de Gmail en GitHub.
-- **Mercado Pago** (pie del Inicio, en prueba): pegás el Access Token de tu cuenta (mercadopago.com.ar/developers → Crear aplicación → Credenciales de producción) y con **Ver lo que entró** ves los cobros de los últimos días. La credencial queda en el servidor y no se puede volver a ver desde la app.
+- **Mercado Pago** (**Más → Cuenta y ajustes**, en prueba): pegás el Access Token de tu cuenta (mercadopago.com.ar/developers → Crear aplicación → Credenciales de producción) y con **Ver lo que entró** ves los cobros de los últimos días. La credencial queda en el servidor y no se puede volver a ver desde la app.
+- **"No salen los precios ni las fotos":** se cerró la sesión. Salí (la D de arriba) y volvé a entrar.
+- **El PDF sale en tamaño Carta:** en la pantalla de impresión elegí **A4** en *Tamaño de papel*.
 - **Cantidades en notas y remitos:** *10 u.* son unidades sueltas; *20 (1 caja + 8 u.)*, una caja cerrada más 8 sueltas.
 - **Próximamente:** factura electrónica ARCA y conciliación automática de transferencias.
