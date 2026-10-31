@@ -407,6 +407,15 @@ Desde **Más → Cuenta y ajustes → Usuarios y accesos** (solo lo ve el dueño
 - **Vencimientos:** semáforo (vencidos, esta semana, este mes, más adelante); el formulario aparece con *+ Cargar vencimiento*.
 - **Movimientos:** qué entró, qué salió y por qué (pedido, compra, ajuste), con quién y cuándo.
 
+### Reparto (versión nueva)
+- Arriba elegís **Hoy / Mañana** y ves el resumen: paradas, bultos y total, con la **barra de avance** (entregados hoy y cobrado hoy) y los botones **Imprimir hoja**, **Link al chofer**, **Ordenar por cercanía** y **Salió a reparto**. Si hay clientes sin dirección, te avisa.
+- **Mapa** con las paradas numeradas y el depósito (para los clientes que tienen ubicación).
+- **Cada tarjeta:** dirección y barrio (o *Falta dirección · Cargar*), horario en que recibe, unidades y **cuánto cobrar** (contado, con el saldo anterior si tiene) o *Cuenta corriente*.
+- **Botones:** *Entregado* (con firma), *Cobrar* (abre Cobranza con ese cliente), *No estaba* (queda para mañana y te ofrece avisarle por WhatsApp) y *Llamar*.
+- **Agregar todos los listos** de una vez.
+- **Link al chofer:** le llega por WhatsApp un link (sin usuario ni contraseña, vale hasta mañana) con el recorrido, el mapa, cuánto cobrar y lo que lleva cada uno; marca *Entregado* (y cuánto cobró) o *No estaba*. En Reparto ves lo que va marcando y los **cobros del chofer para registrar** en Cobranza.
+- En *Más opciones* siguen Google Maps, remitos, el modo chofer en este celular y la lista en texto por WhatsApp.
+
 ## 13. Rutina diaria y preguntas frecuentes
 
 Repartís de lunes a sábado y los pedidos cierran a las 20:00 para el día siguiente.

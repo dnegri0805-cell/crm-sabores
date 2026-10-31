@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-31.31';
+const VERSION='2026-10-31.32';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -2323,30 +2323,53 @@ async function reciboPDF0(x,c){if(!x||!c)return;const w=window.open('','_blank')
   <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);w.document.close()}
 
 /* ---------- Hoja de reparto ---------- */
+/* Mapa del reparto con las paradas numeradas (y el depósito) */
+async function rvMapa(E,cl){const box=$('#rv_mapa');if(!box)return;const P=E.map((o,i)=>({o,i,c:cl(o)})).filter(x=>x.c.lat!=null&&x.c.lng!=null);if(!P.length){box.hidden=true;return}
+  try{if(!window.L){const l=document.createElement('link');l.rel='stylesheet';l.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';document.head.appendChild(l);await cargarScript('https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js')}}catch(e){box.hidden=true;return}
+  if(!document.body.contains(box))return;box.hidden=false;if(S._rvMap){try{S._rvMap.remove()}catch(e){}}box.innerHTML='<div id="rv_mp"></div>';
+  const D=await cfgJ('deposito',{}).catch(()=>({})),m=L.map('rv_mp',{zoomControl:false,attributionControl:false,scrollWheelZoom:false});S._rvMap=m;L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18}).addTo(m);
+  const pin=(t,bg)=>L.divIcon({className:'',html:`<div style="width:26px;height:26px;border-radius:50%;background:${bg};color:#fff;display:grid;place-items:center;font:800 12px system-ui;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)">${t}</div>`,iconSize:[26,26],iconAnchor:[13,13]});
+  const pts=[];if(D.lat!=null){pts.push([+D.lat,+D.lng]);L.marker([+D.lat,+D.lng],{icon:pin('🏠','#17213a')}).addTo(m)}
+  P.forEach(x=>{const ll=[+x.c.lat,+x.c.lng];pts.push(ll);L.marker(ll,{icon:pin(x.i+1,x.o.estado=='en_reparto'?'#2b5aa6':MARCA.c||'#7b2d3e')}).addTo(m).bindTooltip(esc(nomVis(x.c)||x.c.razon_social||''))});
+  if(pts.length>1)L.polyline(pts,{color:MARCA.c||'#7b2d3e',weight:3,opacity:.55,dashArray:'6 6'}).addTo(m);m.fitBounds(L.latLngBounds(pts).pad(.2))}
 async function vReparto(){
   $('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Hoja de reparto</h2><div class="fc-acc"><button class="alt" onclick="hojaArmado()">🧺 Hoja de armado</button><button class="alt" onclick="zonasReparto()">🗺️ Zonas</button><button class="alt" onclick="abrirMasHoja('rv_mh','Más de reparto')">Más</button></div></div>
   <div hidden id="rv_mh"><button class="alt" onclick="camioneta()">🚐 Camioneta al día</button><button class="alt" onclick="calendarioEntregas()">🗓️ Calendario de entregas</button><button class="alt" onclick="historialRepartos()">📈 Repartos anteriores</button><button class="alt" onclick="diasSinReparto()">📅 Días sin reparto</button></div>
-  <p class="rv-ayu"><small>Agregá los pedidos que salen hoy y ordená el recorrido arrastrando las tarjetas (en el celular, con ••• → Subir o Bajar).</small></p>
-  <div class="box"><div class="sub" id="rv_f"></div><div id="rv_l"><span class="skl" role="status" aria-label="Cargando"></span></div></div>
-  <div class="box" id="rv_acc" hidden><div class="bh"><h3 id="rv_t"></h3></div><div id="rv_cap"></div>
-    <div class="rv-main"><button id="rv_imp">🖨️ Imprimir hoja</button><button class="alt wa" id="rv_wa">📲 Mandar al chofer</button><button class="alt" id="rv_map">🗺️ Google Maps</button><button class="alt" id="rv_sal">🚚 Salió a reparto</button></div>
-    <details class="prf rv-mas"><summary>Más opciones ${IC('down',14)}</summary><div class="fc-acc" style="padding:0 12px 12px"><button class="alt" id="rv_rm">🧾 Imprimir remitos</button><button class="alt" id="rv_ord">🧭 Ordenar recorrido</button><button class="alt wa" id="rv_ch">🚚 Modo chofer</button></div></details></div>`;
+  <div class="rv-dia" role="radiogroup" aria-label="Día del reparto">${[['hoy','Hoy'],['man','Mañana']].map(([k,t])=>`<button class="${(S.rvDia||'hoy')==k?'on':''}" data-rvd="${k}">${t}</button>`).join('')}</div>
+  <div class="box" id="rv_acc" hidden><div class="bh"><h3 id="rv_t" style="margin:0"></h3></div><div class="rv-prog" id="rv_pg"></div><div id="rv_cap"></div>
+    <div class="rv-main"><button id="rv_imp">🖨️ Imprimir hoja</button><button class="alt wa" id="rv_wa">📲 Link al chofer</button><button class="alt" id="rv_ord">🧭 Ordenar por cercanía</button><button class="alt" id="rv_sal">🚚 Salió a reparto</button></div>
+    <div id="rv_chl"></div>
+    <details class="prf rv-mas"><summary>Más opciones ${IC('down',14)}</summary><div class="fc-acc" style="padding:0 12px 12px"><button class="alt" id="rv_map">🗺️ Abrir en Google Maps</button><button class="alt" id="rv_rm">🧾 Imprimir remitos</button><button class="alt wa" id="rv_ch">🚚 Modo chofer (en este celular)</button><button class="alt wa" id="rv_wat">📲 Mandar la lista por WhatsApp (texto)</button></div></details></div>
+  <div id="rv_mapa" class="rv-mapa" hidden></div>
+  <div class="box"><div class="sub" id="rv_f"></div><div id="rv_l"><span class="skl" role="status" aria-label="Cargando"></span></div></div>`;
+  $$('#v [data-rvd]').forEach(b=>b.onclick=()=>{S.rvDia=b.dataset.rvd;S.rvSel=[];vReparto()});
   const{data,error}=await sb.from('pedidos').select('*,clientes(razon_social),pedido_items(producto_id,cantidad)').in('estado',['aprobado','en_preparacion','listo','en_reparto']).order('numero');
   if(error){$('#rv_l').innerHTML='<p class="err">'+esc(error.message)+'</p>';return}
   const ids=data.map(o=>o.id),fac={};
   if(ids.length){const{data:F}=await sb.from('facturas_venta').select('id,pedido_id,tipo,numero,punto_venta,cae,cae_vto,total,fecha,cliente_id,doc_tipo,doc_nro,cbte_tipo').eq('anulada',false).in('pedido_id',ids);for(const f of F||[])fac[f.pedido_id]=f}
   S.rvSel=S.rvSel||[];S.rvSel=S.rvSel.filter(id=>data.some(o=>o.id==id));
-  if(!S.rvSel.length)S.rvSel=data.filter(o=>(o.estado=='listo'||o.estado=='en_reparto')&&(!o.entrega||o.entrega<=diaLocal(new Date()))).map(o=>o.id);
+  const diaR=(()=>{const d=new Date();if(S.rvDia=='man')d.setDate(d.getDate()+1);return diaLocal(d)})();
+  if(!S.rvSel.length)S.rvSel=data.filter(o=>(o.estado=='listo'||o.estado=='en_reparto')&&(!o.entrega||o.entrega<=diaR)).map(o=>o.id);
+  /* saldo de cada cliente (para "cobrar") y lo entregado hoy (para la barra de avance) */
+  const cids=[...new Set(data.map(o=>o.cliente_id))],hoyTs=tsAR(diaLocal(new Date()));
+  const[sal,ent,rcb]=await Promise.all([cids.length?sb.from('saldos_clientes').select('cliente_id,saldo').in('cliente_id',cids).then(r=>r,()=>({})):{},sb.from('pedidos').select('id,total').eq('estado','entregado').gte('entregado_en',hoyTs).then(r=>r,()=>({})),sb.from('recibos').select('importe').eq('anulado',false).eq('fecha',diaLocal(new Date())).then(r=>r,()=>({}))]);
+  const saldo=id=>+(sal.data||[]).find(x=>x.cliente_id==id)?.saldo||0,ENT=ent.data||[],COB=(rcb.data||[]).reduce((a,x)=>a+(+x.importe||0),0);
   const cl=o=>S.clientes.find(c=>c.id==o.cliente_id)||{razon_social:o.clientes?.razon_social||'Cliente'};
   const bultos=o=>(o.pedido_items||[]).reduce((a,i)=>a+Number(i.cantidad||0),0);
   const elegidos=()=>S.rvSel.map(id=>data.find(o=>o.id==id)).filter(Boolean);
   const draw=()=>{
     const E=elegidos(),resto=data.filter(o=>!S.rvSel.includes(o.id));
     const fila=(o,i)=>{const c=cl(o);return `<div class="ped rv-ped est-${o.estado}"${i!=null?` draggable="true" data-dg="${o.id}"`:''}><div class="ped-top">${i!=null?`<b class="parada">${i+1}</b>`:(c.id?avatar(c,'rv-av'):'')}<div class="ped-q"><span class="cli">${esc(c.id?nomVis(c):c.razon_social)}</span><small>N° ${o.numero}${o.entrega?' · Entregar '+(o.entrega==diaLocal(new Date())?'hoy':fd(o.entrega)):''}</small></div><span class="tot">${$m0(o.total)}${+o.costo_envio>0?'<br><small>incluye envío '+$m0(o.costo_envio)+'</small>':''}</span></div>
-      <div class="rv-dir">${IC('pin',15)} ${esc(c.domicilio||'Sin domicilio cargado')} · ${nf(bultos(o))} u.</div><div class="ped-acc"><span class="badge b-${o.estado}">${EST_TXT[o.estado]}</span>
-      ${i!=null?`${o.estado=='en_reparto'?`<span class="ped-br"></span><button data-ent="${o.id}">${IC('check',16)} Entregado</button>`:''}<details class="mas pmas rv-m"><summary aria-label="Más opciones">•••</summary><div class="masc">${i>0?`<button class="alt" data-up="${o.id}">↑ Subir en el recorrido</button>`:''}${i<E.length-1?`<button class="alt" data-dn="${o.id}">↓ Bajar en el recorrido</button>`:''}${o.estado=='en_reparto'?`<button class="alt" data-fr="${o.id}">📷 Foto del remito</button><button class="alt" data-avs="${o.id}">📲 Avisarle que sale</button>`:''}<button class="alt" data-q="${o.id}">✕ Sacar del reparto</button></div></details>`:`<button class="alt" data-a="${o.id}">+ Agregar al reparto</button>`}</div></div>`};
+      <div class="rv-dir">${c.domicilio?`${IC('pin',15)} ${esc([c.domicilio,c.barrio||c.ciudad].filter(Boolean).join(' · '))}`:`<span class="rv-sd">${IC('alert',14)} Falta dirección</span> <a class="lnk" data-dir="${c.id||''}">Cargar</a>`}${horarioTxt(c)?' · '+esc(horarioTxt(c).replace('🕐 ','')):''} · ${nf(bultos(o))} u.</div>
+      <div class="rv-cob ${c.condicion_pago_dias?'cc':''}">${c.condicion_pago_dias?`Cuenta corriente ${c.condicion_pago_dias} días`:`Cobrar ${$m0(Math.max(+o.total||0,saldo(c.id)))} · contado`}${!c.condicion_pago_dias&&saldo(c.id)>+o.total+1?` <small>(incluye saldo anterior)</small>`:''}</div><div class="ped-acc"><span class="badge b-${o.estado}">${EST_TXT[o.estado]}</span>
+      ${i!=null?`${o.estado=='en_reparto'?`<span class="ped-br"></span><button data-ent="${o.id}">${IC('check',16)} Entregado</button><button class="alt" data-cob="${c.id||''}">${IC('cash',15)} Cobrar</button><button class="alt rv-no" data-nst="${o.id}">No estaba</button>`:''}${c.telefono?`<a class="alt btn rv-tel" href="tel:${esc(String(c.telefono).replace(/[^\d+]/g,''))}" aria-label="Llamar">${IC('phone',15)}</a>`:''}<details class="mas pmas rv-m"><summary aria-label="Más opciones">•••</summary><div class="masc">${i>0?`<button class="alt" data-up="${o.id}">↑ Subir en el recorrido</button>`:''}${i<E.length-1?`<button class="alt" data-dn="${o.id}">↓ Bajar en el recorrido</button>`:''}${o.estado=='en_reparto'?`<button class="alt" data-fr="${o.id}">📷 Foto del remito</button><button class="alt" data-avs="${o.id}">📲 Avisarle que sale</button>`:''}<button class="alt" data-q="${o.id}">✕ Sacar del reparto</button></div></details>`:`<button class="alt" data-a="${o.id}">+ Agregar al reparto</button>`}</div></div>`};
+    const listos=resto.filter(o=>o.estado=='listo'||o.estado=='en_reparto');
     $('#rv_l').innerHTML=(E.length?`<h3>En el reparto (${E.length})</h3>`+E.map(fila).join(''):'<p><small>Todavía no elegiste pedidos para el reparto.</small></p>')+
-      (resto.length?`<h3>Otros pedidos en curso</h3>`+resto.map(o=>fila(o,null)).join(''):'')+(data.length?'':'<p><small>No hay pedidos aprobados ni listos para repartir.</small></p>');
+      (resto.length?`<div class="rv-oh"><h3>Otros pedidos en curso</h3>${listos.length?`<button class="alt" id="rv_todos">+ Agregar todos los listos (${listos.length})</button>`:''}</div>`+resto.map(o=>fila(o,null)).join(''):'')+(data.length?'':'<p><small>No hay pedidos aprobados ni listos para repartir.</small></p>');
+    {const b=$('#rv_todos');if(b)b.onclick=()=>{listos.forEach(o=>S.rvSel.push(o.id));draw()}}
+    {const tot=E.length+ENT.length;$('#rv_pg').innerHTML=tot?`<div class="rv-pb"><i style="width:${Math.round(ENT.length/tot*100)}%"></i></div><small><b>${ENT.length} de ${tot}</b> entregados hoy${COB?' · cobrado hoy '+$m0(COB):''}</small>`:''}
+    {const sinDir=E.filter(o=>!cl(o).domicilio).length;if(sinDir)$('#rv_pg').insertAdjacentHTML('beforeend',`<small class="rv-sdw">${IC('alert',13)} ${sinDir} sin dirección: cargala en la tarjeta para que entren en el mapa y en el orden.</small>`)}
+    rvMapa(E,cl);
     $('#rv_acc').hidden=!E.length;if(E.length)avisoCarga(E).catch(()=>{});
     if(E.length){const tot=E.reduce((a,o)=>a+Number(o.total||0),0);$('#rv_t').textContent=E.length+(E.length==1?' parada':' paradas')+' · '+nf(E.reduce((a,o)=>a+bultos(o),0))+' u. · '+$m(tot)}
     $$('#rv_l [data-a]').forEach(b=>b.onclick=()=>{S.rvSel.push(b.dataset.a);draw()});
@@ -2361,6 +2384,13 @@ async function vReparto(){
       if(await cambiarEstado(o,'entregado')){toast('Pedido N° '+o.numero+' entregado.');S.rvSel=S.rvSel.filter(x=>x!=o.id);
         if(o.foto_remito)modalAvisos([o],'entrega');else firmaRemito(o,()=>modalAvisos([o],'entrega'));vReparto()}});
     $$('#rv_l [data-fr]').forEach(b=>b.onclick=()=>fotoRemito(data.find(x=>x.id==b.dataset.fr)));
+    $$('#rv_l [data-cob]').forEach(b=>b.onclick=()=>{if(!b.dataset.cob)return;S.preCob=b.dataset.cob;irA('cobranza')});
+    $$('#rv_l [data-nst]').forEach(b=>b.onclick=async()=>{const o=data.find(x=>x.id==b.dataset.nst),c=cl(o),n=prompt('¿Qué pasó? Queda para mañana.','Cerrado / no estaba');if(n===null)return;
+      const m=new Date();m.setDate(m.getDate()+1);await sb.from('contactos_clientes').insert({cliente_id:o.cliente_id,tipo:'visita',detalle:'Reparto: '+(n||'no estaba')+' · pedido N° '+o.numero}).then(()=>{},()=>{});
+      const{error}=await sb.from('pedidos').update({entrega:diaLocal(m)}).eq('id',o.id);if(error)return toast(error.message,1);S.rvSel=S.rvSel.filter(x=>x!=o.id);toast('Pedido N° '+o.numero+' queda para mañana.');
+      if(c.telefono&&confirm('¿Le avisás por WhatsApp a '+(nomVis(c)||'el cliente')+' que pasamos mañana?'))window.open('https://wa.me/'+telWA(c.telefono)+'?text='+encodeURIComponent(`¡Hola! Soy de *Sabores de mi País* 🚚 Pasamos con tu pedido N° ${o.numero} y no había nadie. Te lo llevamos mañana. ¡Gracias!`),'_blank');vReparto()});
+    $$('#rv_l [data-dir]').forEach(a=>a.onclick=async()=>{const c=S.clientes.find(x=>x.id==a.dataset.dir);if(!c)return;const d=(prompt('Dirección de '+nomVis(c)+' (calle y número, barrio)',c.domicilio||'')||'').trim();if(!d)return;
+      const{error}=await sb.from('clientes').update({domicilio:d}).eq('id',c.id);if(error)return toast(error.message,1);c.domicilio=d;toast('Dirección guardada. Para que entre en el mapa, abrí su ficha y tocá «Ubicar».');draw()});
     $$('#rv_l [data-avs]').forEach(b=>b.onclick=()=>avisoPedidoWA(data.find(x=>x.id==b.dataset.avs),'sale'))};
   draw();
   const linea=(o,i)=>{const c=cl(o),f=fac[o.id];return{n:i+1,o,c,f}};
@@ -2378,7 +2408,17 @@ async function vReparto(){
   $('#rv_rm').onclick=()=>remitos(elegidos());
   $('#rv_ch').onclick=()=>modoChofer(elegidos());
   $('#rv_ord').onclick=async()=>{const r=await ordenarRuta(elegidos());if(r){S.rvSel=r;draw()}};
-  $('#rv_wa').onclick=()=>{const E=elegidos().map(linea);
+  $('#rv_wa').onclick=async()=>{const E=elegidos();if(!E.length)return toast('Elegí los pedidos del reparto.',1);const ch=(prompt('¿Para quién es el link? (nombre del chofer, opcional)',S.rvChofer||'')??null);if(ch===null)return;S.rvChofer=ch;
+    const{data:r,error}=await sb.from('reparto_links').insert({pedidos:E.map(o=>o.id),chofer:ch.trim()||null,fecha:diaR}).select('token').single();if(error)return toast(/reparto_links/.test(error.message)?'Falta actualizar la base de datos.':error.message,1);
+    const url=new URL('chofer.html?t='+r.token,location.href.split('#')[0].split('?')[0]).href;
+    window.open('https://wa.me/?text='+encodeURIComponent(`🚚 *Reparto ${new Date(diaR+'T12:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'numeric'})}* · ${E.length} paradas\nAbrí este link: ahí ves el recorrido, el mapa, cuánto cobrar y marcás cada entrega.\n${url}`),'_blank');toast('Link creado. Lo que marque el chofer lo ves acá.');chLink()};
+  const chLink=async()=>{const box=$('#rv_chl');if(!box)return;const{data:L}=await sb.from('reparto_links').select('id,chofer,eventos,pedidos,creado_en,token').gte('creado_en',tsAR(diaLocal(new Date()))).order('creado_en',{ascending:false}).limit(1).then(r=>r,()=>({}));const k=(L||[])[0];if(!k){box.innerHTML='';return}
+    const Ev=k.eventos||[],en=Ev.filter(e=>e.accion=='entregado'),no=Ev.filter(e=>e.accion=='no_estaba'),cb=en.filter(e=>+e.cobrado>0);
+    box.innerHTML=`<div class="rv-chl"><b>${IC('link',15)} Link ${k.chofer?'de '+esc(k.chofer):'del chofer'}</b><small>${en.length} entregados · ${no.length} no estaban de ${(k.pedidos||[]).length}${cb.length?' · cobró '+$m0(cb.reduce((a,e)=>a+(+e.cobrado),0)):''}</small>
+      ${cb.length?`<div class="rv-chc"><small>Cobros del chofer para registrar en Cobranza:</small>${cb.map(e=>{const o=data.find(x=>x.id==e.pedido);return`<div><span>N° ${e.numero} · ${$m0(e.cobrado)} ${esc(e.medio||'')}</span>${o?`<a class="lnk" data-chc="${o.cliente_id}">Registrar</a>`:''}</div>`}).join('')}</div>`:''}
+      <a class="lnk" href="${new URL('chofer.html?t='+k.token,location.href.split('#')[0].split('?')[0]).href}" target="_blank" rel="noopener">Ver lo que ve el chofer</a></div>`;
+    box.querySelectorAll('[data-chc]').forEach(a=>a.onclick=()=>{S.preCob=a.dataset.chc;irA('cobranza')})};chLink();
+  $('#rv_wat').onclick=()=>{const E=elegidos().map(linea);
     const txt=`*Reparto ${new Date().toLocaleDateString('es-AR')}* · ${E.length} paradas\n\n`+E.map(x=>`*${x.n}. ${x.c.razon_social}*\n${x.c.domicilio||'(sin domicilio)'}${x.c.telefono?'\nTel. '+x.c.telefono:''}\nPedido N° ${x.o.numero} · ${nf(bultos(x.o))} u. · ${$m(x.o.total)}${x.c.condicion_pago_dias?'':' · COBRAR CONTADO'}${x.c.domicilio?'\nhttps://maps.google.com/?q='+encodeURIComponent(x.c.domicilio):''}`).join('\n\n');
     window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank')};
   $('#rv_map').onclick=()=>{const D=elegidos().map(o=>cl(o).domicilio).filter(Boolean);if(!D.length)return toast('Ninguno de estos clientes tiene domicilio cargado.',1);

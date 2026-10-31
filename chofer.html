@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="google" content="notranslate">
+<meta name="theme-color" content="#7b2d3e">
+<title>Reparto · Sabores de mi País</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root{--m:#7b2d3e;--tx:#1c2333;--tx2:#5b6274;--l:#e6e1d8;--bg:#f4f1ec;--ok:#1d7a46}
+*{box-sizing:border-box}body{margin:0;font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--tx);background:var(--bg)}
+header{background:var(--m);color:#fff;padding:14px 16px 12px;position:sticky;top:0;z-index:10}
+header h1{margin:0;font-size:18px}header small{opacity:.85}
+.bar{height:6px;background:rgba(255,255,255,.25);border-radius:3px;margin-top:8px;overflow:hidden}.bar i{display:block;height:100%;background:#ffd54a}
+main{padding:12px 12px 90px;max-width:640px;margin:0 auto}
+#mapa{height:220px;border-radius:14px;margin-bottom:12px;border:1px solid var(--l)}
+.p{background:#fff;border:1px solid var(--l);border-radius:14px;padding:12px;margin-bottom:10px;position:relative}
+.p.hecho{opacity:.6}.p.actual{border:2px solid var(--m);box-shadow:0 6px 18px rgba(123,45,62,.15)}
+.n{position:absolute;top:12px;left:12px;width:28px;height:28px;border-radius:50%;background:var(--m);color:#fff;display:grid;place-items:center;font-weight:800}
+.p.hecho .n{background:var(--ok)}
+.c{margin-left:38px}.c b{font-size:16px}.c small{display:block;color:var(--tx2)}
+.cob{margin:8px 0 0 38px;padding:8px 10px;border-radius:10px;background:#fff4dd;color:#7a5600;font-weight:700}.cob.cc{background:#eef0f4;color:var(--tx2);font-weight:500}
+.it{margin:6px 0 0 38px;padding-left:16px;color:var(--tx2);font-size:13.5px}
+.ac{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 0 38px}
+.ac a,.ac button{flex:1 1 auto;border:1px solid var(--l);background:#fff;color:var(--m);border-radius:10px;padding:10px 8px;font:600 14px system-ui;text-align:center;text-decoration:none;cursor:pointer}
+.ac .ent{background:var(--ok);border-color:var(--ok);color:#fff}.ac .no{color:#9b2c2c}
+.est{display:inline-block;margin:6px 0 0 38px;font-size:12.5px;font-weight:700;padding:2px 9px;border-radius:999px}
+.est.e{background:#e6f5ec;color:var(--ok)}.est.x{background:#fdeeee;color:#b3261e}
+.err{background:#fff;border-radius:14px;padding:20px;text-align:center;margin-top:30px}
+.modal{position:fixed;inset:0;background:rgba(15,20,30,.55);display:flex;align-items:flex-end;justify-content:center;z-index:50}
+.mc{background:#fff;border-radius:18px 18px 0 0;padding:16px;width:100%;max-width:520px}
+.mc input,.mc select{width:100%;padding:12px;border:1px solid var(--l);border-radius:10px;font:16px system-ui;margin:6px 0}
+.mc .b{width:100%;padding:13px;border:0;border-radius:12px;background:var(--ok);color:#fff;font:700 16px system-ui;margin-top:6px}
+.mc .b2{width:100%;padding:11px;border:1px solid var(--l);border-radius:12px;background:#fff;font:600 15px system-ui;margin-top:6px}
+.fin{background:#fff;border-radius:14px;padding:16px;text-align:center}
+</style>
+</head>
+<body>
+<header><h1 id="tit">Reparto</h1><small id="sub">Cargando…</small><div class="bar"><i id="bar" style="width:0"></i></div></header>
+<main id="m"></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const sb=supabase.createClient('https://ggfqdkgqtpnkvxoykoty.supabase.co','sb_publishable_kfvkZgS8FewPabohJrKf9Q_UDyEcQiR',{auth:{persistSession:false}});
+const T=new URLSearchParams(location.search).get('t')||'';
+const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pes=n=>'$ '+Math.round(+n||0).toLocaleString('es-AR');
+const num=v=>{v=String(v||'').trim().replace(/\$/g,'').replace(/\s/g,'');if(!v)return null;if(/,/.test(v))v=v.replace(/\./g,'').replace(',','.');else if(/^\d{1,3}(\.\d{3})+$/.test(v))v=v.replace(/\./g,'');const n=Number(v);return isNaN(n)?null:n};
+let D=null,mapa=null;
+async function cargar(){const{data,error}=await sb.rpc('chofer_ver',{p_token:T});
+  if(error||!data||data.error){$('#m').innerHTML=`<div class="err"><b>${esc(data?.error||'No se pudo abrir el reparto.')}</b><p>${esc(error?.message||'')}</p></div>`;$('#sub').textContent='';return}
+  D=data;pintar()}
+function ev(id){const E=(D.eventos||[]).filter(e=>e.pedido==id);return E[E.length-1]||null}
+function pintar(){const P=D.paradas||[],hechas=P.filter(p=>p.estado=='entregado'||ev(p.id)?.accion=='no_estaba');
+  $('#tit').textContent='Reparto '+new Date(D.fecha+'T12:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'numeric'});
+  const cob=(D.eventos||[]).filter(e=>e.accion=='entregado'&&e.cobrado>0).reduce((a,e)=>a+(+e.cobrado),0);
+  $('#sub').textContent=`${hechas.length} de ${P.length} paradas${cob?' · cobrado '+pes(cob):''}`;$('#bar').style.width=(P.length?Math.round(hechas.length/P.length*100):0)+'%';
+  const act=P.find(p=>!(p.estado=='entregado'||ev(p.id)?.accion=='no_estaba'));
+  $('#m').innerHTML=(P.some(p=>p.lat!=null)?'<div id="mapa"></div>':'')+P.map((p,i)=>{const e=ev(p.id),ok=p.estado=='entregado',no=!ok&&e?.accion=='no_estaba',dir=[p.domicilio,p.barrio].filter(Boolean).join(', '),dest=p.lat!=null?p.lat+','+p.lng:dir,tel=String(p.telefono||'').replace(/[^\d+]/g,'');
+    return`<div class="p ${ok||no?'hecho':''} ${act&&act.id==p.id?'actual':''}" id="p_${p.id}"><span class="n">${ok?'✓':i+1}</span><div class="c"><b>${esc(p.cliente)}</b><small>${esc(dir||'Sin dirección: llamalo')}${p.recibe_desde||p.recibe_hasta?' · recibe '+(p.recibe_desde?'de '+p.recibe_desde.slice(0,5):'')+(p.recibe_hasta?' a '+p.recibe_hasta.slice(0,5):''):''}</small><small>Pedido N° ${p.numero}${p.cliente_ausente?' · ⚠️ avisó que no va a estar':''}</small></div>
+      <div class="cob ${p.contado?'':'cc'}">${p.contado?'Cobrar '+pes(p.total)+' (contado)':'Cuenta corriente · '+pes(p.total)}</div>
+      ${(p.items||[]).length?`<ul class="it">${p.items.map(x=>`<li>${(+x.q).toLocaleString('es-AR')} × ${esc(x.n)}</li>`).join('')}</ul>`:''}
+      ${ok?`<span class="est e">Entregado${e?.cobrado>0?' · cobró '+pes(e.cobrado):''}</span>`:no?`<span class="est x">No estaba${e?.nota?' · '+esc(e.nota):''}</span>`:''}
+      ${ok?'':`<div class="ac">${dest?`<a target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}">📍 Ir</a>`:''}${tel?`<a href="tel:${esc(tel)}">📞 Llamar</a>`:''}<button class="ent" data-en="${p.id}">✅ Entregado</button><button class="no" data-no="${p.id}">🚪 No estaba</button></div>`}</div>`}).join('')+
+    (act?'':`<div class="fin"><h2>🏁 ¡Reparto terminado!</h2><p>Ya le llegó todo a la oficina. Gracias.</p></div>`);
+  if(window.L&&$('#mapa')){const pts=P.filter(p=>p.lat!=null);mapa=L.map('mapa',{zoomControl:false,attributionControl:false});L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18}).addTo(mapa);
+    pts.forEach(p=>{const i=P.indexOf(p),ok=p.estado=='entregado';L.marker([+p.lat,+p.lng],{icon:L.divIcon({className:'',html:`<div style="width:26px;height:26px;border-radius:50%;background:${ok?'#1d7a46':'#7b2d3e'};color:#fff;display:grid;place-items:center;font:800 13px system-ui;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)">${i+1}</div>`,iconSize:[26,26],iconAnchor:[13,13]})}).addTo(mapa).on('click',()=>document.getElementById('p_'+p.id)?.scrollIntoView({behavior:'smooth',block:'center'}))});
+    if(pts.length>1)L.polyline(pts.map(p=>[+p.lat,+p.lng]),{color:'#7b2d3e',weight:3,opacity:.6,dashArray:'6 6'}).addTo(mapa);
+    mapa.fitBounds(L.latLngBounds(pts.map(p=>[+p.lat,+p.lng])).pad(.2))}
+  document.querySelectorAll('[data-en]').forEach(b=>b.onclick=()=>entregar(P.find(p=>p.id==b.dataset.en)));
+  document.querySelectorAll('[data-no]').forEach(b=>b.onclick=()=>noEstaba(P.find(p=>p.id==b.dataset.no)));
+  if(act)setTimeout(()=>document.getElementById('p_'+act.id)?.scrollIntoView({block:'center'}),100)}
+function hoja(html,fn){const m=document.createElement('div');m.className='modal';m.innerHTML=`<div class="mc">${html}</div>`;document.body.appendChild(m);m.onclick=e=>{if(e.target===m)m.remove()};fn(m);return m}
+async function marcar(p,acc,extra){const{error}=await sb.rpc('chofer_marcar',{p_token:T,p_pedido:p.id,p_accion:acc,p_cobrado:extra?.cobrado??null,p_medio:extra?.medio??null,p_nota:extra?.nota??null});
+  if(error){alert(error.message);return false}await cargar();return true}
+function entregar(p){hoja(`<h3 style="margin:0 0 4px">Entregado · ${esc(p.cliente)}</h3><p style="margin:0;color:#5b6274">Pedido N° ${p.numero} · ${pes(p.total)}${p.contado?' · <b>contado</b>':' · cuenta corriente'}</p>
+  <label>¿Cuánto cobraste? (dejalo vacío si no cobraste)<input id="c_i" inputmode="decimal" value="${p.contado?Math.round(p.total):''}"></label>
+  <select id="c_m"><option value="efectivo">Efectivo</option><option value="transferencia">Transferencia</option><option value="cheque">Cheque</option></select>
+  <button class="b" id="c_ok">✅ Confirmar entrega</button><button class="b2" id="c_x">Cancelar</button>`,m=>{
+  m.querySelector('#c_x').onclick=()=>m.remove();m.querySelector('#c_ok').onclick=async e=>{e.target.disabled=true;const v=num(m.querySelector('#c_i').value);if(await marcar(p,'entregado',{cobrado:v>0?v:null,medio:v>0?m.querySelector('#c_m').value:null}))m.remove();else e.target.disabled=false}})}
+function noEstaba(p){hoja(`<h3 style="margin:0 0 8px">No estaba · ${esc(p.cliente)}</h3><input id="n_t" placeholder="¿Qué pasó? (ej.: cerrado, sin plata)" value="Cerrado / no estaba"><button class="b" style="background:#b3261e" id="n_ok">Guardar</button><button class="b2" id="n_x">Cancelar</button>`,m=>{
+  m.querySelector('#n_x').onclick=()=>m.remove();m.querySelector('#n_ok').onclick=async e=>{e.target.disabled=true;if(await marcar(p,'no_estaba',{nota:m.querySelector('#n_t').value}))m.remove();else e.target.disabled=false}})}
+if(!T){$('#m').innerHTML='<div class="err"><b>Falta el código del reparto.</b><p>Abrí el link completo que te mandaron.</p></div>'}else{cargar();setInterval(()=>{if(!document.querySelector('.modal'))cargar()},60000)}
+</script>
+</body>
+</html>
