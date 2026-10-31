@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-30.7';
+const VERSION='2026-10-30.8';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -32,14 +32,17 @@ function loginView(){
     if(error)$('#le').textContent=error.message==='Invalid login credentials'?'Correo o contraseña incorrectos.':'Error de conexión: '+error.message+(error.status?' ('+error.status+')':'');else init()};
   $('#go').onclick=go;$('#pw').onkeydown=e=>{if(e.key==='Enter')go()};
 }
+/* Si la sesión se cerró o venció (por ejemplo, saliste en otro equipo), volver a la pantalla de ingreso en vez de mostrar datos viejos */
+function sesionVencida(){if(S._venc)return;S._venc=1;try{localStorage.removeItem('crm_cache_v1')}catch(e){}sb.auth.signOut({scope:'local'}).catch(()=>{}).finally(()=>{S.perfil=null;loginView();setTimeout(()=>{const e=document.getElementById('le');if(e)e.textContent='Tu sesión se cerró. Volvé a entrar con tu correo y contraseña.'},50)})}
+sb.auth.onAuthStateChange(ev=>{if(ev=='SIGNED_OUT'&&S.perfil&&!S._venc){S._venc=1;S.perfil=null;loginView()}});
 async function init(){
   const{data:{session}}=await sb.auth.getSession();if(!session)return loginView();
   /* Arranque rápido: el perfil guardado en el celular abre la app al instante; se confirma con la base en segundo plano */
   const PK='perfil_'+session.user.id;let p0=null;try{p0=JSON.parse(localStorage.getItem(PK)||'null')}catch(e){}
   const pq=sb.from('perfiles').select('*').eq('id',session.user.id).maybeSingle();let p,pe;
-  if(p0&&p0.activo&&p0.id==session.user.id){p=p0;pq.then(({data,error})=>{if(error)return;if(!data||!data.activo||data.rol!=p0.rol){try{localStorage.removeItem(PK)}catch(e){}location.reload();return}
+  if(p0&&p0.activo&&p0.id==session.user.id){p=p0;pq.then(({data,error,status})=>{if(status==401){sesionVencida();return}if(error)return;if(!data||!data.activo||data.rol!=p0.rol){try{localStorage.removeItem(PK)}catch(e){}location.reload();return}
     try{localStorage.setItem(PK,JSON.stringify(data))}catch(e){}Object.assign(S.perfil,data)},()=>{})}
-  else{const r=await pq;p=r.data;pe=r.error;if(p&&p.activo)try{localStorage.setItem(PK,JSON.stringify(p))}catch(e){}}
+  else{const r=await pq;if(r.status==401)return sesionVencida();p=r.data;pe=r.error;if(p&&p.activo)try{localStorage.setItem(PK,JSON.stringify(p))}catch(e){}}
   if(pe){app.innerHTML='<div class="box login"><p class="err">No se pudo leer tu perfil: '+esc(pe.message)+'</p><button onclick="out()">Salir</button></div>';return}
   if(!p||!p.activo){app.innerHTML='<div class="box login"><p>Tu usuario todavía no está activado. Pedile al dueño que lo active.</p><button onclick="out()">Salir</button></div>';return}
   S.perfil=p;
@@ -48,8 +51,8 @@ async function init(){
     todo(()=>sb.from('clientes').select('*').eq('activo',true).order('razon_social').order('id')),
     todo(()=>sb.from('precios_productos').select(PROD_COLS).order('descripcion').order('producto_id'))]);
   const C0=leerCache(p.id);
-  if(C0){S.clientes=C0.c;S.productos=C0.p;traer().then(([c,pr])=>{if(c.error||pr.error)return;S.clientes.splice(0,S.clientes.length,...c.data);S.productos.splice(0,S.productos.length,...pr.data);guardarCache()}).catch(()=>{})}
-  else{const[c,pr]=await traer();
+  if(C0){S.clientes=C0.c;S.productos=C0.p;traer().then(([c,pr])=>{if(c.status==401||pr.status==401)return sesionVencida();if(c.error||pr.error)return;S.clientes.splice(0,S.clientes.length,...c.data);S.productos.splice(0,S.productos.length,...pr.data);guardarCache()}).catch(()=>{})}
+  else{const[c,pr]=await traer();if(c.status==401||pr.status==401)return sesionVencida();
   if(c.error||pr.error){app.innerHTML='<div class="box login"><p class="err">No se pudieron cargar los datos: '+esc((c.error||pr.error).message)+'</p><button onclick="out()">Salir</button></div>';return}
   S.clientes=c.data;S.productos=pr.data;guardarCache()}
   /* Arranque rápido: si hay datos guardados en el celular, se muestra enseguida y lo demás (stock, promos, marca) se completa en segundo plano */
@@ -102,7 +105,7 @@ async function vManual(){const v=$('#v');v.innerHTML='<p>Cargando manual…</p>'
     $('#mn').hidden=!q||n>0}}
 
 /* Supabase devuelve como máximo 1000 filas por pedido: esto trae todas, de a tandas */
-async function todo(armar){let out=[],i=0;for(;;){const{data,error}=await armar().range(i,i+999);if(error)return{data:out,error};out=out.concat(data);if(data.length<1000)return{data:out,error:null};i+=1000}}
+async function todo(armar){let out=[],i=0;for(;;){const{data,error,status}=await armar().range(i,i+999);if(error)return{data:out,error,status};out=out.concat(data);if(data.length<1000)return{data:out,error:null};i+=1000}}
 /* Auto-actualización: si hay una versión nueva publicada, recarga sola (evita ver la versión vieja guardada en el celular) */
 const APP_V='2026-10-24-1650';
 async function chequearVersion(){try{const j=await(await fetch('version.json?nc='+Date.now(),{cache:'no-store'})).json(),v=j&&j.crm;
