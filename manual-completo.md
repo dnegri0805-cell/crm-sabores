@@ -210,6 +210,11 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 - **📅 Fechas:** calendario comercial (Día del Padre, Pascuas, Navidad…) con productos sugeridos para cada fecha.
 - **🏪 Por rubro:** mensajes y productos pensados para kioscos, dietéticas, almacenes, etc.
 - **🖼️ Folletos y catálogo:** genera folleto/catálogo para imprimir o compartir, y el link al catálogo público (por rubro y con código de quien refiere).
+  - **Folletos listos** (renglón *Folletos* de Inicio): galería con las tapas grandes y filtros por rubro arriba (Todos, Panaderías, Heladerías…). Elegí el **formato**: *Historia* (celular y estados), *A4* (para imprimir) o *Cuadrado* (Instagram, 2 hojas por imagen). Etiquetas **Nuevo** y **Precios actualizados hoy** en la tapa.
+  - **Compartir** (un solo botón): PDF completo, imágenes sueltas, solo algunas hojas, Historia de WhatsApp («Mi estado»), mandar a un cliente, descargar o ver el mensaje.
+  - Tocá un folleto para **ver todas las hojas** deslizando, con los precios de hoy; destildá las que no quieras mandar.
+  - **A un cliente:** marcás clientes (arriba salen los del rubro del folleto) y lo mandás uno por uno: a cada uno le sale **con su lista de precios**, saludado por su nombre y con su link para pedir online.
+  - En cada tapa ves **a cuántos se lo mandaste y cuántos pidieron después** (últimos 60 días). Tocalo para ver la lista y volver a mandárselo a los que no pidieron.
 - **🏆 Puntos y desafío:** programa de puntos (cuánto suma cada $, valor del punto, tope de canje, premio por recomendar) y el desafío del mes.
 - **🏆 Liga de clientes:** ranking mensual por rubro. Cada cliente ve en su catálogo en qué puesto va y cuánto le falta para subir (sin ver a los demás). A fin de mes premiás a los 3 primeros (puntos y mensaje).
 - **🎟️ Sorteo del mes:** cada pedido da chances; el sistema elige ganador.

@@ -237,6 +237,11 @@ Dejamos a la vista solo las herramientas que sirven todos los días:
 - **Reclamos:** reclamos que te hacen los clientes desde su cuenta.
 - **Embudo de prospectos:** los negocios a conquistar por etapas, con filtros por barrio y tipo (ver sección 5).
 - **Folletos y catálogo:** folletos listos para WhatsApp e Instagram (también el bilingüe español-chino) y el link del catálogo público.
+  - **Folletos listos** (renglón *Folletos* de Inicio): galería con las tapas grandes y filtros por rubro arriba (Todos, Panaderías, Heladerías…). Elegí el **formato**: *Historia* (celular y estados), *A4* (para imprimir) o *Cuadrado* (Instagram, 2 hojas por imagen). Etiquetas **Nuevo** y **Precios actualizados hoy** en la tapa.
+  - **Compartir** (un solo botón): PDF completo, imágenes sueltas, solo algunas hojas, Historia de WhatsApp («Mi estado»), mandar a un cliente, descargar o ver el mensaje.
+  - Tocá un folleto para **ver todas las hojas** deslizando, con los precios de hoy; destildá las que no quieras mandar.
+  - **A un cliente:** marcás clientes (arriba salen los del rubro del folleto) y lo mandás uno por uno: a cada uno le sale **con su lista de precios**, saludado por su nombre y con su link para pedir online.
+  - En cada tapa ves **a cuántos se lo mandaste y cuántos pidieron después** (últimos 60 días). Tocalo para ver la lista y volver a mandárselo a los que no pidieron.
 - **Cambios de precio:** lo que subió o bajó, para avisar a los clientes.
 - **Resumen semanal:** cómo fue la semana contra la anterior.
 
