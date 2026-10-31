@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-30.6';
+const VERSION='2026-10-30.7';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -1634,7 +1634,7 @@ async function vPedidos(){
     box.innerHTML=`<small>${tit}</small><div class="prc-l">${L.map(c=>`<button class="alt prc" data-rcid="${c.id}">${avatar(c)}<span>${esc(nomVis(c))}</span></button>`).join('')}</div>`;
     box.querySelectorAll('[data-rcid]').forEach(b=>b.onclick=()=>elegir(S.clientes.find(c=>c.id==b.dataset.rcid)))}catch(e){}})();
   /* Productos: Enter agrega el primero y deja el buscador listo */
-  buscador('#p_q','#p_r',p=>{add(p);drawI();$('#p_q').focus()},p=>`<b>${$m(pr(p))}</b> ${chipStock(p.producto_id)} ${chipBulto(p.producto_id)} ${chipPromo(promoCerca(p.producto_id,lis()))}`);
+  buscador('#p_q','#p_r',p=>{add(p);drawI();$('#p_q').focus()},p=>`<b>${$e(pr(p))}</b> ${chipStock(p.producto_id)} ${chipBulto(p.producto_id)} ${chipPromo(promoCerca(p.producto_id,lis()))}`);
   $('#p_sc').onclick=()=>escanear('Escanear productos del pedido',p=>{add(p);drawI();const it=S.items.find(i=>i.p.producto_id==p.producto_id);return '✔ '+p.descripcion+' · llevás '+it.q});
   $('#p_q').onkeydown=e=>{if(e.key=='Enter'){const f=$('#p_r .r');if(f)f.click()}};
   $('#p_qk').onclick=()=>cargaRapida(lis(),S.items,(p,q)=>{const it=S.items.find(i=>i.p.producto_id==p.producto_id&&!i.cb);if(it){if(q>0)it.q=sbq(p.producto_id,q);else S.items.splice(S.items.indexOf(it),1)}else if(q>0)add(p,q)},drawI);
@@ -3200,7 +3200,7 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
   const habSig=(()=>{let n=0;const y=M==11?Y+1:Y,mm=(M+1)%12,d=new Date(y,mm+1,0).getDate();for(let k=1;k<=d;k++)if(new Date(y,mm,k).getDay()!=0)n++;return n})(),pvV=Math.ceil(faltaSem/visSem),R=30,CI=2*Math.PI*R,ring=(f,t)=>`<svg class="mjr" viewBox="0 0 76 76" aria-hidden="true"><circle cx="38" cy="38" r="${R}" class="tr"/>${f>0?'':`<circle cx="38" cy="8" r="4" class="dot"/>`}${f>0?`<circle cx="38" cy="38" r="${R}" class="fl" stroke-dasharray="${(CI*f).toFixed(1)} ${CI.toFixed(1)}"/>`:''}<text x="38" y="43" text-anchor="middle">${t}</text></svg>`;
   const hero=faltaMg<=0?`<div class="mjh ok"><div><div class="ey">Objetivo de ${esc(mes.toLowerCase())}</div><div class="mjhn">Cumplido</div><div class="hs">Vas ${m0(limpio-meta)} arriba de la meta. Lo que sumes ya es extra.</div></div></div>`
     :semIni?`<div class="mjh">${ring(pcS,Math.round(pcS*100)+'%')}<div><div class="ey">${pvV>LIMV&&faltaSem>0?esc(mes)+' no llega':semTit}</div><div class="mjhn">${pvV>LIMV&&faltaSem>0?`${nf(Math.round(cj))}<span> / ${nf(cjMetaMes)} cajas</span>`:`${nf(Math.round(cjS))}<span> / ${nf(objSem)} cajas</span>`}</div>
-      <div class="hs">${faltaSem>0?(pvV>LIMV?`Desde el 1/${(M+1)%12+1}: <b>${nf(Math.ceil(cjMetaMes/(habSig/6)))} cajas/semana</b>`:`${nf(pvV)} cajas por visita · ${visSem} visita${visSem==1?'':'s'}`):'Semana cumplida. Lo que sumes adelanta el mes.'}</div>${realista?'':'<span class="pill">Foco: cubrir gastos</span>'}</div></div>`
+      <div class="hs">${faltaSem>0?(pvV>LIMV?`Desde el 1/${(M+1)%12+1}: <b>${nf(Math.ceil(cjMetaMes/(habSig/6)))} cajas por semana</b>`:`${nf(pvV)} cajas por visita · ${visSem} visita${visSem==1?'':'s'}`):'Semana cumplida. Lo que sumes adelanta el mes.'}</div>${realista?'':'<span class="pill">Foco: cubrir gastos</span>'}</div></div>`
     :`<div class="mjh"><div><div class="ey">${esc(mes)}</div><div class="mjhn">${nf(faltaCj)}<span> cajas por vender</span></div></div></div>`;
   const aviso=realista?'':`<div class="mja"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5"/><path d="M10 9v5M10 6.2v.1"/></svg><span>La meta de ${m0(meta)} no llega en ${esc(mes.toLowerCase())}. ${cj>=cjGasMes?'Gastos ya cubiertos: lo que vendas es limpio.':'Este mes cubrí los gastos y la meta arranca el mes que viene.'}</span></div>`;
   const bps=[...ids].filter(id=>!foco||chico(id)).map(id=>S.min[id]?.bp||0).filter(x=>x>0),bpP=bps.length?bps.reduce((a,x)=>a+x,0)/bps.length:0,palMes=bpP?cjMetaMes/bpP:0;
