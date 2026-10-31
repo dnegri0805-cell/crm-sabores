@@ -23,14 +23,17 @@ Las funciones del CRM tal como quedaron, en el orden en que las usás en el día
 
 Es el tablero del día. De arriba hacia abajo:
 
-- **Resumen de hoy** (debajo del saludo): **Vendido hoy**, **Cobrado hoy** y **Visitas hoy**. Tocando cada uno vas a esa pantalla.
+- **Resumen de hoy** (debajo del saludo): **Vendido hoy**, **Cobrado hoy** y **Visitas hoy**, cada uno comparado con el mismo día de la semana pasada a esta hora (▲ más, ▼ menos). Tocando cada uno vas a esa pantalla.
+- **Tu día:** todo lo que hay que hacer hoy en una lista: **Para entregar**, **Para cobrar** (vencidos), **Les toca comprar**, **Seguimientos de prospectos** y **Tareas** (con *Hecha* para tildarla). Cada renglón trae su botón directo (WhatsApp, Cobrar, Pedido o Ver).
+- **Editar inicio** (arriba a la derecha): elegís qué tarjetas ver y en qué orden, también en el celular.
 
 - **Vendido en el mes** (solo el dueño): lo vendido en el mes, el % de la meta con su barra (la rayita es el día de hoy), lo de hoy y a cuánto cerrás a este ritmo, unas **barritas con lo vendido cada día** (la oscura es hoy) y la comparación con el mes pasado a la misma altura (*▲ 12 % vs septiembre*). La meta se pone o se cambia tocando **Meta $ …**.
-- **Botones:** Nuevo pedido (el grande, en bordó), Nuevo cliente, Proveedores, Compras y Ventas, y abajo el renglón **Folletos**. El vendedor ve *Mis clientes* y *Ruta de hoy* en lugar de Proveedores y Compras.
+- **Accesos rápidos:** una fila de íconos: **Pedido** (en bordó), Cliente, Cobrar, Compras, Proveedores, Ventas y Folletos. El vendedor ve *Mis clientes* y *Ruta* en lugar de Compras y Proveedores.
 - **Facturado hoy:** siempre a la vista. En $ 0 queda en un solo renglón; cuando facturás, se agranda.
 - **Números del día:** Por aprobar, Visitas de hoy, Te deben, Debés a proveedores y Para entregar. *Te deben* se pinta de rojo solo si hay facturas vencidas.
 - **✅ Todo al día:** los números que están en cero se juntan en un solo renglón verde (por ejemplo *Nada pendiente* o *Sin cobros ni pagos*). Apenas uno tiene algo, vuelve a aparecer como tarjeta.
-- **Metas del mes:** la tarjeta de **Maní JL** y la de **metas en kilos** (BOYA, Tarantela y Salames Familia Grion). Están explicadas en la sección 3.
+- **Metas del mes:** una sola tarjeta con un renglón por meta (Maní JL, BOYA, Tarantela y Salames Grion), con su barra y lo que falta. Tocás un renglón y se abre su detalle completo abajo (explicado en la sección 3). El último tramo del mes ya muestra el ritmo del mes que viene.
+- **Actividad reciente:** los últimos pedidos, cobros y prospectos que avanzaron, con quién lo hizo y cuándo.
 - **Tu comisión** (solo el vendedor): cuánto vendió en el mes y cuánto le corresponde.
 - **Tus logros** (solo el vendedor): 🔥 días seguidos con pedidos, 🏅 10 clientes nuevos, 💯 30 pedidos y 🎯 la meta del mes, con su barra de avance. En la tarjeta Vendedores el dueño ve la racha de cada uno.
 - **Vendedores** (solo el dueño, cuando hay vendedores): ranking del mes con lo vendido, pedidos, clientes nuevos, comisión y avance contra la meta de cada uno (tocá *poner meta* para cargarla).

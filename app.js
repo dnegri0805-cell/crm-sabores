@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-31.22';
+const VERSION='2026-10-31.23';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -315,14 +315,19 @@ function tendencia(id,serie,act,ant,txt){const b=document.getElementById(id);if(
   const pc=ant>0?Math.round((act-ant)/ant*100):null,el=document.createElement('div');el.className='tdz';
   el.innerHTML=sparkSVG(serie)+`<span class="tdt">${pc==null?'':`<b class="tdp ${pc>0?'up':pc<0?'dn':''}">${pc>0?'▲':pc<0?'▼':'='} ${Math.abs(pc)} %</b> `}${txt}</span>`;b.appendChild(el)}
 /* Resumen del día arriba de todo (como Stripe): lo vendido, lo cobrado y las visitas de hoy */
-async function resumenHoy(){const box=document.getElementById('rhoy');if(!box)return;const h=tsAR(diaLocal(new Date())),yo=S.perfil.rol=='vendedor';
+async function resumenHoy(){const box=document.getElementById('rhoy');if(!box)return;const ahora=new Date(),h=tsAR(diaLocal(ahora)),yo=S.perfil.rol=='vendedor';
+  /* mismo día de la semana pasada, hasta esta misma hora (para comparar parejo) */
+  const ant=new Date(ahora.getTime()-7*864e5),ha=tsAR(diaLocal(ant)),hasta=ant.toISOString(),dn=ant.toLocaleDateString('es-AR',{weekday:'short'}).replace('.','');
   let qp=sb.from('pedidos').select('total').neq('estado','cancelado').or('es_prueba.is.null,es_prueba.eq.false').gte('creado_en',h);if(yo)qp=qp.eq('vendedor_id',S.perfil.id);
+  let qp2=sb.from('pedidos').select('total').neq('estado','cancelado').or('es_prueba.is.null,es_prueba.eq.false').gte('creado_en',ha).lt('creado_en',hasta);if(yo)qp2=qp2.eq('vendedor_id',S.perfil.id);
   let qv=sb.from('contactos_clientes').select('id',{count:'exact',head:true}).gte('fecha',h);if(yo)qv=qv.eq('usuario_id',S.perfil.id);
-  const[p,r,v]=await Promise.all([qp,sb.from('recibos').select('importe').eq('anulado',false).gte('fecha',diaLocal(new Date())),qv].map(q=>q.then(x=>x,()=>({}))));
-  if(!document.body.contains(box))return;const P=p.data||[],vt=P.reduce((a,o)=>a+(+o.total||0),0),cb=(r.data||[]).reduce((a,x)=>a+(+x.importe||0),0),nv=v.count||0;
-  box.innerHTML=`<button class="rh" onclick="irA('pedidos')"><small>Vendido hoy</small><b>${$k(vt)}</b><span>${P.length?P.length+(P.length==1?' pedido':' pedidos'):'Sin pedidos aún'}</span></button>
-    <button class="rh" onclick="irA('cobranza')"><small>Cobrado hoy</small><b>${$k(cb)}</b><span>${(r.data||[]).length?(r.data.length+(r.data.length==1?' recibo':' recibos')):'Sin cobros aún'}</span></button>
-    <button class="rh" onclick="irA('clientes',{cs:'agenda'})"><small>Visitas hoy</small><b>${nv}</b><span>${nv?'registradas':'Ninguna aún'}</span></button>`}
+  let qv2=sb.from('contactos_clientes').select('id',{count:'exact',head:true}).gte('fecha',ha).lt('fecha',hasta);if(yo)qv2=qv2.eq('usuario_id',S.perfil.id);
+  const[p,r,v,p2,r2,v2]=await Promise.all([qp,sb.from('recibos').select('importe').eq('anulado',false).gte('fecha',diaLocal(ahora)),qv,qp2,sb.from('recibos').select('importe').eq('anulado',false).eq('fecha',diaLocal(ant)),qv2].map(q=>q.then(x=>x,()=>({}))));
+  if(!document.body.contains(box))return;const sum=(L,k)=>(L||[]).reduce((a,o)=>a+(+o[k]||0),0),P=p.data||[],vt=sum(P,'total'),cb=sum(r.data,'importe'),nv=v.count||0,vt2=sum(p2.data,'total'),cb2=sum(r2.data,'importe'),nv2=v2.count||0;
+  const cmp=(x,y,f,vacio)=>{if(!x&&!y)return`<span>${vacio}</span>`;const fl=x>y?'<i class="rh-up">▲</i>':x<y?'<i class="rh-dn">▼</i>':'';return`<span title="El ${esc(dn)} pasado a esta hora">${fl}${f(y)} el ${esc(dn)}</span>`};
+  box.innerHTML=`<button class="rh" onclick="irA('pedidos')"><small>Vendido hoy</small><b>${$k(vt)}</b>${cmp(vt,vt2,$k,'Sin pedidos aún')}</button>
+    <button class="rh" onclick="irA('cobranza')"><small>Cobrado hoy</small><b>${$k(cb)}</b>${cmp(cb,cb2,$k,'Sin cobros aún')}</button>
+    <button class="rh" onclick="irA('clientes',{cs:'agenda'})"><small>Visitas hoy</small><b>${nv}</b>${cmp(nv,nv2,String,'Ninguna aún')}</button>`}
 async function vInicio(){
   if(esEstacion()&&!S.estVista){S.estVista=1;return irA('impresora')}S.estVista=1;
   const hoyD=new Date(),hoy=diaLocal(hoyD),mes=hoy.slice(0,7);
@@ -338,8 +343,8 @@ async function vInicio(){
     <div class="box" id="k5"><span class="lab">Stock bajo</span><span class="num">…</span><span class="det"></span></div>
   </div>`;
   $('#v').innerHTML=`<div class="bh ini-h" style="flex-wrap:wrap;gap:8px"><div><h2 style="margin:0">${hr<5?'Buenas noches':hr<13?'Buen día':hr<20?'Buenas tardes':'Buenas noches'}${S.perfil.nombre?', '+esc(String(S.perfil.nombre).trim().split(/\s+/)[0]):''}</h2><small class="ini-f">${hoyD.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}</small></div>
-    ${dia?'':'<button class="alt" data-iv="dia">← Volver al inicio simple</button>'}</div><div id="rhoy" class="rhoy"></div>
-  ${dia?`<div id="mesv"></div><div id="aprb"></div>${principalesHTML(false)}${kpH}<div id="rank"></div><div id="comv"></div><div id="logr"></div><div id="manijl"></div><div id="metaskg"></div>`:`
+    ${dia?`<button class="alt ini-ed" onclick="iniPersonalizar()">${IC('sliders',16)} Editar inicio</button>`:'<button class="alt" data-iv="dia">← Volver al inicio simple</button>'}</div><div id="rhoy" class="rhoy"></div>
+  ${dia?`<div id="tudia"></div>${accesosHTML()}<div id="mesv"></div><div id="aprb"></div>${kpH}<div id="rank"></div><div id="comv"></div><div id="logr"></div>${S.perfil.rol=='dueno'?'<div id="metas1"><div id="m1l"></div><div id="manijl" hidden></div><div id="metaskg" hidden></div></div>':''}<div id="acti"></div>`:`
   ${principalesHTML()}<div id="bk"></div><div id="cmpi"></div><div id="cami"></div><div id="equi"></div><div id="doci"></div><div id="midia"></div><div id="mani"></div><div id="resd"></div><div id="tari"></div>
   <div class="herr" id="herr"></div>
   <div id="alm"></div>
@@ -365,7 +370,7 @@ async function vInicio(){
   $('#k6')&&($('#k6').onclick=()=>irA('clientes',{cs:'agenda',agD:Math.min(dvHoy,6)}));
   if(S.perfil.rol=='dueno'){cajaBackup();cajaDolar().catch(()=>{})}
   /* Primero los números del día; los avisos y tareas de abajo se cargan un instante después para que Inicio aparezca más rápido */
-  resumenHoy().catch(()=>{});  avisosEnVivo();setTimeout(()=>actContar().catch(()=>{}),1500);setTimeout(()=>{herramientas();generarFijos();alertasMargen();objetivoMes();mesVendidoInicio().catch(()=>{});aprobInicio().catch(()=>{});rankingInicio().catch(()=>{});if(S.perfil.rol=='vendedor')setTimeout(()=>{try{guiaVendedor()}catch(e){}},1800);maniJLInicio().catch(()=>{});metasKgInicio().catch(()=>{});comisionInicio().catch(()=>{});logrosInicio().catch(()=>{});tocaInicio();fidelInicio().catch(()=>{});masInicio().catch(()=>{});crecerInicio().catch(()=>{});fielesInicio().catch(()=>{});servInicio().catch(()=>{});planInicio().catch(()=>{});colaInicio().catch(()=>{});resumenDia().catch(()=>{});tareasInicio().catch(()=>{});chequeoInicio().catch(()=>{});camionetaInicio().catch(()=>{});cuentasInicio().catch(()=>{});equiposInicio().catch(()=>{});comprobantesInicio().catch(()=>{});mananaInicio().catch(()=>{});miDia().catch(()=>{});ocSemanal().catch(()=>{});aplicarAumentosProg().catch(()=>{});sincronizarOff().catch(()=>{});metasInicio().catch(()=>{});empujonBox($('#empi')).catch(()=>{});fechasInicio();},700);
+  resumenHoy().catch(()=>{});if(dia){tuDiaInicio().catch(()=>{});setTimeout(()=>actividadInicio().catch(()=>{}),900)}  avisosEnVivo();setTimeout(()=>actContar().catch(()=>{}),1500);setTimeout(()=>{herramientas();generarFijos();alertasMargen();objetivoMes();mesVendidoInicio().catch(()=>{});aprobInicio().catch(()=>{});rankingInicio().catch(()=>{});if(S.perfil.rol=='vendedor')setTimeout(()=>{try{guiaVendedor()}catch(e){}},1800);maniJLInicio().catch(()=>{});metasKgInicio().catch(()=>{});comisionInicio().catch(()=>{});logrosInicio().catch(()=>{});tocaInicio();fidelInicio().catch(()=>{});masInicio().catch(()=>{});crecerInicio().catch(()=>{});fielesInicio().catch(()=>{});servInicio().catch(()=>{});planInicio().catch(()=>{});colaInicio().catch(()=>{});resumenDia().catch(()=>{});tareasInicio().catch(()=>{});chequeoInicio().catch(()=>{});camionetaInicio().catch(()=>{});cuentasInicio().catch(()=>{});equiposInicio().catch(()=>{});comprobantesInicio().catch(()=>{});mananaInicio().catch(()=>{});miDia().catch(()=>{});ocSemanal().catch(()=>{});aplicarAumentosProg().catch(()=>{});sincronizarOff().catch(()=>{});metasInicio().catch(()=>{});empujonBox($('#empi')).catch(()=>{});fechasInicio();},700);
   const cli=id=>esc(S.clientes.find(c=>c.id==id)?.razon_social||'Cliente');
   const [fv,pe,fe,sp,fp]=await Promise.all([
     sb.from('facturas_venta').select('*').order('id',{ascending:false}).limit(500),
@@ -3624,12 +3629,71 @@ async function tareaModal(fecha,alGuardar){await equipo();const m=document.creat
     const{error}=await sb.from('tareas').insert({titulo:t,fecha:m.querySelector('#tm_f').value||diaLocal(new Date()),asignado_a:para});if(error)return toast(error.message,1);
     m.remove();toast(para==S.perfil.id?'Tarea guardada.':'Tarea para '+nomU(para)+': le llega a su campanita.');alGuardar&&alGuardar()}}
 
+/* ======================= INICIO: Tu día, accesos, metas en una tarjeta y actividad ======================= */
+const accesosHTML=()=>{const V=S.perfil?.rol=='vendedor';const A=[['cart','Pedido',"irA('pedidos')"],['user','Cliente',"irA('clientes',{cs:'lista',abrirNuevo:1})"],['cash','Cobrar',"irA('cobranza')"],
+    ...(V?[['users','Mis clientes',"irA('clientes',{cs:'lista'})",'cli'],['map','Ruta',"irA('clientes',{cs:'ruta'})",'ruta']]:[['box','Compras',"irA('compras',{sub:'ordenes'})"],['building','Proveedores',"irA('compras',{sub:'proveedores'})"]]),
+    ['chart','Ventas',"irA('ventas',{vs:'rapido'})"],['folder','Folletos','folletosListos()']];
+  return`<div class="ppal acc" role="navigation" aria-label="Accesos rápidos">${A.map(([i,t,f,g],k)=>`<button class="${k?'':'pri'}" onclick="${f}"${g?` data-g="${g}"`:''}><span>${IC(i,22)}</span>${t}</button>`).join('')}</div>`};
+async function tuDiaInicio(){const box=$('#tudia');if(!box)return;const hoy=diaLocal(new Date()),yo=S.perfil.rol=='vendedor';
+  let qe=sb.from('pedidos').select('id,numero,cliente_id,total,estado,fecha_entrega').in('estado',['aprobado','en_preparacion','listo','en_reparto']).or('es_prueba.is.null,es_prueba.eq.false').order('numero').limit(200);if(yo)qe=qe.eq('vendedor_id',S.perfil.id);
+  const qc=sb.from('facturas_estado').select('cliente_id,pendiente,vencimiento').gt('pendiente',0.005).lte('vencimiento',hoy).order('vencimiento').limit(400);
+  const qs=sb.from('prospectos').select('id,nombre,telefono,rubro,proximo_paso,proximo_seguimiento,estado').lte('proximo_seguimiento',hoy).not('estado','in','(cliente,no_interesado)').order('proximo_seguimiento').limit(60);
+  const qt=sb.from('tareas').select('id,titulo,fecha,cliente_id,asignado_a').eq('hecha',false).lte('fecha',hoy).or('asignado_a.is.null,asignado_a.eq.'+S.perfil.id).order('fecha').limit(60);
+  const ok=q=>Promise.resolve(q).then(x=>x,()=>({}));
+  const[E,C,P,T,R]=await Promise.all([ok(qe),ok(qc),ok(qs),ok(qt),ok(datosRecompra().catch(()=>[]))]);if(!document.body.contains(box))return;
+  const cl=id=>S.clientes.find(c=>c.id==id),nc=id=>{const c=cl(id);return c?(nomVis?nomVis(c):c.razon_social)||c.razon_social||'Cliente':'Cliente'},ini=t=>esc(String(t||'?').trim()[0]||'?').toUpperCase();
+  const ESN={aprobado:'Aprobado',en_preparacion:'En preparación',listo:'Listo',en_reparto:'En reparto'};
+  const EL=(E.data||[]).filter(o=>!o.fecha_entrega||o.fecha_entrega<=hoy).sort((a,b)=>(a.fecha_entrega||'').localeCompare(b.fecha_entrega||''));
+  const CB={};for(const f of C.data||[]){const k=f.cliente_id;if(!CB[k])CB[k]={id:k,t:0,v:f.vencimiento};CB[k].t+=+f.pendiente||0;if(f.vencimiento<CB[k].v)CB[k].v=f.vencimiento}const CL=Object.values(CB).sort((a,b)=>b.t-a.t);
+  const TC=(Array.isArray(R)?R:[]).filter(x=>!x.cont),PS=P.data||[],TA=T.data||[];
+  const dd=d=>{const n=Math.round((new Date(hoy+'T12:00')-new Date(d+'T12:00'))/864e5);return n<=0?'hoy':n==1?'desde ayer':'hace '+n+' días'};
+  const wa=(t,x)=>t?`<a class="ib wa" target="_blank" rel="noopener" href="https://wa.me/${telWA(t)}${x?'?text='+encodeURIComponent(x):''}" aria-label="WhatsApp">${IC('chat',15)}</a>`:'';
+  const G=[];
+  if(EL.length)G.push({k:'ent',ic:'truck',t:'Para entregar',n:EL.length,go:"irA('reparto')",R:EL.slice(0,3).map(o=>({i:ini(nc(o.cliente_id)),b:nc(o.cliente_id),s:`N° ${o.numero} · ${$m0(o.total)} · ${ESN[o.estado]||o.estado}`,a:`<button class="ib" onclick="irA('reparto')">Ver</button>`}))});
+  if(CL.length)G.push({k:'cob',ic:'cash',t:'Para cobrar',n:CL.length,sum:$m0(CL.reduce((s,x)=>s+x.t,0)),go:"irA('cobranza')",R:CL.slice(0,3).map(x=>{const c=cl(x.id);return{i:ini(nc(x.id)),b:nc(x.id),s:`${$m0(x.t)} · vencido ${dd(x.v)}`,a:`${wa(c?.telefono)}<button class="ib av" onclick="irA('cobranza')">Cobrar</button>`}})});
+  if(TC.length)G.push({k:'toc',ic:'phone',t:'Les toca comprar',n:TC.length,go:"irA('ventas',{vs:'toca'})",R:TC.slice(0,3).map(x=>({i:ini(x.c.razon_social),b:nomVis?nomVis(x.c)||x.c.razon_social:x.c.razon_social,s:x.tk?'Suele pedir '+$m0(x.tk):'Le toca reponer',a:`${wa(x.c.telefono)}<button class="ib av" data-tdp="${x.c.id}">Pedido</button>`}))});
+  if(PS.length)G.push({k:'pro',ic:'target',t:'Seguimientos de prospectos',n:PS.length,go:"irA('ventas',{vs:'embudo'})",R:PS.slice(0,3).map(x=>({i:ini(x.nombre),b:x.nombre,s:`${x.proximo_paso||'Seguimiento'} · ${x.proximo_seguimiento<hoy?'venció '+dd(x.proximo_seguimiento).replace('desde ',''):'hoy'}`,a:`${wa(x.telefono)}<button class="ib" onclick="irA('ventas',{vs:'embudo'})">Ver</button>`}))});
+  if(TA.length)G.push({k:'tar',ic:'check',t:'Tareas',n:TA.length,go:null,R:TA.slice(0,3).map(x=>({i:IC('note',14),raw:1,b:x.titulo,s:(x.fecha<hoy?'Pendiente '+dd(x.fecha):'Para hoy')+(x.cliente_id?' · '+nc(x.cliente_id):''),a:`<button class="ib" data-tdh="${x.id}" aria-label="Marcar hecha">${IC('check',15)} Hecha</button>`}))});
+  const tot=G.reduce((s,g)=>s+g.n,0);
+  box.innerHTML=`<div class="box td"><div class="td-h"><h3>${IC('calendar',18)} Tu día</h3><small>${tot?tot+(tot==1?' cosa':' cosas')+' para hoy':'Nada pendiente'}</small></div>
+    ${G.length?G.map(g=>`<div class="td-g td-${g.k}"><div class="td-gh"><span class="td-gi">${IC(g.ic,15)}</span><b>${g.t}</b><span class="td-n">${g.n}</span>${g.sum?`<small>${g.sum}</small>`:''}${g.go&&g.n>3?`<a class="lnk" onclick="${g.go}">Ver ${g.n}</a>`:''}</div>
+      ${g.R.map(r=>`<div class="td-r"><span class="td-i">${r.i}</span><div class="td-t"><b>${esc(r.b)}</b><small>${esc(r.s)}</small></div><span class="td-a">${r.a}</span></div>`).join('')}</div>`).join('')
+      :`<p class="td-ok">${IC('check',16)} Nada para entregar, cobrar ni seguir hoy. Buen momento para salir a vender.</p>`}</div>`;
+  box.querySelectorAll('[data-tdp]').forEach(b=>b.onclick=()=>{S.preCli=cl(b.dataset.tdp);irA('pedidos')});
+  box.querySelectorAll('[data-tdh]').forEach(b=>b.onclick=async()=>{b.disabled=true;const{error}=await sb.from('tareas').update({hecha:true,hecha_en:new Date().toISOString()}).eq('id',b.dataset.tdh);if(error){b.disabled=false;return toast(error.message,1)}toast('Tarea hecha.');tuDiaInicio()})}
+/* metas: un renglón por meta (Maní JL y las de kilos); tocás uno y se abre su tarjeta completa abajo */
+function metasResumen(){const box=$('#m1l');if(!box)return;const R=S.metaRes||{},L=[...(R.mani?[R.mani]:[]),...(R.kg||[])];if(!L.length){box.innerHTML='';return}
+  const ab=S.metaAb||'',sig=L.find(x=>x.sig),mes=(sig?sig.mesSig:L[0].mes)||'';
+  box.innerHTML=`<div class="box m1"><div class="m1-h"><h3>${IC('target',18)} Metas de ${esc(mes.toLowerCase())}</h3><small>Tocá una para ver el detalle</small></div>
+    ${L.map(x=>`<button class="m1-r${ab==x.key?' on':''}" data-m1="${x.key}" aria-expanded="${ab==x.key}"><span class="m1-f">${x.f?`<img src="${esc(x.f)}" alt="" loading="lazy">`:esc((x.n||'?')[0])}</span><span class="m1-t"><b>${esc(x.n)}</b><span class="m1-b"><i style="width:${Math.round(Math.min(1,x.pc||0)*100)}%" class="${(x.pc||0)>=1?'ok':''}"></i></span><small>${esc(x.sub||'')}</small></span><span class="m1-v">${esc(x.val||'')}</span><span class="m1-c">${IC('down',16)}</span></button>`).join('')}</div>`;
+  const mostrar=()=>{const k=S.metaAb||'',mj=$('#manijl'),mk=$('#metaskg');if(mj)mj.hidden=k!='mani';if(mk)mk.hidden=!k.startsWith('kg')};mostrar();
+  box.querySelectorAll('[data-m1]').forEach(b=>b.onclick=()=>{const k=b.dataset.m1;S.metaAb=S.metaAb==k?'':k;box.querySelectorAll('[data-m1]').forEach(z=>{const on=z.dataset.m1==S.metaAb;z.classList.toggle('on',on);z.setAttribute('aria-expanded',on)});mostrar();
+    if(S.metaAb.startsWith('kg')){const i=+S.metaAb.slice(2);if(i!=R.kgSel){const t=$(`#metaskg [data-mk="${i}"]`);t&&t.click()}setTimeout(()=>$('#metaskg')?.scrollIntoView({behavior:'smooth',block:'nearest'}),60)}
+    else if(S.metaAb=='mani')setTimeout(()=>$('#manijl')?.scrollIntoView({behavior:'smooth',block:'nearest'}),60)})}
+/* actividad reciente: últimos pedidos, cobros y prospectos que avanzaron */
+async function actividadInicio(){const box=$('#acti');if(!box)return;await equipo().catch(()=>{});const ok=q=>Promise.resolve(q).then(x=>x,()=>({}));
+  const[p,r,q]=await Promise.all([ok(sb.from('pedidos').select('numero,cliente_id,total,estado,creado_en,actualizado_en,vendedor_id,es_prueba').order('actualizado_en',{ascending:false}).limit(6)),
+    ok(sb.from('recibos').select('id,cliente_id,importe,fecha,usuario_id,anulado').order('id',{ascending:false}).limit(4)),
+    ok(sb.from('prospectos').select('nombre,estado,etapa_desde,vendedor_id').not('etapa_desde','is',null).neq('estado','nuevo').order('etapa_desde',{ascending:false}).limit(4))]);
+  if(!document.body.contains(box))return;
+  const nc=id=>{const c=S.clientes.find(c=>c.id==id);return c?(nomVis?nomVis(c):'')||c.razon_social:'Cliente'},quien=id=>id&&id!=S.perfil.id?nomU(id):'Vos';
+  const ESN={pendiente:'Por aprobar',aprobado:'Aprobado',en_preparacion:'En preparación',listo:'Listo',en_reparto:'En reparto',entregado:'Entregado',cancelado:'Cancelado'};
+  const ET={contactado:'Contactado',visitado:'Visitado',interesado:'Interesado',cliente:'cliente',no_interesado:'Descartado'};
+  const A=[...(p.data||[]).filter(o=>!o.es_prueba).map(o=>({t:o.actualizado_en||o.creado_en,ic:'cart',c:o.estado=='cancelado'?'baja':o.estado=='entregado'?'sube':'',h:`Pedido N° ${o.numero} · ${esc(nc(o.cliente_id))}`,s:`${$m0(o.total)} · ${ESN[o.estado]||o.estado} · ${esc(quien(o.vendedor_id))}`})),
+    ...(r.data||[]).filter(x=>!x.anulado).map(x=>({t:x.fecha+'T12:00:00-03:00',ic:'cash',c:'sube',h:`Cobro de ${$m0(x.importe)}`,s:`${esc(nc(x.cliente_id))} · ${esc(quien(x.usuario_id))}`})),
+    ...(q.data||[]).map(x=>({t:x.etapa_desde,ic:'target',c:x.estado=='no_interesado'?'baja':'',h:`${esc(x.nombre)} ${x.estado=='cliente'?'se hizo cliente':x.estado=='no_interesado'?'se descartó':'pasó a '+(ET[x.estado]||x.estado)}`,s:'Prospecto · '+esc(quien(x.vendedor_id))}))]
+    .filter(x=>x.t).sort((a,b)=>new Date(b.t)-new Date(a.t)).slice(0,6);
+  if(!A.length){box.innerHTML='';return}
+  const cuando=t=>{const d=new Date(t),m=(Date.now()-d)/6e4;if(m<1)return'recién';if(m<60)return'hace '+Math.round(m)+' min';const h=d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});if(diaLocal(d)==diaLocal(new Date()))return h;const ay=new Date();ay.setDate(ay.getDate()-1);return diaLocal(d)==diaLocal(ay)?'ayer':d.toLocaleDateString('es-AR',{day:'numeric',month:'numeric'})};
+  box.innerHTML=`<div class="box act"><div class="td-h"><h3>${IC('clock',18)} Actividad reciente</h3></div><div class="act-l">${A.map(x=>`<div class="act-r"><span class="act-i ${x.c}">${IC(x.ic,14)}</span><div><b>${x.h}</b><small>${x.s}</small></div><time>${cuando(x.t)}</time></div>`).join('')}</div></div>`}
 /* ======================= INICIO A MEDIDA ======================= */
-const INI_B=[['mesv','Vendido en el mes','#mesv',['dueno']],['aprb','Precios para aprobar','#aprb',['dueno']],['bot','Botones','#v>.ppal'],['num','Números del día','#v>.kp'],['rank','Vendedores','#rank',['dueno']],
-  ['comv','Tu comisión','#comv',['vendedor']],['logr','Racha y logros','#logr',['vendedor']],['mani','Maní JL','#manijl',['dueno']],['metas','Metas en kilos','#metaskg',['dueno']],['venc','Vencidas y para reponer','#v>details.plg.ib-venc'],['tar','Tareas y avisos del día','#v>details.plg.ib-tar']];
+const INI_B=[['dia','Tu día','#tudia'],['bot','Accesos rápidos','#v>.ppal'],['mesv','Vendido en el mes','#mesv',['dueno']],['aprb','Precios para aprobar','#aprb',['dueno']],['num','Números del día','#v>.kp'],['rank','Vendedores','#rank',['dueno']],
+  ['comv','Tu comisión','#comv',['vendedor']],['logr','Racha y logros','#logr',['vendedor']],['metas1','Metas del mes','#metas1',['dueno']],['venc','Vencidas y para reponer','#v>details.plg.ib-venc'],['tar','Tareas y avisos del día','#v>details.plg.ib-tar'],['act','Actividad reciente','#acti']];
+/* orden guardado + los bloques nuevos en su lugar por defecto (no al final) */
+const iniOrden=(C,B)=>{const def=B.map(b=>b[0]),ord=(C.orden||[]).filter(k=>def.includes(k));for(const k of def)if(!ord.includes(k)){const i=def.indexOf(k),sig=def.slice(i+1).find(x=>ord.includes(x));sig?ord.splice(ord.indexOf(sig),0,k):ord.push(k)}return ord};
 const iniCfg=()=>{try{return JSON.parse(localStorage.getItem('ini_cfg_'+S.perfil.id)||'{}')}catch(e){return{}}};
 const iniBloques=()=>INI_B.filter(b=>!b[3]||b[3].includes(S.perfil.rol));
-function iniAplicar(){const v=$('#v'),pie=v&&v.querySelector('.pieini');if(!v||!pie)return;const C=iniCfg(),B=iniBloques(),ord=[...(C.orden||[]).filter(k=>B.some(b=>b[0]==k)),...B.map(b=>b[0]).filter(k=>!(C.orden||[]).includes(k))];
+function iniAplicar(){const v=$('#v'),pie=v&&v.querySelector('.pieini');if(!v||!pie)return;const C=iniCfg(),B=iniBloques(),ord=iniOrden(C,B);
   for(const k of ord){const b=B.find(x=>x[0]==k),el=v.querySelector(b[2]);if(!el)continue;pie.before(el);el.dataset.ib=k;el.classList.toggle('ib-oc',(C.ocultas||[]).includes(k))}
   v.classList.add('ini-grid');
   if(!v.querySelector('.ini-pers'))pie.insertAdjacentHTML('beforebegin',`<p class="ini-pers"><a class="lnk" onclick="iniPersonalizar()">${IC('sliders',15)} Personalizar el inicio</a><a class="lnk ini-aco" onclick="iniAcomodar()">${IC('grid',15)} Acomodar arrastrando</a></p>`)}
@@ -3648,7 +3712,7 @@ function iniAcomodar(){const v=$('#v');if(!v)return;const on=!v.classList.contai
     el.ondrop=e=>e.preventDefault()});
   const guardar=()=>{const C=iniCfg(),orden=[...v.querySelectorAll(':scope>[data-ib]')].map(e=>e.dataset.ib);C.orden=[...orden,...(C.orden||[]).filter(k=>!orden.includes(k))];try{localStorage.setItem('ini_cfg_'+S.perfil.id,JSON.stringify(C))}catch(e){}};
   if(!on){guardar();toast('Inicio acomodado.')}}
-function iniPersonalizar(){const C=iniCfg(),B=iniBloques();let ord=[...(C.orden||[]).filter(k=>B.some(b=>b[0]==k)),...B.map(b=>b[0]).filter(k=>!(C.orden||[]).includes(k))],oc=new Set(C.ocultas||[]);
+function iniPersonalizar(){const C=iniCfg(),B=iniBloques();let ord=iniOrden(C,B),oc=new Set(C.ocultas||[]);
   const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
   const pinta=()=>{m.innerHTML=`<div class="mc ipm"><div class="bh"><h3>Personalizar el inicio</h3><button class="alt" id="ip_x">Cancelar</button></div><p><small>Tildá lo que querés ver y ordenalo con las flechas (en la compu, también arrastrando).</small></p>
     <div class="ip-l">${ord.map((k,i)=>`<div class="ip-i${oc.has(k)?' off':''}" draggable="true" data-ik="${k}"><span class="ip-g">⋮⋮</span><label class="chk"><input type="checkbox" data-iv="${k}" ${oc.has(k)?'':'checked'}> ${esc(B.find(b=>b[0]==k)[1])}</label><button class="alt" data-iu="${i}" ${i?'':'disabled'} aria-label="Subir">↑</button><button class="alt" data-id="${i}" ${i<ord.length-1?'':'disabled'} aria-label="Bajar">↓</button></div>`).join('')}</div>
@@ -3728,10 +3792,10 @@ async function objetivoMes(){const box=$('#obj');if(!box)return;
 /* ======================= MANÍ JL: OBJETIVO DE GANANCIA LIMPIA (Inicio) ======================= */
 async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='dueno')return;
   const[C,pv,G]=await Promise.all([cfgJ('mani_jl',{meta:0,pct:100}),sb.from('proveedores').select('id,razon_social'),cfgJ('gastos_fijos',{items:[]})]);
-  const jl=(pv.data||[]).find(p=>/^\s*JL\b/i.test(p.razon_social||''));if(!jl){box.innerHTML='';return}
+  const jl=(pv.data||[]).find(p=>/^\s*JL\b/i.test(p.razon_social||''));if(!jl){box.innerHTML='';S.metaRes=S.metaRes||{};S.metaRes.mani=null;metasResumen();return}
   const pedirMeta=async()=>{const x=prompt('¿Cuánto querés que te quede LIMPIO por mes con Maní JL? (en pesos, después de los gastos fijos):',C.meta?String(C.meta):'2000000');if(x===null)return;const n=numAR(x);if(!(n>0))return toast('Escribí un importe, por ejemplo 2000000.',1);
     const{error}=await guardaCfgJ('mani_jl',{...C,meta:n});error?toast(error.message,1):(toast('Objetivo de Maní JL guardado.'),maniJLInicio())};
-  if(!(C.meta>0)){box.innerHTML=`<div class="box obj"><div class="bh"><h3 style="margin:0">🥜 Maní JL</h3><button class="alt" id="mj_e">Poner objetivo</button></div><p><small>Decime cuánto querés que te quede limpio por mes y te voy mostrando, con las ventas reales, cuántas cajas te faltan.</small></p></div>`;$('#mj_e').onclick=pedirMeta;return}
+  if(!(C.meta>0)){box.innerHTML=`<div class="box obj"><div class="bh"><h3 style="margin:0">🥜 Maní JL</h3><button class="alt" id="mj_e">Poner objetivo</button></div><p><small>Decime cuánto querés que te quede limpio por mes y te voy mostrando, con las ventas reales, cuántas cajas te faltan.</small></p></div>`;$('#mj_e').onclick=pedirMeta;S.metaRes=S.metaRes||{};S.metaRes.mani={key:'mani',n:'Maní JL',f:'fotos/metas/mani-jl.webp',mes:mesNom(mesHoy()).split(' ')[0],pc:0,val:'',sub:'Sin objetivo: tocá para ponerlo'};metasResumen();return}
   const m=mesHoy(),[a,b]=mesRango(m),hoy=new Date(),dh=hoy.getDate(),dm=new Date(hoy.getFullYear(),hoy.getMonth()+1,0).getDate(),Y=hoy.getFullYear(),M=hoy.getMonth();
   const ids=new Set(S.productos.filter(p=>S.min[p.producto_id]?.pv==jl.id).map(p=>p.producto_id));
   /* si los productos todavía no cargaron, espera: si no, calcula con un promedio inventado y los números saltan */
@@ -3768,7 +3832,7 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
       if(hace>=Math.max(7,cada*.85))V.push({c,pri:hace/cada+1,why:`Le toca reponer: compró JL hace ${hace} días${gaps.length?` (suele cada ${cada})`:''}`,it:[...(jlProd[c.id]||[])]})}
     else if((T[c.id]||0)>0)V.push({c,pri:(T[c.id]||0)/1e9,why:`Te compra ${m0(T[c.id]/3)} por mes y todavía no lleva JL`,it:null})}
   V.sort((x,y)=>y.pri-x.pri);const VIS=V.slice(0,6);
-  let abierto=false;try{abierto=localStorage.getItem('mj_abierto')=='1'}catch(e){}
+  let abierto=false;try{abierto=localStorage.getItem('mj_ab2')=='1'}catch(e){}
   const habSig=(()=>{let n=0;const y=M==11?Y+1:Y,mm=(M+1)%12,d=new Date(y,mm+1,0).getDate();for(let k=1;k<=d;k++)if(new Date(y,mm,k).getDay()!=0)n++;return n})(),pvV=Math.ceil(faltaSem/visSem),R=30,CI=2*Math.PI*R,ring=(f,t)=>`<svg class="mjr" viewBox="0 0 76 76" aria-hidden="true"><circle cx="38" cy="38" r="${R}" class="tr"/>${f>0?'':`<circle cx="38" cy="8" r="4" class="dot"/>`}${f>0?`<circle cx="38" cy="38" r="${R}" class="fl" stroke-dasharray="${(CI*f).toFixed(1)} ${CI.toFixed(1)}"/>`:''}<text x="38" y="43" text-anchor="middle">${t}</text></svg>`;
   const mesSigJ=mesNom(diaLocal(new Date(Y,M+1,1)).slice(0,7)).split(' ')[0],semSigJ=Math.ceil(cjMetaMes/(habSig/6));
   const hero=faltaMg<=0?`<div class="mjh ok"><div><div class="ey">Objetivo de ${esc(mes.toLowerCase())}</div><div class="mjhn">Cumplido</div><div class="hs">Vas ${m0(limpio-meta)} arriba de la meta. Lo que sumes ya es extra.</div></div></div>`
@@ -3782,7 +3846,7 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
       :`Cada caja te deja ${m0(mb)}. A este ritmo cerrás ${esc(mes.toLowerCase())} con <b class="${ok?'sube':'baja'}">${m0(proyLimpio)}</b> limpios.`;
   const SEL=conSel?`<div class="mjseg"><span>Calcular con<small>Estimado: ${m0(mbCat)} por caja</small></span><div role="radiogroup" aria-label="Calcular con" class="mjsw ${foco?'':'der'}" id="mj_sw"><i class="mjpill"></i><button role="radio" aria-checked="${!!foco}" data-mjf="chicos" class="${foco?'on':''}">65 y 85 g</button><button role="radio" aria-checked="${!foco}" data-mjf="todo" class="${foco?'':'on'}">Toda la línea</button></div></div>`:'';
   const esSig=faltaMg>0&&semIni&&pvV>LIMV&&faltaSem>0&&hab(dh,dm)<=6;
-  box.innerHTML=`<div class="box obj mj"><div class="mjtop"><div class="mjtl"><img class="mjimg" src="fotos/metas/mani-jl.webp" alt=""><div><div class="ey">Meta de ${esc((esSig?mesSigJ:mes).toLowerCase())}</div><div class="tt">Maní JL</div>${esSig?`<div class="mjcer">${esc(mes)} cierra con ${nf(Math.round(cj))} ${Math.round(cj)==1?'caja':'cajas'}</div>`:''}</div></div><button class="mjmeta" id="mj_e" aria-label="Cambiar meta"><small>Meta limpia</small><b>${m0(meta)}</b><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16H4v-3z"/></svg></button></div>
+  box.innerHTML=`<div class="box obj mj${esSig?' sig':''}"><div class="mjtop"><div class="mjtl"><img class="mjimg" src="fotos/metas/mani-jl.webp" alt=""><div><div class="ey">Meta de ${esc((esSig?mesSigJ:mes).toLowerCase())}</div><div class="tt">Maní JL</div>${esSig?`<div class="mjcer">${esc(mes)} cierra con ${nf(Math.round(cj))} ${Math.round(cj)==1?'caja':'cajas'}</div>`:''}</div></div><button class="mjmeta" id="mj_e" aria-label="Cambiar meta"><small>Meta limpia</small><b>${m0(meta)}</b><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16H4v-3z"/></svg></button></div>
     <div id="mj_h" role="button" tabindex="0" aria-expanded="${abierto}" style="cursor:pointer">${hero}</div>
     <button class="mjver" id="mj_t">${abierto?'Ocultar detalle':'Ver detalle del mes'} <span>${abierto?'▴':'▾'}</span></button>
     <div id="mj_d"${abierto?'':' hidden'}>${aviso}
@@ -3793,10 +3857,12 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
       <div><small>Ganancia</small><b>${m0(mg)}</b><small>facturado ${m0(vta)}</small></div>
       <div><small>Limpio</small>${limpio<0&&!(cj>0)?`<b style="color:var(--mu)">${m0(0)}</b><small>faltan ${mM(fijos)}</small>`:`<b class="${limpio<0?'baja':limpio>=meta?'sube':''}">${m0(limpio)}</b><small>${limpio<0?'faltan '+mM(-limpio):Math.round(limpio/meta*100)+' % de la meta'}</small>`}</div></div>
     ${palMes?`<div class="mjpal"><div><small>${realista?'Para la meta':'Desde el mes que viene'}</small><b>${palMes.toLocaleString('es-AR',{maximumFractionDigits:1})} pallets por mes</b><small>${nf(cjMetaMes)} cajas · ${nf(Math.round(bpP))} por pallet</small></div><div><small>Cada pallet te deja</small><b>${mM(mb*bpP)}</b><small>de ganancia</small></div>${SEL}</div>`:SEL}${nota?`<p class="mjn">${nota}</p>`:''}</div>
-    <div class="mjsec mjv"><div class="mjrow"><span class="ey">A quién visitar</span>${VIS.length?`<small>${VIS.length} sugerido${VIS.length==1?'':'s'}</small>`:''}</div>
+    <div class="mjsec mjv"${VIS.length?'':' hidden'}><div class="mjrow"><span class="ey">A quién visitar</span>${VIS.length?`<small>${VIS.length} sugerido${VIS.length==1?'':'s'}</small>`:''}</div>
       ${VIS.length?VIS.map(x=>{const nm=String(nomVis(x.c)||x.c.razon_social||'Cliente');return`<div class="mjc"><span class="av">${esc(nm.trim()[0]||'?').toUpperCase()}</span><div><b>${esc(nm)}</b><small>${esc(x.why)}</small></div><button class="alt" data-mjp="${x.c.id}">Pedido</button></div>`}).join('')
         :'<p class="mjn">Cuando haya ventas, acá aparecen los clientes a los que les toca reponer JL y los que compran mucho y no lo llevan.</p>'}</div></div></div>`;
-  const plegar=()=>{const d=$('#mj_d'),ab=d.hidden;d.hidden=!ab;try{localStorage.setItem('mj_abierto',ab?'1':'0')}catch(e){}$('#mj_h').setAttribute('aria-expanded',ab);$('#mj_t').innerHTML=(ab?'Ocultar detalle':'Ver detalle del mes')+' <span>'+(ab?'▴':'▾')+'</span>'};
+  S.metaRes=S.metaRes||{};S.metaRes.mani={key:'mani',n:'Maní JL',f:'fotos/metas/mani-jl.webp',mes,mesSig:mesSigJ,sig:esSig,pc:esSig?0:cjMetaMes?cj/cjMetaMes:0,val:esSig?nf(semSigJ)+' por semana':nf(Math.round(cj))+' / '+nf(cjMetaMes)+' cajas',
+    sub:esSig?`${mesSigJ}: ${nf(cjMetaMes)} cajas (${nf(semSigJ)} por semana)`:faltaMg<=0?'Meta cumplida':semIni&&objSem?`Esta semana: ${nf(Math.round(cjS))} de ${nf(objSem)} cajas`:`Faltan ${nf(faltaCj)} cajas`};metasResumen();
+  const plegar=()=>{const d=$('#mj_d'),ab=d.hidden;d.hidden=!ab;try{localStorage.setItem('mj_ab2',ab?'1':'0')}catch(e){}$('#mj_h').setAttribute('aria-expanded',ab);$('#mj_t').innerHTML=(ab?'Ocultar detalle':'Ver detalle del mes')+' <span>'+(ab?'▴':'▾')+'</span>'};
   $('#mj_h').onclick=plegar;$('#mj_t').onclick=plegar;
   const sw=$('#mj_sw');if(sw){
     /* Interruptor deslizable: la pastilla blanca se mueve con el dedo y queda del lado que elijas */
@@ -3816,7 +3882,7 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
    Un solo reloj para los productos que se quieren empujar (config_app 'metas_kg': {items:[{p:producto_id,n:nombre corto,meta:kg por mes}],sel}).
    Arriba se elige el producto; muestra los kilos de la semana, el mes y a quién visitar. */
 async function metasKgInicio(){const box=$('#metaskg');if(!box||S.perfil.rol!='dueno')return;
-  const C=await cfgJ('metas_kg',{items:[],sel:0});const IT=(C.items||[]).filter(x=>x&&(x.p||x.ps?.length));if(!IT.length){box.innerHTML='';return}
+  const C=await cfgJ('metas_kg',{items:[],sel:0});const IT=(C.items||[]).filter(x=>x&&(x.p||x.ps?.length));if(!IT.length){box.innerHTML='';S.metaRes=S.metaRes||{};S.metaRes.kg=[];metasResumen();return}
   if(!S.productos?.length){box._r=(box._r||0)+1;if(box._r<8)setTimeout(()=>metasKgInicio().catch(()=>{}),800);return}box._r=0;
   /* cada meta sigue un producto (p) o una línea de varios productos (ps) y suma sus kilos */
   const sel=Math.min(Math.max(0,+C.sel||0),IT.length-1),it=IT[sel],IDS=new Set(it.ps?.length?it.ps:[it.p]),linea=IDS.size>1,id=[...IDS][0],meta=+it.meta||0,prD=x=>S.productos.find(p=>p.producto_id==x),pr=prD(id);
@@ -3856,7 +3922,7 @@ async function metasKgInicio(){const box=$('#metaskg');if(!box||S.perfil.rol!='d
       if(hace>=Math.max(7,cada*.85))V.push({c,pri:hace/cada+1,why:`Le toca reponer: lo llevó hace ${hace} días${gaps.length?` (suele cada ${cada})`:''}`})}
     else if((T[c.id]||0)>0)V.push({c,pri:(T[c.id]||0)/1e9,why:`Te compra ${m0(T[c.id]/3)} por mes y todavía no lo lleva`})}
   V.sort((x,y)=>y.pri-x.pri);const VIS=V.slice(0,6);
-  let abierto=false;try{abierto=localStorage.getItem('mk_abierto')=='1'}catch(e){}
+  let abierto=false;try{abierto=localStorage.getItem('mk_ab2')=='1'}catch(e){}
   const R=30,CI=2*Math.PI*R,ring=(f,t)=>`<svg class="mjr" viewBox="0 0 76 76" aria-hidden="true"><circle cx="38" cy="38" r="${R}" class="tr"/>${f>0?`<circle cx="38" cy="38" r="${R}" class="fl" stroke-dasharray="${(CI*f).toFixed(1)} ${CI.toFixed(1)}"/>`:`<circle cx="38" cy="8" r="4" class="dot"/>`}<text x="38" y="43" text-anchor="middle">${t}</text></svg>`;
   /* fin de mes: si lo que falta por visita es más del doble de lo normal, no se llega; mostrar el ritmo del mes que viene */
   const habSig=(()=>{let n=0;const y=M==11?Y+1:Y,mm=(M+1)%12,d=new Date(y,mm+1,0).getDate();for(let k=1;k<=d;k++)if(new Date(y,mm,k).getDay()!=0)n++;return n})(),
@@ -3872,7 +3938,7 @@ async function metasKgInicio(){const box=$('#metaskg');if(!box||S.perfil.rol!='d
   const pc=pc0,fotoDe=x=>{if(x.f)return x.f;const L=x.ps?.length?[x.star?.p,...x.ps]:[x.p];for(const q of L)if(q&&S.min[q]?.foto)return S.min[q].foto;return ''},
     tabs=IT.length>1?`<div class="mktabs" role="tablist" aria-label="Producto">${IT.map((x,k)=>{const f=fotoDe(x),pk=+x.meta?Math.min(1,kgT[k]/x.meta):0;return`<button role="tab" aria-selected="${k==sel}" data-mk="${k}" class="mkt${k==sel?' on':''}"><span class="mkf">${f?`<img src="${esc(f)}" alt="">`:esc((x.n||'?')[0])}</span><span class="mkn">${esc(x.n||'Producto')}</span><span class="mkb"><i style="width:${(pk*100).toFixed(1)}%"></i></span><span class="mkk">${nf(Math.round(kgT[k]))}${+x.meta?' / '+nf(x.meta):''} kg</span></button>`}).join('')}</div>`:'';
   const esSig=noLlega&&finMes;
-  box.innerHTML=`<div class="box obj mj"><div class="mjtop"><div><div class="ey">Meta de ${esc((esSig?mesSig:mes).toLowerCase())}</div><div class="tt mknm">${esc(it.t||(linea?it.n:pr?.descripcion)||it.n||'Producto')}</div>${esSig?`<div class="mjcer">${esc(mes)} cierra con ${nf(Math.round(kg))} kg</div>`:''}</div><button class="mjmeta" id="mk_e" aria-label="Cambiar meta"><small>Meta del mes</small><b>${meta?nf(meta)+' kg':'Poner'}</b><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16H4v-3z"/></svg></button></div>
+  box.innerHTML=`<div class="box obj mj${esSig?' sig':''}"><div class="mjtop"><div><div class="ey">Meta de ${esc((esSig?mesSig:mes).toLowerCase())}</div><div class="tt mknm">${esc(it.t||(linea?it.n:pr?.descripcion)||it.n||'Producto')}</div>${esSig?`<div class="mjcer">${esc(mes)} cierra con ${nf(Math.round(kg))} kg</div>`:''}</div><button class="mjmeta" id="mk_e" aria-label="Cambiar meta"><small>Meta del mes</small><b>${meta?nf(meta)+' kg':'Poner'}</b><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16H4v-3z"/></svg></button></div>
     ${tabs}<div id="mk_h" role="button" tabindex="0" aria-expanded="${abierto}" style="cursor:pointer;margin-top:${tabs?'10px':'0'}">${hero}</div>
     <button class="mjver" id="mk_t">${abierto?'Ocultar detalle':'Ver detalle del mes'} <span>${abierto?'▴':'▾'}</span></button>
     <div id="mk_d"${abierto?'':' hidden'}>
@@ -3889,10 +3955,11 @@ async function metasKgInicio(){const box=$('#metaskg');if(!box||S.perfil.rol!='d
       <div class="stn"><div><b>${m0(stGk)}</b><small>por kilo${gk>0&&stGk>gk?' · '+nf(Math.round(stGk/gk*10)/10)+' × el promedio':''}</small></div>${stMeta?`<div><b>${m0(stMeta*stGk)}</b><small>si llegás a ${nf(stMeta)} kg</small></div>`:''}</div>
       ${stMeta?`<p class="stf${fal<=0?' ok':''}">${fal<=0?'¡Meta cumplida! 🎉':'Te faltan <b>'+k0(fal)+'</b> de '+esc(stN)}</p>`:''}
       ${mezcla?`<div class="mja"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5"/><path d="M10 9v5M10 6.2v.1"/></svg><span>${esc(mezcla)}</span></div>`:''}</div>`})():''}
-    <div class="mjsec mjv"><div class="mjrow"><span class="ey">A quién visitar</span>${VIS.length?`<small>${VIS.length} sugerido${VIS.length==1?'':'s'}</small>`:''}</div>
+    <div class="mjsec mjv"${VIS.length?'':' hidden'}><div class="mjrow"><span class="ey">A quién visitar</span>${VIS.length?`<small>${VIS.length} sugerido${VIS.length==1?'':'s'}</small>`:''}</div>
       ${VIS.length?VIS.map(x=>{const nm=String(nomVis(x.c)||x.c.razon_social||'Cliente');return`<div class="mjc"><span class="av">${esc(nm.trim()[0]||'?').toUpperCase()}</span><div><b>${esc(nm)}</b><small>${esc(x.why)}</small></div><button class="alt" data-mkp="${x.c.id}">Pedido</button></div>`}).join('')
         :'<p class="mjn">Cuando haya ventas, acá aparecen los clientes a los que les toca reponer y los que compran mucho y no lo llevan.</p>'}</div></div></div>`;
-  const plegar=()=>{const d=$('#mk_d'),ab=d.hidden;d.hidden=!ab;try{localStorage.setItem('mk_abierto',ab?'1':'0')}catch(e){}$('#mk_h').setAttribute('aria-expanded',ab);$('#mk_t').innerHTML=(ab?'Ocultar detalle':'Ver detalle del mes')+' <span>'+(ab?'▴':'▾')+'</span>'};
+  {const fs=finMes,L2=IT.map((x,k)=>{const mk=+x.meta||0,v=kgT[k],sg=fs&&mk>0&&v<mk;return{key:'kg'+k,n:x.n||'Producto',f:fotoDe(x),mes,mesSig,sig:sg,pc:sg?0:mk?v/mk:0,val:sg?nf(Math.ceil(mk/(habSig/6)))+' kg por semana':nf(Math.round(v))+(mk?' / '+nf(mk):'')+' kg',sub:!mk?'Sin meta: tocá para ponerla':sg?`${mesSig}: ${nf(mk)} kg`:v>=mk?'Meta cumplida':`Faltan ${nf(Math.ceil(mk-v))} kg`}});S.metaRes=S.metaRes||{};S.metaRes.kg=L2;S.metaRes.kgSel=sel;metasResumen()}
+  const plegar=()=>{const d=$('#mk_d'),ab=d.hidden;d.hidden=!ab;try{localStorage.setItem('mk_ab2',ab?'1':'0')}catch(e){}$('#mk_h').setAttribute('aria-expanded',ab);$('#mk_t').innerHTML=(ab?'Ocultar detalle':'Ver detalle del mes')+' <span>'+(ab?'▴':'▾')+'</span>'};
   $('#mk_h').onclick=plegar;$('#mk_t').onclick=plegar;
   $$('#metaskg [data-mk]').forEach(bt=>bt.onclick=async()=>{const k=+bt.dataset.mk;if(k==sel)return;$$('#metaskg [data-mk]').forEach(b=>{const on=+b.dataset.mk==k;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});
     const{error}=await guardaCfgJ('metas_kg',{...C,sel:k});error?toast(error.message,1):metasKgInicio().catch(()=>{})});
