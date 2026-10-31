@@ -1423,12 +1423,30 @@ html.oscuro .mj .mjh.ok{background:#14261c!important;border-color:#24503a}
 html.oscuro .rhoy .rh{background:#18202f;border-color:#273246}html.oscuro .rhoy .rh b{color:#e3e6ee}
 @media(min-width:1100px){#v.ini-grid:has(>.pieini)>.rhoy{column-span:all}}
 .mj .mkt .mkk{white-space:nowrap;font-size:11px!important}
+
+/* Pedidos: clientes en fila deslizable con motivo */
+.prc-h{display:flex;justify-content:space-between;align-items:baseline;margin:10px 0 6px}.prc-n{color:var(--tx2);font-size:11.5px}
+.prc-l.prc-x{display:flex!important;grid-template-columns:none!important;overflow-x:auto;gap:8px;scroll-snap-type:x proximity;padding-bottom:4px;margin:0 -4px;padding-left:4px;padding-right:4px;scrollbar-width:none}
+.prc-l.prc-x::-webkit-scrollbar{display:none}
+.prc-x .prc{flex:0 0 auto;width:min(66vw,240px)!important;scroll-snap-align:start;display:flex!important;align-items:center;gap:10px;text-align:left;padding:8px 10px!important;min-height:60px}
+.prc-t{display:flex;flex-direction:column;min-width:0;gap:1px}.prc-t b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700}
+.prc-t small{font-size:11.5px;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+.prc-x .prc-toca .prc-t small{color:#9a6700}.prc-x .prc-debe .prc-t small{color:var(--er)}
+
+#pfil{flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}#pfil::-webkit-scrollbar{display:none}#pfil button{flex:none;white-space:nowrap}
+.pfc{font-style:normal;font-size:12px;font-weight:700;opacity:.75;margin-left:2px}
+.presu{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--tx2);margin:-2px 0 10px}.presu span{display:inline-flex;align-items:center;gap:5px}.presu b{color:var(--n)}.presu-a{color:#9a6700}.presu:empty{display:none}
+.ped-herr{display:inline-flex;align-items:center;gap:6px}
+.pvac{text-align:center;padding:22px 12px;display:flex;flex-direction:column;align-items:center;gap:8px}.pv-i{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--m) 8%,#fff);color:var(--m)}
+.pv-b{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}.pv-b button{width:auto}.pv-u{color:var(--tx2);font-size:13.5px;margin:0;max-width:420px}
+.bpq{margin-top:8px}.bpq>small{display:block;margin:4px 0;color:var(--tx2)}.bpn{font-weight:800;color:var(--m);min-width:56px;font-variant-numeric:tabular-nums}.bpq .r{display:flex;align-items:center;gap:10px}.bpq .r>span:nth-child(2){flex:1;display:flex;flex-direction:column;min-width:0}.bpt{font-variant-numeric:tabular-nums}
+html.oscuro .presu b{color:#e3e6ee}
 </style>
 </head>
 <body>
 <div id="app"><div class="splash"><img src="logo.png" alt="Sabores de mi País"><i></i></div></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
-<script src="app.js?v=2026-10-31.15"></script>
+<script src="app.js?v=2026-10-31.16"></script>
 </body>
 </html>

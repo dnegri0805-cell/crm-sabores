@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-31.15';
+const VERSION='2026-10-31.16';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -1517,7 +1517,7 @@ async function vPedidos(){
     <div id="p_rep"></div><div id="p_fav" class="chips"></div></div><div id="p_cb" class="chips sug"></div>
   <div id="p_prod" hidden><div class="conscan"><input id="p_q" type="search" placeholder="Buscar producto o código" autocomplete="off">${btnScan('p_sc')}</div><div id="p_r"></div>
   <div class="ptools"><button class="alt" id="p_gf" title="Ver los productos con foto y tocar para sumar">${IC('image',18)}<span>Fotos</span></button><button class="alt" id="p_qk" title="Ver todos los productos por familia y cargar cantidades">${IC('bars',18)}<span>Rápida</span></button><button class="alt" id="p_wa" title="Pegar el pedido que te mandó por WhatsApp">${IC('chat',18)}<span>WhatsApp</span></button><button class="alt" id="p_vo" title="Dictar el pedido">${IC('mic',18)}<span>Dictar</span></button></div></div><table id="p_i"></table><button class="alt p-mas" id="p_mas" hidden>${IC('plus',18)} Seguí cargando productos</button><p id="p_tp" hidden><b id="p_t"></b><br><span id="p_tk"></span></p><div id="p_av"></div><div id="p_sug" class="chips sug"></div><div id="p_fin" hidden><div class="g" id="p_ex" style="margin-top:8px"><label class="f">Fecha de entrega<input type="date" id="p_fe"></label><label class="f" style="grid-column:span 2">Nota del pedido<input id="p_ob" maxlength="300" placeholder="Ej.: entregar después de las 10, cobrar con transferencia"></label></div><div class="cupw"><input id="p_cu" class="cupin" placeholder="Cupón (opcional)" autocomplete="off"><button class="alt" id="p_cuo">Aplicar cupón</button> <small id="p_cum"></small></div><label class="prb-l" id="p_prbw" hidden><input type="checkbox" id="p_prb"><span><b>Pedido de prueba</b><small>Después lo borrás con un toque, con todo lo que generó.</small></span></label><div class="fc-acc"><button id="p_g">Guardar pedido</button><button class="alt" id="p_pre">📝 Mandar como presupuesto</button></div></div></div>
-  <div id="p_prbav"></div><div class="bh"><h3>Últimos pedidos</h3><button class="alt" onclick="abrirMasHoja('pl_mh','Pedidos')">Más</button></div><div hidden id="pl_mh"><button class="alt" onclick="excelPedidos()">📥 Bajar Excel (lo que estás viendo)</button><button class="alt" onclick="borrarPruebas()">🧪 Borrar pedidos de prueba</button><button class="alt" onclick="hojaArmado()">🧺 Hoja de armado</button><button class="alt" onclick="autoAprobarCfg()">🤖 Aprobación automática</button></div><table id="pl"></table><div id="p_bar" class="pbar" hidden><div class="pbar-t"><small id="p_bn"></small><b id="p_bt"></b></div><button class="alt pbar-mas" id="p_bm" aria-label="Agregar otro producto">${IC('plus',20)}</button><button id="p_bg">Guardar pedido</button></div>`;
+  <div id="p_prbav"></div><div class="bh"><h3>Últimos pedidos</h3><button class="alt ped-herr" onclick="abrirMasHoja('pl_mh','Herramientas de pedidos')">${IC('sliders',16)} Herramientas</button></div><div id="presu" class="presu"></div><div hidden id="pl_mh"><button class="alt" onclick="excelPedidos()">📥 Bajar Excel (lo que estás viendo)</button><button class="alt" onclick="borrarPruebas()">🧪 Borrar pedidos de prueba</button><button class="alt" onclick="hojaArmado()">🧺 Hoja de armado</button><button class="alt" onclick="autoAprobarCfg()">🤖 Aprobación automática</button></div><table id="pl"></table><div id="p_bar" class="pbar" hidden><div class="pbar-t"><small id="p_bn"></small><b id="p_bt"></b></div><button class="alt pbar-mas" id="p_bm" aria-label="Agregar otro producto">${IC('plus',20)}</button><button id="p_bg">Guardar pedido</button></div>`;
   {const sync=()=>{const n=S.items.length,bar=$('#p_bar');if(!bar)return;$('#p_fin').hidden=!n;$('#p_tp').hidden=!n;$('#p_mas').hidden=!n;if(n)$('#p_prod').hidden=false;bar.hidden=!n||!S.pcli;{const g=$('#p_g');if(g)g.hidden=!bar.hidden}const tx=$('#p_t')?.textContent||'',m=tx.match(/Total:\s*(\$\s*[\d.,]+)/);$('#p_bn').textContent=n+(n==1?' producto':' productos')+(S.pcli?' · '+nomVis(S.pcli):'');$('#p_bt').textContent=m?m[1]:''};
    new MutationObserver(sync).observe($('#p_t'),{childList:true,subtree:true,characterData:true});$('#p_bg').onclick=()=>$('#p_g').click();
    {const seguir=()=>{const q=$('#p_q');if(!q)return;$('#p_prod').hidden=false;q.value='';q.dispatchEvent(new Event('input'));q.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>q.focus(),350)};$('#p_mas').onclick=seguir;$('#p_bm').onclick=seguir}sync()}
@@ -1571,24 +1571,29 @@ async function vPedidos(){
   const listaCli=()=>{const q=$('#p_cq').value.toLowerCase().trim();
     const r=q?S.clientes.filter(c=>c.activo!==false&&coincide(c.razon_social+' '+(c.nombre_fantasia||'')+' '+(c.cuit||''),q)).slice(0,8):[];
     $('#p_cr').innerHTML=q?(r.map(c=>`<div class="r pcr" data-id="${c.id}">${avatar(c)}<span><b>${esc(nomVis(c))}</b><small>${esc([(c.nombre_fantasia||'').trim()?tituloCaso(c.razon_social):'',c.barrio||c.ciudad].filter(Boolean).join(' · '))}</small></span></div>`).join('')||'<small>No hay clientes con ese nombre.</small>'):'';
-    $$('#p_cr .r').forEach(d=>d.onclick=()=>elegir(S.clientes.find(c=>c.id==d.dataset.id)));return r};
+    $$('#p_cr .r').forEach(d=>d.onclick=()=>elegir(S.clientes.find(c=>c.id==d.dataset.id)));buscarPedidosQ(q,r.length);return r};
+  /* El buscador también encuentra pedidos: por número ("15" o "#15") o por producto ("boya") */
+  let _bpT=0;const buscarPedidosQ=(q,nCli)=>{clearTimeout(_bpT);if(!q||q.length<2)return;_bpT=setTimeout(async()=>{const box=$('#p_cr');if(!box||$('#p_cq').value.toLowerCase().trim()!=q)return;
+    const n=q.replace(/^#|n°\s*/i,'').trim();let P=[],tit='';
+    if(/^\d{1,7}$/.test(n)){const{data}=await sb.from('pedidos').select('id,numero,estado,total,creado_en,cliente_id').eq('numero',+n).limit(3);P=data||[];tit='Pedido N° '+n}
+    else if(q.length>=3){const ids=S.productos.filter(p=>coincide(txtProd(p),q)).slice(0,25).map(p=>p.producto_id);if(ids.length){const{data}=await sb.from('pedidos').select('id,numero,estado,total,creado_en,cliente_id,pedido_items!inner(producto_id)').in('pedido_items.producto_id',ids).neq('estado','cancelado').order('numero',{ascending:false}).limit(6);P=data||[];tit='Pedidos con «'+q+'»'}}
+    if(!P.length||$('#p_cq').value.toLowerCase().trim()!=q)return;if(!nCli)box.innerHTML='';
+    box.insertAdjacentHTML('beforeend',`<div class="bpq"><small>${esc(tit)}</small>${P.map(o=>`<div class="r pcr" data-bpo="${o.id}"><span class="bpn">N° ${o.numero}</span><span><b>${esc(nomCli(o.cliente_id))}</b><small>${EST_TXT[o.estado]||o.estado} · ${cuandoTxt(o.creado_en)}</small></span><b class="bpt">${$m0(o.total)}</b></div>`).join('')}</div>`);
+    box.querySelectorAll('[data-bpo]').forEach(d=>d.onclick=async()=>{const{data:o}=await sb.from('pedidos').select('*,clientes(razon_social,nombre_fantasia)').eq('id',d.dataset.bpo).maybeSingle();if(o)panelPedido(o,()=>listaPedidos())})},350)};
   $('#p_cq').oninput=listaCli;
   $('#p_cq').onkeydown=e=>{if(e.key=='Enter'){const r=listaCli();if(r.length)elegir(r[0])}};
   $('#p_cx').onclick=()=>{S.pcli=null;$('#p_sel').hidden=true;$('#p_cq').hidden=false;$('#p_cq').value='';$('#p_rc').hidden=false;$('#p_prod').hidden=!S.items.length;$('#p_cq').focus();drawI()};
-  /* Clientes a mano: los que tienen visita hoy y los que pidieron hace poco */
-  (async()=>{try{const dv=new Date().getDay()||7,vis=S.clientes.filter(c=>c.activo!==false&&(c.dias_visita||[]).includes(dv));
-    const{data:rp}=await sb.from('pedidos').select('cliente_id').neq('estado','cancelado').order('numero',{ascending:false}).limit(60);
-    const ids=[...new Set([...vis.map(c=>c.id),...(rp||[]).map(x=>x.cliente_id)])].slice(0,10);let L=ids.map(id=>S.clientes.find(c=>c.id==id)).filter(Boolean).slice(0,8),tit=vis.length?'Visitas de hoy y últimos clientes':'Últimos clientes';
-    /* Si todavía no hay pedidos, muestra tus clientes para elegir con un toque */
-    if(!L.length){L=S.clientes.filter(c=>c.activo!==false).sort((a,b)=>nomVis(a).localeCompare(nomVis(b),'es')).slice(0,8);tit='Tus clientes'}
-    else if(L.length<8){const ya=new Set(L.map(c=>c.id));L=L.concat(S.clientes.filter(c=>c.activo!==false&&!ya.has(c.id)).sort((a,b)=>nomVis(a).localeCompare(nomVis(b),'es')).slice(0,8-L.length));tit=vis.length?'Visitas de hoy y tus clientes':'Tus clientes'}
-    const box=$('#p_rc');if(!box||!L.length||S.pcli)return;
-    const eC=id=>['debe','toca','dormido'].includes(S.estCli?.[id]?.k)?`<i class="prc-e">${estChip(id)}</i>`:'';
-    const pintaRC=()=>{const bx=$('#p_rc');if(!bx||S.pcli)return;bx.innerHTML=`<small>${tit}</small><div class="prc-l">${L.map(c=>`<button class="alt prc" data-rcid="${c.id}">${avatar(c)}<span>${esc(nomVis(c))}${eC(c.id)}</span></button>`).join('')}</div>`;
-      bx.querySelectorAll('[data-rcid]').forEach(b=>b.onclick=()=>elegir(S.clientes.find(c=>c.id==b.dataset.rcid)))};
-    if(!S.estCli)cargarEstados().then(()=>pintaRC()).catch(()=>{});
-    box.innerHTML=`<small>${tit}</small><div class="prc-l">${L.map(c=>`<button class="alt prc" data-rcid="${c.id}">${avatar(c)}<span>${esc(nomVis(c))}${eC(c.id)}</span></button>`).join('')}</div>`;
-    box.querySelectorAll('[data-rcid]').forEach(b=>b.onclick=()=>elegir(S.clientes.find(c=>c.id==b.dataset.rcid)))}catch(e){}})();
+  /* Clientes a mano (como Pipedrive): primero a quién le toca, con el motivo debajo; en una fila que se desliza */
+  {const dv=new Date().getDay()||7;
+   const pintaRC=()=>{const bx=$('#p_rc');if(!bx||S.pcli)return;const E=S.estCli||{};
+     const P=c=>{const e=E[c.id]||{},vis=(c.dias_visita||[]).includes(dv);return(vis?4:0)+({toca:3,debe:2.5,nuevo:1.5,ok:1,dormido:.6,sin:0}[e.k]??.5)};
+     const L=S.clientes.filter(c=>c.activo!==false).map(c=>({c,p:P(c),e:E[c.id]||{}})).sort((a,b)=>b.p-a.p||(a.e.hace??999)-(b.e.hace??999)||nomVis(a.c).localeCompare(nomVis(b.c),'es')).slice(0,14);
+     if(!L.length){bx.innerHTML='';return}
+     const linea=x=>{const vis=(x.c.dias_visita||[]).includes(dv);return[vis?'Visita de hoy':'',x.e.why||''].filter(Boolean).join(' · ')};
+     const tit=L.some(x=>x.p>=3)?'Les toca hoy':'Tus clientes';
+     bx.innerHTML=`<div class="prc-h"><small>${tit}</small><small class="prc-n">${L.length>3?'Deslizá para ver más ›':''}</small></div><div class="prc-l prc-x">${L.map(x=>`<button class="alt prc prc-${x.e.k||'n'}" data-rcid="${x.c.id}">${avatar(x.c)}<span class="prc-t"><b>${esc(nomVis(x.c))}</b><small>${esc(linea(x))}</small></span></button>`).join('')}</div>`;
+     bx.querySelectorAll('[data-rcid]').forEach(b=>b.onclick=()=>elegir(S.clientes.find(c=>c.id==b.dataset.rcid)))};
+   pintaRC();if(!S.estCli||Date.now()-(S.estT||0)>10*60e3)cargarEstados().then(pintaRC).catch(()=>{})}
   /* Productos: Enter agrega el primero y deja el buscador listo */
   buscador('#p_q','#p_r',p=>{add(p);drawI();$('#p_q').focus()},p=>`<b>${$m0(pr(p))}</b> ${chipStock(p.producto_id)} ${chipBulto(p.producto_id)} ${chipPromo(promoCerca(p.producto_id,lis()))}`);
   $('#p_sc').onclick=()=>escanear('Escanear productos del pedido',p=>{add(p);drawI();const it=S.items.find(i=>i.p.producto_id==p.producto_id);return '✔ '+p.descripcion+' · llevás '+it.q});
@@ -1648,6 +1653,15 @@ function pasosPedido(o,cls=''){if(!o||o.estado=='cancelado')return '';const k=PA
   return `<ol class="pasos ${cls}" aria-label="Etapa: ${PASOS_P[k][0]}">${PASOS_P.map(([t],i)=>`<li class="${i<k||(i==k&&k==PASOS_P.length-1)?'hecho':i==k?'ahora':''}"><i></i><span>${i==k&&o.estado=='listo'?'Listo':t}</span></li>`).join('')}</ol>`}
 const EST_TXT={pendiente:'Por aprobar',aprobado:'Aprobado',en_preparacion:'En preparación',listo:'Listo',en_reparto:'En reparto',entregado:'Entregado',cancelado:'Cancelado'};
 const SIG={aprobado:['en_preparacion','A preparación'],en_preparacion:['listo','Marcar listo'],listo:['en_reparto','Salió a reparto'],en_reparto:['entregado','Entregado']};
+/* Lista vacía que sugiere qué hacer, en vez de repetir "Cargar un pedido" */
+async function pedidosVacio(){const box=$('#plvac');if(!box)return;const C=await (S._pcnt||Promise.resolve({})).catch(()=>({}))||{};if(!document.body.contains(box))return;
+  const nom={abiertos:'en curso',pendiente:'por aprobar',entregado:'entregados',cancelado:'cancelados',todos:''}[S.pf]??'';
+  const alt=[['pendiente','por aprobar'],['abiertos','en curso'],['entregado','entregados']].filter(([k])=>k!=S.pf&&C[k]>0);
+  let ult='';if(S.pf!='entregado'){const{data:u}=await sb.from('pedidos').select('numero,cliente_id,entregado_en,creado_en').eq('estado','entregado').order('numero',{ascending:false}).limit(1).then(r=>r,()=>({}));if(u?.[0])ult=`<p class="pv-u">El último entregado fue el N° ${u[0].numero} de <b>${esc(nomCli(u[0].cliente_id))}</b>, ${cuandoTxt(u[0].entregado_en||u[0].creado_en)}.</p>`}
+  box.innerHTML=`<div class="pvac"><span class="pv-i">${IC('cart',26)}</span><b>${C.todos===0?'Todavía no hay pedidos':'No hay pedidos '+nom}</b>
+    ${alt.length?`<div class="pv-b">${alt.map(([k,t])=>`<button class="alt" data-pva="${k}">Ver ${C[k]} ${t}</button>`).join('')}</div>`:''}${ult}
+    ${C.todos===0||!alt.length?'<p class="pv-u">Para cargar uno, elegí un cliente de arriba (primero aparecen a los que les toca).</p>':''}</div>`;
+  box.querySelectorAll('[data-pva]').forEach(b=>b.onclick=()=>{S.pf=b.dataset.pva;listaPedidos()})}
 const FILTROS=[['abiertos','En curso'],['pendiente','Por aprobar'],['entregado','Entregados'],['cancelado','Cancelados'],['todos','Todos']];
 /* ======================= FACTURA ELECTRÓNICA (ARCA) =======================
    Si está activada, "Facturar" pide el CAE a ARCA (Factura C) desde el servidor. La clave del certificado nunca llega al celular. */
@@ -1736,7 +1750,17 @@ async function listaPedidos(){
   if(!$('#pl'))return;$('#pfil')?.remove();$('#plof')?.remove();
   $('#plcat')?.remove();
   $('#pl').outerHTML=`<div id="plcat"></div><div id="plof">${pedidosOffHTML()}</div><div class="sub" id="pfil">${S.pvista=='tablero'&&tableroOk()?'':FILTROS.map(([k,t])=>`<button class="${S.pf==k?'':'alt'}" data-pf="${k}">${t}</button>`).join('')}${tableroOk()?`<span class="pvis"><button class="${S.pvista=='tablero'?'alt':''}" data-pv="lista">${IC('list',16)} Lista</button><button class="${S.pvista=='tablero'?'':'alt'}" data-pv="tablero">${IC('bars',16)} Tablero</button></span>`:''}</div><div id="pl"><span class="skl" role="status" aria-label="Cargando"></span></div>`;
+  setTimeout(()=>{const a=$('#pfil [data-pf]:not(.alt)'),f=$('#pfil');if(a&&f)f.scrollLeft=a.offsetLeft-f.offsetLeft-16},60);
   $$('[data-pf]').forEach(b=>b.onclick=()=>{S.pf=b.dataset.pf;$$('[data-pf]').forEach(x=>x.className=x.dataset.pf==S.pf?'':'alt');cargar()});
+  /* Contadores en los filtros (como Shopify) y resumen del día arriba de la lista */
+  const cnt=(f)=>{let q=sb.from('pedidos').select('id',{count:'exact',head:true});if(f=='abiertos')q=q.not('estado','in','(entregado,cancelado)');else if(f!='todos')q=q.eq('estado',f);return q.then(r=>r.count??null,()=>null)};
+  const hoyTs=tsAR(diaLocal(new Date()));
+  S._pcnt=Promise.all([...FILTROS.map(([k])=>cnt(k)),sb.from('pedidos').select('total').neq('estado','cancelado').gte('creado_en',hoyTs).then(r=>r.data||[],()=>[]),
+    sb.from('pedidos').select('id',{count:'exact',head:true}).in('estado',['aprobado','en_preparacion','listo','en_reparto']).then(r=>r.count??0,()=>0)]).then(R=>{
+    const C={};FILTROS.forEach(([k],i)=>C[k]=R[i]);const H=R[FILTROS.length],ent=R[FILTROS.length+1];
+    $$('#pfil [data-pf]').forEach(b=>{if(C[b.dataset.pf]==null)return;b.querySelector('.pfc')?.remove();b.insertAdjacentHTML('beforeend',` <i class="pfc">${C[b.dataset.pf]}</i>`)});
+    const pr=$('#presu');if(pr){const vt=H.reduce((a,o)=>a+(+o.total||0),0);pr.innerHTML=`<span>${IC('calendar',15)} <b>Hoy:</b> ${H.length?H.length+(H.length==1?' pedido':' pedidos')+' · '+$k(vt):'sin pedidos todavía'}</span>${ent?`<span>${IC('truck',15)} ${ent} para entregar</span>`:''}${C.pendiente?`<span class="presu-a">${IC('alert',15)} ${C.pendiente} por aprobar</span>`:''}`}
+    return C});
   $$('[data-pv]').forEach(b=>b.onclick=()=>{S.pvista=b.dataset.pv;try{localStorage.setItem('ped_vista',S.pvista)}catch(e){}listaPedidos()});
   const cargar=async()=>{
     if(S.pvista=='tablero'&&tableroOk())return tableroPedidos();
@@ -1763,7 +1787,8 @@ async function listaPedidos(){
         <div class="ped-acc"><span class="badge b-${o.estado}">${EST_TXT[o.estado]||o.estado}</span>${o.es_prueba?'<span class="badge b-prueba">Prueba</span>':''}${o.requiere_aprobacion?'<span class="badge b-aprob">⏳ Precio por aprobar</span>':''}${o.origen=='online'?'<span class="badge b-online">Online</span>':''}${o.grupo?'<span class="badge b-online">Grupo '+esc(o.grupo)+'</span>':''}${o.cliente_ausente?'<span class="badge b-cancelado">Avisó que no va a estar</span>':''}${fb}${prin?'<span class="ped-br"></span>'+prin:''}
           <button class="alt wa pwa" data-w="${o.id}" aria-label="WhatsApp">${IC('chat',18)}</button><details class="mas pmas"><summary aria-label="Más opciones" title="Más opciones">•••</summary><div class="masc">${o.estado=='pendiente'&&!f?`<button class="alt" data-ap="${o.id}">✅ Aprobar sin facturar</button>`:''}<button class="alt" data-pdf="${o.id}">🖨️ Imprimir</button>${S.prbOk?`<button class="alt" data-prb="${o.id}" data-v="${o.es_prueba?0:1}">${o.es_prueba?'Ya no es de prueba':'🧪 Marcar como prueba'}</button>`:''}${['pendiente','aprobado'].includes(o.estado)&&!f?`<button class="alt" data-edp="${o.id}">✏️ Agregar o editar productos</button>`:''}${['pendiente','cancelado'].includes(o.estado)?'':`<button class="alt" data-rm="${o.id}">Remito</button>`}${['aprobado','en_preparacion','listo'].includes(o.estado)?`<button class="alt" data-flt="${o.id}">📦 Faltó algo</button>`:''}${o.foto_remito?`<button class="alt" data-vr="${o.id}">🧾 Firmado</button>`:''}${o.firma?`<button class="alt" data-rm="${o.id}">✍️ Firmado</button>`:''}${['en_reparto','entregado'].includes(o.estado)&&!o.firma?`<button class="alt" data-fi="${o.id}">✍️ Firma</button>`:''}${['en_reparto','entregado'].includes(o.estado)?`<button class="alt wa" data-av="${o.id}">📲 Avisar</button>`:''}${o.estado=='entregado'?`<button class="alt" data-dv="${o.id}">Devolución</button>`:''}${o.estado=='cancelado'?`<button class="alt" data-rea="${o.id}">♻️ Reactivar</button>`:`<button class="alt pcan" data-can="${o.id}">${IC('trash',16)} Cancelar pedido</button>`}${!f&&!cerr&&o.estado!='entregado'&&+o.costo_envio>0?`<button class="alt" data-eb="${o.id}" data-ev="1">🚚 Bonificar envío</button>`:''}${!f&&!cerr&&o.estado!='entregado'&&o.envio_bonificado&&envioDe(+o.total)>0?`<button class="alt" data-eb="${o.id}" data-ev="0">🚚 Cobrar envío</button>`:''}
           <select data-e="${o.id}" aria-label="Cambiar estado"><option value="">Cambiar estado…</option>${ESTADOS.filter(e=>e!=o.estado).map(e=>`<option value="${e}">${e=='cancelado'?'Cancelar pedido':'Pasar a: '+EST_TXT[e]}</option>`).join('')}</select></div></details></div>${['pendiente','aprobado'].includes(o.estado)?`<div class="ped-ins" data-ins="${o.id}"></div>`:''}</div>`}).join('')
-      :vacioHTML('No hay pedidos en esta lista.','cart',['Cargar un pedido',"scrollTo({top:0,behavior:'smooth'})"]);
+      :'<div id="plvac"></div>';
+    if(!data.length)pedidosVacio();
     const ped=id=>data.find(x=>x.id==id);insightsPedidos(data).catch(()=>{});
     $$('#pl [data-ap]').forEach(b=>b.onclick=async()=>{const o0=ped(b.dataset.ap);if((S.insG||{})[o0.id]<0&&!confirm('Con este pedido perdés plata ('+$m(S.insG[o0.id])+' después del reparto). ¿Lo aprobás igual?'))return;if(!await chequearCredito(S.clientes.find(c=>c.id==o0.cliente_id),o0.total))return;b.disabled=true;await agregarDebidos(o0);if(await cambiarEstado(ped(b.dataset.ap),'aprobado')){toast('Pedido N° '+ped(b.dataset.ap).numero+' aprobado.');modalAvisos([ped(b.dataset.ap)],'conf')}cargar()});
     $$('#pl [data-apf]').forEach(b=>b.onclick=async()=>{const o=ped(b.dataset.apf);if((S.insG||{})[o.id]<0&&!confirm('Con este pedido perdés plata ('+$m(S.insG[o.id])+' después del reparto). ¿Lo aprobás igual?'))return;if(!await chequearCredito(S.clientes.find(c=>c.id==o.cliente_id),o.total))return;b.disabled=true;await agregarDebidos(o);

@@ -92,6 +92,13 @@ Un pedido pasa por: cargarlo, pesarlo (si lleva fiambres o quesos), aprobarlo y 
 
 **Nota de pedido y presupuesto en PDF:** salen con tu logo y colores, la foto chica de cada producto, los datos del cliente en un recuadro, los datos para pagar y un *¡Gracias por tu compra!* al pie.
 
+**La pantalla de Pedidos:**
+- Arriba, los clientes en una **fila que se desliza**, ordenados por prioridad: primero los que tienen **visita hoy** y a los que **les toca comprar**, después los que deben y el resto. Debajo de cada nombre, el motivo (*Compró hace 12 días (suele cada 10)*, *Tiene $ 45.000 vencido*).
+- El buscador también encuentra **pedidos**: escribí el número (*15*) o un producto (*boya*) y aparecen los pedidos que coinciden.
+- Encima de la lista, el **resumen de hoy** (pedidos y monto, cuántos hay para entregar y por aprobar) y los filtros con su **contador** (*En curso 4 · Por aprobar 2…*), en una fila que se desliza.
+- Si un filtro está vacío, te sugiere a dónde ir (*Ver 2 por aprobar*) y cuál fue el último entregado.
+- **Herramientas** (al lado de *Últimos pedidos*): bajar Excel, hoja de armado, aprobación automática, borrar pedidos de prueba.
+
 **Cargar un pedido:**
 
 1. Entrá a **Pedidos** y elegí el cliente: tocá su nombre en los botones o escribí nombre o CUIT. Los que deben, les toca comprar o están dormidos muestran su cartelito. Al elegirlo aparece una franja con su puntaje, su estado, si debe plata vencida y su próximo paso.
