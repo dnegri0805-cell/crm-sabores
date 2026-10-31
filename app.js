@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-30.12';
+const VERSION='2026-10-30.13';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -3204,7 +3204,7 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
   const habSig=(()=>{let n=0;const y=M==11?Y+1:Y,mm=(M+1)%12,d=new Date(y,mm+1,0).getDate();for(let k=1;k<=d;k++)if(new Date(y,mm,k).getDay()!=0)n++;return n})(),pvV=Math.ceil(faltaSem/visSem),R=30,CI=2*Math.PI*R,ring=(f,t)=>`<svg class="mjr" viewBox="0 0 76 76" aria-hidden="true"><circle cx="38" cy="38" r="${R}" class="tr"/>${f>0?'':`<circle cx="38" cy="8" r="4" class="dot"/>`}${f>0?`<circle cx="38" cy="38" r="${R}" class="fl" stroke-dasharray="${(CI*f).toFixed(1)} ${CI.toFixed(1)}"/>`:''}<text x="38" y="43" text-anchor="middle">${t}</text></svg>`;
   const mesSigJ=mesNom(diaLocal(new Date(Y,M+1,1)).slice(0,7)).split(' ')[0],semSigJ=Math.ceil(cjMetaMes/(habSig/6));
   const hero=faltaMg<=0?`<div class="mjh ok"><div><div class="ey">Objetivo de ${esc(mes.toLowerCase())}</div><div class="mjhn">Cumplido</div><div class="hs">Vas ${m0(limpio-meta)} arriba de la meta. Lo que sumes ya es extra.</div></div></div>`
-    :semIni&&pvV>LIMV&&faltaSem>0&&hab(dh,dm)<=6?`<div class="mjh sig">${ring(0,esc(mesSigJ.slice(0,3).toLowerCase()))}<div><div class="ey">${esc(mesSigJ)} arranca</div><div class="mjhn">${nf(semSigJ)}<span> cajas por semana</span></div><div class="hs">Para las ${nf(cjMetaMes)} cajas del mes · en ${esc(mes.toLowerCase())} llevás ${nf(Math.round(cj))}</div></div></div>`
+    :semIni&&pvV>LIMV&&faltaSem>0&&hab(dh,dm)<=6?`<div class="mjh sig">${ring(0,esc(mesSigJ.slice(0,3).toLowerCase()))}<div><div class="ey">${esc(mesSigJ)} arranca</div><div class="mjhn">${nf(semSigJ)}<span> cajas por semana</span></div><div class="hs">Meta del mes: ${nf(cjMetaMes)} cajas</div></div></div>`
     :semIni?`<div class="mjh">${ring(pcS,Math.round(pcS*100)+'%')}<div><div class="ey">${pvV>LIMV&&faltaSem>0?esc(mes)+' no llega':semTit}</div><div class="mjhn">${pvV>LIMV&&faltaSem>0?`${nf(Math.round(cj))}<span> / ${nf(cjMetaMes)} cajas</span>`:`${nf(Math.round(cjS))}<span> / ${nf(objSem)} cajas</span>`}</div>
       <div class="hs">${faltaSem>0?(pvV>LIMV?`Desde el 1/${(M+1)%12+1}: <b>${nf(Math.ceil(cjMetaMes/(habSig/6)))} cajas por semana</b>`:`${nf(pvV)} cajas por visita · ${visSem} visita${visSem==1?'':'s'}`):'Semana cumplida. Lo que sumes adelanta el mes.'}</div>${realista?'':'<span class="pill">Foco: cubrir gastos</span>'}</div></div>`
     :`<div class="mjh"><div><div class="ey">${esc(mes)}</div><div class="mjhn">${nf(faltaCj)}<span> cajas por vender</span></div></div></div>`;
@@ -3293,7 +3293,7 @@ async function metasKgInicio(){const box=$('#metaskg');if(!box||S.perfil.rol!='d
   const habSig=(()=>{let n=0;const y=M==11?Y+1:Y,mm=(M+1)%12,d=new Date(y,mm+1,0).getDate();for(let k=1;k<=d;k++)if(new Date(y,mm,k).getDay()!=0)n++;return n})(),
     pvNorm=meta/Math.max(1,Math.round(habTot/2)),noLlega=meta>0&&falta>0&&faltaSem>0&&faltaSem/visSem>pvNorm*2,finMes=hab(dh,dm)<=6,semSig=Math.ceil(meta/(habSig/6)),mesSig=mesNom(diaLocal(new Date(Y,M+1,1)).slice(0,7)).split(' ')[0];
   const pvV=faltaSem/visSem,hero=noLlega&&finMes?`<div class="mjh mkh sig">${ring(0,esc(mesSig.slice(0,3).toLowerCase()))}<div><div class="ey">${esc(mesSig)} arranca</div><div class="mjhn">${nf(semSig)}<span> kg por semana</span></div>
-      <div class="hs">Para llegar a ${nf(meta)} kg en el mes · en ${esc(mes.toLowerCase())} llevás ${nf(Math.round(kg))} kg</div>${ST&&stMeta?`<span class="pill">⭐ ${esc(stN)}: ${nf(Math.ceil(stMeta/(habSig/6)))} kg</span>`:''}</div></div>`
+      <div class="hs">Meta del mes: ${nf(meta)} kg</div>${ST&&stMeta?`<span class="pill">⭐ ${esc(stN)}: ${nf(Math.ceil(stMeta/(habSig/6)))} kg</span>`:''}</div></div>`
     :noLlega?`<div class="mjh mkh">${ring(pc0,Math.round(pc0*100)+'%')}<div><div class="ey">${esc(mes)} no llega</div><div class="mjhn">${nf(Math.round(kg))}<span> / ${nf(meta)} kg</span></div>
       <div class="hs">Desde el 1/${(M+1)%12+1}: <b>${nf(semSig)} kg por semana</b></div>${ST&&stMeta?`<span class="pill">⭐ ${esc(stN)}: ${nf(Math.round(stKg*10)/10)} / ${nf(stMeta)} kg</span>`:''}</div></div>`:!meta?`<div class="mjh mkh"><div><div class="ey">${esc(mes)}</div><div class="mjhn">${k0(kg)}<span> vendidos</span></div><div class="hs">Poné una meta para ver cuánto te falta.</div></div></div>`
     :falta<=0?`<div class="mjh ok"><div><div class="ey">Meta de ${esc(mes.toLowerCase())}</div><div class="mjhn">Cumplida</div><div class="hs">Vas ${k0(kg-meta)} arriba de la meta. Lo que sumes ya es extra.</div></div></div>`
