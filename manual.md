@@ -400,5 +400,7 @@ Repartís de lunes a sábado y los pedidos cierran a las 20:00 para el día sigu
 - **El cliente no puede enviar el pedido:** revisá si no llega al mínimo, si pasó la hora de corte o si tiene deuda vencida.
 - **Hice un pedido de prueba y cuenta en las ventas:** cancelalo, o en *Más ▾* marcalo como prueba.
 - **No me toma la ubicación al agregar un comercio:** prendé la ubicación del celular y dale permiso al CRM; igual podés escribir la dirección a mano.
-- **Se me borró algo:** hay una copia automática de cada noche (las últimas 7) y la que bajás a tu equipo.
+- **Se me borró algo:** mirá en **Más → Cuenta y ajustes → Papelera**: ahí está lo borrado en los últimos 90 días. Clientes, productos, proveedores y prospectos vuelven con **Recuperar**; pedidos, facturas y cobros se ven ahí y para volverlos atrás pedímelo. Además hay copia en la nube todos los domingos, copia a tu mail (si la activaste) y la que bajás a tu equipo.
+- **Semáforo de respaldo** (al pie de Inicio, solo el dueño): 🟢 hay copia afuera (tu mail o tu equipo) de hace menos de 8 días, 🟡 de 9 a 14 días, 🔴 más de 14 o ninguna (en rojo también aparece un aviso arriba de todo con *Copia al mail* y *Bajar ahora*).
+- **Copia a tu mail:** *Copias de seguridad → Copia afuera: mandármela al mail cada domingo*. Se activa una sola vez con una cuenta gratis de Resend (resend.com) creada con tu mismo mail; los pasos están en la pantalla.
 - **Seguridad:** el link de cada cliente es personal; no compartas tu contraseña ni la credencial de Mercado Pago.

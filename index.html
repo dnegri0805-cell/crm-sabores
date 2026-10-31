@@ -1692,12 +1692,27 @@ html.oscuro #v .ppal.acc button{color:#e3e6ee}html.oscuro #v .ppal.acc button sp
 html.oscuro .td-i,html.oscuro .act-i,html.oscuro .td-n,html.oscuro .m1-b{background:#273246;color:#dfe3ea}html.oscuro .m1-f{background:#1f2836}html.oscuro .m1-r:hover,html.oscuro .m1-r.on{background:#1f2836}
 .m1-eq{margin:6px 4px 2px;font-size:11.5px;color:var(--tx2);line-height:1.4}
 .m1-v{display:grid;gap:1px}.m1-v small{font-weight:600;font-size:11.5px;color:var(--tx2)}
+
+/* Semáforo de respaldo y papelera */
+.bksem{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--l,#e6e8ee);border-radius:14px;padding:10px 12px;margin:8px 0;flex-wrap:wrap}
+.bk-luz{flex:none;width:12px;height:12px;border-radius:50%;background:#2f9e5b;box-shadow:0 0 0 4px rgba(47,158,91,.15)}
+.bk-a .bk-luz,.bk-a.bk-luz{background:#e0a100}.bksem.bk-a .bk-luz{background:#e0a100;box-shadow:0 0 0 4px rgba(224,161,0,.18)}.bksem.bk-r .bk-luz{background:#d64545;box-shadow:0 0 0 4px rgba(214,69,69,.18)}
+.bksem.bk-r{border-color:#f0c4c4;background:#fff7f7}.bksem.bk-a{border-color:#f1dca8;background:#fffbf0}
+.bk-t{flex:1;min-width:180px;display:grid}.bk-t b{font-size:14px}.bk-t small{color:var(--tx2);font-size:12px}
+span.bk-a{display:flex;gap:6px;align-items:center;flex-wrap:wrap}span.bk-a button{padding:7px 11px!important;font-size:13px;display:inline-flex;align-items:center;gap:5px;min-height:0}
+.bk-top{margin:0 0 12px}
+.pap{max-width:620px!important}.pap-f{margin:6px 0 8px}.pap-f button small{opacity:.7;margin-left:3px}
+.pap-l{display:grid;max-height:60vh;overflow:auto}.pap-r{display:flex;align-items:center;gap:10px;padding:9px 2px;border-top:1px solid var(--l,#eceef2)}.pap-r:first-child{border-top:0}
+.pap-i{flex:none;width:32px;height:32px;border-radius:10px;background:#f2f3f6;display:grid;place-items:center;color:#4a5164}.pap-r>div{flex:1;min-width:0;display:grid}.pap-r b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pap-r small{color:var(--tx2);font-size:12px}
+.pap-r button{display:inline-flex;align-items:center;gap:5px;padding:6px 10px!important;font-size:13px;flex:none}
+.cn-mail{display:inline-flex!important;align-items:center;gap:6px;margin:4px 0 8px}.cm-pasos{padding-left:20px;line-height:1.5}.cm-pasos li{margin-bottom:6px}
+html.oscuro .bksem{background:#18202f;border-color:#273246}html.oscuro .bksem.bk-r{background:#2a1a1d}html.oscuro .bksem.bk-a{background:#2a2416}html.oscuro .pap-i{background:#273246;color:#dfe3ea}
 </style>
 </head>
 <body>
 <div id="app"><div class="splash"><img src="logo.png" alt="Sabores de mi País"><i></i></div></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
-<script src="app.js?v=2026-10-31.26"></script>
+<script src="app.js?v=2026-10-31.27"></script>
 </body>
 </html>

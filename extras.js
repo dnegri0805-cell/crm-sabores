@@ -3546,14 +3546,55 @@ async function copiasNube(){const m=document.createElement('div');m.className='m
     m.innerHTML=`<div class="mc"><div class="bh"><h3>Copias de seguridad</h3><button class="alt" id="cn_x">Cerrar</button></div>
       <p class="aviso okb">${IC('check',16)} <b>Automáticas:</b> todos los <b>domingos a las 4 de la mañana</b> se guarda una copia completa (clientes, pedidos, precios, cobros, compras… todo). Se guardan las de los últimos 4 meses.</p>
       <p><small>Quedan en un depósito privado aparte de la base de datos: si algo se borra o se rompe, se puede volver a una copia. Sólo el dueño las ve.</small></p>
+      <button class="alt cn-mail" id="cn_m">${IC('send',16)} Copia afuera: mandármela al mail cada domingo</button>
       ${error?`<p class="err">${esc(error.message)}</p>`:C.length?`<div class="ofl">${C.map(f=>{const d=f.name.match(/copia-(\d{4}-\d{2}-\d{2})-(\d{2})(\d{2})/);return`<div class="r cn-r"><span><b>${d?fd(d[1])+' · '+d[2]+':'+d[3]+' h':esc(f.name)}</b><small>${Math.round((f.metadata?.size||0)/1024)} KB</small></span><button class="alt" data-cn="${esc(f.name)}">${IC('download',16)} Bajar</button></div>`}).join('')}</div>`:'<p>Todavía no hay copias en la nube.</p>'}
       <div class="fc-acc" style="margin-top:12px"><button id="cn_y">${IC('upload',16)} Hacer una copia ahora</button></div>
       <p><small>La copia es un archivo comprimido con todos los datos. Para volver a una copia, avisame y la restauro.</small></p></div>`;
-    m.querySelector('#cn_x').onclick=()=>m.remove();
-    m.querySelectorAll('[data-cn]').forEach(b=>b.onclick=async()=>{const{data,error}=await sb.storage.from('copias').createSignedUrl(b.dataset.cn,120,{download:true});if(error)return toast(error.message,1);location.href=data.signedUrl});
+    m.querySelector('#cn_x').onclick=()=>m.remove();m.querySelector('#cn_m').onclick=()=>{m.remove();copiaMailCfg(copiasNube)};
+    m.querySelectorAll('[data-cn]').forEach(b=>b.onclick=async()=>{const{data,error}=await sb.storage.from('copias').createSignedUrl(b.dataset.cn,120,{download:true});if(error)return toast(error.message,1);sb.from('config_app').upsert({clave:'ultima_copia',valor:new Date().toISOString()}).then(()=>{},()=>{});location.href=data.signedUrl});
     m.querySelector('#cn_y').onclick=async e=>{const b=e.currentTarget;b.disabled=true;b.textContent='Haciendo la copia…';try{const{data,error}=await sb.functions.invoke('copia',{body:{}});if(error||data?.error)throw new Error(data?.error||error.message);toast('Copia lista: '+data.filas.toLocaleString('es-AR')+' registros de '+data.tablas+' tablas.');pinta()}catch(x){toast(x.message,1);b.disabled=false}}};
   pinta()}
 
+/* Papelera (como HubSpot): lo borrado en los últimos 90 días; clientes, productos, proveedores y prospectos se recuperan con un toque */
+async function papelera(){const m=document.createElement('div');m.className='modal';document.body.appendChild(m);await equipo().catch(()=>{});
+  const NT={clientes:['Cliente','user'],productos:['Producto','box'],proveedores:['Proveedor','building'],prospectos:['Prospecto','target'],pedidos:['Pedido','cart'],facturas_venta:['Factura','receipt'],recibos:['Cobro','cash']};
+  const REC=new Set(['clientes','productos','proveedores','prospectos']);let fil='';
+  const nom=x=>{const d=x.datos||{};return d.razon_social||d.nombre_fantasia||d.descripcion||d.nombre||(x.tabla=='pedidos'?'Pedido N° '+(d.numero||'?'):x.tabla=='facturas_venta'?'Factura '+(d.numero||''):x.tabla=='recibos'?'Recibo N° '+(d.numero||'?'):'Registro')};
+  const det=x=>{const d=x.datos||{};return x.tabla=='productos'?[d.codigo,d.marca].filter(Boolean).join(' · '):x.tabla=='clientes'?[d.cuit,d.telefono].filter(Boolean).join(' · '):x.tabla=='pedidos'||x.tabla=='facturas_venta'?$m0(d.total)+(d.cliente_id?' · '+(S.clientes.find(c=>c.id==d.cliente_id)?.razon_social||''):''):x.tabla=='recibos'?$m0(d.importe):x.tabla=='prospectos'?[d.rubro,d.zona].filter(Boolean).join(' · '):[d.cuit,d.telefono].filter(Boolean).join(' · ')};
+  const pinta=async()=>{m.innerHTML='<div class="mc"><span class="skl"></span></div>';const{data,error}=await sb.rpc('papelera_lista');
+    const L=(data||[]).filter(x=>NT[x.tabla]&&!x.existe),T=[...new Set(L.map(x=>x.tabla))],V=L.filter(x=>!fil||x.tabla==fil);
+    m.innerHTML=`<div class="mc pap"><div class="bh"><h3 style="margin:0">${IC('trash',20)} Papelera</h3><button class="alt" id="pp_x">Cerrar</button></div>
+      <p><small>Lo que se borró en los <b>últimos 90 días</b>. Clientes, productos, proveedores y prospectos se recuperan con <b>Recuperar</b>. Pedidos, facturas y cobros se pueden ver acá; para volverlos atrás pedímelo, porque tocan stock y cuentas.</small></p>
+      ${error?`<p class="err">${esc(error.message)}</p>`:''}
+      ${T.length>1?`<div class="cfil pap-f"><button class="${fil?'alt':''}" data-pf="">Todo <small>${L.length}</small></button>${T.map(t=>`<button class="${fil==t?'':'alt'}" data-pf="${t}">${NT[t][0]}s <small>${L.filter(x=>x.tabla==t).length}</small></button>`).join('')}</div>`:''}
+      <div class="pap-l">${V.map(x=>`<div class="pap-r"><span class="pap-i">${IC(NT[x.tabla][1],16)}</span><div><b>${esc(nom(x))}</b><small>${NT[x.tabla][0]} · borrado el ${new Date(x.fecha).toLocaleDateString('es-AR',{day:'numeric',month:'numeric'})} ${new Date(x.fecha).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})}${x.usuario_id?' por '+esc(x.usuario_id==S.perfil.id?'vos':nomU(x.usuario_id)):''}${det(x)?' · '+esc(det(x)):''}</small></div>${REC.has(x.tabla)?`<button class="alt" data-pr="${x.id}">${IC('undo',15)} Recuperar</button>`:'<span class="badge">Solo ver</span>'}</div>`).join('')||'<p class="vacio"><small>La papelera está vacía.</small></p>'}</div></div>`;
+    m.querySelector('#pp_x').onclick=()=>m.remove();m.onclick=e=>{if(e.target===m)m.remove()};
+    m.querySelectorAll('[data-pf]').forEach(b=>b.onclick=()=>{fil=b.dataset.pf;pinta()});
+    m.querySelectorAll('[data-pr]').forEach(b=>b.onclick=async()=>{const x=L.find(y=>y.id==b.dataset.pr);if(!confirm('¿Recuperar «'+nom(x)+'»?'))return;b.disabled=true;
+      const{error}=await sb.rpc('papelera_recuperar',{p_id:+b.dataset.pr});if(error){b.disabled=false;return toast(error.message,1)}
+      toast(NT[x.tabla][0]+' recuperado: «'+nom(x)+'».');if(x.tabla=='productos'||x.tabla=='clientes')recargarProductos&&x.tabla=='productos'?recargarProductos().catch(()=>{}):null;if(x.tabla=='clientes'){const{data:c}=await sb.from('clientes').select('*').eq('id',x.registro_id).maybeSingle();if(c&&!S.clientes.some(y=>y.id==c.id))S.clientes.push(c)}pinta()})};
+  pinta()}
+/* copia afuera por mail (Resend): configuración y prueba */
+async function copiaMailCfg(volver){const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  const pinta=async()=>{const[{data:E},{data:R}]=await Promise.all([sb.rpc('copia_mail_estado'),sb.from('copias_registro').select('ok,detalle,creado_en').eq('tipo','mail').order('creado_en',{ascending:false}).limit(1)]);const u=(R||[])[0];
+    m.innerHTML=`<div class="mc cm"><div class="bh"><h3 style="margin:0">${IC('send',20)} Copia a tu mail</h3><button class="alt" id="cm_x">Cerrar</button></div>
+      <p>Todos los domingos te llega a <b>${esc(E?.mail||'tu mail')}</b> la copia completa del CRM como archivo adjunto. Así hay una copia <b>afuera</b> del sistema: si algún día pasa algo con la base, con ese mail se recupera todo.</p>
+      ${E?.clave?`<p class="aviso okb">${IC('check',16)} <b>Activado.</b> ${u?(u.ok?'Último envío: '+new Date(u.creado_en).toLocaleDateString('es-AR',{day:'numeric',month:'numeric'})+' ✓':'El último envío falló: '+esc(u.detalle||'')):'Todavía no se mandó ninguna.'}</p>
+        <div class="fc-acc"><button id="cm_p">${IC('send',16)} Mandarme una ahora</button><button class="alt" id="cm_b">Desactivar</button></div>`
+      :`<p class="aviso"><b>Para activarlo (una sola vez, 3 minutos):</b></p>
+        <ol class="cm-pasos"><li>Entrá a <a class="lnk" href="https://resend.com/signup" target="_blank" rel="noopener">resend.com</a> y creá una cuenta gratis <b>con el mail ${esc(E?.mail||'del dueño')}</b> (tiene que ser el mismo: el plan gratis solo manda a tu propio mail).</li>
+        <li>Adentro, andá a <b>API Keys</b> → <b>Create API Key</b>, ponele de nombre «CRM» y copiá la clave (empieza con <code>re_</code>).</li>
+        <li>Pegala acá abajo y tocá <b>Guardar y probar</b>: en un minuto te llega el primer mail con la copia.</li></ol>
+        <label class="f">Clave de Resend<input id="cm_k" placeholder="re_..." autocomplete="off"></label>
+        <div class="fc-acc"><button id="cm_g">Guardar y probar</button></div>`}
+      <p><small>La clave queda guardada en el cofre cifrado de la base y solo la usa el servidor. Es gratis hasta 3.000 mails por mes (usás 4).</small></p></div>`;
+    const c2=()=>{m.remove();volver&&volver()};m.querySelector('#cm_x').onclick=c2;m.onclick=e=>{if(e.target===m)c2()};
+    const probar=async b=>{b.disabled=true;b.textContent='Haciendo la copia y mandándola…';try{const{data,error}=await sb.functions.invoke('copia',{body:{mail:true}});if(error||data?.error)throw new Error(data?.error||error.message);
+      if(data.mail?.ok){toast('Listo: te llegó la copia a '+data.mail.a+'. Fijate en tu mail (y en Spam la primera vez).');typeof festejo=='function'&&festejo('copia_mail','¡Copia afuera activada!')}else toast('La copia se hizo pero el mail no salió: '+(data.mail?.error||'¿la clave es correcta?'),1)}catch(x){toast(x.message,1)}pinta()};
+    const g=m.querySelector('#cm_g');if(g)g.onclick=async()=>{const k=m.querySelector('#cm_k').value.trim();if(!/^re_\w{8,}/.test(k))return toast('La clave empieza con re_ — copiala entera desde Resend.',1);g.disabled=true;const{error}=await sb.rpc('copia_mail_clave_guardar',{p:k});if(error){g.disabled=false;return toast(error.message,1)}probar(g)};
+    const p=m.querySelector('#cm_p');if(p)p.onclick=()=>probar(p);
+    const b=m.querySelector('#cm_b');if(b)b.onclick=async()=>{if(!confirm('¿Dejar de mandar la copia a tu mail?'))return;const{error}=await sb.rpc('copia_mail_clave_guardar',{p:''});if(error)return toast(error.message,1);toast('Copia por mail desactivada.');pinta()}};
+  pinta()}
 /* Ventas: contadores de "Para hacer hoy" (como HubSpot) */
 async function contadoresHoy(nOf){const pon=(k,n)=>{const e=document.getElementById('vhn_'+k);if(!e)return;e.textContent=n;e.closest('.vh').classList.toggle('cero',!n)};pon('ofertas',nOf);
   if(!S.estCli)await cargarEstados().catch(()=>{});pon('toca',Object.values(S.estCli||{}).filter(e=>e.k=='toca').length);

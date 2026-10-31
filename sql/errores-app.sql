@@ -10,3 +10,4 @@ create policy ea_sel on public.errores_app for select to authenticated using (ex
 grant insert,select on public.errores_app to authenticated;
 grant select on public.errores_app to service_role;
 grant select,insert,update,delete on public.cola_impresion to authenticated;
+-- (ver también la migración papelera_y_copias_afuera: copias_registro, copia_mail_*, papelera_lista, papelera_recuperar y auditoría de pedido_items)

@@ -43,7 +43,28 @@ Deno.serve(async (req) => {
     const { data: L } = await SRV.storage.from('copias').list('', { limit: 500, sortBy: { column: 'name', order: 'desc' } });
     const viejas = (L || []).filter(f => f.name.startsWith('copia-')).slice(8).filter(f => new Date(f.created_at).getTime() < Date.now() - GUARDAR_DIAS * 864e5).map(f => f.name);
     if (viejas.length) await SRV.storage.from('copias').remove(viejas);
-    return resp({ ok: true, archivo: nombre, tablas: Object.keys(datos).length, filas, kb: Math.round(gz.byteLength / 1024) });
+    await SRV.from('copias_registro').insert({ tipo: 'nube', ok: true, detalle: `${nombre} · ${filas} registros`, usuario_id: null });
+    // Copia afuera: si está cargada la clave del servicio de mail, se manda el archivo al mail del dueño
+    let mail: { ok: boolean; a?: string; error?: string } | null = null;
+    const { data: rk } = await SRV.rpc('copia_mail_clave');
+    let body: { mail?: boolean } = {}; try { body = await req.json(); } catch (_) { /* sin cuerpo */ }
+    if (rk && (origen == 'automática' || body.mail)) {
+      const { data: du } = await SRV.from('perfiles').select('id').eq('rol', 'dueno').eq('activo', true).limit(1).maybeSingle();
+      const { data: au } = du ? await SRV.auth.admin.getUserById(du.id) : { data: null };
+      const para = au?.user?.email;
+      if (para) {
+        const u8 = new Uint8Array(gz); let bin = ''; for (let i = 0; i < u8.length; i += 0x8000) bin += String.fromCharCode(...u8.subarray(i, i + 0x8000));
+        const fecha = ar.slice(8, 10) + '/' + ar.slice(5, 7) + '/' + ar.slice(0, 4);
+        const r = await fetch('https://api.resend.com/emails', { method: 'POST', headers: { Authorization: 'Bearer ' + rk, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ from: 'CRM Sabores <onboarding@resend.dev>', to: [para], subject: `Copia de seguridad del CRM · ${fecha}`,
+            html: `<p>Hola Diego:</p><p>Te mando la copia de seguridad completa del CRM de <b>Sabores de mi País</b> del ${fecha} (${filas.toLocaleString('es-AR')} registros de ${Object.keys(datos).length} tablas).</p><p>Guardá este mail: si algún día pasa algo con el sistema, con este archivo se recupera todo.</p><p style="color:#888;font-size:12px">Llega solo todos los domingos.</p>`,
+            attachments: [{ filename: nombre, content: btoa(bin) }] }) });
+        const j = await r.json().catch(() => ({}));
+        mail = r.ok ? { ok: true, a: para } : { ok: false, error: (j as { message?: string })?.message || ('Error ' + r.status) };
+        await SRV.from('copias_registro').insert({ tipo: 'mail', ok: mail.ok, detalle: mail.ok ? para : mail.error, usuario_id: null });
+      }
+    }
+    return resp({ ok: true, archivo: nombre, tablas: Object.keys(datos).length, filas, kb: Math.round(gz.byteLength / 1024), mail });
   } catch (e) {
     return resp({ error: (e as Error)?.message || String(e) }, 200);
   }
