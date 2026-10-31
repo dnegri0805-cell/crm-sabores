@@ -433,6 +433,16 @@ Desde **Más → Cuenta y ajustes → Usuarios y accesos** (solo lo ve el dueño
 - **Al recibir:** si falta algo, te muestra qué faltó antes de confirmar (queda *Recibida parcial*) y te avisa si algún costo subió.
 - **Ficha del proveedor** (tocando su renglón): le debés, cuánto le comprás por mes (con gráfico de 6 meses), cuánto tarda en entregar, sus productos, últimas órdenes, WhatsApp, *Nueva orden* y *Cuenta y pagos*.
 
+### Lo que ve el cliente (portal de pedidos y catálogo público)
+
+- **Saludo arriba de todo:** "Buen día / Buenas tardes, {cliente} 👋" con su estado en botones: pedido en camino o en preparación, saldo o vencido (lleva a "Mi cuenta" para pagar), "Cuenta al día", puntos y pedido mínimo.
+- **Hora de corte con cuenta regresiva:** "Pedí antes de las 20:00 y te llega el lunes · Faltan 1 h 02 min". Sale de **Configuración → Entregas** (hora de corte y días) y de los días de reparto de la zona del cliente.
+- **Primer pedido guiado:** a un cliente que nunca pidió le aparece "🚀 Tu primer pedido en 1 minuto": con un toque le cargamos los productos que más llevan negocios como el suyo y se abre el pedido para que lo ajuste y lo envíe.
+- **Precio por caja** en cada producto y **ficha** al tocar la foto o el nombre (ya estaban).
+- **Carga más rápida:** se muestran 40 productos y el resto aparece solo a medida que el cliente baja.
+- **"Tené tu catálogo como app":** ya no aparece la primera vez; sale desde la segunda visita o en la pantalla de "¡Recibimos tu pedido!".
+- **Catálogo público:** barra fija abajo con **🏪 Quiero ser cliente** y **💬 WhatsApp** (se esconde cuando la persona ya tiene productos en el carrito).
+
 ## 13. Rutina diaria y preguntas frecuentes
 
 Repartís de lunes a sábado y los pedidos cierran a las 20:00 para el día siguiente.

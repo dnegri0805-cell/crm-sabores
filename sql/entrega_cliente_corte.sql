@@ -1,0 +1,3 @@
+-- entrega_cliente ahora devuelve también 'entrega' (hora de corte y días, de config_app 'entregas')
+-- para que el portal del cliente muestre "Pedí antes de las HH:MM y te llega el ..." con cuenta regresiva.
+-- Aplicada como migración entrega_cliente_corte (2026-10-31).
