@@ -23,6 +23,8 @@ Las funciones del CRM tal como quedaron, en el orden en que las usás en el día
 
 Es el tablero del día. De arriba hacia abajo:
 
+- **Resumen de hoy** (debajo del saludo): **Vendido hoy**, **Cobrado hoy** y **Visitas hoy**. Tocando cada uno vas a esa pantalla.
+
 - **Vendido en el mes** (solo el dueño): lo vendido en el mes, el % de la meta con su barra (la rayita es el día de hoy), lo de hoy y a cuánto cerrás a este ritmo, unas **barritas con lo vendido cada día** (la oscura es hoy) y la comparación con el mes pasado a la misma altura (*▲ 12 % vs septiembre*). La meta se pone o se cambia tocando **Meta $ …**.
 - **Botones:** Nuevo pedido (el grande, en bordó), Nuevo cliente, Proveedores, Compras y Ventas, y abajo el renglón **Folletos**. El vendedor ve *Mis clientes* y *Ruta de hoy* en lugar de Proveedores y Compras.
 - **Facturado hoy:** siempre a la vista. En $ 0 queda en un solo renglón; cuando facturás, se agranda.
@@ -38,6 +40,10 @@ Es el tablero del día. De arriba hacia abajo:
 **Personalizar el inicio** (abajo de todo, o *Más → Cuenta y ajustes*): elegís qué tarjetas ver y en qué orden. Cada usuario arma el suyo en su celular.
 
 **En la compu** el Inicio se ve en **dos columnas de tarjetas**. Con **Acomodar arrastrando** (abajo de todo) las movés con el mouse a donde quieras; tocás **Listo** y queda guardado.
+
+**Metas (Maní JL y kilos):** se ven compactas, con el número de la semana en bordó y un anillo chico; el detalle se abre tocándolas. En la última semana del mes ya muestran la **meta del mes que viene** y abajo cuánto cerró el actual (*Octubre cierra con…*). Si en el mes todavía no hay ventas, *Vendido en el mes* se achica a un renglón.
+
+**Botón +:** se esconde mientras bajás leyendo y vuelve apenas subís, así no tapa nada.
 
 **Tendencia:** debajo de *Facturado hoy* y *Por aprobar* hay una línea con los últimos 30 días y la flechita **▲ / ▼** contra el mismo momento del mes pasado.
 

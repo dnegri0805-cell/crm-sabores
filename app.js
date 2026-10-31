@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-31.14';
+const VERSION='2026-10-31.15';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -314,6 +314,15 @@ function compMes(rows,fecha,valor){const h=new Date(),dd=h.getDate(),m=diaLocal(
 function tendencia(id,serie,act,ant,txt){const b=document.getElementById(id);if(!b)return;b.querySelector('.tdz')?.remove();if(!serie.some(x=>x>0)&&!(ant>0))return;
   const pc=ant>0?Math.round((act-ant)/ant*100):null,el=document.createElement('div');el.className='tdz';
   el.innerHTML=sparkSVG(serie)+`<span class="tdt">${pc==null?'':`<b class="tdp ${pc>0?'up':pc<0?'dn':''}">${pc>0?'▲':pc<0?'▼':'='} ${Math.abs(pc)} %</b> `}${txt}</span>`;b.appendChild(el)}
+/* Resumen del día arriba de todo (como Stripe): lo vendido, lo cobrado y las visitas de hoy */
+async function resumenHoy(){const box=document.getElementById('rhoy');if(!box)return;const h=tsAR(diaLocal(new Date())),yo=S.perfil.rol=='vendedor';
+  let qp=sb.from('pedidos').select('total').neq('estado','cancelado').or('es_prueba.is.null,es_prueba.eq.false').gte('creado_en',h);if(yo)qp=qp.eq('vendedor_id',S.perfil.id);
+  let qv=sb.from('contactos_clientes').select('id',{count:'exact',head:true}).gte('fecha',h);if(yo)qv=qv.eq('usuario_id',S.perfil.id);
+  const[p,r,v]=await Promise.all([qp,sb.from('recibos').select('importe').eq('anulado',false).gte('fecha',diaLocal(new Date())),qv].map(q=>q.then(x=>x,()=>({}))));
+  if(!document.body.contains(box))return;const P=p.data||[],vt=P.reduce((a,o)=>a+(+o.total||0),0),cb=(r.data||[]).reduce((a,x)=>a+(+x.importe||0),0),nv=v.count||0;
+  box.innerHTML=`<button class="rh" onclick="irA('pedidos')"><small>Vendido hoy</small><b>${$k(vt)}</b><span>${P.length?P.length+(P.length==1?' pedido':' pedidos'):'Sin pedidos aún'}</span></button>
+    <button class="rh" onclick="irA('cobranza')"><small>Cobrado hoy</small><b>${$k(cb)}</b><span>${(r.data||[]).length?(r.data.length+(r.data.length==1?' recibo':' recibos')):'Sin cobros aún'}</span></button>
+    <button class="rh" onclick="irA('clientes',{cs:'agenda'})"><small>Visitas hoy</small><b>${nv}</b><span>${nv?'registradas':'Ninguna aún'}</span></button>`}
 async function vInicio(){
   if(esEstacion()&&!S.estVista){S.estVista=1;return irA('impresora')}S.estVista=1;
   const hoyD=new Date(),hoy=diaLocal(hoyD),mes=hoy.slice(0,7);
@@ -329,7 +338,7 @@ async function vInicio(){
     <div class="box" id="k5"><span class="lab">Stock bajo</span><span class="num">…</span><span class="det"></span></div>
   </div>`;
   $('#v').innerHTML=`<div class="bh ini-h" style="flex-wrap:wrap;gap:8px"><div><h2 style="margin:0">${hr<5?'Buenas noches':hr<13?'Buen día':hr<20?'Buenas tardes':'Buenas noches'}${S.perfil.nombre?', '+esc(String(S.perfil.nombre).trim().split(/\s+/)[0]):''}</h2><small class="ini-f">${hoyD.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}</small></div>
-    ${dia?'':'<button class="alt" data-iv="dia">← Volver al inicio simple</button>'}</div>
+    ${dia?'':'<button class="alt" data-iv="dia">← Volver al inicio simple</button>'}</div><div id="rhoy" class="rhoy"></div>
   ${dia?`<div id="mesv"></div><div id="aprb"></div>${principalesHTML(false)}${kpH}<div id="rank"></div><div id="comv"></div><div id="logr"></div><div id="manijl"></div><div id="metaskg"></div>`:`
   ${principalesHTML()}<div id="bk"></div><div id="cmpi"></div><div id="cami"></div><div id="equi"></div><div id="doci"></div><div id="midia"></div><div id="mani"></div><div id="resd"></div><div id="tari"></div>
   <div class="herr" id="herr"></div>
@@ -356,7 +365,7 @@ async function vInicio(){
   $('#k6')&&($('#k6').onclick=()=>irA('clientes',{cs:'agenda',agD:Math.min(dvHoy,6)}));
   if(S.perfil.rol=='dueno'){cajaBackup();cajaDolar().catch(()=>{})}
   /* Primero los números del día; los avisos y tareas de abajo se cargan un instante después para que Inicio aparezca más rápido */
-  avisosEnVivo();setTimeout(()=>actContar().catch(()=>{}),1500);setTimeout(()=>{herramientas();generarFijos();alertasMargen();objetivoMes();mesVendidoInicio().catch(()=>{});aprobInicio().catch(()=>{});rankingInicio().catch(()=>{});if(S.perfil.rol=='vendedor')setTimeout(()=>{try{guiaVendedor()}catch(e){}},1800);maniJLInicio().catch(()=>{});metasKgInicio().catch(()=>{});comisionInicio().catch(()=>{});logrosInicio().catch(()=>{});tocaInicio();fidelInicio().catch(()=>{});masInicio().catch(()=>{});crecerInicio().catch(()=>{});fielesInicio().catch(()=>{});servInicio().catch(()=>{});planInicio().catch(()=>{});colaInicio().catch(()=>{});resumenDia().catch(()=>{});tareasInicio().catch(()=>{});chequeoInicio().catch(()=>{});camionetaInicio().catch(()=>{});cuentasInicio().catch(()=>{});equiposInicio().catch(()=>{});comprobantesInicio().catch(()=>{});mananaInicio().catch(()=>{});miDia().catch(()=>{});ocSemanal().catch(()=>{});aplicarAumentosProg().catch(()=>{});sincronizarOff().catch(()=>{});metasInicio().catch(()=>{});empujonBox($('#empi')).catch(()=>{});fechasInicio();},700);
+  resumenHoy().catch(()=>{});  avisosEnVivo();setTimeout(()=>actContar().catch(()=>{}),1500);setTimeout(()=>{herramientas();generarFijos();alertasMargen();objetivoMes();mesVendidoInicio().catch(()=>{});aprobInicio().catch(()=>{});rankingInicio().catch(()=>{});if(S.perfil.rol=='vendedor')setTimeout(()=>{try{guiaVendedor()}catch(e){}},1800);maniJLInicio().catch(()=>{});metasKgInicio().catch(()=>{});comisionInicio().catch(()=>{});logrosInicio().catch(()=>{});tocaInicio();fidelInicio().catch(()=>{});masInicio().catch(()=>{});crecerInicio().catch(()=>{});fielesInicio().catch(()=>{});servInicio().catch(()=>{});planInicio().catch(()=>{});colaInicio().catch(()=>{});resumenDia().catch(()=>{});tareasInicio().catch(()=>{});chequeoInicio().catch(()=>{});camionetaInicio().catch(()=>{});cuentasInicio().catch(()=>{});equiposInicio().catch(()=>{});comprobantesInicio().catch(()=>{});mananaInicio().catch(()=>{});miDia().catch(()=>{});ocSemanal().catch(()=>{});aplicarAumentosProg().catch(()=>{});sincronizarOff().catch(()=>{});metasInicio().catch(()=>{});empujonBox($('#empi')).catch(()=>{});fechasInicio();},700);
   const cli=id=>esc(S.clientes.find(c=>c.id==id)?.razon_social||'Cliente');
   const [fv,pe,fe,sp,fp]=await Promise.all([
     sb.from('facturas_venta').select('*').order('id',{ascending:false}).limit(500),
@@ -525,7 +534,7 @@ const BK_TABLAS=[['Clientes','clientes'],['Productos y precios','precios_product
 /* Inicio simple: si deudas, proveedores y entregas están en cero, un solo renglón en vez de tres */
 function kpCeros(){if(!$('.kphoy'))return;
   /* Inicio simple: las tarjetas en cero se juntan en un solo renglón "Todo al día"; las que tienen algo quedan a la vista */
-  const W={k2:'pedidos',k3:'cobros',k4:'pagos',k5:'entregas',k6:'visitas'};
+  const W={k1:'ventas facturadas hoy',k2:'pedidos',k3:'cobros',k4:'pagos',k5:'entregas',k6:'visitas'};
   const ks=Object.keys(W).map(i=>document.getElementById(i)).filter(Boolean);if(ks.some(b=>b.querySelector('.num')?.textContent=='…'))return;
   const ce=ks.filter(b=>b.classList.contains('vacio'));let t=document.getElementById('kcero');
   ks.forEach(b=>b.style.removeProperty('display'));if(t)t.remove();if(ce.length<2)return;
@@ -3057,7 +3066,10 @@ async function mesVendidoInicio(){const box=$('#mesv');if(!box||S.perfil.rol!='d
   const pc=meta?Math.min(1,v/meta):0,vA=(pa.data||[]).reduce((s,o)=>s+(+o.total||0),0),mesA=mesNom(mA).split(' ')[0].toLowerCase();
   const D=Array.from({length:dm},(_,i)=>{const ds=diaLocal(new Date(hoy.getFullYear(),hoy.getMonth(),i+1));return(pe.data||[]).filter(o=>diaLocal(o.creado_en)==ds).reduce((s,o)=>s+(+o.total||0),0)}),dmx=Math.max(...D,1);
   const cmp=vA>0&&dh>1?(()=>{const p=Math.round((v/vA-1)*100);return`<span class="mv-cmp ${p>=0?'sube':'baja'}">${p>=0?'▲':'▼'} ${Math.abs(p)} % vs ${esc(mesA)} a esta altura</span>`})():'';
-  box.innerHTML=`<div class="box mesv"><div class="mv-top"><span class="mv-ey">Vendido en ${esc(mes.toLowerCase())}</span><button class="mv-meta" id="mv_e">${meta?'Meta '+$m0(meta):'Poner meta'} ${IC('pencil',13)}</button></div>
+  /* Sin ventas todavía: tarjeta chica con un mensaje útil (como HubSpot) en vez de un gráfico vacío */
+  if(!(v>0))box.innerHTML=`<div class="box mesv mesv0"><div class="mv-top"><span class="mv-ey">Vendido en ${esc(mes.toLowerCase())}</span><button class="mv-meta" id="mv_e">${meta?'Meta '+$m0(meta):'Poner meta'} ${IC('pencil',13)}</button></div>
+    <div class="mv-vac"><span class="mv-vi">${IC('chart',20)}</span><div><b>Todavía no hay ventas este mes</b><small>${vA>0?'El mes pasado a esta altura llevabas '+$m0(vA)+'.':'Los pedidos aprobados se van sumando acá.'}</small></div></div></div>`;
+  else box.innerHTML=`<div class="box mesv"><div class="mv-top"><span class="mv-ey">Vendido en ${esc(mes.toLowerCase())}</span><button class="mv-meta" id="mv_e">${meta?'Meta '+$m0(meta):'Poner meta'} ${IC('pencil',13)}</button></div>
     <div class="mv-n"><b>${$m0(v)}</b>${meta?`<span class="${pc>=1?'sube':''}">${Math.round(v/meta*100)} %</span>`:''}</div>
     ${meta?`<div class="mv-bar"><i style="width:${(pc*100).toFixed(1)}%"></i><span style="left:${(dh/dm*100).toFixed(1)}%" title="Hoy"></span></div>`:''}
     <div class="mv-g" aria-hidden="true">${D.map((x,i)=>`<i class="${i+1==dh?'hoy':i+1>dh?'fut':''}${new Date(hoy.getFullYear(),hoy.getMonth(),i+1).getDay()==0?' dom':''}" style="height:${i+1>dh?0:Math.max(x?6:2,x/dmx*100).toFixed(1)}%" title="${i+1}: ${$m0(x)}"></i>`).join('')}</div>
@@ -3352,9 +3364,11 @@ function deslizarClientes(){if(!matchMedia('(hover:none)').matches)return;
   if(!$('#sw_ay')&&$('#ct')){let v=0;try{v=+localStorage.getItem('sw_ay')||0}catch(e){}if(v<3){try{localStorage.setItem('sw_ay',v+1)}catch(e){}$('#ct').insertAdjacentHTML('beforebegin','<p class="sw-ay" id="sw_ay">👉 Deslizá un cliente a la izquierda para WhatsApp o llamar, y a la derecha para cargarle un pedido.</p>')}}}
 
 /* ======================= ENCABEZADO QUE SE ACHICA (celular) ======================= */
+/* Botón + como en Gmail: se esconde mientras bajás leyendo y vuelve apenas subís (así nunca tapa lo que estás mirando) */
+{let y0=scrollY;addEventListener('scroll',()=>{const f=document.getElementById('fab'),y=scrollY;if(!f){y0=y;return}if(Math.abs(y-y0)<8)return;f.classList.toggle('fab-oc',y>y0&&y>120&&(innerHeight+y)<document.documentElement.scrollHeight-40);y0=y},{passive:true})}
 addEventListener('scroll',()=>{const t=document.getElementById('htit');if(!t)return;{const hd=document.querySelector('header');if(hd&&hd.offsetHeight&&S._hh!=hd.offsetHeight){S._hh=hd.offsetHeight;document.documentElement.style.setProperty('--hh',hd.offsetHeight+'px')}}const h=document.querySelector('#v h2'),hd=document.querySelector('header');
   const on=!!h&&matchMedia('(max-width:640px)').matches&&h.getBoundingClientRect().bottom<(hd?.getBoundingClientRect().bottom||56)+4;
-  if(on){const tx=S.tab=='inicio'?'Inicio':[...h.childNodes].filter(n=>n.nodeType==3).map(n=>n.textContent).join(' ').trim()||h.textContent.trim();if(t.textContent!=tx)t.textContent=tx}document.body.classList.toggle('tit-on',on)},{passive:true});
+  if(on){const tx=S.tab=='inicio'?'Inicio · '+new Date().toLocaleDateString('es-AR',{weekday:'short'}).replace('.','')+' '+new Date().getDate()+'/'+(new Date().getMonth()+1):[...h.childNodes].filter(n=>n.nodeType==3).map(n=>n.textContent).join(' ').trim()||h.textContent.trim();if(t.textContent!=tx)t.textContent=tx}document.body.classList.toggle('tit-on',on)},{passive:true});
 
 /* ======================= 1. ETIQUETAS DE CLIENTES =======================
    Cartelitos de color que inventa el dueño (VIP, Paga con cheque, Solo de mañana…). Se ponen en la ficha y se filtra por ellas. */
@@ -3706,7 +3720,8 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
   const conSel=pocas&&faltaMg>0&&[...ids].some(chico),nota=faltaMg<=0||conSel?'':pocas?`Estimado con ${m0(mbCat)} de ganancia por caja${foco?' (65 y 85 g)':' (promedio de toda la línea)'}.${!cubre&&realista?` Con ${nf(Math.ceil((fijos-mg)/mb))} cajas cubrís los gastos.`:''}`
       :`Cada caja te deja ${m0(mb)}. A este ritmo cerrás ${esc(mes.toLowerCase())} con <b class="${ok?'sube':'baja'}">${m0(proyLimpio)}</b> limpios.`;
   const SEL=conSel?`<div class="mjseg"><span>Calcular con<small>Estimado: ${m0(mbCat)} por caja</small></span><div role="radiogroup" aria-label="Calcular con" class="mjsw ${foco?'':'der'}" id="mj_sw"><i class="mjpill"></i><button role="radio" aria-checked="${!!foco}" data-mjf="chicos" class="${foco?'on':''}">65 y 85 g</button><button role="radio" aria-checked="${!foco}" data-mjf="todo" class="${foco?'':'on'}">Toda la línea</button></div></div>`:'';
-  box.innerHTML=`<div class="box obj mj"><div class="mjtop"><div class="mjtl"><img class="mjimg" src="fotos/metas/mani-jl.webp" alt=""><div><div class="ey">Meta de ${esc(mes.toLowerCase())}</div><div class="tt">Maní JL</div></div></div><button class="mjmeta" id="mj_e" aria-label="Cambiar meta"><small>Meta limpia</small><b>${m0(meta)}</b><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16H4v-3z"/></svg></button></div>
+  const esSig=faltaMg>0&&semIni&&pvV>LIMV&&faltaSem>0&&hab(dh,dm)<=6;
+  box.innerHTML=`<div class="box obj mj"><div class="mjtop"><div class="mjtl"><img class="mjimg" src="fotos/metas/mani-jl.webp" alt=""><div><div class="ey">Meta de ${esc((esSig?mesSigJ:mes).toLowerCase())}</div><div class="tt">Maní JL</div>${esSig?`<div class="mjcer">${esc(mes)} cierra con ${nf(Math.round(cj))} ${Math.round(cj)==1?'caja':'cajas'}</div>`:''}</div></div><button class="mjmeta" id="mj_e" aria-label="Cambiar meta"><small>Meta limpia</small><b>${m0(meta)}</b><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16H4v-3z"/></svg></button></div>
     <div id="mj_h" role="button" tabindex="0" aria-expanded="${abierto}" style="cursor:pointer">${hero}</div>
     <button class="mjver" id="mj_t">${abierto?'Ocultar detalle':'Ver detalle del mes'} <span>${abierto?'▴':'▾'}</span></button>
     <div id="mj_d"${abierto?'':' hidden'}>${aviso}
@@ -3795,7 +3810,8 @@ async function metasKgInicio(){const box=$('#metaskg');if(!box||S.perfil.rol!='d
     :`<div class="mjh mkh"><div><div class="ey">${esc(mes)}</div><div class="mjhn">${nf(Math.ceil(falta))}<span> kg por vender</span></div></div></div>`;
   const pc=pc0,fotoDe=x=>{if(x.f)return x.f;const L=x.ps?.length?[x.star?.p,...x.ps]:[x.p];for(const q of L)if(q&&S.min[q]?.foto)return S.min[q].foto;return ''},
     tabs=IT.length>1?`<div class="mktabs" role="tablist" aria-label="Producto">${IT.map((x,k)=>{const f=fotoDe(x),pk=+x.meta?Math.min(1,kgT[k]/x.meta):0;return`<button role="tab" aria-selected="${k==sel}" data-mk="${k}" class="mkt${k==sel?' on':''}"><span class="mkf">${f?`<img src="${esc(f)}" alt="">`:esc((x.n||'?')[0])}</span><span class="mkn">${esc(x.n||'Producto')}</span><span class="mkb"><i style="width:${(pk*100).toFixed(1)}%"></i></span><span class="mkk">${nf(Math.round(kgT[k]))}${+x.meta?' / '+nf(x.meta):''} kg</span></button>`}).join('')}</div>`:'';
-  box.innerHTML=`<div class="box obj mj"><div class="mjtop"><div><div class="ey">Meta de ${esc(mes.toLowerCase())}</div><div class="tt mknm">${esc(it.t||(linea?it.n:pr?.descripcion)||it.n||'Producto')}</div></div><button class="mjmeta" id="mk_e" aria-label="Cambiar meta"><small>Meta del mes</small><b>${meta?nf(meta)+' kg':'Poner'}</b><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16H4v-3z"/></svg></button></div>
+  const esSig=noLlega&&finMes;
+  box.innerHTML=`<div class="box obj mj"><div class="mjtop"><div><div class="ey">Meta de ${esc((esSig?mesSig:mes).toLowerCase())}</div><div class="tt mknm">${esc(it.t||(linea?it.n:pr?.descripcion)||it.n||'Producto')}</div>${esSig?`<div class="mjcer">${esc(mes)} cierra con ${nf(Math.round(kg))} kg</div>`:''}</div><button class="mjmeta" id="mk_e" aria-label="Cambiar meta"><small>Meta del mes</small><b>${meta?nf(meta)+' kg':'Poner'}</b><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16H4v-3z"/></svg></button></div>
     ${tabs}<div id="mk_h" role="button" tabindex="0" aria-expanded="${abierto}" style="cursor:pointer;margin-top:${tabs?'10px':'0'}">${hero}</div>
     <button class="mjver" id="mk_t">${abierto?'Ocultar detalle':'Ver detalle del mes'} <span>${abierto?'▴':'▾'}</span></button>
     <div id="mk_d"${abierto?'':' hidden'}>

@@ -1381,12 +1381,54 @@ a.fac-e{cursor:pointer;text-decoration:underline;text-underline-offset:2px}
 .cn-r{flex-direction:row!important;align-items:center;justify-content:space-between;gap:10px}.cn-r>span{display:flex;flex-direction:column}.cn-r button{width:auto;flex:none}
 @media(min-width:900px){#offb{bottom:24px}}
 body:has(.undo) #offb{display:none}
+
+/* Metas más livianas y compactas: fondo claro, número en bordó, anillo chico */
+.mj .mjh,.mj .mjh.mkh{background:color-mix(in srgb,var(--m) 6%,#fff)!important;color:var(--n)!important;box-shadow:none!important;border:1px solid color-mix(in srgb,var(--m) 16%,#fff);padding:10px 14px!important;gap:12px!important;border-radius:14px!important}
+.mj .mjh.ok{background:#ecf7f0!important;border-color:#bfe3cb}
+.mj .mjh .ey{color:var(--tx2)!important;font-size:13px!important}
+.mj .mjh .mjhn,.mjh.sig .mjhn{font-size:26px!important;color:var(--m);margin:1px 0}
+.mj .mjh.ok .mjhn{color:var(--ok)}
+.mj .mjh .mjhn span{font-size:13px!important;color:var(--tx2);opacity:1!important;font-weight:600}
+.mj .mjh .hs{font-size:13px!important;color:var(--tx2);opacity:1!important}
+.mj .mjh .pill{background:#fff!important;border-color:color-mix(in srgb,var(--m) 25%,#fff)!important;color:var(--m)}
+.mj .mjr{width:52px!important;height:52px!important}
+.mj .mjr .tr{stroke:color-mix(in srgb,var(--m) 14%,#fff)!important}
+.mj .mjr .fl{stroke:var(--m)!important}
+.mj .mjr .dot{fill:#e0a21c!important}
+.mj .mjr text{fill:var(--m)!important;font-size:17px!important}
+.mjcer{font-size:12.5px;color:var(--tx2);margin-top:2px}
+.mj .mkt{display:grid!important;grid-template-columns:30px minmax(0,1fr);column-gap:8px!important;row-gap:3px!important;align-items:center!important;padding:6px 8px!important;text-align:left;border-radius:12px!important}
+.mj .mkt .mkf{grid-row:1/4}.mj .mkt .mkb{width:100%!important}.mj .mkt .mkn,.mj .mkt .mkk{justify-self:start}
+.mj .mkt .mkf,.mj .mkt .mkf img{width:30px!important;height:30px!important;flex:none}
+.mj .mkt .mkn{font-size:12.5px}
+html.oscuro .mj .mjh,html.oscuro .mj .mjh.mkh{background:#211a20!important;border-color:#3a2a33;color:#e3e6ee!important}
+html.oscuro .mj .mjh .mjhn,html.oscuro .mj .mjr text{color:#f0b5c2;fill:#f0b5c2!important}html.oscuro .mj .mjr .fl{stroke:#f0b5c2!important}html.oscuro .mj .mjr .tr{stroke:#3a2a33!important}
+html.oscuro .mj .mjh.ok{background:#14261c!important;border-color:#24503a}
+
+.mv-vac{display:flex;align-items:center;gap:12px;margin-top:8px}.mv-vac>div{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}.mv-vac small{color:var(--tx2)}
+.mv-vi{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:color-mix(in srgb,var(--m) 8%,#fff);color:var(--m);flex:none}
+.mv-vac button{width:auto;flex:none}
+@media(max-width:420px){.mv-vac{flex-wrap:wrap}.mv-vac button{width:100%}}
+
+#fab{transition:transform .22s ease,opacity .22s ease}
+#fab.fab-oc{transform:translateY(130%) scale(.8);opacity:0;pointer-events:none}
+@media(max-width:640px){#v::after{content:'';display:block;height:76px}}
+
+/* Resumen del día */
+.rhoy{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0 14px}.rhoy:empty{display:none}
+.rhoy .rh{all:unset;box-sizing:border-box;cursor:pointer;background:#fff;border:1px solid var(--l);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:1px;min-width:0}
+.rhoy .rh small{font-size:12px;color:var(--tx2);font-weight:600}.rhoy .rh b{font-size:20px;font-weight:800;color:var(--n);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rhoy .rh span{font-size:11.5px;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rhoy .rh:active{transform:scale(.98)}
+html.oscuro .rhoy .rh{background:#18202f;border-color:#273246}html.oscuro .rhoy .rh b{color:#e3e6ee}
+@media(min-width:1100px){#v.ini-grid:has(>.pieini)>.rhoy{column-span:all}}
+.mj .mkt .mkk{white-space:nowrap;font-size:11px!important}
 </style>
 </head>
 <body>
 <div id="app"><div class="splash"><img src="logo.png" alt="Sabores de mi País"><i></i></div></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
-<script src="app.js?v=2026-10-31.14"></script>
+<script src="app.js?v=2026-10-31.15"></script>
 </body>
 </html>
