@@ -443,6 +443,16 @@ Desde **Más → Cuenta y ajustes → Usuarios y accesos** (solo lo ve el dueño
 - **"Tené tu catálogo como app":** ya no aparece la primera vez; sale desde la segunda visita o en la pantalla de "¡Recibimos tu pedido!".
 - **Catálogo público:** barra fija abajo con **🏪 Quiero ser cliente** y **💬 WhatsApp** (se esconde cuando la persona ya tiene productos en el carrito).
 
+### Reportes de ventas
+
+- **Período:** Este mes, Mes anterior, Últimos 3 meses, Este año, Últimos 12 meses o **📅 Elegir fechas** (desde/hasta).
+- **Cada número compara** con el período anterior equivalente (▲ verde sube, ▼ rojo baja). "Este mes" se compara con los mismos días del mes pasado, para que sea justo.
+- **Avisos automáticos** arriba: qué familia creció o bajó, si cambió el ticket promedio, cuántos clientes compraron menos y cuál es tu mejor día.
+- **🎯 Meta del mes** (en "Este mes"): tocá *Poner meta* y escribí el monto. Muestra cuánto llevás, cuánto vas a cerrar a este ritmo y cuánto te falta vender por día hábil. Si no ponés meta, usa la suma de las metas de los vendedores.
+- **Gráfico de 12 meses** con la línea punteada del mismo mes del año anterior. Tocá una barra para ver el cambio contra el mes y el año anterior.
+- **Pestañas:** Clientes, Productos, Familias (con margen y ganancia), Zonas, Días de la semana, Vendedores y comisiones, y **En baja**: los clientes que compraron menos del 60 % que en el período anterior, con botón de WhatsApp para escribirles. Tocá un cliente para abrir su ficha. *Copiar para Excel* copia la pestaña que estás viendo.
+- **🕓 Historial** (sólo el dueño): quién cambió qué en el sistema.
+
 ## 13. Rutina diaria y preguntas frecuentes
 
 Repartís de lunes a sábado y los pedidos cierran a las 20:00 para el día siguiente.

@@ -1862,12 +1862,38 @@ html.oscuro .cb-k,html.oscuro .cb-leg button{background:#18202f;border-color:#27
 .pv-pl{display:flex;flex-wrap:wrap;gap:5px}.pv-pl span{font-size:12px;background:#f2f3f6;border-radius:8px;padding:3px 8px}
 #vt tr.pv-r:hover{background:#faf6f6}
 html.oscuro .cp-k,html.oscuro .oc-c{background:#18202f;border-color:#273246}html.oscuro .cp-pp{background:#2a2416!important}
+/* Reportes */
+.rp-hd{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.rp-acc{display:flex;gap:6px}.rp-acc button{padding:7px 11px;font-size:13px;margin:0;display:inline-flex;gap:5px;align-items:center}
+.rp-per{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 0 8px;margin:0 0 4px}.rp-per::-webkit-scrollbar{display:none}
+.rp-per button{all:unset;cursor:pointer;flex:none;padding:7px 13px;border-radius:999px;border:1px solid var(--l,#e2dde0);background:#fff;font-size:13.5px;font-weight:600;color:var(--tx2)}
+.rp-per button.on{background:var(--m,#7b2d3e);border-color:var(--m,#7b2d3e);color:#fff}
+.rp-fe{display:flex;gap:8px;align-items:end;flex-wrap:wrap;margin:0 0 10px}.rp-fe label{display:grid;gap:2px;font-size:12px;color:var(--tx2)}.rp-fe input{margin:0;padding:7px 9px}.rp-fe button{margin:0;padding:8px 14px}
+.rp-ins{display:grid;gap:6px;margin:0 0 12px}.rp-ins:empty{display:none}
+.rp-av{display:flex;gap:10px;align-items:flex-start;background:#fff;border:1px solid var(--l,#e2dde0);border-left:4px solid var(--m,#7b2d3e);border-radius:12px;padding:9px 12px;font-size:14px;line-height:1.35}.rp-av>span{font-size:18px;line-height:1.1}
+.rp-d{font-size:12.5px;font-weight:700;color:var(--tx2);white-space:nowrap}.rp-d.up{color:var(--ok,#1d7a46)}.rp-d.dn{color:var(--er,#d92d20)}
+.rp-kp .det small{color:var(--tx2);font-size:12px}
+.rp-mt{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.rp-mt>button{margin-left:auto}.rp-mt1{display:flex;justify-content:space-between;gap:8px;margin-bottom:6px}
+.rp-bar{position:relative;height:12px;border-radius:999px;background:#eee7ea;overflow:visible;margin:4px 0 6px}.rp-bar i{display:block;height:100%;border-radius:999px;background:var(--m,#7b2d3e)}.rp-bar i.ok{background:var(--ok,#1d7a46)}
+.rp-bar span{position:absolute;top:-3px;width:2px;height:18px;background:var(--n,#17213a);border-radius:2px}
+.rp-mt2{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:14px;margin-bottom:2px}.rp-mt2 .ok,.rp-c .ok{color:var(--ok,#1d7a46)}.rp-mt2 .er,.rp-c .er{color:var(--er,#d92d20)}
+.rp-ley{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--tx2)}.rp-ley i{display:inline-block;width:12px;height:8px;border-radius:2px;background:var(--m,#7b2d3e);margin-left:6px}.rp-ley i.b{height:3px;background:#c99a3a}
+#rp_g .rp-l0{fill:none;stroke:#c99a3a;stroke-width:2;stroke-dasharray:4 3;pointer-events:none}#rp_g .rp-p0{fill:#fff;stroke:#c99a3a;stroke-width:2;pointer-events:none}#rp_g .axon{font-weight:700;fill:var(--m,#7b2d3e)}
+.rp-tb{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:-4px 0 6px}.rp-tb small{color:var(--tx2)}.rp-tb button{margin:0;padding:6px 10px;font-size:12.5px}
+.rp-r{display:flex;gap:10px;align-items:center;padding:9px 2px;border-bottom:1px solid var(--l,#eee)}.rp-r:last-of-type{border-bottom:0}.rp-r[data-cli]{cursor:pointer}.rp-r[data-cli]:hover{background:#faf7f8}
+.rp-i{flex:none;width:26px;text-align:center;font-weight:700;color:var(--tx2);font-size:14px}.rp-dw{text-transform:capitalize;font-size:12px}
+.rp-c{flex:1;min-width:0}.rp-n{display:flex;justify-content:space-between;gap:8px;font-size:14.5px}.rp-n b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}.rp-n span{font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+.rp-b{height:5px;background:#f1ecee;border-radius:999px;margin:4px 0 3px;overflow:hidden}.rp-b i{display:block;height:100%;background:color-mix(in srgb,var(--m,#7b2d3e) 70%,#fff);border-radius:999px}.rp-b i.top{background:var(--m,#7b2d3e)}
+.rp-c small{color:var(--tx2);font-size:12.5px}
+.rp-wa{flex:none;display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:#25d366;color:#fff}
+.rp-mas{width:100%;margin:8px 0 0}.rp-ok{margin:10px 2px;color:var(--ok,#1d7a46);font-weight:600}
+
 </style>
 </head>
 <body>
 <div id="app"><div class="splash"><img src="logo.png" alt="Sabores de mi País"><i></i></div></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
-<script src="app.js?v=2026-10-31.35"></script>
+<script src="app.js?v=2026-10-31.36"></script>
 </body>
 </html>

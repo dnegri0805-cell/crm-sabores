@@ -93,71 +93,137 @@ function catalogoPDF(l,L,c,nomLista){const w=window.open('','_blank');if(!w)retu
     <p class="pie">Sabores de mi País · Precios sujetos a modificación sin previo aviso.${conFoto?' Algunas fotos: Open Food Facts (CC BY-SA).':''}</p>
     <script>window.onload=()=>setTimeout(()=>window.print(),500)<\/script></body></html>`);w.document.close()}
 async function vReportes(){
-  S.rp=(typeof S.rp=='string'&&PERIODOS.some(x=>x[0]==S.rp))?S.rp:'mes';
-  $('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Reportes de ventas</h2><button class="alt" onclick="descargarBackup()">💾 Descargar Excel</button><button class="alt" onclick="informeMes(prompt('¿De qué mes? (AAAA-MM)',mesHoy())||mesHoy())">📄 Informe del mes</button></div>
-  <div class="sub" id="rp_p">${PERIODOS.map(([k,t])=>`<button class="${S.rp==k?'':'alt'}" data-rp="${k}">${t}</button>`).join('')}</div>
-  <p><small>Cuenta los pedidos aprobados en adelante (no incluye los que esperan aprobación ni los cancelados).</small></p>
-  <div class="kp">
-    <div class="box" id="r1"><span class="lab">Ventas</span><span class="num">…</span><span class="det"></span></div>
-    <div class="box" id="r2"><span class="lab">Pedidos</span><span class="num">…</span><span class="det"></span></div>
-    <div class="box" id="r3"><span class="lab">Ticket promedio</span><span class="num">…</span><span class="det"></span></div>
-    <div class="box" id="r4"><span class="lab">Margen bruto</span><span class="num">…</span><span class="det"></span></div>
-  </div>
-  <div class="box"><h3>Ventas por mes · últimos 12 meses</h3><div id="rp_g" class="graf"><span class="skl" role="status" aria-label="Cargando"></span></div></div>
-  <div class="dos fc2">
-    <div class="box"><div class="bh"><h3>Mejores clientes</h3><button class="alt" id="cp_c">Copiar para Excel</button></div><div id="rp_c"></div></div>
-    <div class="box"><div class="bh"><h3>Productos más vendidos</h3><button class="alt" id="cp_p">Copiar para Excel</button></div><div id="rp_pr"></div></div>
-  </div>
-  <div class="box"><div class="bh"><h3>Ventas y ganancia por familia</h3><button class="alt" id="cp_f">Copiar para Excel</button></div><div id="rp_fa"></div></div>`;
-  if(!verCostos()){$('#r4').hidden=true;$('#rp_fa').closest('.box').hidden=true;$('#v .bh').querySelectorAll('button').forEach(b=>b.hidden=true)}
-  $$('[data-rp]').forEach(b=>b.onclick=()=>{S.rp=b.dataset.rp;$$('[data-rp]').forEach(x=>x.className=x.dataset.rp==S.rp?'':'alt');pintar()});
-  const[pe,co]=await Promise.all([
-    todo(()=>sb.from('pedidos').select('id,numero,total,estado,cliente_id,creado_en,clientes(razon_social),pedido_items(producto_id,cantidad,precio_unitario)').not('estado','in','(pendiente,cancelado)').order('numero',{ascending:false})),
-    todo(()=>sb.from('productos').select('id,costo').order('id'))]);
+  const PER=[...PERIODOS,['fechas','📅 Elegir fechas']];
+  const cap=t=>String(t||'').toLowerCase().replace(/(^|\s)(\p{L})/gu,(m,a,b)=>a+b.toUpperCase()).replace(/ (De|Del|Y)\b/g,x=>x.toLowerCase());
+  S.rp=(typeof S.rp=='string'&&PER.some(x=>x[0]==S.rp))?S.rp:'mes';S.rpTab=S.rpTab||'clientes';
+  const dueno=S.perfil.rol=='dueno',cost=verCostos();
+  const TABS=[['clientes','Clientes'],['productos','Productos'],['familias','Familias'],['zonas','Zonas'],['dias','Días'],['vendedores','Vendedores'],['baja','En baja']];
+  $('#v').innerHTML=`<div class="rp-hd"><h2 style="margin:0">Reportes de ventas</h2><div class="rp-acc">
+      ${cost?`<button class="alt" onclick="descargarBackup()" title="Descargar todo en Excel">${IC('download',15)} Excel</button><button class="alt" onclick="informeMes(prompt('¿De qué mes? (AAAA-MM)',mesHoy())||mesHoy())" title="Informe del mes en PDF">${IC('doc',15)} Informe</button>`:''}
+      ${dueno?`<button class="alt" id="rp_hb" title="Quién cambió qué">🕓 Historial</button>`:''}</div></div>
+    <div class="rp-per" id="rp_p">${PER.map(([k,t])=>`<button class="${S.rp==k?'on':''}" data-rp="${k}">${t}</button>`).join('')}</div>
+    <div class="rp-fe" id="rp_fe" ${S.rp=='fechas'?'':'hidden'}><label>Desde <input type="date" id="rp_a" value="${S.rpA||diaLocal(new Date(Date.now()-29*864e5))}"></label><label>Hasta <input type="date" id="rp_b" value="${S.rpB||diaLocal(new Date())}"></label><button id="rp_ok">Ver</button></div>
+    <div class="rp-ins" id="rp_in"></div>
+    <div class="kp rp-kp">
+      <div class="box" id="r1"><span class="lab">Ventas</span><span class="num">…</span><span class="det"></span></div>
+      <div class="box" id="r2"><span class="lab">Pedidos</span><span class="num">…</span><span class="det"></span></div>
+      <div class="box" id="r3"><span class="lab">Ticket promedio</span><span class="num">…</span><span class="det"></span></div>
+      <div class="box" id="r4" ${cost?'':'hidden'}><span class="lab">Margen bruto</span><span class="num">…</span><span class="det"></span></div>
+    </div>
+    <div id="rp_meta"></div>
+    <div class="box"><div class="bh"><h3 style="margin:0">Ventas por mes</h3><span class="rp-ley"><i class="a"></i>Este año <i class="b"></i>Año anterior</span></div><div id="rp_g" class="graf"><span class="skl" role="status" aria-label="Cargando"></span></div></div>
+    <div class="box"><div class="pr-tabs" id="rp_t">${TABS.map(([k,t])=>`<button data-rt="${k}" class="${S.rpTab==k?'on':''}">${t}</button>`).join('')}</div>
+      <div class="rp-tb"><small id="rp_ts"></small><button class="alt" id="rp_cp">Copiar para Excel</button></div><div id="rp_x"></div><div id="rp_v" hidden></div></div>
+    <div class="box" id="rp_h" hidden></div>
+    <p><small>Cuenta los pedidos aprobados en adelante (no incluye los que esperan aprobación ni los cancelados). Las flechas comparan con el período anterior equivalente.</small></p>`;
+  $('#rp_hb')&&($('#rp_hb').onclick=()=>{const h=$('#rp_h');h.hidden=!h.hidden;if(!h.hidden){historialBox();h.scrollIntoView({behavior:'smooth',block:'start'})}});
+  const sel=()=>$$('[data-rp]').forEach(x=>x.classList.toggle('on',x.dataset.rp==S.rp));
+  $$('[data-rp]').forEach(b=>b.onclick=()=>{S.rp=b.dataset.rp;sel();$('#rp_fe').hidden=S.rp!='fechas';if(S.rp!='fechas'||(S.rpA&&S.rpB))pintar()});
+  $('#rp_ok').onclick=()=>{const a=$('#rp_a').value,b=$('#rp_b').value;if(!a||!b||a>b)return toast('Elegí las dos fechas (desde antes que hasta).',1);S.rpA=a;S.rpB=b;pintar()};
+  $$('[data-rt]').forEach(b=>b.onclick=()=>{S.rpTab=b.dataset.rt;$$('[data-rt]').forEach(x=>x.classList.toggle('on',x.dataset.rt==S.rpTab));S.rpTodo=false;tabla()});
+  const[pe,co,MV,MG]=await Promise.all([
+    todo(()=>sb.from('pedidos').select('id,numero,total,estado,cliente_id,vendedor_id,creado_en,clientes(razon_social),pedido_items(producto_id,cantidad,precio_unitario)').not('estado','in','(pendiente,cancelado)').order('numero',{ascending:false})),
+    todo(()=>sb.from('productos').select('id,costo').order('id')),cfgJ('metas_vendedores',{}),cfgJ('meta_ventas',{monto:0})]);
   let P=pe.data;
   if(pe.error){const r2=await todo(()=>sb.from('pedidos').select('*,clientes(razon_social),pedido_items(producto_id,cantidad,precio_unitario)').not('estado','in','(pendiente,cancelado)').order('numero',{ascending:false}));
     if(r2.error){$('#rp_g').innerHTML='<p class="err">No se pudieron leer los pedidos: '+esc(r2.error.message)+'</p>';return}P=r2.data}
   const costo={};for(const r of co.data||[])costo[r.id]=Number(r.costo)||0;
   for(const o of P)o._d=fechaDe(o)?diaLocal(fechaDe(o)):'';
-  const nombre=id=>S.productos.find(p=>p.producto_id==id)?.descripcion||'Producto';
-  let TC=[],TP=[],TF=[];
-  const pintar=()=>{
-    const[a,b]=rango(S.rp),L=P.filter(o=>o._d>=a&&o._d<b);
-    const v=L.reduce((x,o)=>x+Number(o.total||0),0);
-    let vi=0,ci=0,sinC=0;
-    const pc={},cc={};
-    for(const o of L){const k=o.cliente_id;cc[k]=cc[k]||{n:o.clientes?.razon_social||'Cliente',p:0,v:0};cc[k].p++;cc[k].v+=Number(o.total||0);
+  const prodDe=id=>S.productos.find(p=>p.producto_id==id),nombre=id=>prodDe(id)?.descripcion||'Producto';
+  const cliDe=id=>S.clientes.find(c=>c.id==id),zonaDe=id=>{const c=cliDe(id);return String(c?.zona||c?.ciudad||'').trim()||'Sin zona'};
+  const famDeId=id=>(prodDe(id)?.familia||'').trim()||'Sin familia';
+  const sumD=(d,n)=>{const x=new Date(d+'T12:00');x.setDate(x.getDate()+n);return diaLocal(x)},sumM=(d,n)=>{const x=new Date(d+'T12:00');x.setMonth(x.getMonth()+n);return diaLocal(x)};
+  const hoy=diaLocal(new Date()),manana=sumD(hoy,1);
+  const rg=()=>{if(S.rp=='fechas')return[S.rpA,sumD(S.rpB,1)];const[a,b]=rango(S.rp);return[a,b>manana&&a<=hoy?manana:b]};
+  /* período anterior equivalente: "este mes" se compara con los mismos días del mes pasado */
+  const previo=(a,b)=>{if(S.rp=='fechas'){const n=Math.round((new Date(b)-new Date(a))/864e5);return[sumD(a,-n),a]}
+    if(S.rp=='anio')return[sumM(a,-12),sumM(b,-12)];const m={mes:1,mesant:1,'3m':3,'12m':12}[S.rp]||1;return[sumM(a,-m),sumM(b,-m)]};
+  const calc=L=>{let vi=0,ci=0,sinC=0;const pc={},cc={},zc={},dc=[0,0,0,0,0,0,0],dn=[0,0,0,0,0,0,0],fa={};
+    for(const o of L){const t=Number(o.total||0),k=o.cliente_id;cc[k]=cc[k]||{id:k,n:o.clientes?.razon_social||cliDe(k)?.razon_social||'Cliente',p:0,v:0};cc[k].p++;cc[k].v+=t;
+      const z=zonaDe(k);zc[z]=zc[z]||{n:z,p:0,v:0,cl:new Set()};zc[z].p++;zc[z].v+=t;zc[z].cl.add(k);
+      const wd=new Date(o._d+'T12:00').getDay();dc[wd]+=t;dn[wd]++;
       for(const it of o.pedido_items||[]){const q=Number(it.cantidad)||0,pu=Number(it.precio_unitario)||0,cu=costo[it.producto_id]||0;
         vi+=q*pu;if(cu>0)ci+=q*cu;else sinC+=q*pu;
-        const x=pc[it.producto_id]=pc[it.producto_id]||{q:0,v:0,c:0,sc:false};x.q+=q;x.v+=q*pu;if(cu>0)x.c+=q*cu;else x.sc=true}}
-    const conC=vi-sinC,mg=conC>0?(conC-ci)/conC:null;
-    $('#r1 .num').textContent=$m0(v);$('#r1 .det').textContent=PERIODOS.find(x=>x[0]==S.rp)[1];
-    $('#r2 .num').textContent=String(L.length);$('#r2 .det').textContent=Object.keys(cc).length+(Object.keys(cc).length==1?' cliente':' clientes');
-    $('#r3 .num').textContent=L.length?$m(v/L.length):'—';$('#r3 .det').textContent='por pedido';
-    $('#r4 .num').textContent=mg==null?'—':(mg*100).toLocaleString('es-AR',{maximumFractionDigits:1})+' %';
-    $('#r4 .det').textContent=mg==null?'Faltan costos cargados':('Ganancia '+$m(conC-ci)+(sinC>0?' · hay productos sin costo':''));
-    // clientes
-    TC=Object.values(cc).sort((x,y)=>y.v-x.v);
-    $('#rp_c').innerHTML=TC.length?'<table><tr><th>Cliente</th><th class="n">Pedidos</th><th class="n">Ventas</th><th class="n">% del total</th></tr>'+TC.slice(0,10).map(x=>`<tr><td>${esc(x.n)}</td><td class="n">${x.p}</td><td class="n">${$m(x.v)}</td><td class="n">${v?Math.round(x.v/v*100):0} %</td></tr>`).join('')+'</table>'+(TC.length>10?`<small>Y ${TC.length-10} clientes más (se copian todos).</small>`:''):'<p><small>No hay ventas en este período.</small></p>';
-    // productos
-    TP=Object.entries(pc).map(([id,x])=>({n:nombre(id),...x})).sort((x,y)=>y.v-x.v);
-    $('#rp_pr').innerHTML=TP.length?'<table><tr><th>Producto</th><th class="n">Unid.</th><th class="n">Ventas</th><th class="n">Margen</th></tr>'+TP.slice(0,10).map(x=>`<tr><td>${esc(x.n)}</td><td class="n">${nf(x.q)}</td><td class="n">${$m(x.v)}</td><td class="n">${x.sc||!x.v?'—':Math.round((x.v-x.c)/x.v*100)+' %'}</td></tr>`).join('')+'</table>'+(TP.length>10?`<small>Y ${TP.length-10} productos más (se copian todos).</small>`:''):'<p><small>No hay ventas en este período.</small></p>';
-    // familias
-    const famDeId=id=>{const p=S.productos.find(x=>x.producto_id==id);return(p?.familia||'').trim()||'Sin familia'};
-    const FA={};for(const[id,x]of Object.entries(pc)){const f=famDeId(id),k=FA[f]=FA[f]||{f,g:famGrupo(f)||'Otras',v:0,c:0,vc:0,sc:0};k.v+=x.v;if(x.sc)k.sc+=x.v;else{k.vc+=x.v;k.c+=x.c}}
-    TF=Object.values(FA).sort((x,y)=>famCmp(x.f,y.f));const GRS=[...new Set(TF.map(x=>x.g))];const mgMin=(S.margenMin??15)/100;
-    const fila=(n,x,b)=>{const m=x.vc>0?(x.vc-x.c)/x.vc:null;return `<tr${b?' style="font-weight:700;background:#f6f7f9"':''}><td>${b?'':'&nbsp;&nbsp;'}${esc(n)}</td><td class="n">${$m(x.v)}</td><td class="n">${vi?Math.round(x.v/vi*100):0} %</td><td class="n ${m!=null&&m<mgMin?'mora':''}">${m==null?'—':Math.round(m*100)+' %'}</td><td class="n">${m==null?'—':$m(x.vc-x.c)}</td></tr>`};
-    const sum=L=>L.reduce((a,x)=>({v:a.v+x.v,c:a.c+x.c,vc:a.vc+x.vc}),{v:0,c:0,vc:0});
-    const bajos=TF.filter(x=>x.vc>0&&(x.vc-x.c)/x.vc<mgMin);
-    $('#rp_fa').innerHTML=TF.length?(bajos.length?`<p class="aviso">⚠️ ${bajos.length==1?'Esta familia te deja':'Estas familias te dejan'} menos del ${Math.round(mgMin*100)} % de ganancia: <b>${bajos.map(x=>esc(x.f)).join(', ')}</b>. Revisá costos y márgenes.</p>`:'')+
-      '<div style="overflow-x:auto"><table><tr><th>Familia</th><th class="n">Ventas</th><th class="n">% del total</th><th class="n">Margen</th><th class="n">Ganancia</th></tr>'+
-      GRS.map(g=>{const X=TF.filter(x=>x.g==g);return fila(g,sum(X),true)+X.map(x=>fila(x.f,x,false)).join('')}).join('')+'</table></div>'+
-      (TF.some(x=>x.f=='Sin familia')?'<p><small>Para ver todo ordenado, usá <b>Precios → 🗂️ Ordenar por familias</b>.</small></p>':''):'<p><small>No hay ventas en este período.</small></p>';
-    grafico(a,b);vendedoresReporte()};
+        const x=pc[it.producto_id]=pc[it.producto_id]||{id:it.producto_id,q:0,v:0,c:0,sc:false};x.q+=q;x.v+=q*pu;if(cu>0)x.c+=q*cu;else x.sc=true;
+        const f=famDeId(it.producto_id),y=fa[f]=fa[f]||{f,g:famGrupo(f)||'Otras',v:0,c:0,vc:0};y.v+=q*pu;if(cu>0){y.vc+=q*pu;y.c+=q*cu}}}
+    const v=L.reduce((x,o)=>x+Number(o.total||0),0),conC=vi-sinC;
+    return{v,n:L.length,cc,pc,zc,dc,dn,fa,vi,sinC,mg:conC>0?(conC-ci)/conC:null,gan:conC-ci,tk:L.length?v/L.length:0}};
+  const flecha=(x,y,pp)=>{if(!(y>0)&&!pp)return '<span class="rp-d">sin datos para comparar</span>';const d=pp?(x-y)*100:(x-y)/y*100;if(!isFinite(d))return '';
+    const t=pp?nf(Math.abs(Math.round(d*10)/10))+' pts':Math.abs(Math.round(d))+' %';return `<span class="rp-d ${d>=0.5?'up':d<=-0.5?'dn':''}">${d>=0.5?'▲':d<=-0.5?'▼':'='} ${t}</span>`};
+  let A,B,ant,txtAnt;
+  const pintar=()=>{const[a,b]=rg(),[pa,pb]=previo(a,b);
+    A=calc(P.filter(o=>o._d>=a&&o._d<b));B=calc(P.filter(o=>o._d>=pa&&o._d<pb));ant=[pa,pb];
+    txtAnt=S.rp=='mes'?'vs. mismos días del mes pasado':S.rp=='mesant'?'vs. el mes anterior':S.rp=='anio'?'vs. el año pasado a esta fecha':'vs. período anterior';
+    $('#r1 .num').textContent=$m0(A.v);$('#r1 .det').innerHTML=flecha(A.v,B.v)+' <small>'+txtAnt+'</small>';
+    $('#r2 .num').textContent=String(A.n);$('#r2 .det').innerHTML=flecha(A.n,B.n)+' <small>'+Object.keys(A.cc).length+(Object.keys(A.cc).length==1?' cliente':' clientes')+'</small>';
+    $('#r3 .num').textContent=A.n?$m0(A.tk):'—';$('#r3 .det').innerHTML=A.n?flecha(A.tk,B.tk):'';
+    $('#r4 .num').textContent=A.mg==null?'—':(A.mg*100).toLocaleString('es-AR',{maximumFractionDigits:1})+' %';
+    $('#r4 .det').innerHTML=A.mg==null?'Faltan costos cargados':(B.mg!=null?flecha(A.mg,B.mg,true)+' ':'')+'<small>ganancia '+$m0(A.gan)+(A.sinC>0?' · hay productos sin costo':'')+'</small>';
+    meta(a,b);avisos();grafico(a,b);tabla()};
+  /* Meta del mes + proyección */
+  const meta=(a,b)=>{const box=$('#rp_meta');if(S.rp!='mes'){box.innerHTML='';return}
+    const m=+MG.monto||Object.values(MV).reduce((s,x)=>s+(+x||0),0);const d=new Date(),dM=new Date(d.getFullYear(),d.getMonth()+1,0).getDate(),dH=d.getDate();
+    let hab=0,habT=0;for(let i=1;i<=dM;i++){const w=new Date(d.getFullYear(),d.getMonth(),i).getDay();if(w){habT++;if(i>dH)hab++}}
+    const habP=habT-hab,proy=habP>0?A.v/habP*habT:A.v;
+    if(!m){box.innerHTML=dueno?`<div class="box rp-mt"><div><b>🎯 Poné una meta de ventas del mes</b><br><small>Te mostramos cuánto llevás, cuánto vas a cerrar a este ritmo y cuánto te falta vender por día.</small></div><button class="alt" id="rp_me">Poner meta</button></div>`:'';}
+    else{const pc=Math.min(1,A.v/m),falta=Math.max(0,m-A.v),ok=proy>=m;
+      box.innerHTML=`<div class="box rp-mt"><div style="flex:1;min-width:220px"><div class="rp-mt1"><b>🎯 Meta del mes: ${$m0(m)}</b>${dueno?'<a class="lnk" id="rp_me">Cambiar</a>':''}</div>
+        <div class="rp-bar"><i style="width:${(pc*100).toFixed(1)}%" class="${A.v>=m?'ok':''}"></i><span style="left:${Math.min(100,habP/habT*100)}%" title="Hoy"></span></div>
+        <div class="rp-mt2"><span>Llevás <b>${$m0(A.v)}</b> (${Math.round(A.v/m*100)} %)</span><span>A este ritmo cerrás en <b class="${ok?'ok':'er'}">${$m0(proy)}</b></span></div>
+        <small>${A.v>=m?'🎉 ¡Meta cumplida!':hab>0?`Te faltan ${$m0(falta)}: <b>${$m0(falta/hab)} por día</b> en los ${hab} días hábiles que quedan.`:'Último día del mes.'}</small></div></div>`}
+    $('#rp_me')&&($('#rp_me').onclick=async()=>{const v=prompt('Meta de ventas del mes (en pesos, con IVA):',m?String(Math.round(m)):'');if(v===null)return;const n=+String(v).replace(/[^\d]/g,'');
+      const{error}=await guardaCfgJ('meta_ventas',{monto:n});if(error)return toast(error.message,1);MG.monto=n;toast(n?'Meta guardada.':'Meta borrada.');meta(a,b)})};
+  /* Avisos automáticos: lo importante del período en 3 frases */
+  const avisos=()=>{const I=[];if(!A.n){$('#rp_in').innerHTML='';return}
+    const fs=Object.values(A.fa).filter(x=>x.v>0).map(x=>({...x,ant:B.fa[x.f]?.v||0})).filter(x=>x.ant>0);
+    const up=fs.filter(x=>x.v>x.ant*1.15&&x.v-x.ant>A.v*.02).sort((x,y)=>(y.v-y.ant)-(x.v-x.ant))[0];if(up)I.push(['📈',`<b>${esc(cap(up.f))}</b> creció ${Math.round((up.v/up.ant-1)*100)} % (${$m0(up.v-up.ant)} más)`]);
+    const dn=fs.filter(x=>x.v<x.ant*.8&&x.ant-x.v>A.v*.02).sort((x,y)=>(y.ant-y.v)-(x.ant-x.v))[0];if(dn)I.push(['📉',`<b>${esc(cap(dn.f))}</b> bajó ${Math.round((1-dn.v/dn.ant)*100)} %`]);
+    if(B.n&&A.tk<B.tk*.9)I.push(['⚠️',`Bajó el ticket promedio: <b>${$m0(A.tk)}</b> contra ${$m0(B.tk)}`]);else if(B.n&&A.tk>B.tk*1.1)I.push(['💪',`Subió el ticket promedio a <b>${$m0(A.tk)}</b> (+${Math.round((A.tk/B.tk-1)*100)} %)`]);
+    const baja=enBaja();if(baja.length)I.push(['🔔',`<a class="lnk" data-go="baja"><b>${baja.length} ${baja.length==1?'cliente compró':'clientes compraron'} bastante menos</b></a> que el período anterior`]);
+    const w=A.dc.indexOf(Math.max(...A.dc));if(A.n>=5&&A.dc[w]>0)I.push(['🏆',`Tu mejor día es el <b>${DIAS_L[w]}</b>: ${Math.round(A.dc[w]/A.v*100)} % de las ventas`]);
+    const top=Object.values(A.cc).sort((x,y)=>y.v-x.v)[0];if(top&&A.v&&top.v/A.v>.35)I.push(['🧲',`<b>${esc(top.n)}</b> es el ${Math.round(top.v/A.v*100)} % de tus ventas: mucha dependencia de un cliente`]);
+    if(!B.n&&A.n)I.push(['🆕','Todavía no hay ventas en el período anterior para comparar']);
+    $('#rp_in').innerHTML=I.slice(0,3).map(([e,t])=>`<div class="rp-av"><span>${e}</span><div>${t}</div></div>`).join('');
+    $$('#rp_in [data-go]').forEach(x=>x.onclick=()=>{S.rpTab=x.dataset.go;$$('[data-rt]').forEach(y=>y.classList.toggle('on',y.dataset.rt==S.rpTab));tabla();$('#rp_t').scrollIntoView({behavior:'smooth',block:'start'})})};
+  const DIAS_L=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  const enBaja=()=>Object.values(B.cc).map(x=>({...x,ah:A.cc[x.id]?.v||0})).filter(x=>x.v>0&&x.ah<x.v*.6).map(x=>({...x,pierde:x.v-x.ah})).sort((x,y)=>y.pierde-x.pierde);
+  /* Pestañas: filas compactas con barra */
+  let COPIA=null;
+  const fila=(i,n,sub,val,pc,extra='',at='')=>`<div class="rp-r"${at}><span class="rp-i">${i<3?['🥇','🥈','🥉'][i]:i+1}</span><div class="rp-c"><div class="rp-n"><b>${n}</b><span>${val}</span></div><div class="rp-b"><i style="width:${Math.max(1,Math.min(100,pc*100)).toFixed(1)}%"></i></div>${sub?`<small>${sub}</small>`:''}</div>${extra}</div>`;
+  const mas=(L,lim)=>L.length>lim?`<button class="alt rp-mas" id="rp_mas">${S.rpTodo?'Ver menos':'Ver todos ('+L.length+')'}</button>`:'';
+  const tabla=()=>{const box=$('#rp_x'),vb=$('#rp_v'),t=S.rpTab,lim=S.rpTodo?9999:10;vb.hidden=t!='vendedores';box.hidden=t=='vendedores';$('#rp_cp').hidden=false;COPIA=null;
+    const sinV='<p><small>No hay ventas en este período.</small></p>';
+    if(t=='clientes'){const L=Object.values(A.cc).sort((x,y)=>y.v-x.v);$('#rp_ts').textContent=L.length+' clientes compraron';
+      box.innerHTML=L.length?L.slice(0,lim).map((x,i)=>{const pv=B.cc[x.id]?.v||0;return fila(i,esc(x.n),`${x.p} ${x.p==1?'pedido':'pedidos'} · ${Math.round(x.v/A.v*100)} % del total ${pv?flecha(x.v,pv):'<span class="rp-d up">nuevo en el período</span>'}`,$m0(x.v),x.v/L[0].v,'',` data-cli="${esc(x.id)}" role="button" tabindex="0"`)}).join('')+mas(L,10):sinV;
+      COPIA=[['Cliente','Pedidos','Ventas','% del total','Período anterior'],L.map(x=>[x.n,x.p,xl(x.v),xl(x.v/A.v*100),xl(B.cc[x.id]?.v||0)])]}
+    else if(t=='productos'){const L=Object.values(A.pc).sort((x,y)=>y.v-x.v);$('#rp_ts').textContent=L.length+' productos vendidos';
+      box.innerHTML=L.length?L.slice(0,lim).map((x,i)=>{const pv=B.pc[x.id]?.v||0,mg=cost&&!x.sc&&x.v?` · margen ${Math.round((x.v-x.c)/x.v*100)} %`:'';return fila(i,esc(nombre(x.id)),`${nf(x.q)} unid.${mg} ${pv?flecha(x.v,pv):''}`,$m0(x.v),x.v/L[0].v)}).join('')+mas(L,10):sinV;
+      COPIA=[['Producto','Unidades','Ventas','Margen %'],L.map(x=>[nombre(x.id),x.q,xl(x.v),cost&&!x.sc&&x.v?xl((x.v-x.c)/x.v*100):''])]}
+    else if(t=='familias'){const L=Object.values(A.fa).sort((x,y)=>y.v-x.v),mgMin=(S.margenMin??15)/100,bajos=cost?L.filter(x=>x.vc>0&&(x.vc-x.c)/x.vc<mgMin):[];$('#rp_ts').textContent=L.length+' familias';
+      box.innerHTML=L.length?(bajos.length?`<p class="aviso">⚠️ ${bajos.length==1?'Esta familia te deja':'Estas familias te dejan'} menos del ${Math.round(mgMin*100)} % de ganancia: <b>${bajos.map(x=>esc(x.f)).join(', ')}</b>. Revisá costos y márgenes.</p>`:'')+
+        L.slice(0,lim).map((x,i)=>{const pv=B.fa[x.f]?.v||0,m=cost&&x.vc>0?(x.vc-x.c)/x.vc:null;return fila(i,esc(cap(x.f)),`${esc(x.g)} · ${Math.round(x.v/(A.vi||1)*100)} %${m!=null?` · margen <b class="${m<mgMin?'er':''}">${Math.round(m*100)} %</b> · ganancia ${$m0(x.vc-x.c)}`:''} ${pv?flecha(x.v,pv):''}`,$m0(x.v),x.v/L[0].v)}).join('')+mas(L,10)
+        +(L.some(x=>x.f=='Sin familia')?'<p><small>Para ver todo ordenado, usá <b>Precios → 🗂️ Ordenar por familias</b>.</small></p>':''):sinV;
+      COPIA=[['Sección','Familia','Ventas','Margen %','Ganancia'],L.map(x=>[x.g,x.f,xl(x.v),cost&&x.vc>0?xl((x.vc-x.c)/x.vc*100):'',cost&&x.vc>0?xl(x.vc-x.c):''])]}
+    else if(t=='zonas'){const L=Object.values(A.zc).sort((x,y)=>y.v-x.v);$('#rp_ts').textContent=L.length+(L.length==1?' zona':' zonas');
+      box.innerHTML=L.length?L.slice(0,lim).map((x,i)=>{const pv=B.zc[x.n]?.v||0;return fila(i,esc(x.n),`${x.cl.size} ${x.cl.size==1?'cliente':'clientes'} · ${x.p} pedidos · ticket ${$m0(x.v/x.p)} ${pv?flecha(x.v,pv):''}`,$m0(x.v),x.v/L[0].v)}).join('')+mas(L,10)+(L.some(x=>x.n=='Sin zona')?'<p><small>"Sin zona" son clientes sin ciudad o zona cargada.</small></p>':''):sinV;
+      COPIA=[['Zona','Clientes','Pedidos','Ventas'],L.map(x=>[x.n,x.cl.size,x.p,xl(x.v)])]}
+    else if(t=='dias'){const O=[1,2,3,4,5,6,0],mx=Math.max(1,...A.dc);$('#rp_ts').textContent='En qué días de la semana vendés más';
+      box.innerHTML=A.n?O.filter(w=>A.dn[w]||w).map(w=>`<div class="rp-r"><span class="rp-i rp-dw">${DIAS_L[w].slice(0,3)}</span><div class="rp-c"><div class="rp-n"><b>${cap(DIAS_L[w])}</b><span>${$m0(A.dc[w])}</span></div><div class="rp-b"><i style="width:${(A.dc[w]/mx*100).toFixed(1)}%" class="${A.dc[w]==mx?'top':''}"></i></div><small>${A.dn[w]} ${A.dn[w]==1?'pedido':'pedidos'}${A.dn[w]?' · ticket '+$m0(A.dc[w]/A.dn[w]):''} · ${A.v?Math.round(A.dc[w]/A.v*100):0} %</small></div></div>`).join(''):sinV;
+      COPIA=[['Día','Pedidos','Ventas'],O.map(w=>[DIAS_L[w],A.dn[w],xl(A.dc[w])])]}
+    else if(t=='baja'){const L=enBaja();$('#rp_ts').textContent='Compraron menos del 60 % que en el período anterior';
+      box.innerHTML=L.length?L.slice(0,lim).map((x,i)=>{const c=cliDe(x.id),tel=c&&telWA(c.telefono),msg=`¡Hola${c?.contacto?' '+String(c.contacto).split(' ')[0]:''}! ¿Cómo andás? Te escribo de Sabores de mi País. Hace un tiempo que no nos pedís como antes, ¿necesitás algo? Tenemos novedades y ofertas para tu negocio.`;
+        return fila(i,esc(x.n),`Antes ${$m0(x.v)} → ahora ${$m0(x.ah)} <span class="rp-d dn">▼ ${Math.round((1-x.ah/x.v)*100)} %</span>`,'−'+$m0(x.pierde),x.pierde/L[0].pierde,tel?`<a class="rp-wa" href="https://wa.me/${tel}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener" title="Escribirle por WhatsApp" onclick="event.stopPropagation()">${IC('chat',18)}</a>`:'',` data-cli="${esc(x.id)}" role="button" tabindex="0"`)}).join('')+mas(L,10):'<p class="rp-ok">✅ Ningún cliente bajó fuerte sus compras. ¡Bien!</p>';
+      COPIA=[['Cliente','Período anterior','Este período','Diferencia'],L.map(x=>[x.n,xl(x.v),xl(x.ah),xl(x.pierde)])]}
+    else if(t=='vendedores'){$('#rp_ts').textContent='';$('#rp_cp').hidden=true;vendedoresReporte()}
+    $$('#rp_x [data-cli]').forEach(r=>r.onclick=()=>{const c=cliDe(r.dataset.cli);if(c){S.tab='clientes';fichaCliente(c)}else toast('No encontramos la ficha de ese cliente.',1)});
+    $('#rp_mas')&&($('#rp_mas').onclick=()=>{S.rpTodo=!S.rpTodo;tabla()})};
+  $('#rp_cp').onclick=()=>COPIA&&copiarTabla(...COPIA);
+  /* Gráfico: 12 meses, con el mismo mes del año anterior como línea */
   const grafico=(a,b)=>{const h=new Date(),M=[];
-    for(let i=11;i>=0;i--){const d=new Date(h.getFullYear(),h.getMonth()-i,1),k=diaLocal(d).slice(0,7);M.push({k,l:MESES[d.getMonth()]+(d.getMonth()==0||i==11?' '+String(d.getFullYear()).slice(2):''),v:0})}
-    for(const o of P){const m=M.find(x=>x.k==o._d.slice(0,7));if(m)m.v+=Number(o.total||0)}
-    const max=Math.max(...M.map(x=>x.v)),W=Math.max(340,Math.min(720,$('#rp_g').clientWidth||720)),H=W<500?200:230,pl=W<500?60:64,pb=28,pt=12,cw=(W-pl-8)/12,bw=Math.min(36,cw*0.6);
+    for(let i=11;i>=0;i--){const d=new Date(h.getFullYear(),h.getMonth()-i,1),k=diaLocal(d).slice(0,7),k0=diaLocal(new Date(d.getFullYear()-1,d.getMonth(),1)).slice(0,7);M.push({k,k0,l:MESES[d.getMonth()]+(d.getMonth()==0||i==11?' '+String(d.getFullYear()).slice(2):''),v:0,v0:0})}
+    for(const o of P){const mk=o._d.slice(0,7);for(const m of M){if(m.k==mk)m.v+=Number(o.total||0);if(m.k0==mk)m.v0+=Number(o.total||0)}}
+    const hay0=M.some(m=>m.v0>0);$('.rp-ley').hidden=!hay0;
+    const max=Math.max(...M.map(x=>Math.max(x.v,x.v0))),W=Math.max(320,Math.min(860,$('#rp_g').clientWidth||720)),H=W<500?200:240,pl=W<500?54:64,pb=28,pt=14,cw=(W-pl-8)/12,bw=Math.min(36,cw*0.6);
     if(cw<40)M.forEach(m=>m.l=m.l.split(' ')[0]);
     const paso=(()=>{if(!max)return 1;const r=max/4,p=Math.pow(10,Math.floor(Math.log10(r)));return [1,2,2.5,5,10].map(x=>x*p).find(x=>x>=r)})();
     const top=max?Math.ceil(max/paso)*paso:4,y=v=>pt+(H-pt-pb)*(1-v/top);
@@ -166,17 +232,16 @@ async function vReportes(){
     const enP=k=>k+'-01'>=a.slice(0,7)+'-01'&&k+'-01'<b;
     const bars=M.map((m,i)=>{const cx=pl+cw*i+cw/2,yy=y(m.v),hh=Math.max(0,H-pb-yy),r=Math.min(4,hh/2);
       const path=hh>0?`M${cx-bw/2},${H-pb}V${yy+r}Q${cx-bw/2},${yy} ${cx-bw/2+r},${yy}H${cx+bw/2-r}Q${cx+bw/2},${yy} ${cx+bw/2},${yy+r}V${H-pb}Z`:'';
-      return `<g class="bar${enP(m.k)?' on':''}" data-i="${i}"><rect x="${pl+cw*i}" y="${pt}" width="${cw}" height="${H-pt-pb}" class="hit"/>${path?`<path d="${path}"/>`:''}<text x="${cx}" y="${H-8}" class="ax" text-anchor="middle">${m.l}</text></g>`}).join('');
-    $('#rp_g').innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Ventas por mes de los últimos 12 meses">${g}<line x1="${pl}" x2="${W-8}" y1="${H-pb}" y2="${H-pb}" class="base"/>${bars}</svg><div class="tip" hidden></div>
-      <details><summary><small>Ver como tabla</small></summary><table>${M.map(m=>`<tr><td>${m.l}</td><td class="n">${$m(m.v)}</td></tr>`).join('')}</table></details>`;
+      return `<g class="bar${enP(m.k)?' on':''}" data-i="${i}"><rect x="${pl+cw*i}" y="${pt}" width="${cw}" height="${H-pt-pb}" class="hit"/>${path?`<path d="${path}"/>`:''}<text x="${cx}" y="${H-8}" class="ax${enP(m.k)?' axon':''}" text-anchor="middle">${m.l}</text></g>`}).join('');
+    const pts=M.map((m,i)=>[pl+cw*i+cw/2,y(m.v0)]),linea=hay0?`<polyline class="rp-l0" points="${pts.map(p=>p.join(',')).join(' ')}"/>${pts.map(p=>`<circle class="rp-p0" cx="${p[0]}" cy="${p[1]}" r="3"/>`).join('')}`:'';
+    $('#rp_g').innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Ventas por mes de los últimos 12 meses">${g}<line x1="${pl}" x2="${W-8}" y1="${H-pb}" y2="${H-pb}" class="base"/>${bars}${linea}</svg><div class="tip" hidden></div>
+      <details><summary><small>Ver como tabla</small></summary><table><tr><th>Mes</th><th class="n">Ventas</th><th class="n">Año anterior</th><th class="n">Cambio</th></tr>${M.map(m=>`<tr><td>${m.l}</td><td class="n">${$m(m.v)}</td><td class="n">${$m(m.v0)}</td><td class="n">${m.v0?Math.round((m.v/m.v0-1)*100)+' %':'—'}</td></tr>`).join('')}</table></details>`;
     const tip=$('#rp_g .tip');
-    $$('#rp_g .bar').forEach(el=>{el.onmouseenter=el.onclick=()=>{const m=M[el.dataset.i];tip.hidden=false;tip.innerHTML=`<b>${m.l}</b><br>${$m(m.v)}`;
-      const r=el.getBoundingClientRect(),pr=$('#rp_g').getBoundingClientRect();tip.style.left=(r.left-pr.left+r.width/2)+'px';tip.style.top=Math.max(0,(el.querySelector('path')?.getBoundingClientRect().top||r.top)-pr.top-46)+'px'};
+    $$('#rp_g .bar').forEach(el=>{el.onmouseenter=el.onclick=()=>{const m=M[el.dataset.i],i=+el.dataset.i,pm=i?M[i-1].v:0;tip.hidden=false;
+        tip.innerHTML=`<b>${m.l}</b><br>${$m0(m.v)}${pm?`<br><small>${flecha(m.v,pm)} vs. mes anterior</small>`:''}${m.v0?`<br><small>${flecha(m.v,m.v0)} vs. año anterior (${$m0(m.v0)})</small>`:''}`;
+      const r=el.getBoundingClientRect(),pr=$('#rp_g').getBoundingClientRect();tip.style.left=Math.min(pr.width-90,Math.max(90,r.left-pr.left+r.width/2))+'px';tip.style.top=Math.max(0,(el.querySelector('path')?.getBoundingClientRect().top||r.top)-pr.top-70)+'px'};
       el.onmouseleave=()=>tip.hidden=true})};
-  $('#cp_c').onclick=()=>copiarTabla(['Cliente','Pedidos','Ventas','% del total'],TC.map(x=>{const t=TC.reduce((a,y)=>a+y.v,0);return[x.n,x.p,x.v.toFixed(2).replace('.',','),(t?x.v/t*100:0).toFixed(1).replace('.',',')]}));
-  $('#v').insertAdjacentHTML('beforeend','<div class="box" id="rp_v"></div><div class="box" id="rp_h"></div>');historialBox();
-  $('#cp_f').onclick=()=>copiarTabla(['Sección','Familia','Ventas','Margen %','Ganancia'],TF.map(x=>[x.g,x.f,x.v.toFixed(2).replace('.',','),x.vc>0?((x.vc-x.c)/x.vc*100).toFixed(1).replace('.',','):'',x.vc>0?(x.vc-x.c).toFixed(2).replace('.',','):'']));
-  $('#cp_p').onclick=()=>copiarTabla(['Producto','Unidades','Ventas','Margen %'],TP.map(x=>[x.n,x.q,x.v.toFixed(2).replace('.',','),x.sc||!x.v?'':((x.v-x.c)/x.v*100).toFixed(1).replace('.',',')]));
+  if(S.rp=='fechas'&&!(S.rpA&&S.rpB)){S.rpA=$('#rp_a').value;S.rpB=$('#rp_b').value}
   pintar();
 }
 /* Pantalla de la PC del depósito: imprime sola lo que llega a la cola */
@@ -363,7 +428,7 @@ async function vRecorridos(){const box=$('#cs');if(!box)return;S.rcD=S.rcD||diaL
   map.fitBounds(L.latLngBounds(MP.map(m=>m.g)).pad(.2),{maxZoom:16})}
 /* ======================= VENDEDORES Y COMISIONES (Reportes) ======================= */
 async function vendedoresReporte(){const box=$('#rp_v');if(!box)return;
-  const[a,b]=rango(S.rp||'mes');
+  const[a,b]=S.rp=='fechas'&&S.rpA&&S.rpB?[S.rpA,diaLocal(new Date(new Date(S.rpB+'T12:00').getTime()+864e5))]:rango(S.rp||'mes');
   const[ve,pe]=await Promise.all([sb.rpc('vendedores'),todo(()=>sb.from('pedidos').select('id,vendedor_id,total,estado,creado_en,origen').not('estado','in','(pendiente,cancelado)').gte('creado_en',tsAR(a)).lt('creado_en',tsAR(b)).order('numero'))]);
   let V=ve.data;if(ve.error){const r=await sb.from('perfiles').select('id,nombre,rol');V=(r.data||[]).map(x=>({...x,comision_pct:0}))}
   const g={};for(const o of pe.data||[]){const k=o.vendedor_id||'—';const r=g[k]=g[k]||{n:0,v:0,on:0};r.n++;r.v+=Number(o.total||0);if(o.origen=='online'||o.origen=='fijo')r.on++}
