@@ -263,6 +263,15 @@ Con la factura electrónica activada, **Facturar** y **Aprobar y facturar** pide
 
 ## 9. Cobranza, Caja y Mercado Pago
 
+**Caja:**
+- Arriba elegís el día con las flechas o tocando la fecha.
+- Un cartel te dice el **estado de la caja**: *abierta* (con cuánto empezaste y cuánto debería haber), *cerrada* (lo que contaste y si sobró o faltó) o *sin cerrar* en días pasados.
+- **Cerrar caja** abre un paso a paso: con cuánto empezaste, cuánto contás (con *Contar billetes*) y la comparación **debería haber · contaste · diferencia** en verde o rojo antes de confirmar.
+- Lo cobrado se ve **por medio de pago** (efectivo, transferencia, Mercado Pago, cheques); solo el efectivo tiene que estar en el cajón.
+- Los **movimientos del día** van en orden de hora: verde lo que entra, rojo lo que sale, con el saldo acumulado.
+- **Esta semana**: barritas de lo que entró y salió cada día (tocás un día y vas a ese día).
+- Abajo, un renglón con la **ganancia del mes** que te lleva al detalle en Contable.
+
 **Cobranza:**
 
 1. **Registrar un cobro** (arriba de todo): buscás el cliente, ves sus facturas pendientes, cargás cómo pagó y se genera el **recibo**.

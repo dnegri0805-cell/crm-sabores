@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-31.19';
+const VERSION='2026-10-31.20';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -1222,19 +1222,38 @@ function abrirListaPrecios(c){
 const CAT_GASTO=['Combustible','Sueldos','Alquiler','Servicios (luz, gas, internet)','Impuestos','Mantenimiento vehículo','Comisiones','Bancarios','Otros'];
 const MEDIOS=['efectivo','transferencia','cheque','tarjeta','debito_automatico','otro'];
 const MED_TXT={efectivo:'Efectivo',transferencia:'Transferencia',cheque:'Cheque',echeq:'eCheq',tarjeta:'Tarjeta',debito_automatico:'Débito automático',otro:'Otro'};
+/* Cierre de caja paso a paso: contás, el CRM compara y confirmás */
+function cerrarCajaModal(d,inicial,esperado,prev){const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  const mov=esperado-inicial;
+  m.innerHTML=`<div class="mc cj-cm"><div class="bh"><h3>Cerrar la caja · ${fd(d)}</h3><button class="alt" id="cc_x">Cancelar</button></div>
+    <ol class="cj-pas"><li><b>Con cuánto efectivo empezaste</b><input id="cc_i" type="number" step="0.01" min="0" inputmode="decimal" value="${inicial?+(+inicial).toFixed(2):''}" placeholder="0"></li>
+    <li><b>Cuánto efectivo contás ahora</b> <a class="lnk" onclick="contarBilletes()">${IC('cash',15)} Contar billetes</a><input id="cc_c" type="number" step="0.01" min="0" inputmode="decimal" value="${prev?+prev.efectivo_contado:''}" placeholder="Ej.: 85300" autofocus></li>
+    <li><b>Comparación</b><div class="cj-cmp"><div><small>Debería haber</small><b id="cc_e">—</b></div><div><small>Contaste</small><b id="cc_k">—</b></div><div id="cc_dd"><small>Diferencia</small><b id="cc_d">—</b></div></div></li></ol>
+    <label class="f">Nota (opcional)<input id="cc_n" value="${esc(prev?.nota||'')}" placeholder="Ej.: faltó el vuelto de un cliente"></label>
+    <button id="cc_g">Confirmar cierre</button></div>`;
+  const q=x=>m.querySelector(x),esp=()=>mov+(+q('#cc_i').value||0);
+  const pinta=()=>{q('#cc_e').textContent=$m0(esp());const c=q('#cc_c').value;q('#cc_k').textContent=c===''?'—':$m0(+c);
+    if(c===''){q('#cc_d').textContent='—';q('#cc_dd').className='';return}const x=+c-esp();q('#cc_d').textContent=Math.abs(x)<0.5?'Justo':(x>0?'Sobran ':'Faltan ')+$m0(Math.abs(x));q('#cc_dd').className=Math.abs(x)<0.5?'ok':'mal'};
+  q('#cc_c').oninput=pinta;q('#cc_i').oninput=pinta;pinta();q('#cc_x').onclick=()=>m.remove();setTimeout(()=>q('#cc_c').focus(),80);
+  q('#cc_g').onclick=async()=>{const c=q('#cc_c').value;if(c===''||+c<0)return toast('Escribí el efectivo que contaste.',1);q('#cc_g').disabled=true;
+    const{error}=await sb.from('cierres_caja').upsert({fecha:d,efectivo_inicial:+q('#cc_i').value||0,efectivo_esperado:+esp().toFixed(2),efectivo_contado:+c,nota:q('#cc_n').value.trim()||null});
+    if(error){q('#cc_g').disabled=false;return toast(error.message,1)}const x=+c-esp();m.remove();
+    if(Math.abs(x)<0.5)festejo(null,'Caja cerrada justa. ¡Impecable!');else toast('Caja cerrada · '+(x>0?'sobran ':'faltan ')+$m0(Math.abs(x))+'.');vCaja()}}
 async function vCaja(){
   S.cjD=S.cjD||diaLocal(new Date());
   const d=S.cjD,dd=new Date(d+'T12:00'),mi=d.slice(0,7)+'-01',mf=diaLocal(new Date(dd.getFullYear(),dd.getMonth()+1,1));
   const titulo=dd.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
-  $('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Caja <small style="font-size:15px;font-weight:500;color:#6a7184">${titulo}</small></h2><div class="fc-acc cj-nav"><button class="alt" id="cj_a" aria-label="Día anterior">←</button><input type="date" id="cj_d" value="${d}" style="width:auto;margin:0"><button class="alt" id="cj_s" aria-label="Día siguiente">→</button><button class="alt" id="cj_h">Hoy</button><button class="alt" onclick="cierreDia(S.cjD)">🧾 Cierre del día</button></div></div>
+  const hoyC=diaLocal(new Date()),corto=dd.toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'numeric'}).replace(',','');
+  $('#v').innerHTML=`<h2 class="cj-h">Caja</h2><div class="cj-nav2"><button class="alt" id="cj_a" aria-label="Día anterior">${IC('back',18)}</button><label class="cj-fe">${IC('calendar',16)}<span>${d==hoyC?'Hoy · ':''}${esc(corto)}</span><input type="date" id="cj_d" value="${d}" aria-label="Elegir día"></label><button class="alt cj-sig" id="cj_s" aria-label="Día siguiente" ${d>=hoyC?'disabled':''}>${IC('back',18)}</button>${d!=hoyC?'<button class="alt" id="cj_h">Hoy</button>':''}</div>
   <div id="cj"><span class="skl" role="status" aria-label="Cargando"></span></div>`;
   const ir=x=>{S.cjD=x;vCaja()},mov=n=>{const t=new Date(d+'T12:00');t.setDate(t.getDate()+n);ir(diaLocal(t))};
-  $('#cj_a').onclick=()=>mov(-1);$('#cj_s').onclick=()=>mov(1);$('#cj_h').onclick=()=>ir(diaLocal(new Date()));$('#cj_d').onchange=e=>e.target.value&&ir(e.target.value);
-  const ini=new Date(mi+'T00:00').toISOString(),fin=new Date(mf+'T00:00').toISOString();
+  $('#cj_a').onclick=()=>mov(-1);$('#cj_s').onclick=()=>mov(1);$('#cj_h')&&($('#cj_h').onclick=()=>ir(diaLocal(new Date())));$('#cj_d').onchange=e=>e.target.value&&ir(e.target.value);
+  const d7=(()=>{const t=new Date(d+'T12:00');t.setDate(t.getDate()-6);return diaLocal(t)})(),desde=d7<mi?d7:mi;
+  const ini=new Date(desde+'T00:00').toISOString(),fin=new Date(mf+'T00:00').toISOString();
   const[re,pp,ga,ci,ul,pe,co]=await Promise.all([
     todo(()=>sb.from('recibos').select('*').eq('anulado',false).gte('fecha',ini).lt('fecha',fin).order('fecha')),
-    todo(()=>sb.from('pagos_proveedor').select('*,proveedores(razon_social)').gte('fecha',mi).lt('fecha',mf).order('fecha')),
-    todo(()=>sb.from('gastos').select('*').gte('fecha',mi).lt('fecha',mf).order('fecha')),
+    todo(()=>sb.from('pagos_proveedor').select('*,proveedores(razon_social)').gte('fecha',desde).lt('fecha',mf).order('fecha')),
+    todo(()=>sb.from('gastos').select('*').gte('fecha',desde).lt('fecha',mf).order('fecha')),
     sb.from('cierres_caja').select('*').eq('fecha',d).maybeSingle(),
     sb.from('cierres_caja').select('fecha,efectivo_contado').lt('fecha',d).order('fecha',{ascending:false}).limit(1),
     todo(()=>sb.from('pedidos').select('*,pedido_items(producto_id,cantidad)').not('estado','in','(pendiente,cancelado)').order('numero',{ascending:false})),
@@ -1255,36 +1274,43 @@ async function vCaja(){
   const ventas=(pe.data||[]).filter(o=>{const f=fechaDe(o);return f&&diaLocal(f)>=mi&&diaLocal(f)<mf});
   const costo={};for(const r of co.data||[])costo[r.id]=Number(r.costo)||0;
   const vMes=sum(ventas,'total');let cmv=0,sinC=false;for(const o of ventas)for(const i of o.pedido_items||[]){const c=costo[i.producto_id];if(c>0)cmv+=c*Number(i.cantidad||0);else sinC=true}
-  const gMes=sum(ga.data||[]),netoMes=vMes-cmv-gMes;
-  const gCat={};for(const x of ga.data||[])gCat[x.categoria]=(gCat[x.categoria]||0)+Number(x.importe);
+  const GM=(ga.data||[]).filter(x=>x.fecha>=mi),gMes=sum(GM),netoMes=vMes-cmv-gMes;
+  const gCat={};for(const x of GM)gCat[x.categoria]=(gCat[x.categoria]||0)+Number(x.importe);
   const gC=Object.entries(gCat).sort((a,b)=>b[1]-a[1]),gMax=Math.max(1,...gC.map(x=>x[1]));
   const nomMes=dd.toLocaleDateString('es-AR',{month:'long',year:'numeric'});
-  $('#cj').innerHTML=`<div class="kp kp2 cj-kp">
-    <div class="box ok"><span class="lab">Cobrado</span><span class="num">${$m0(sum(R))}</span><span class="det">${Object.entries(cob).map(([k,v])=>(MED_TXT[k]||k)+' '+$m(v)).join(' · ')||'Sin cobros'}</span></div>
+  /* Estado de la caja (como Square): abierta, cerrada o sin cerrar */
+  const cerr=ci.data,difC=cerr?+cerr.diferencia:0;
+  const estado=cerr?`<div class="cj-est cerr ${Math.abs(difC)<0.5?'ok':'mal'}"><span class="cj-ei">${IC('lock',18)}</span><div><b>Caja cerrada</b><small>Contaste ${$m0(cerr.efectivo_contado)} · ${Math.abs(difC)<0.5?'cerró justa':(difC>0?'sobraron ':'faltaron ')+$m0(Math.abs(difC))}</small></div><button class="alt" id="cj_re">Volver a cerrar</button></div>`
+    :d==hoyC?`<div class="cj-est ab"><span class="cj-ei">${IC('check',18)}</span><div><b>Caja abierta</b><small>Empezaste con ${$m0(inicial)} en efectivo · debería haber ${$m0(esperado)}</small></div><button id="cj_ce">Cerrar caja</button></div>`
+    :`<div class="cj-est sin"><span class="cj-ei">${IC('alert',18)}</span><div><b>Este día no se cerró la caja</b><small>Debería haber quedado ${$m0(esperado)} en efectivo</small></div><button class="alt" id="cj_ce">Cerrarla ahora</button></div>`;
+  /* Movimientos como línea de tiempo con saldo acumulado */
+  let sal=0;const hora=h=>{const t=new Date(h);return isNaN(t)||String(h).length<=10?'':t.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit',hour12:false})};
+  const TL=M.map(x=>{sal+=x.v;return{...x,sal}});
+  const lineas=TL.length?`<div class="cj-tl">${TL.map(x=>`<div class="cj-mv ${x.v>0?'in':'out'}"><span class="cj-mh">${hora(x.h)}</span><span class="cj-mi">${IC(x.t=='Cobro'?'cash':x.t=='Pago'?'truck':'receipt',16)}</span><div class="cj-md"><b>${esc(x.d)}</b><small>${x.t} · ${MED_TXT[x.m]||esc(x.m||'')}${x.id?` · <a class="lnk" data-gb="${x.id}">Borrar</a>`:''}</small></div><div class="cj-mm"><b>${x.v>0?'+':'−'} ${$m0(Math.abs(x.v))}</b><small>Saldo ${$m0(x.sal)}</small></div></div>`).join('')}</div>`:vacioHTML('No hay movimientos este día.','cash',null,1);
+  /* Semana: lo que entró y salió cada día */
+  const S7=[];for(let k=6;k>=0;k--){const t=new Date(d+'T12:00');t.setDate(t.getDate()-k);const ds=diaLocal(t);
+    const ent=sum((re.data||[]).filter(x=>diaLocal(x.fecha)===ds&&!/^Nota de crédito/.test(x.observacion||''))),sal2=sum((pp.data||[]).filter(x=>x.fecha===ds))+sum((ga.data||[]).filter(x=>x.fecha===ds));
+    S7.push({ds,t,ent,sal:sal2})}const mx7=Math.max(1,...S7.map(x=>Math.max(x.ent,x.sal)));
+  const semana=`<div class="box"><h3>Esta semana</h3><div class="cj-sem">${S7.map(x=>`<button class="cj-sd ${x.ds==d?'on':''}" data-cjd="${x.ds}" title="${fd(x.ds)}: entró ${$m0(x.ent)}, salió ${$m0(x.sal)}"><div class="cj-sb"><i class="e${x.ent?'':' cero'}" style="height:${(x.ent/mx7*100).toFixed(1)}%"></i><i class="s${x.sal?'':' cero'}" style="height:${(x.sal/mx7*100).toFixed(1)}%"></i></div><small>${x.t.toLocaleDateString('es-AR',{weekday:'short'}).replace('.','').slice(0,3)}</small></button>`).join('')}</div>
+    <div class="ct-ley"><span><i class="r"></i>Entró ${$m0(S7.reduce((a,x)=>a+x.ent,0))}</span><span><i class="s7"></i>Salió ${$m0(S7.reduce((a,x)=>a+x.sal,0))}</span></div></div>`;
+  const MEDS=Object.entries(cob).sort((a,b)=>b[1]-a[1]);
+  $('#cj').innerHTML=`${estado}<div class="kp kp2 cj-kp">
+    <div class="box ok"><span class="lab">Cobrado</span><span class="num">${$m0(sum(R))}</span><span class="det">${R.length?R.length+(R.length==1?' cobro':' cobros'):'Sin cobros'}</span></div>
     <div class="box"><span class="lab">Pagado a proveedores</span><span class="num">${$m0(sum(P))}</span><span class="det">${P.length} ${P.length==1?'pago':'pagos'}</span></div>
     <div class="box"><span class="lab">Gastos</span><span class="num">${$m0(sum(G))}</span><span class="det">${G.length} ${G.length==1?'gasto':'gastos'}</span></div>
-    <div class="box"><span class="lab">Efectivo en caja</span><span class="num">${$m0(esperado)}</span><span class="det">Debería haber (inicial ${$m(inicial)})</span></div></div>
+    <div class="box"><span class="lab">Efectivo en caja</span><span class="num">${$m0(esperado)}</span><span class="det">Empezaste con ${$m0(inicial)}</span></div></div>
+  ${MEDS.length?`<div class="cj-med">${MEDS.map(([k,v])=>`<span class="${k=='efectivo'?'ef':''}"><small>${esc(MED_TXT[k]||k)}</small><b>${$m0(v)}</b></span>`).join('')}</div>`:''}
   <div class="dos fc2">
-    <div class="box"><h3>Movimientos del día</h3>${M.length?`<table>${M.map(x=>`<tr><td><span class="badge ${x.v>0?'b-entregado':'b-mora30'}">${x.t}</span></td><td>${esc(x.d)}<br><small>${MED_TXT[x.m]||esc(x.m)}</small></td><td class="n ${x.v<0?'mora':''}">${x.v<0?'−':''}${$m(Math.abs(x.v))}</td><td>${x.id?`<a class="lnk" data-gb="${x.id}">Borrar</a>`:''}</td></tr>`).join('')}</table>`:vacioHTML('No hay movimientos este día.','cash',null,1)}</div>
-    <details class="box nform" id="cj_gas"><summary>${IC('plus',18)} Cargar gasto</summary><div class="g">
+    <div class="box"><div class="bh"><h3>Movimientos del día</h3><button class="alt" onclick="cierreDia(S.cjD)">${IC('receipt',16)} Informe del día</button></div>${lineas}</div>
+    <div>${semana}<details class="box nform" id="cj_gas"><summary>${IC('plus',18)} Cargar gasto</summary><div class="g">
       <label class="f">Categoría<select id="g_c">${CAT_GASTO.map(c=>`<option>${c}</option>`).join('')}</select></label>
       <label class="f">Importe<input id="g_i" type="number" step="0.01" min="0" inputmode="decimal"></label>
       <label class="f">Medio de pago<select id="g_m">${MEDIOS.map(m=>`<option value="${m}">${MED_TXT[m]}</option>`).join('')}</select></label>
       <label class="f">Detalle (opcional)<input id="g_d" placeholder="Ej.: nafta camioneta"></label></div><div id="g_x"></div>
-      <button id="g_g">Guardar gasto</button></details>
-    <div class="box"><h3>Cierre de caja</h3>${ci.data?`<p>Cerrada: debería haber <b>${$m(ci.data.efectivo_esperado)}</b>, se contaron <b>${$m(ci.data.efectivo_contado)}</b>.</p>
-      <p class="${Math.abs(ci.data.diferencia)<0.005?'':'mora'}"><b>${Math.abs(ci.data.diferencia)<0.005?'La caja cerró justa.':(ci.data.diferencia>0?'Sobran ':'Faltan ')+$m(Math.abs(ci.data.diferencia))}</b></p>${ci.data.nota?'<p><small>'+esc(ci.data.nota)+'</small></p>':''}<button class="alt" id="cc_re">Volver a cerrar</button>`:''}
-      <div id="cc_f" ${ci.data?'hidden':''}><p><small>Contá el efectivo al final del día y escribilo. El CRM lo compara con lo que debería haber.</small></p><div class="g">
-      <label class="f">Efectivo al empezar el día<input id="cc_i" type="number" step="0.01" min="0" value="${inicial?+inicial.toFixed(2):''}" placeholder="0" inputmode="decimal"></label>
-      <label class="f">Efectivo contado <a class="lnk" onclick="contarBilletes()">💵 Contar billetes</a><input id="cc_c" type="number" step="0.01" min="0" inputmode="decimal"></label>
-      <label class="f">Nota (opcional)<input id="cc_n"></label></div><p id="cc_dif"></p><button id="cc_g">Cerrar caja</button></div></div>
-    <div class="box"><h3>Ganancia de ${nomMes}</h3><table>
-      <tr><td>Ventas</td><td class="n">${$m(vMes)}</td></tr>
-      <tr><td>Costo de la mercadería vendida${sinC?' <small>(hay productos sin costo)</small>':''}</td><td class="n">− ${$m(cmv)}</td></tr>
-      <tr><td>Gastos del negocio</td><td class="n">− ${$m(gMes)}</td></tr>
-      <tr class="tot"><td><b>Ganancia neta</b>${sinC&&cmv>0?' <small>(aprox.)</small>':''}</td><td class="n ${netoMes<0?'mora':''}"><b>${sinC&&!cmv&&vMes>0?'—':netoMes<0?'− '+$m(-netoMes):$m(netoMes)}</b></td></tr></table>${sinC&&vMes>0?`<p><small>${cmv?'Algunos productos vendidos no tienen costo cargado.':'Los productos vendidos no tienen costo cargado, así que no se puede calcular la ganancia acá.'} El resultado con el costo de cada venta está en <a class="lnk" onclick="S.tab='contable';shell();scrollTo(0,0)">Contable</a>.</small></p>`:''}
-      ${gC.length?`<h3 style="margin-top:14px">Gastos por categoría</h3>${gC.map(([k,v])=>`<div class="gbar"><span>${esc(k)}</span><b>${$m(v)}</b><i style="width:${(v/gMax*100).toFixed(1)}%"></i></div>`).join('')}`:''}
-      <p><small>Ventas = pedidos aprobados en adelante. El costo usa el costo actual de cada producto.</small></p></div></div>`;
+      <button id="g_g">Guardar gasto</button></details></div></div>
+  <a class="cj-gan" onclick="S.tab='contable';S.ct='resultados';S.ctMes='${d.slice(0,7)}';shell();scrollTo(0,0)">${IC('chart',16)} <span>Ganancia de ${esc(nomMes.split(' ')[0])}: <b class="${netoMes<0?'mora':''}">${sinC&&!cmv&&vMes>0?'falta cargar costos':(netoMes<0?'− ':'')+$m0(Math.abs(netoMes))}</b></span><small>Ver detalle en Contable ›</small></a>`;
+  $$('#cj [data-cjd]').forEach(b=>b.onclick=()=>ir(b.dataset.cjd));
+  $('#cj_ce')&&($('#cj_ce').onclick=()=>cerrarCajaModal(d,inicial,esperado));$('#cj_re')&&($('#cj_re').onclick=()=>cerrarCajaModal(d,+cerr.efectivo_inicial,esperado-inicial+(+cerr.efectivo_inicial),cerr));
   $('#g_m').onchange=()=>extrasPago('#g_x',$('#g_m').value=='cheque'?'transferencia':$('#g_m').value,'gasto');$('#g_m').onchange();
   $('#g_g').onclick=async()=>{const imp=+$('#g_i').value;if(!(imp>0))return toast('Poné el importe del gasto.',1);
     $('#g_g').disabled=true;const{error}=await sb.from('gastos').insert({fecha:d,categoria:$('#g_c').value,descripcion:$('#g_d').value.trim()||null,importe:imp,medio:$('#g_m').value});
@@ -1292,13 +1318,6 @@ async function vCaja(){
     await extrasGuardar('gasto',imp,'Gasto: '+$('#g_c').value+($('#g_d').value.trim()?' · '+$('#g_d').value.trim():''));toast('Gasto de '+$m(imp)+' guardado.');vCaja()};
   $$('#cj [data-gb]').forEach(a=>a.onclick=()=>{const fila=a.closest('tr,.box,li,div');fila&&(fila.hidden=true);
     conDeshacer('Gasto borrado',async()=>{const{error}=await sb.from('gastos').delete().eq('id',a.dataset.gb);if(error){fila&&(fila.hidden=false);throw error}if(S.tab=='caja')vCaja()},()=>{fila&&(fila.hidden=false)})});
-  const esp=()=>esperado-inicial+(+$('#cc_i').value||0);
-  const dif=()=>{const c=$('#cc_c').value;if(c===''){$('#cc_dif').innerHTML='';return}const x=+c-esp();$('#cc_dif').innerHTML=`Debería haber <b>${$m(esp())}</b> · ${Math.abs(x)<0.005?'<b>Cierra justo.</b>':`<b class="mora">${x>0?'Sobran':'Faltan'} ${$m(Math.abs(x))}</b>`}`};
-  $('#cc_c').oninput=dif;$('#cc_i').oninput=dif;
-  $('#cc_re')&&($('#cc_re').onclick=()=>{$('#cc_f').hidden=false;$('#cc_re').hidden=true});
-  $('#cc_g').onclick=async()=>{const c=$('#cc_c').value;if(c===''||+c<0)return toast('Escribí el efectivo que contaste.',1);
-    const{error}=await sb.from('cierres_caja').upsert({fecha:d,efectivo_inicial:+$('#cc_i').value||0,efectivo_esperado:+esp().toFixed(2),efectivo_contado:+c,nota:$('#cc_n').value.trim()||null});
-    if(error)return toast(error.message,1);toast('Caja cerrada.');vCaja()};
 }
 
 /* ---------- Administrar promociones (en Precios) ---------- */
