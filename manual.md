@@ -224,6 +224,10 @@ Pestañas: Órdenes de compra · Facturas · Órdenes de pago · Proveedores · 
 
 ## 8. Ventas
 
+**Arriba de Ventas:** el cuadro **Para hacer hoy** con números: mensajes listos en la *Cola del día*, clientes a los que *les toca comprar*, *carritos sin enviar*, *presupuestos* esperando respuesta y *ofertas activas*. Tocando cada uno vas directo. Los grupos de herramientas (*Favoritas, Rápido, Clientes, Prospectos, Ofertas, Analizar*) están en una fila que se desliza; **Ajustar menú** elige cuáles ver.
+
+**Difundir una oferta:** si no tenés ofertas cargadas arranca en *Familias*. En *¿Para quién?* cada opción muestra a cuántos clientes llega, la lista de precios se elige con tres botones (*Mayorista · Minorista · Gastronomía*) y abajo ves **cómo le llega el mensaje por WhatsApp** mientras lo armás.
+
 Dejamos a la vista solo las herramientas que sirven todos los días:
 
 - **Difundir y vender:** mandar una oferta en 3 pasos: qué ofrecés, para quién y cómo (folleto, estado de WhatsApp, mensaje o catálogo).

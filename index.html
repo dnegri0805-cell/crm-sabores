@@ -1462,12 +1462,40 @@ html.oscuro .presu b{color:#e3e6ee}
 html.oscuro .cl-dq{background:#2a2310;border-color:#4a3c14;color:#e9cf8a}
 .cl-row.cl-av{padding-left:12px!important}.cl-row .cl-ini{position:static!important;transform:none!important;margin:0!important}
 .cfil button b{margin-left:5px}
+
+/* Ventas: grupos en una fila de pestañas */
+.vtab{display:flex!important;grid-template-columns:none!important;overflow-x:auto;gap:6px!important;scrollbar-width:none;padding-bottom:2px}.vtab::-webkit-scrollbar{display:none}
+.vtab button{flex:none!important;min-height:0!important;padding:8px 14px!important;border-radius:999px!important;font-size:14px!important;flex-direction:row!important;gap:6px!important;white-space:nowrap}
+.vtab button .ici,.vtab button svg{width:16px;height:16px}
+.vcfg{display:inline-flex!important;align-items:center;gap:6px;width:auto!important;font-size:14px}
+/* Para hacer hoy */
+.vhoy{margin:4px 0 14px}.vh-t{font-weight:700;font-size:15px;margin:0 0 8px}
+.vh-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.vh{all:unset;box-sizing:border-box;cursor:pointer;display:flex;gap:10px;align-items:flex-start;background:#fff;border:1px solid var(--l);border-radius:14px;padding:10px 12px}
+.vh-i{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:color-mix(in srgb,var(--m) 9%,#fff);color:var(--m);flex:none}
+.vh-tx{display:flex;flex-direction:column;min-width:0}.vh-n{font-size:20px;font-weight:800;line-height:1.1;color:var(--m);font-variant-numeric:tabular-nums}.vh-tx>span{font-size:13px;font-weight:600;color:var(--n)}.vh-tx small{font-size:11.5px;color:var(--tx2)}
+.vh.cero .vh-n{color:#a3abbd}.vh.cero{opacity:.75}
+html.oscuro .vh{background:#18202f;border-color:#273246}html.oscuro .vh-tx>span{color:#e3e6ee}
+/* Cómo lo mandás */
+.rp-como2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.rp-como2 button{display:flex!important;flex-direction:column;align-items:flex-start!important;gap:4px;text-align:left;padding:12px!important;border-radius:14px!important;min-height:0!important}
+.rp-como2 button b{font-size:16px}.rp-como2 button small{font-size:12px;opacity:.8;font-weight:500}
+.rpc-i{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:rgba(255,255,255,.18)}.rp-como2 button.alt .rpc-i{background:color-mix(in srgb,var(--m) 9%,#fff)}
+@media(min-width:700px){.rp-como2{grid-template-columns:repeat(4,minmax(0,1fr))}}
+/* Vista previa estilo WhatsApp */
+.rp-pv{margin-top:12px}.rp-pv>small{color:var(--tx2)}.rp-bub{margin-top:6px;background:#dcf8c6;color:#1c2333;border-radius:12px 12px 12px 4px;padding:10px 12px;font-size:13.5px;line-height:1.45;max-width:440px;box-shadow:0 1px 1px rgba(0,0,0,.08)}.rp-bub s{color:#7a828f}.rp-bub i{color:#5b6274}
+html.oscuro .rp-bub{background:#1f3b2c;color:#e3e6ee}
+/* Lista de precios en botones */
+.rp-lt{margin:10px 0 4px}.rp-lt small{color:var(--tx2)}.rp-seg{display:inline-flex;border:1px solid var(--l);border-radius:12px;overflow:hidden;margin-top:4px}
+.rp-seg button{all:unset;cursor:pointer;padding:8px 14px;font-size:14px;color:var(--n)}.rp-seg button+button{border-left:1px solid var(--l)}.rp-seg button.on{background:var(--m);color:#fff;font-weight:600}
+.rp-n{font-weight:700;opacity:.7;margin-left:4px}
+.rp-seg button{text-transform:capitalize}
 </style>
 </head>
 <body>
 <div id="app"><div class="splash"><img src="logo.png" alt="Sabores de mi País"><i></i></div></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
-<script src="app.js?v=2026-10-31.17"></script>
+<script src="app.js?v=2026-10-31.18"></script>
 </body>
 </html>

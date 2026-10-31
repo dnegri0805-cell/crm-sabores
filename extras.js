@@ -850,7 +850,7 @@ function vVentas(){
     GR=GR.map(([g,L])=>[g,L.filter(([k])=>OK.includes(k))]).filter(([,L])=>L.length);if(!OK.includes(S.vs))S.vs='rapido'}
   GR=menuAplicar(GR);
   const gAct=(GR.find(([g,L])=>g==S.vg&&L.some(([k])=>k==S.vs))||GR.find(([g,L])=>L.some(([k])=>k==S.vs))||GR[0])[0],act=GR.find(([g])=>g==gAct)[1];
-  $('#v').innerHTML=`<div class="vhd"><h2>Ventas</h2><button class="alt vcfg" onclick="menuVentasCfg()" title="Ocultar pantallas y elegir favoritas" aria-label="Ajustes de Ventas">${IC('gear',20)}</button><input id="vbus" type="search" placeholder="Buscar herramienta…" autocomplete="off"></div>
+  $('#v').innerHTML=`<div class="vhd"><h2>Ventas</h2><button class="alt vcfg" onclick="menuVentasCfg()" title="Ocultar pantallas y elegir favoritas">${IC('sliders',17)} Ajustar menú</button><input id="vbus" type="search" placeholder="Buscar herramienta…" autocomplete="off"></div>
     <div class="vtab">${GR.map(([g])=>`<button class="${g==gAct?'on':''}" data-vg="${esc(g)}">${g}</button>`).join('')}</div>
     <div class="sub ctsub vsubs" id="vsubs">${act.map(([k,t])=>`<button class="${S.vs==k?'':'alt'}" data-vs="${k}">${t}</button>`).join('')}</div><div id="vs"><span class="skl" role="status" aria-label="Cargando"></span></div>`;
   $$('[data-vg]').forEach(b=>b.onclick=()=>{const L=GR.find(([g])=>g==b.dataset.vg)[1];S.vg=b.dataset.vg;S.vs=L[0][0];vVentas()});
@@ -869,9 +869,11 @@ async function vRapido(cargar=true){if(cargar&&!(S._rpT>Date.now()-60000&&S.prom
     :R.que=='fam'?S.productos.filter(p=>conPrecio(p)&&R.fams.includes((p.familia||'').trim()))
     :R.prods.map(id=>S.productos.find(p=>p.producto_id==id)).filter(Boolean);
   const act=S.promos.filter(r=>r.activa&&hoy>=r.desde&&(!r.hasta||hoy<=r.hasta));
+  if(!R._eleg&&R.que=='oferta'&&!act.length)R.que='fam';
   const nomPromo=r=>r.alcance=='producto'?nomProd(r.alcance_valor):r.alcance=='familia'?'Familia '+r.alcance_valor:r.alcance=='marca'?'Marca '+r.alcance_valor:'Todos los productos';
   const famTxt=()=>!R.fams.length?'Elegí una o varias familias':R.fams.length==1?R.fams[0]:R.fams.length+' familias: '+R.fams.join(', ');
-  $('#vs').innerHTML=`<div class="box rp"><h3>📣 Difundir una oferta</h3>
+  $('#vs').innerHTML=`<div class="vhoy"><div class="vh-t">Para hacer hoy</div><div class="vh-g">${[['cola','bolt','Cola del día','mensajes listos'],['toca','phone','Les toca comprar','clientes'],['carritos','cart','Carritos sin enviar','carritos'],['presupuestos','doc','Presupuestos','esperando respuesta'],['ofertas','tag','Ofertas activas','en el catálogo']].map(([k,i,t,d])=>`<button class="vh" data-vh="${k}"><span class="vh-i">${IC(i,18)}</span><span class="vh-tx"><b class="vh-n" id="vhn_${k}">…</b><span>${t}</span><small>${d}</small></span></button>`).join('')}</div></div>
+  <div class="box rp"><h3>📣 Difundir una oferta</h3>
     <div class="rp-p"><span>1</span>¿Qué ofrecés?</div>
     <div class="rp-ch">${[['oferta','🏷️ Lo que ya está en oferta'],['fam','🗂️ Familias'],['prod','🔎 Productos sueltos']].map(([k,t])=>`<button class="${R.que==k?'':'alt'}" data-rq="${k}">${t}</button>`).join('')}</div>
     ${R.que=='fam'?`<div class="fo-fam"><details id="rp_fd" ${R.fams.length?'':'open'}><summary>${esc(famTxt())}</summary><div class="fo-l">${fams.map(f=>`<label><input type="checkbox" data-rf="${esc(f)}" ${R.fams.includes(f)?'checked':''}> ${esc(f)}</label>`).join('')}</div></details></div>`:''}
@@ -883,27 +885,31 @@ async function vRapido(cargar=true){if(cargar&&!(S._rpT>Date.now()-60000&&S.prom
       <label class="f">¿Por cuánto tiempo?<select id="rp_dur">${RP_DUR.map(([v,t])=>`<option value="${v}" ${v=='7'?'selected':''}>${t}</option>`).join('')}</select></label></div>
       <button id="rp_cr">Crear la oferta</button><p><small>Queda en el catálogo de tus clientes con el precio tachado. "Solo hoy" sale arriba con cuenta regresiva.</small></p></details>`:''}
     <div class="rp-p"><span>2</span>¿Para quién?</div>
-    <div class="rp-ch">${Object.entries(RP_AUD).filter(([k])=>k!='publico'||R.aud=='publico').map(([k,[i,t]])=>`<button class="${R.aud==k?'':'alt'}" data-ra="${k}"><span class="ici">${IC(i,17)}</span>${t}</button>`).join('')}</div>
-    <label class="f rp-l">Precios de la lista<select id="rp_l">${['mayorista','minorista','especial'].map(l=>`<option value="${l}" ${R.lista==l?'selected':''}>${nomL(l)}</option>`).join('')}</select></label>
+    <div class="rp-ch">${Object.entries(RP_AUD).filter(([k])=>k!='publico'||R.aud=='publico').map(([k,[i,t]])=>`<button class="${R.aud==k?'':'alt'}" data-ra="${k}"><span class="ici">${IC(i,17)}</span>${t} <b class="rp-n">${audCant(k)}</b></button>`).join('')}</div>
+    <div class="rp-lt"><small>Con los precios de la lista</small><div class="rp-seg">${['mayorista','minorista','especial'].map(l=>`<button class="${R.lista==l?'on':''}" data-rl="${l}">${esc(nomL(l))}</button>`).join('')}</div></div>
     <div class="rp-p"><span>3</span>¿Cómo lo mandás?</div>
-    <div class="ppal rp-como"><button data-rc="folleto"><span>🖼️</span>${R.aud=='chino'?'Folleto bilingüe':'Folleto'}<small>WhatsApp e Instagram</small></button>
-      <button class="alt" data-rc="estado"><span>📱</span>Estado<small>de WhatsApp</small></button>
-      <button class="alt" data-rc="mensaje"><span>💬</span>Mensaje<small>a tus clientes</small></button>
-      <button class="alt" data-rc="catalogo"><span>🔗</span>Catálogo<small>link para compartir</small></button></div></div>
-  <div class="box"><h3>Todos los días</h3><div class="ppal rp-dia">${[['⚡','Cola del día','cola'],['📞','Les toca comprar','toca'],['🛒','Carritos sin enviar','carritos'],['📝','Presupuestos','presupuestos']].map(([i,t,k])=>`<button class="alt" data-rv="${k}"><span>${i}</span>${t}</button>`).join('')}</div></div>
-  <div class="box"><div class="bh"><h3>🏷️ Ofertas activas <small>(${act.length})</small></h3><button class="alt" data-rv="relampago">⚡ Relámpago</button></div>
+    <div class="rp-como2">${[['folleto','image',R.aud=='chino'?'Folleto bilingüe':'Folleto','Imagen para WhatsApp e Instagram'],['estado','clock','Estado','Historia de WhatsApp (24 h)'],['mensaje','chat','Mensaje','Texto a tus clientes'],['catalogo','link','Catálogo','Link para compartir']].map(([k,i,t,d],n)=>`<button class="${n?'alt':''}" data-rc="${k}"><span class="rpc-i">${IC(i,22)}</span><b>${t}</b><small>${d}</small></button>`).join('')}</div>
+    <div class="rp-pv"><small>Así le llega por WhatsApp</small><div class="rp-bub" id="rp_prev"></div></div></div>
+
+  <div class="box" id="rp_act"><div class="bh"><h3>🏷️ Ofertas activas <small>(${act.length})</small></h3><button class="alt" data-rv="relampago">⚡ Relámpago</button></div>
     ${act.length?`<table>${act.slice(0,12).map(r=>`<tr><td>${esc(nomPromo(r))}<br><small>${esc(r.nombre)}${r.hasta?' · hasta el '+fd(r.hasta):''}</small></td><td class="n"><span class="promo">−${nf(r.descuento_pct)} %</span></td><td>${due?`<a class="lnk" data-rt="${r.id}">Terminar</a>`:''}</td></tr>`).join('')}</table>${act.length>12?`<p><small>y ${act.length-12} más (Precios → Promociones).</small></p>`:''}`
       :'<p><small>No hay ofertas activas. Elegí productos o familias arriba y ponéles un descuento.</small></p>'}</div>`;
-  const res=()=>{const E=elegidos(),cf=E.filter(p=>promoCerca(p.producto_id,R.lista)).length;
+  const prev=()=>{const b=$('#rp_prev');if(!b)return;const E=elegidos().slice(0,6),n=elegidos().length;
+    if(!n){b.innerHTML='<i>Elegí qué ofrecés y acá ves el mensaje.</i>';return}
+    const lin=E.map(p=>{const pc=promoCerca(p.producto_id,R.lista),pr=+p['precio_'+R.lista]||0,pf=pc?Math.round(pr*(1-pc.descuento_pct/100)):pr;return`• ${esc(p.descripcion)} — <b>${$m0(pf)}</b>${pc?` <s>${$m0(pr)}</s> −${nf(pc.descuento_pct)} %`:''}`}).join('<br>');
+    b.innerHTML=`¡Hola <b>{nombre}</b>! 👋 Te paso ${R.que=='oferta'?'las ofertas':'precios'} de <b>Sabores de mi País</b>:<br>${lin}${n>6?`<br>… y ${n-6} más`:''}<br>Pedilo acá 👉 <u>tu catálogo</u>`};
+  const res=()=>{prev();const E=elegidos(),cf=E.filter(p=>promoCerca(p.producto_id,R.lista)).length;
     $('#rp_res').innerHTML=E.length?`<b>${E.length}</b> ${E.length==1?'producto':'productos'}${R.que!='oferta'?` · ${cf} con oferta`:''}`:'<small>'+(R.que=='oferta'?'No tenés productos en oferta todavía. Elegí <a class="lnk" onclick="S.rp.que=\'fam\';vRapido(false)">Familias</a> o <a class="lnk" onclick="S.rp.que=\'prod\';vRapido(false)">Productos sueltos</a>.':R.que=='fam'?'Elegí al menos una familia.':'Agregá productos con el buscador.')+'</small>'};res();
-  $$('#vs [data-rq]').forEach(b=>b.onclick=()=>{R.que=b.dataset.rq;vRapido(0)});
+  $$('#vs [data-rq]').forEach(b=>b.onclick=()=>{R.que=b.dataset.rq;R._eleg=1;vRapido(0)});
   $$('#vs [data-ra]').forEach(b=>b.onclick=()=>{R.aud=b.dataset.ra;R.lista=RP_AUD[R.aud][2];vRapido(0)});
-  $('#rp_l').onchange=e=>{R.lista=e.target.value;res()};
+  $$('#vs [data-rl]').forEach(b=>b.onclick=()=>{R.lista=b.dataset.rl;$$('#vs [data-rl]').forEach(x=>x.classList.toggle('on',x==b));res()});
   $$('#vs [data-rf]').forEach(i=>i.onchange=()=>{R.fams=[...$$('#vs [data-rf]')].filter(x=>x.checked).map(x=>x.dataset.rf);$('#rp_fd summary').textContent=famTxt();res()});
   if($('#rp_q')){buscador('#rp_q','#rp_r',p=>{if(!R.prods.includes(p.producto_id))R.prods.push(p.producto_id);vRapido(0);setTimeout(()=>$('#rp_q')&&$('#rp_q').focus(),50)});
     $('#rp_sc').onclick=()=>escanear('Agregar a la oferta',p=>{if(!R.prods.includes(p.producto_id))R.prods.push(p.producto_id);vRapido(0);return '✔ '+p.descripcion})}
   $$('#vs [data-rx]').forEach(a=>a.onclick=()=>{R.prods.splice(+a.dataset.rx,1);vRapido(0)});
   $$('#vs [data-rv]').forEach(b=>b.onclick=()=>{S.vs=b.dataset.rv;vVentas()});
+  $$('#vs [data-vh]').forEach(b=>b.onclick=()=>{const k=b.dataset.vh;if(k=='ofertas'){$('#rp_act')?.scrollIntoView({behavior:'smooth',block:'start'});return}S.vs=k;vVentas()});
+  contadoresHoy(act.length).catch(()=>{});
   $$('#vs [data-rt]').forEach(a=>a.onclick=async()=>{if(!confirm('¿Terminar esta oferta? Deja de verse en el catálogo.'))return;const{error}=await sb.from('promociones').update({activa:false}).eq('id',a.dataset.rt);if(error)return toast(error.message,1);toast('Oferta terminada.');S._rpT=0;vRapido()});
   $('#rp_cr')&&($('#rp_cr').onclick=async()=>{const pct=+$('#rp_pct').value,d=$('#rp_dur').value;if(!(pct>0&&pct<90))return toast('Poné un % válido.',1);
     const E=elegidos();if(!E.length)return toast(R.que=='fam'?'Elegí al menos una familia.':'Agregá al menos un producto.',1);
@@ -3302,3 +3308,13 @@ async function copiasNube(){const m=document.createElement('div');m.className='m
     m.querySelectorAll('[data-cn]').forEach(b=>b.onclick=async()=>{const{data,error}=await sb.storage.from('copias').createSignedUrl(b.dataset.cn,120,{download:true});if(error)return toast(error.message,1);location.href=data.signedUrl});
     m.querySelector('#cn_y').onclick=async e=>{const b=e.currentTarget;b.disabled=true;b.textContent='Haciendo la copia…';try{const{data,error}=await sb.functions.invoke('copia',{body:{}});if(error||data?.error)throw new Error(data?.error||error.message);toast('Copia lista: '+data.filas.toLocaleString('es-AR')+' registros de '+data.tablas+' tablas.');pinta()}catch(x){toast(x.message,1);b.disabled=false}}};
   pinta()}
+
+/* Ventas: contadores de "Para hacer hoy" (como HubSpot) */
+async function contadoresHoy(nOf){const pon=(k,n)=>{const e=document.getElementById('vhn_'+k);if(!e)return;e.textContent=n;e.closest('.vh').classList.toggle('cero',!n)};pon('ofertas',nOf);
+  if(!S.estCli)await cargarEstados().catch(()=>{});pon('toca',Object.values(S.estCli||{}).filter(e=>e.k=='toca').length);
+  const[ca,pr]=await Promise.all([sb.from('carritos').select('cliente_id',{count:'exact',head:true}).is('contactado_en',null).then(r=>r.count||0,()=>0),sb.from('presupuestos').select('id',{count:'exact',head:true}).eq('estado','pendiente').then(r=>r.count||0,()=>0)]);
+  pon('carritos',ca);pon('presupuestos',pr);
+  try{const R=await datosCola(false);pon('cola',R.err?0:R.L.filter(x=>!skips().has(x.k)).length)}catch(e){pon('cola',0)}}
+/* Cuántos clientes alcanza cada público del folleto */
+function audCant(k){const A=S.clientes.filter(c=>c.activo!==false),rb=c=>String(c.rubro||'');const H=c=>/helad|panad/i.test(rb(c)),C=c=>/chin|super/i.test(rb(c)),G=c=>c.lista=='especial';
+  return k=='todos'?A.length:k=='gastro'?A.filter(G).length:k=='helado'?A.filter(H).length:k=='chino'?A.filter(C).length:k=='publico'?A.filter(c=>c.lista=='minorista').length:A.filter(c=>!G(c)&&!H(c)&&!C(c)).length}
