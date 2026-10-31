@@ -73,10 +73,11 @@ Un pedido pasa por: cargarlo, pesarlo (si lleva fiambres o quesos), aprobarlo y 
 
 **Cargar un pedido:**
 
-1. Entrá a **Pedidos** y elegí el cliente: tocá su nombre en los botones o escribí nombre o CUIT.
+1. Entrá a **Pedidos** y elegí el cliente: tocá su nombre en los botones o escribí nombre o CUIT. Los que deben, les toca comprar o están dormidos muestran su cartelito. Al elegirlo aparece una franja con su puntaje, su estado, si debe plata vencida y su próximo paso.
 2. Buscá cada producto en **Buscar producto o código** (o escaneá el código de barras con el botón de al lado).
 3. Ajustá cantidades con − y +. **+ Caja** (o **+ Pack**) suma uno entero; si tenías unidades sueltas, completa hasta el pack. Cada renglón muestra la **foto** del producto para confirmar que es el correcto.
-4. Si el cliente te mandó el pedido escrito, usá **WhatsApp** (pegás el mensaje y reconoce los productos) o **Dictar** (lo decís en voz alta).
+4. **Fotos:** abre los productos en grilla con foto y precio, con filtros por familia y buscador. Cada toque suma uno (o el pack si se vende por pack) y muestra la cantidad en la foto.
+5. Si el cliente te mandó el pedido escrito, usá **WhatsApp** (pegás el mensaje y reconoce los productos) o **Dictar** (lo decís en voz alta).
 5. Abajo podés poner **fecha de entrega** y una **nota**.
 6. Tocá **Guardar pedido** en la barra de abajo, que muestra el total.
 
@@ -102,6 +103,7 @@ El envío se suma solo: **gratis desde $ 150.000**, si no **$ 15.000**. Para pro
 
 - **Lista:** agrupada por rubro, con buscador por nombre o CUIT y filtros por rubro. Cada cliente muestra cuándo compró por última vez y tres botones: lista de precios, WhatsApp y llamar.
 - **Pestañas:** Clientes · Ruta de hoy · Agenda de visitas · Mapa · Dormidos · Prospectos · Pedidos fijos.
+- **Puntaje de salud** (0 a 100, en un anillo verde, amarillo o rojo): mezcla cada cuánto compra (40), cuánto compra comparado con los demás (25), si paga a tiempo (20) y si viene subiendo o bajando (15). En la ficha, tocando el anillo ves el detalle. En la lista, **Ordenar por puntaje** muestra primero los mejores.
 - **Filtros por estado:** arriba de la lista, **Le toca comprar · Deben · Dormidos · Nuevos** con la cantidad. Tocás uno y ves solo esos; tocándolo de nuevo, todos.
 - **Estado de cada cliente** (cartelito de color en la lista y en la ficha): 🟢 **Al día** · 🟡 **Le toca comprar** (según cada cuánto compra) · 🔴 **Debe** (tiene facturas vencidas) · ⚪ **Dormido** (más de 45 días sin comprar) · 🔵 **Nuevo** (primeros pedidos o recién cargado). En la ficha, al lado, dice por qué (por ejemplo *Compró hace 18 días (suele cada 14)*).
 - **Próximo paso:** cada cliente puede tener una próxima acción con fecha (por ejemplo *Llevarle muestra de Etiqueta Negra · martes*). Se agrega en la ficha con **Agregar próximo paso** (con ideas rápidas y fechas: mañana, en 3 días, el lunes…). Se ve en la ficha, en la lista de clientes y en la Ruta de hoy; el día que toca aparece en *Tareas y avisos del día*. Con **Hecho** queda en el historial y te propone el siguiente. Si se atrasa, se pinta de rojo.
@@ -133,6 +135,7 @@ El envío se suma solo: **gratis desde $ 150.000**, si no **$ 15.000**. Para pro
 ## 6. Precios y fotos
 
 - **Precios:** tus productos con costo y precio de venta. Lo que cambies se ve al instante en los catálogos de tus clientes.
+- **Lista o fotos:** el botón de al lado de los filtros cambia entre la lista y una grilla con foto, precio y caja. Tocando una foto se abre ese producto en la lista para editarlo.
 - **Buscar:** por nombre o código, o escaneando el código de barras. Categorías: Todas, Fiambres, Quesos, Lácteos…
 - **Arriba:** **Catálogo**, **Aumentos** (cargar un aumento con fecha) y **Por peso** (fiambres y quesos que se cobran por kilo).
 - **Cambiar el precio de venta de un producto:** abrilo con la flechita y escribí el precio en **Precio de venta fijo**. Queda 📌 fijo aunque cambie el costo; borrando el número vuelve a salir del costo y el margen.

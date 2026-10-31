@@ -1115,12 +1115,53 @@ small>.skl,td>.skl,p>small>.skl{min-height:14px!important;height:14px;background
 html.oscuro .skl{background:radial-gradient(circle at 20px 25px,#232c3c 17px,transparent 18px) 0 0/100% 50px repeat-y,linear-gradient(180deg,transparent 15px,#232c3c 15px,#232c3c 25px,transparent 25px) 52px 0/55% 50px repeat-y,linear-gradient(180deg,transparent 31px,#1c2536 31px,#1c2536 39px,transparent 39px) 52px 0/32% 50px repeat-y!important}
 html.oscuro .skl::after{background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.06) 50%,transparent 70%);background-size:220% 100%}
 html.oscuro small>.skl,html.oscuro td>.skl{background:#232c3c!important}
+
+/* Catálogo con fotos (pedido) */
+#p_prod .ptools{grid-template-columns:repeat(4,minmax(0,1fr))!important}#p_prod .ptools button{flex-direction:column!important;gap:3px!important;font-size:13px!important;min-height:52px!important}
+.cfm{padding:0!important;align-items:stretch!important}.cfm .mc.cf{max-width:980px;width:100%;margin:0 auto;min-height:100%;border-radius:0;padding:0;display:flex;flex-direction:column}
+.cf-h{position:sticky;top:0;z-index:2;background:#fff;padding:14px 16px 8px;border-bottom:1px solid #eceef3}.cf-h .bh{margin-bottom:8px}.cf-h h3{margin:0}.cf-g{margin-top:8px}
+#cf_x{border-radius:999px;padding:8px 16px}
+.cf-l{padding:12px 16px 90px}.cf-gr{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.cf-c{position:relative;display:flex!important;flex-direction:column;align-items:stretch;text-align:left;gap:4px;padding:8px!important;background:#fff!important;border:1px solid #e6e8ed!important;border-radius:14px!important;color:#1c2333!important;font-weight:400!important;box-shadow:none;min-height:0!important;transition:transform .15s,border-color .15s}
+.cf-c.en{border-color:var(--m)!important;box-shadow:0 0 0 1px var(--m)}.cf-c.pop{transform:scale(.96)}
+.cf-f{position:relative;aspect-ratio:1/1;border-radius:10px;background:#f6f7fa;display:grid;place-items:center;overflow:hidden}.cf-f img{width:100%;height:100%;object-fit:contain}
+.cf-in{font-size:32px;font-weight:800;color:#d5d8e0}
+.cf-n{position:absolute;top:6px;right:6px;min-width:26px;height:26px;padding:0 7px;border-radius:999px;background:var(--m);color:#fff;font-size:13.5px;display:grid;place-items:center}
+.cf-d{font-size:13.5px;line-height:1.3;font-weight:600;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:35px}
+.cf-p{font-size:15.5px;font-weight:800;color:var(--m);font-variant-numeric:tabular-nums}.cf-p small{font-weight:600;font-size:12px}.cf-b{color:var(--tx2);font-size:12px}
+.cf-mas{position:absolute;bottom:8px;right:8px;width:30px;height:30px;border-radius:50%;background:var(--m);color:#fff;display:grid;place-items:center}
+.cf-vm{width:100%;margin-top:12px}
+@media(max-width:640px){.cf-gr{grid-template-columns:repeat(2,minmax(0,1fr))}}
+html.oscuro .cf-h{background:#141b28;border-color:#232c3c}html.oscuro .cf-c{background:#18202f!important;border-color:#273246!important;color:#e6e9f0!important}html.oscuro .cf-f{background:#1c2536}
+/* Precios en grilla */
+#pr_vg,#pr_vg.on{background:#fff!important;border-color:#e3e6ee!important;color:var(--m)!important}#pr_vg .ic{color:var(--m)}html.oscuro #pr_vg{background:#18202f!important;border-color:#2a3446!important}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-top:10px}.pgrid[hidden]{display:none}.pgrid>.vacio,.pg-mas{grid-column:1/-1}
+.pg-c{background:#fff;border:1px solid #e6e8ed;border-radius:14px;padding:8px;display:flex;flex-direction:column;gap:3px;cursor:pointer;transition:box-shadow .15s}.pg-c:hover{box-shadow:0 6px 16px rgba(20,25,40,.1)}
+.pg-f{position:relative;aspect-ratio:1/1;border-radius:10px;background:#f6f7fa;display:grid;place-items:center;overflow:hidden;margin-bottom:4px}.pg-f img{width:100%;height:100%;object-fit:contain}.pg-f button{width:56px;height:56px;border-radius:50%!important;padding:0!important;display:grid!important;place-items:center}
+.pg-fj{position:absolute;top:6px;left:6px;font-style:normal;font-size:14px}
+.pg-c b{font-size:13.5px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.pg-c>small{color:var(--tx2);font-size:12px}.pg-p{font-weight:800;font-size:15.5px;color:var(--m);font-variant-numeric:tabular-nums}.pg-p small{font-size:12px;font-weight:600}.pg-b{color:var(--tx2);font-size:12px}
+@media(max-width:640px){.pgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+html.oscuro .pg-c{background:#18202f;border-color:#273246}html.oscuro .pg-f{background:#1c2536}
+/* Cliente en el pedido */
+.prc-e{font-style:normal;display:block;margin-top:2px;line-height:1}.prc-e .cl-est{font-size:11px;padding:1px 7px}
+.pinfo{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;background:#f8f9fb;border:1px solid #eceef3;border-radius:12px;padding:9px 12px;margin:8px 0}.pinfo>small{color:var(--tx2);font-size:13px}
+.pinfo.mal{background:#fff7f7;border-color:#f3c9cd}
+.pi-l{flex-basis:100%;display:flex;flex-direction:column;gap:3px;font-size:13.5px}.pi-l span{display:flex;align-items:center;gap:6px}.pi-d{color:#b4232f}
+html.oscuro .pinfo{background:#18202f;border-color:#273246}html.oscuro .pinfo.mal{background:#2a1418;border-color:#5a2a30}
+/* Puntaje de salud */
+.scr{position:relative;display:inline-grid;place-items:center;flex:none}.scr svg{display:block}.scr .t{fill:none;stroke:#eceef3;stroke-width:3}.scr .f{fill:none;stroke-width:3;stroke-linecap:round}
+.scr b{position:absolute;font-size:10.5px;font-weight:800;font-variant-numeric:tabular-nums}.scr.big b{font-size:14px}.scr.big .t,.scr.big .f{stroke-width:4}
+.scr.ok .f{stroke:#1d7a46}.scr.ok b{color:#1d7a46}.scr.med .f{stroke:#d49b00}.scr.med b{color:#9a6200}.scr.mal .f{stroke:#c0392b}.scr.mal b{color:#b4232f}
+.fc-sc{display:inline-flex!important;flex-direction:column;align-items:center;gap:0;background:none!important;border:0!important;padding:0!important;min-height:0!important;box-shadow:none;position:absolute;right:0;top:0}.fc-tit:has(.fc-sc){padding-right:56px}.fc-sc small{font-size:11px;color:var(--tx2);font-weight:600}
+.fc-tit{position:relative}
+.ecb.ord{margin-left:auto}
+html.oscuro .scr .t{stroke:#2a3446}
 </style>
 </head>
 <body>
 <div id="app"><div class="splash"><img src="logo.png" alt="Sabores de mi País"><i></i></div></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
-<script src="app.js?v=2026-10-31.2"></script>
+<script src="app.js?v=2026-10-31.3"></script>
 </body>
 </html>

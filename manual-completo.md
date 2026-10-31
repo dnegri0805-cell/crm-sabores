@@ -78,6 +78,7 @@ Debajo aparecen tarjetas de aviso; cada una lleva a la pantalla donde se actúa:
 **Cargar un pedido** (botón *+ Nuevo pedido*):
 
 - Elegí el cliente; se aplican solos su lista de precios, **nivel**, **precios pactados** y promos vigentes.
+- **Fotos:** los productos en grilla con foto y precio (por familia o buscando); cada toque suma. Al elegir el cliente aparece una franja con su puntaje, estado, deuda vencida y próximo paso.
 - Cada renglón muestra la **foto** del producto. **+ Caja / + Pack** suma uno entero (si había unidades sueltas, completa hasta el pack). En el buscador los precios salen redondeados, como en Precios; el pedido y la factura llevan los centavos.
 - **🎤 Dictar:** en el celular tocás Dictar y decís el pedido ("diez kilos de danbo… dos cajas de maní salado"), con una pausa entre producto y producto. Lo reconoce igual que Pegar de WhatsApp.
 - **🔁 Repetir último:** desde la ficha del cliente, carga su último pedido con los precios de hoy.
@@ -243,6 +244,7 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 
 **Dónde:** menú *Clientes*. Pestañas: Clientes · Ruta de hoy · Agenda de visitas · Mapa · Dormidos · Prospectos · Pedidos fijos.
 
+- **Puntaje de salud** (0 a 100): frecuencia, monto, pago a tiempo y tendencia. Anillo de color en la lista y la ficha; **Ordenar por puntaje** en la lista.
 - **Filtros por estado** (arriba de la lista): Le toca comprar · Deben · Dormidos · Nuevos, con la cantidad.
 - **Estado de cada cliente:** cartelito de color en la lista y la ficha: Al día · Le toca comprar · Debe · Dormido · Nuevo, con el motivo en la ficha.
 - **Próximo paso:** una acción con fecha por cliente (ficha → Agregar próximo paso). Se ve en la ficha, la lista y la Ruta de hoy, aparece en Tareas el día que toca y con **Hecho** queda en el historial.
@@ -312,7 +314,7 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 - **Stock → 🔎 Lotes (trazabilidad):** al preparar un pedido se anota solo qué lote se usó (el que vence antes, de los vencimientos cargados) y sale en el remito. Ante un reclamo o retiro, buscás el producto o el lote y ves a qué clientes se les entregó, con botón para avisarles. Requiere **negocio.sql**.
 - **Stock → 🌡️ Temperatura:** anotás la temperatura de cada cámara; si está fuera de rango (lo configurás, por defecto 0 a 5 °C) queda en rojo y aparece en Inicio. **Planilla del mes** para imprimir ante una inspección.
 - **Stock:** existencias, movimientos y vencimientos. Los quesos y fiambres se ven **en kilos**; con **Solo quesos y fiambres** ves cuántos kilos tenés y cuánta plata al costo. En **📋 Conteo por partes → ⚖️ Quesos y fiambres** contás con el celular escribiendo los pesos de las etiquetas (**3,5 + 3,6**) o escaneando (te pide el peso de cada pieza).
-- **Precios:** costos y listas mayorista/minorista; los cambios se reflejan al instante en los catálogos.
+- **Precios:** costos y listas mayorista/minorista; los cambios se reflejan al instante en los catálogos. Se ve en **lista o en fotos** (grilla con foto, precio y caja).
 - **Margen adicional por familia** (en Precios, debajo de *Margen de cada lista*): puntos que se suman o restan al margen de la lista solo para una familia (ej.: mayorista 25 % y *Frutos secos* +5 → 30 %). Las familias se ven agrupadas (Fiambres, Quesos, Heladería y panadería…). Requiere **margen-familia.sql**.
 - **Rubro Heladería y panadería:** los productos de JEMA'S se cargan con **heladeria.sql**, ya ordenados en sus familias (coberturas, frutas para sembrar, pastas, dulce de leche heladero, descartables…). Se venden por kilo.
 - **Reportes:** ventas por cliente, por producto y por marca, por período (este mes, mes anterior, este año).
