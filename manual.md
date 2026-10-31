@@ -89,6 +89,8 @@ El envío se suma solo: **gratis desde $ 150.000**, si no **$ 15.000**. Para pro
 
 **Panel del pedido:** tocando cualquier pedido (en la lista o en el tablero) se abre al costado (abajo en el celular) con sus productos, notas y total, y los botones Aprobar o el paso que sigue, Facturar, Imprimir, WhatsApp y Ficha.
 
+**Precios especiales de vendedores:** el vendedor puede cambiar el precio de un renglón (tocando el precio). Si queda por debajo del margen mínimo, el pedido queda **⏳ Precio por aprobar** y no se puede aprobar hasta que el dueño lo revise. Al dueño le aparece en el Inicio (*N precios especiales para aprobar*) y en la campanita, con lo que pide, el precio de lista, el costo y cuánto te deja: **Aprobar** o **Rechazar** (vuelve al precio de lista). El vendedor ve la respuesta en su campanita.
+
 **Después de guardarlo**, en *Últimos pedidos* cada tarjeta muestra un solo botón grande con el paso que sigue:
 
 - **⚖️ Pesar:** si lleva fiambres o quesos sin pesar. Escribís el peso de la etiqueta de cada pieza (si son varias, sumalas con +: 3,52 + 3,61). El importe se ajusta solo y te ofrece avisarle al cliente el total final.
@@ -107,6 +109,8 @@ El envío se suma solo: **gratis desde $ 150.000**, si no **$ 15.000**. Para pro
 - **Filtros por estado:** arriba de la lista, **Le toca comprar · Deben · Dormidos · Nuevos** con la cantidad. Tocás uno y ves solo esos; tocándolo de nuevo, todos.
 - **Estado de cada cliente** (cartelito de color en la lista y en la ficha): 🟢 **Al día** · 🟡 **Le toca comprar** (según cada cuánto compra) · 🔴 **Debe** (tiene facturas vencidas) · ⚪ **Dormido** (más de 45 días sin comprar) · 🔵 **Nuevo** (primeros pedidos o recién cargado). En la ficha, al lado, dice por qué (por ejemplo *Compró hace 18 días (suele cada 14)*).
 - **Próximo paso:** cada cliente puede tener una próxima acción con fecha (por ejemplo *Llevarle muestra de Etiqueta Negra · martes*). Se agrega en la ficha con **Agregar próximo paso** (con ideas rápidas y fechas: mañana, en 3 días, el lunes…). Se ve en la ficha, en la lista de clientes y en la Ruta de hoy; el día que toca aparece en *Tareas y avisos del día*. Con **Hecho** queda en el historial y te propone el siguiente. Si se atrasa, se pinta de rojo.
+- **Visitas con ubicación:** al registrar una visita (o *No estaba*, o *Pedido* desde la Ruta) el CRM guarda dónde estaba el celular y a qué distancia del negocio; si está a más de 300 m avisa. La primera vez pide permiso de ubicación.
+- **Recorridos** (solo el dueño): elegís vendedor y día y ves visitas, clientes, pedidos y lo vendido, el mapa con el recorrido numerado y la lista por hora, marcando las visitas registradas lejos del negocio.
 - **Ruta de hoy:** los clientes que tienen visita hoy, más los que les toca comprar y los que deben, en orden. Cada tarjeta dice por qué ir, **⭐ qué ofrecerle** (Maní JL, BOYA, Etiqueta Negra… lo que todavía no lleva) y tiene **Pedido**, **Cómo llegar** y **No estaba** (queda anotado en su historial). Arriba, **Recorrido** abre todas las paradas en Google Maps.
 - **Nuevo cliente:** botón **+ Nuevo cliente** arriba (o desde Inicio).
 - **Ficha del cliente:** **Nuevo pedido** (con el cliente ya elegido), **Mandar lista** (WhatsApp con un saludo y su link personal para pedir), **WhatsApp**, **Llamar**, **Datos del cliente** con *Editar datos*. Debajo, los números: **Saldo, Vencido, Compró este año y Último pedido**, el gráfico **Compras de los últimos 6 meses** (con el promedio por mes y si *viene comprando más*, *menos* o *parejo*) y el **Historial**: pedidos, pagos, notas, visitas y mensajes en una sola lista por fecha (con Imprimir y Remito en cada pedido). Más abajo, **Notas** (con fecha quedan como tarea) y el link de pedidos online.
@@ -258,7 +262,7 @@ Desde **Más → Cuenta y ajustes → Usuarios y accesos** (solo lo ve el dueño
 - **Se olvidó la contraseña:** **Nueva contraseña temporal** y se la mandás de nuevo. La anterior deja de funcionar.
 - **Dar de baja:** no puede entrar más. Con **Volver a dar acceso** lo reactivás cuando quieras.
 - **Asignar clientes a un vendedor:** en su recuadro, **Asignar clientes**. Filtrás por zona o buscás, marcás los que le tocan y guardás. Los que desmarcás vuelven a ser de la casa.
-- **Comisión:** el % de cada vendedor se calcula sobre lo vendido sin IVA de sus pedidos aprobados del mes.
+- **Comisiones** (*Más → Cuenta y ajustes → Comisiones de vendedores*, o desde la tarjeta Vendedores): el % general de cada vendedor, un **% especial por marca** (por ejemplo Maní JL 8 %), si se calcula sobre **lo vendido** o **solo lo cobrado** (pedidos con la factura paga), y un **premio fijo** al llegar a la meta del mes. Todo sin IVA. El vendedor ve en su Inicio cuánto lleva, qué marcas le pagan más y cuánto le falta para el premio.
 - **Tu propia contraseña:** **Más → Cuenta y ajustes → Cambiar mi contraseña**.
 
 ## 13. Rutina diaria y preguntas frecuentes

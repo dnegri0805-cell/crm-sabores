@@ -1156,12 +1156,37 @@ html.oscuro .pinfo{background:#18202f;border-color:#273246}html.oscuro .pinfo.ma
 .fc-tit{position:relative}
 .ecb.ord{margin-left:auto}
 html.oscuro .scr .t{stroke:#2a3446}
+
+/* A. Aprobaciones de precio */
+.badge.b-aprob{background:#fff4dc;color:#9a6200}
+.aprb{display:flex!important;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 14px!important;margin-bottom:12px;background:#fffaf0!important;border:1px solid #f0d58f!important;border-left:4px solid #d49b00!important;border-radius:14px!important;color:#1c2333!important;font-weight:400!important;box-shadow:none}
+.aprb-i{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:#fff4dc;color:#9a6200}.aprb>span:nth-child(2){flex:1;display:flex;flex-direction:column}.aprb small{color:var(--tx2);font-size:13px}.aprb-v{color:#9a6200}
+.ap-m{max-width:560px}.ap-i{border:1px solid #eceef3;border-radius:14px;padding:12px 14px;margin-bottom:10px;display:flex;flex-direction:column;gap:10px}
+.ap-t{font-size:14.5px;line-height:1.45}.ap-t small{display:block;color:var(--tx2);font-size:12.5px;margin-top:2px}
+.ap-n{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.ap-n span{background:#f8f9fb;border-radius:10px;padding:6px 8px;font-size:12px;color:var(--tx2);display:flex;flex-direction:column}.ap-n b{font-size:14px;color:#1c2333}.ap-n .mal b{color:#b4232f}.ap-n .med b{color:#9a6200}
+.ap-a{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ap-a button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px}
+@media(max-width:480px){.ap-n{grid-template-columns:1fr 1fr}}
+html.oscuro .aprb{background:#2a220e!important;border-color:#5a4612!important;color:#e6e9f0!important}html.oscuro .ap-i{border-color:#273246}html.oscuro .ap-n span{background:#1c2536}html.oscuro .ap-n b{color:#e6e9f0}
+/* B. Recorridos */
+.rc-f{display:flex;gap:8px;margin:6px 0 10px}.rc-f select{flex:1}.rc-f input{max-width:170px}
+.rc-k{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}.rc-k div{background:#fff;border:1px solid #e6e8ed;border-radius:12px;padding:10px;display:flex;flex-direction:column;align-items:center}.rc-k b{font-size:17px;white-space:nowrap;font-weight:800;font-variant-numeric:tabular-nums}.rc-k small{color:var(--tx2);font-size:12px}
+.rc-map{height:300px;border-radius:14px;overflow:hidden;margin-bottom:12px;border:1px solid #e6e8ed}
+.rc-n{font-size:13px;color:#2457c5}
+.tl-x .ok{color:#1d7a46;display:inline-flex;align-items:center;gap:4px}.tl-x .mal{color:#b4232f;display:inline-flex;align-items:center;gap:4px}
+.rc-pin{background:#2457c5;color:#fff;border-radius:50%;display:grid!important;place-items:center;font:700 13px/28px Inter,system-ui,sans-serif;text-align:center;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)}.rc-pin.lejos{background:#c0392b}.rc-pin.ped{background:#7b2d3e}
+html.oscuro .rc-k div{background:#18202f;border-color:#273246}
+/* C. Comisiones */
+.cm{max-width:520px}.cm h4{margin:16px 0 8px;font-size:15px}.cm h4 small{font-weight:400;color:var(--tx2)}
+.cm-r{display:flex;align-items:center;gap:8px;margin-bottom:6px}.cm-r>span:first-child{flex:1;min-width:0}.cm-r input{width:100px;text-align:right}.cm-r button{width:38px;height:38px;padding:0!important;display:grid!important;place-items:center}
+.cm-add select{width:100%}.cm-b{display:flex;flex-direction:column;gap:6px}#cm_g{width:100%;margin-top:14px;min-height:48px}
+.cm-pb{margin-top:8px}.cm-pb small{color:var(--tx2);font-size:13px}
+.rk-cfg{font-size:13px;display:inline-flex;align-items:center;gap:4px;text-decoration:none;font-weight:600}
 </style>
 </head>
 <body>
 <div id="app"><div class="splash"><img src="logo.png" alt="Sabores de mi País"><i></i></div></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
-<script src="app.js?v=2026-10-31.3"></script>
+<script src="app.js?v=2026-10-31.4"></script>
 </body>
 </html>
