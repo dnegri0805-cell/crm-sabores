@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-31.29';
+const VERSION='2026-10-31.30';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -1024,11 +1024,25 @@ function nuevoCliente(){const m=document.createElement('div');m.className='modal
 async function recargarProductos(){const{data,error}=await todo(()=>sb.from('precios_productos').select(PROD_COLS).order('descripcion').order('producto_id'),2);if(!error)S.productos=data}
 const pctf=n=>Number(n).toLocaleString('es-AR',{maximumFractionDigits:2})+' %';
 const numAR=x=>{x=String(x??'').trim().replace(/\$|\s/g,'');if(!x)return null;if(x.includes(','))x=x.replace(/\./g,'').replace(',','.');else if(/^\d{1,3}(\.\d{3})+$/.test(x))x=x.replace(/\./g,'');const n=Number(x);return isFinite(n)?n:NaN};
+/* Cambiar el precio de venta tocándolo: queda como precio fijo (o vuelve al automático) */
+function precioRapido(p,fin){if(!p)return;const id=p.producto_id,z=ppz(id)||1,fj=+p.precio_fijo>0,act=+p.precio_mayorista/z,c=+p.costo/z||0,m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+  m.innerHTML=`<div class="mc" style="max-width:420px"><div class="bh"><h3 style="margin:0">Precio de venta</h3><button class="alt" id="qp_x">Cerrar</button></div>
+    <p><b>${esc(p.descripcion)}</b><br><small>Hoy: ${$m(act)}${esKg(id)||ppz(id)?' /kg':''} mayorista${fj?' · 📌 precio fijo':' · sale del costo y el margen'}${verCostos()&&c?' · costo '+$m(c):''}</small></p>
+    <label class="f">Nuevo precio mayorista (con IVA)<input id="qp_v" inputmode="decimal" placeholder="${nf(Math.round(act))}"></label><p id="qp_a"></p>
+    <p><small>Queda <b>fijo</b>: no cambia aunque cambie el costo. Minorista y gastronomía se ajustan en la misma proporción.</small></p>
+    <div class="fc-acc"><button id="qp_g">Guardar precio</button>${fj?'<button class="alt" id="qp_au">Volver al automático</button>':''}</div></div>`;
+  const q=x=>m.querySelector(x),c2=()=>m.remove();q('#qp_x').onclick=c2;m.onclick=e=>{if(e.target===m)c2()};setTimeout(()=>q('#qp_v').focus(),60);
+  q('#qp_v').oninput=()=>{const v=numAR(q('#qp_v').value);q('#qp_a').innerHTML=v>0&&c>0&&verCostos()?(v<=c?'<span class="err">⚠️ Está por debajo del costo.</span>':`<small>Te deja ${$m(v-c)} (${nf(Math.round((v-c)/v*1000)/10)} %)${act?' · '+(v>=act?'+':'')+nf(Math.round((v/act-1)*1000)/10)+' % que hoy':''}</small>`):''};
+  q('#qp_v').onkeydown=e=>{if(e.key=='Enter')q('#qp_g').click()};
+  const guardar=async v=>{const{error}=await sb.from('productos').update({precio_fijo:v}).eq('id',id);if(error)return toast(error.message,1);c2();await recargarProductos();toast(v?'Precio guardado: '+$m(v/z)+'.':'Volvió al precio automático.');fin&&fin()};
+  q('#qp_g').onclick=()=>{const n=numAR(q('#qp_v').value);if(!(n>0))return toast('Escribí el precio.',1);guardar(Math.round(n*z*100)/100)};
+  q('#qp_au')&&(q('#qp_au').onclick=()=>guardar(null))}
 async function vPrecios(){
   $('#v').innerHTML=`<div class="bh"><h2>Precios y márgenes</h2><div class="fc-acc"><button class="alt" onclick="window.open('catalogo.html','_blank')" title="Catálogo con precios">📒 Catálogo</button><button class="alt" onclick="aumentosProg()" title="Aumentos programados">📅 Aumentos</button><button class="alt" onclick="pesablesModal()" title="Productos por peso">⚖️ Por peso</button><button class="alt" id="pr_masb">Más</button></div></div>
-  <div class="box prbox"><div hidden id="pr_masc"><div class="masc"><button class="alt" onclick="excelPrecios()">📥 Bajar Excel (lo que estás viendo)</button><button class="alt" id="pr_ofam">🗂️ Ordenar por familias</button><button class="alt" id="pr_fcat">🖼️ Fotos del catálogo</button><button class="alt" id="pr_fjl">🥜 Fotos Maní JL</button><button class="alt" id="pr_fot">🔎 Fotos automáticas</button><button class="alt" id="pr_et">🏷️ Imprimir etiquetas del filtro</button><button class="alt" onclick="const d=document.getElementById('pr_ad');d.hidden=false;d.open=true;d.scrollIntoView({behavior:'smooth',block:'center'})">📈 Aumento por porcentaje</button></div></div>
+  <div class="pr-tabs" role="tablist">${[['prod','Productos'],...(verCostos()?[['mar','Márgenes'],['aum','Aumentos y promos'],['imp','Importar lista']]:[])].map(([k,t])=>`<button role="tab" data-pt="${k}">${t}</button>`).join('')}</div>
+  <div class="box prbox" data-pp="prod"><div hidden id="pr_masc"><div class="masc"><button class="alt" onclick="excelPrecios()">📥 Bajar Excel (lo que estás viendo)</button><button class="alt" id="pr_ofam">🗂️ Ordenar por familias</button><button class="alt" id="pr_fcat">🖼️ Fotos del catálogo</button><button class="alt" id="pr_fjl">🥜 Fotos Maní JL</button><button class="alt" id="pr_fot">🔎 Fotos automáticas</button><button class="alt" id="pr_et">🏷️ Imprimir etiquetas del filtro</button><button class="alt" onclick="const d=document.getElementById('pr_ad');d.hidden=false;d.open=true;d.scrollIntoView({behavior:'smooth',block:'center'})">📈 Aumento por porcentaje</button></div></div>
     <div class="pr-pega"><div class="pr-bus"><div class="conscan"><input id="pr_q" type="search" placeholder="Buscar producto o código" autocomplete="off">${btnScan('pr_sc')}</div><button class="alt pr-fb" id="pr_fb" aria-label="Filtros">${IC('sliders',20)}<i id="pr_fbn"></i></button><button class="alt pr-fb" id="pr_vg" aria-label="Cambiar entre lista y fotos" title="Lista o fotos"></button></div>
-    <div class="pr-fams"><div class="sub" id="pr_gr"></div></div><small class="prc" id="pr_cnt"></small></div>
+    <div class="pr-fams"><div class="sub" id="pr_gr"></div></div><div class="pr-av" id="pr_av"></div><div class="pr-cb"><small class="prc" id="pr_cnt"></small>${verCostos()?'<a class="lnk" id="pr_sel">Elegir varios</a>':''}</div></div>
     <details class="prf pr-fd" id="pr_fd"><summary>Filtros <span id="pr_fn"></span> ${IC('down',14)}</summary><div class="g">
       <select id="pr_pv"><option value="">Todos los proveedores</option></select>
       <select id="pr_ma"><option value="">Todas las marcas</option></select>
@@ -1038,23 +1052,30 @@ async function vPrecios(){
     <div id="pr_conf"></div>
     <div class="tw"><table id="pr_t"></table></div>
     <button id="pr_g">Guardar costos cambiados</button> <span id="pr_n"></span></div>
-  <div class="box" id="pm"></div>
-  <div class="box"><div class="bh"><h3>Lista de precios para clientes</h3><button id="pr_lp">Armar lista de precios</button></div>
+  <div class="box" id="pm" data-pp="aum"></div>
+  <div class="box" data-pp="aum"><div class="bh"><h3>${IC('calendar',18)} Aumentos programados</h3><button class="alt" onclick="aumentosProg()">Ver y programar</button></div><p><small>Dejá cargado un aumento para una fecha y se aplica solo ese día. Para subir o bajar ya los costos de un grupo, usá <b>Aumento por porcentaje</b>.</small></p><button class="alt" id="pr_aumir">${IC('up',16)} Aumento por porcentaje (de lo que filtrás en Productos)</button></div>
+  <div class="box" data-pp="prod"><div class="bh"><h3>Lista de precios para clientes</h3><button id="pr_lp">Armar lista de precios</button></div>
     <p><small>Generá la lista mayorista, minorista o de gastronomía en PDF, por WhatsApp o para Excel. Para mandársela a un cliente puntual con sus precios, usá el botón <b>Lista de precios</b> de su ficha.</small></p></div>
-  <div class="box"><div class="bh"><h3>Margen de cada lista</h3></div>
+  <div class="box" data-pp="mar"><div class="bh"><h3>Margen de cada lista</h3></div>
     <p><small>El precio de venta se calcula solo: <b>costo ÷ (1 − margen)</b>. Con 30 %, un producto que te cuesta $ 700 se vende a $ 1.000 y te deja $ 300.</small></p>
     <div class="g" id="pr_l"><span class="skl" role="status" aria-label="Cargando"></span></div><button id="pr_lg">Guardar márgenes</button>
     <div class="g" style="margin-top:12px"><label class="f">Avisarme cuando un producto deje menos de (%) de ganancia<input type="number" id="pr_mm" min="0" max="89" step="1" value="${S.margenMin??15}"></label></div></div>
-  <div class="box"><div class="bh"><h3>Margen adicional por familia</h3></div>
+  <div class="box" data-pp="mar"><div class="bh"><h3>Margen adicional por familia</h3></div>
     <p><small>Puntos que se suman (o restan, con −) al margen de cada lista, solo para esa familia. Ej.: mayorista 25 % y <b>Frutos secos +5</b> → los frutos secos salen con 30 %. Vacío = usa el margen de la lista.</small></p>
-    <div id="pr_mf"><span class="skl" role="status" aria-label="Cargando"></span></div><button id="pr_mfg">Guardar márgenes por familia</button></div>
-  <details class="box" id="pr_imp"><summary><b>Cargar la lista de precios del proveedor (pegar desde Excel)</b></summary>
+    <div id="pr_mf"><span class="skl" role="status" aria-label="Cargando"></span></div><div class="pr-stk"><button id="pr_mfg">Guardar márgenes por familia</button></div></div>
+  <details class="box" id="pr_imp" data-pp="imp" open><summary><b>Cargar la lista de precios del proveedor (pegar desde Excel)</b></summary>
     <p><small>Dos columnas, sin títulos: <b>Código</b> · <b>Costo nuevo</b>. Copiá las filas de la planilla y pegalas acá.</small></p>
     <pre class="ej">SDMP-00594	1250,50
 SDMP-01279	8.900</pre>
     <textarea id="pr_pg" rows="8" placeholder="Pegá acá las filas copiadas"></textarea>
     <button class="alt" id="pr_rev">Revisar</button><div id="pr_res"></div></details>`;
   $('#pr_lp').onclick=()=>abrirListaPrecios(null);
+  /* pestañas: lo que no tiene pestaña (agregado por otras partes, como el importador) va a donde corresponde */
+  {S.prTab=S.prTab&&(verCostos()||S.prTab=='prod')?S.prTab:'prod';const tabOf=el=>el.dataset.pp||(/importar|proveedor/i.test((el.querySelector('summary,h3')||el).textContent.slice(0,120))?'imp':'prod');
+   const aplicar=()=>{const v=$('#v');if(!v||!v.querySelector('.pr-tabs'))return;$$('#v .pr-tabs [data-pt]').forEach(b=>{const on=b.dataset.pt==S.prTab;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});
+     [...v.children].forEach(el=>{if(el.classList.contains('bh')||el.classList.contains('pr-tabs'))return;el.classList.toggle('pt-oc',tabOf(el)!=S.prTab)})};
+   S._prTabs=aplicar;$$('#v .pr-tabs [data-pt]').forEach(b=>b.onclick=()=>{S.prTab=b.dataset.pt;aplicar();marcarUso('precios:'+S.prTab)});aplicar();[400,1200,2500].forEach(t=>setTimeout(aplicar,t));
+   $('#pr_aumir')&&($('#pr_aumir').onclick=()=>{S.prTab='prod';aplicar();const d=$('#pr_ad');d.hidden=false;d.open=true;d.scrollIntoView({behavior:'smooth',block:'center'})})}
   vPromos();
   const[cl,pv,hi,mfa]=await Promise.all([sb.from('config_listas').select('*'),sb.from('proveedores').select('id,razon_social').eq('activo',true).order('razon_social'),
     sb.from('historial_costos').select('producto_id,costo_anterior,costo_nuevo,fecha').order('fecha',{ascending:false}).limit(3000),
@@ -1071,12 +1092,13 @@ SDMP-01279	8.900</pre>
     const ord=[...FAMILIAS.map(x=>x[0]),'Otras familias'].filter(g=>G[g]);
     $('#pr_mf').innerHTML=ord.map(g=>{const con=G[g].filter(f=>MF[f.toUpperCase()]).length;
       return `<details class="mfg"><summary><b>${esc(g)}</b> <small>· ${G[g].length} ${G[g].length==1?'familia':'familias'}${con?` · <span class="badge">${con} con ajuste</span>`:''}</small></summary>
-      <div class="tw"><table><tr><th>Familia</th><th class="n">Ajuste (puntos)</th><th class="n">Mayorista</th><th class="n">Minorista</th><th class="n">Gastronomía</th></tr>
-      ${G[g].map(f=>{const a=MF[f.toUpperCase()];return `<tr><td>${esc(f)} <small>(${cnt[f]})</small></td>
+      <div class="tw"><table><tr><th>Familia</th><th class="n">Ajuste (puntos)</th><th class="n">Mayorista</th><th class="n">Minorista</th><th class="n">Gastronomía</th><th>Ejemplo (mayorista)</th></tr>
+      ${G[g].map(f=>{const a=MF[f.toUpperCase()],ej=S.productos.find(p=>p.familia==f&&+p.costo>0&&!(+p.precio_fijo>0)&&!ppz(p.producto_id)),ec=ej?+ej.costo:0;return `<tr><td>${esc(f)} <small>(${cnt[f]})</small></td>
         <td class="n"><input type="number" step="0.5" min="-50" max="50" data-mf="${esc(f)}" value="${a||''}" placeholder="0" style="max-width:90px"></td>
-        ${LIS.map(l=>`<td class="n" data-mfl="${l}">${mgEf(l,f)!=null?pctf(mgEf(l,f)):'—'}</td>`).join('')}</tr>`}).join('')}</table></div></details>`}).join('')||'<p>Todavía no hay productos con familia.</p>';
+        ${LIS.map(l=>`<td class="n" data-mfl="${l}">${mgEf(l,f)!=null?pctf(mgEf(l,f)):'—'}</td>`).join('')}<td class="mf-ej" data-ejc="${ec}" data-ejp="${ej&&mgEf('mayorista',f)!=null?Math.round(ec/(1-mgEf('mayorista',f)/100)):''}">${ej&&mgEf('mayorista',f)!=null?`<small>${esc(String(ej.descripcion).slice(0,28))}</small> <b>${$m0(ec/(1-mgEf('mayorista',f)/100))}</b>`:'—'}</td></tr>`}).join('')}</table></div></details>`}).join('')||'<p>Todavía no hay productos con familia.</p>';
     $$('[data-mf]').forEach(e=>e.oninput=()=>{const f=e.dataset.mf,a=+e.value||0;
-      e.closest('tr').querySelectorAll('[data-mfl]').forEach(td=>{const l=td.dataset.mfl;td.textContent=L[l]==null?'—':pctf(Math.min(89,Math.max(0,L[l]+a)))})})};
+      e.closest('tr').querySelectorAll('[data-mfl]').forEach(td=>{const l=td.dataset.mfl;td.textContent=L[l]==null?'—':pctf(Math.min(89,Math.max(0,L[l]+a)))});
+      const ej=e.closest('tr').querySelector('.mf-ej'),ec=+ej?.dataset.ejc,ant=+ej?.dataset.ejp;if(ec>0&&L.mayorista!=null){const nv=Math.round(ec/(1-Math.min(89,Math.max(0,L.mayorista+a))/100));const b=ej.querySelector('b');if(b)b.innerHTML=(ant&&nv!=ant?`<s>${$m0(ant)}</s> → `:'')+$m0(nv)}})};
   pintarMF();
   $('#pr_mfg').onclick=async()=>{const ch=[...$$('[data-mf]')].filter(e=>(+e.value||0)!==(MF[e.dataset.mf.toUpperCase()]||0));if(!ch.length)return toast('No cambiaste ningún margen por familia.',1);
     for(const e of ch){const v=+e.value||0;if(v<-50||v>50)return toast('El ajuste tiene que estar entre -50 y +50 puntos.',1)}
@@ -1095,9 +1117,10 @@ SDMP-01279	8.900</pre>
   $('#pr_pv').innerHTML+=(pv.data||[]).map(p=>`<option value="${p.id}">${esc(p.razon_social)}</option>`).join('');
   $('#pr_ma').innerHTML+=uniq('marca').map(x=>`<option>${esc(x)}</option>`).join('');
   $('#pr_fa').innerHTML+=uniq('familia').sort(famCmp).map(x=>`<option>${esc(x)}</option>`).join('');
-  const nuevo={};let sel=[];
+  const nuevo={};let sel=[];S.prLim=S.prLim||30;S.prSel=null;
+  const semana=Date.now()-7*864e5,cambio=p=>{const u=ult[p.producto_id];return u&&new Date(u.fecha).getTime()>=semana};
   const filtrar=()=>{const q=$('#pr_q').value.toLowerCase().trim(),v=$('#pr_pv').value,m=$('#pr_ma').value,f=$('#pr_fa').value;
-    const sf=$('#pr_sf').checked,mb=$('#pr_mb').checked,fjo=$('#pr_fj').checked;return S.productos.filter(p=>(!mb||mgMay(p)!=null&&mgMay(p)<(S.margenMin??15)-0.5)&&(!fjo||+p.precio_fijo>0)&&(!S.prG||(famGrupo(p.familia)||'Otras familias')==S.prG)&&(!q||coincide(txtProd(p),q))&&(!v||S.min[p.producto_id]?.pv==v)&&(!m||p.marca==m)&&(!f||p.familia==f)&&(!sf||!S.min[p.producto_id]?.foto))};
+    const sf=$('#pr_sf').checked,mb=$('#pr_mb').checked,fjo=$('#pr_fj').checked;return S.productos.filter(p=>(!S.prCam||cambio(p))&&(!mb||mgMay(p)!=null&&mgMay(p)<(S.margenMin??15)-0.5)&&(!fjo||+p.precio_fijo>0)&&(!S.prG||(famGrupo(p.familia)||'Otras familias')==S.prG)&&(!q||coincide(txtProd(p),q))&&(!v||S.min[p.producto_id]?.pv==v)&&(!m||p.marca==m)&&(!f||p.familia==f)&&(!sf||!S.min[p.producto_id]?.foto))};
   const mgMay=p=>{const v=+p.precio_mayorista,c=+p.costo;return v>0&&c>0?(v-c)/v*100:null};
   const precio=(c,l,f)=>{const m=mgEf(l,f);return m!=null&&c>0?Math.round(c/(1-m/100)*100)/100:null};
   const upd=()=>{const n=Object.keys(nuevo).length;$('#pr_n').textContent=n?n+(n==1?' costo cambiado sin guardar':' costos cambiados sin guardar'):''};
@@ -1105,17 +1128,22 @@ SDMP-01279	8.900</pre>
     {const nf_=[$('#pr_pv').value,$('#pr_ma').value,$('#pr_fa').value].filter(Boolean).length+($('#pr_sf').checked?1:0)+($('#pr_mb').checked?1:0)+($('#pr_fj').checked?1:0);$('#pr_fn').textContent=nf_?'· '+nf_+(nf_==1?' activo':' activos'):'';$('#pr_fbn').textContent=nf_||'';$('#pr_fb').classList.toggle('on',!!nf_)}
     {const cnt={};S.productos.forEach(p=>{const g=famGrupo(p.familia)||'Otras familias';cnt[g]=(cnt[g]||0)+1});const ord=[...FAMILIAS.map(x=>x[0]),'Otras familias'].filter(g=>cnt[g]);
      $('#pr_gr').innerHTML=`<button class="${S.prG?'alt':''}" data-prg="">Todas</button>`+ord.map(g=>`<button class="${S.prG==g?'':'alt'}" data-prg="${esc(g)}">${esc(g)}</button>`).join('');
-     $$('#pr_gr [data-prg]').forEach(b=>b.onclick=()=>{S.prG=b.dataset.prg;draw()})}
-    const V=sel.slice(0,150);
+     $$('#pr_gr [data-prg]').forEach(b=>b.onclick=()=>{S.prG=b.dataset.prg;S.prLim=30;draw()})}
+    {const T=S.productos.filter(act),A=[...(verCostos()?[['mb','⚠️',T.filter(p=>mgMay(p)!=null&&mgMay(p)<(S.margenMin??15)-0.5).length,'te dejan menos del '+(S.margenMin??15)+' %']]:[]),...(verCostos()?[['cam','📈',T.filter(cambio).length,'cambiaron de costo esta semana']]:[]),['fj','📌',T.filter(p=>+p.precio_fijo>0).length,'con precio fijo'],['sf','📷',T.filter(p=>!S.min[p.producto_id]?.foto).length,'sin foto']].filter(x=>x[2]>0);
+     const on=k=>k=='cam'?!!S.prCam:$('#pr_'+k).checked;
+     $('#pr_av').innerHTML=A.map(([k,i,n,t])=>`<button class="${on(k)?'on':''} av-${k}" data-av="${k}">${i} <b>${n}</b> ${t}</button>`).join('');
+     $$('#pr_av [data-av]').forEach(b=>b.onclick=()=>{const k=b.dataset.av;if(k=='cam')S.prCam=!S.prCam;else{const c=$('#pr_'+k);c.checked=!c.checked}S.prLim=30;$('#pr_conf').innerHTML='';draw()})}
+    const V=sel.slice(0,S.prLim);
     $('#pr_t').innerHTML='<tr><th>Foto</th><th>Producto</th><th class="n">Costo</th><th class="n">Mayorista</th><th class="n">Precio fijo</th><th class="n">Minorista</th><th class="n">Gastronomía</th><th class="n">Ganás (may.)</th><th>Bulto</th><th>Último cambio</th></tr>'+
       V.map(p=>{const id=p.producto_id,c=nuevo[id]??+p.costo/(ppz(id)||1),fj=+p.precio_fijo>0?+p.precio_fijo/(ppz(id)||1):0,pm=fj||precio(c,'mayorista',p.familia),u=ult[id];
-        return `<tr class="prw${nuevo[id]!=null?' cambio':''}"><td class="fto">${S.min[id]?.foto?`<img src="${esc(S.min[id].foto)}" alt="" data-ft="${id}" loading="lazy">`:`<button class="alt" data-ft="${id}" aria-label="Cargar foto">📷</button>`}</td><td>${esc(p.descripcion)} <small class="pcod">${esc(p.codigo)}</small>${ppz(id)&&pm!=null?`<br><span class="badge">⚖️ precios por kg · pieza ≈ ${nf(ppz(id))} kg → ${$m(pm*ppz(id))}</span>`:''}</td>
+        const gp=verCostos()&&pm>0&&c>0?Math.round((pm-c)/pm*1000)/10:null,uc=u&&u.costo_anterior>0?(u.costo_nuevo/u.costo_anterior-1)*100:null;
+        return `<tr class="prw${nuevo[id]!=null?' cambio':''}${S.prSel&&S.prSel.has(id)?' sel':''}" data-prw="${id}"><td class="fto">${S.prSel?`<label class="pr-ck"><input type="checkbox" data-ps="${id}" ${S.prSel.has(id)?'checked':''} aria-label="Elegir"></label>`:''}${S.min[id]?.foto?`<img src="${esc(S.min[id].foto)}" alt="" data-ft="${id}" loading="lazy">`:`<button class="alt" data-ft="${id}" aria-label="Cargar foto">📷</button>`}</td><td>${esc(p.descripcion)} <small class="pcod">${esc(p.codigo)}</small>${u&&verCostos()&&new Date(u.fecha).getTime()>=Date.now()-30*864e5?`<small class="pult2 ${uc==null?'':uc>=0?'sube':'baja'}">${uc==null?'Costo nuevo':(uc>=0?'↑ ':'↓ ')+pctf(Math.abs(uc))} el ${fd(u.fecha).slice(0,5)}</small>`:''}${ppz(id)&&pm!=null?`<br><span class="badge">⚖️ precios por kg · pieza ≈ ${nf(ppz(id))} kg → ${$m(pm*ppz(id))}</span>`:''}</td>
         <td class="n" data-l="Costo"><input type="number" step="0.01" min="0" class="cs" data-id="${id}" value="${nuevo[id]??''}" placeholder="${p.costo!=null?nf(+p.costo/(ppz(id)||1)):'—'}"></td>
-        <td class="n pmay" data-l="Mayorista">${pm!=null?$m0(pm)+(bul(id)?.kg?'<small class="pkg">/kg</small>':''):'—'}${fj?'<span class="pfij">📌 Fijo</span>':''}${pm>0&&c>0&&(pm-c)/pm*100<(S.margenMin??15)-0.5?`<span class="pmal">⚠️ ganás ${nf(Math.round((pm-c)/pm*1000)/10)} %</span>`:''}${pm!=null&&!ppz(id)&&(S.min[id]?.b||1)>1?`<small class="pcaja">${esc(bulL(bul(id)))}: ${$m0(pm*S.min[id].b)}</small>`:''}</td><td class="n pfj" data-l="Precio de venta fijo"><input type="text" inputmode="decimal" class="pf" data-id="${id}" value="${fj?String(Math.round(fj*100)/100).replace('.',','):''}" placeholder="Vacío = sale del costo y el margen"><small class="pfh">${fj?'📌 Fijo: no cambia aunque cambie el costo':'Escribí el precio mayorista que querés cobrar'}</small></td><td class="n" data-l="Minorista">${fj?$m0(+p.precio_minorista/(ppz(id)||1)):precio(c,'minorista',p.familia)!=null?$m0(precio(c,'minorista',p.familia)):'—'}</td><td class="n" data-l="Gastronomía">${fj?$m0(+p.precio_especial/(ppz(id)||1)):precio(c,'especial',p.familia)!=null?$m0(precio(c,'especial',p.familia)):'—'}</td>
+        <td class="n pmay" data-l="Mayorista">${pm!=null?`<a class="pr-ed" data-ped="${id}" title="Tocá para cambiar el precio">${$m0(pm)}</a>`+(bul(id)?.kg?'<small class="pkg">/kg</small>':''):'—'}${gp!=null?`<span class="pgan ${gp<(S.margenMin??15)-0.5?'mal':'ok'}" title="Lo que te deja">${nf(gp)} %</span>`:''}${fj?'<span class="pfij">📌 Fijo</span>':''}${pm!=null&&!ppz(id)&&(S.min[id]?.b||1)>1?`<small class="pcaja">${esc(bulL(bul(id)))}: ${$m0(pm*S.min[id].b)}</small>`:''}</td><td class="n pfj" data-l="Precio de venta fijo"><input type="text" inputmode="decimal" class="pf" data-id="${id}" value="${fj?String(Math.round(fj*100)/100).replace('.',','):''}" placeholder="Vacío = sale del costo y el margen"><small class="pfh">${fj?'📌 Fijo: no cambia aunque cambie el costo':'Escribí el precio mayorista que querés cobrar'}</small></td><td class="n" data-l="Minorista">${fj?$m0(+p.precio_minorista/(ppz(id)||1)):precio(c,'minorista',p.familia)!=null?$m0(precio(c,'minorista',p.familia)):'—'}</td><td class="n" data-l="Gastronomía">${fj?$m0(+p.precio_especial/(ppz(id)||1)):precio(c,'especial',p.familia)!=null?$m0(precio(c,'especial',p.familia)):'—'}</td>
         <td class="n" data-l="Ganás">${pm!=null?$m0(pm-c):'—'}</td>
         <td style="white-space:nowrap" data-l="Bulto" class="pbu"><select class="tb" data-id="${id}" aria-label="Tipo de bulto">${['Caja','Pack','Bolsa','Fardo','Display','Balde','Cuñete','Lata','Bidón','Paquete'].map(t=>`<option ${(S.min[id]?.tb||'Caja')==t?'selected':''}>${t}</option>`).join('')}</select> × <input type="number" min="1" step="1" class="ub" data-id="${id}" value="${S.min[id]?.b||1}" aria-label="Unidades por bulto"></td>
         <td class="pult${u?'':' vac'}"><small>${u?'Último cambio: '+fd(u.fecha)+' · '+(u.costo_anterior>0?(u.costo_nuevo>=u.costo_anterior?'+':'')+pctf((u.costo_nuevo/u.costo_anterior-1)*100):'nuevo'):''}</small></td></tr>`}).join('')+
-      (sel.length>V.length?`<tr><td colspan="10"><small>Se muestran 150 de ${sel.length}. El aumento por porcentaje se aplica a los ${sel.length}.</small></td></tr>`:'')+
+      (sel.length>V.length?`<tr class="pr-mas"><td colspan="10"><button class="alt" id="pr_vm">Ver ${Math.min(30,sel.length-V.length)} más · ${V.length} de ${sel.length}</button><small> El aumento por porcentaje se aplica a los ${sel.length}.</small></td></tr>`:'')+
       (sel.length?'':'<tr><td colspan="10">'+vacioHTML('No hay productos con ese filtro.','tag')+'</td></tr>');
     {if(!S.prVista)try{S.prVista=localStorage.getItem('pr_vista')||'lista'}catch(e){S.prVista='lista'}
      const tw=$('#pr_t').closest('.tw');let gd=$('#pr_gd');if(!gd){gd=document.createElement('div');gd.id='pr_gd';gd.className='pgrid';tw.after(gd)}const gr=S.prVista=='grilla';tw.hidden=gr;gd.hidden=!gr;
@@ -1129,7 +1157,21 @@ SDMP-01279	8.900</pre>
       $('#pr_masb').onclick=()=>{const m=document.createElement('div');m.className='modal';document.body.appendChild(m);m.innerHTML='<div class="mc"><div class="bh"><h3>Más opciones</h3><button class="alt" id="pm_x">Cerrar</button></div><div class="pm-l"></div></div>';
         m.onclick=e=>{if(e.target==m)m.remove()};m.querySelector('#pm_x').onclick=()=>m.remove();
         $$('#pr_masc .masc>button').forEach(o=>{const c=o.cloneNode(true);c.removeAttribute('id');c.removeAttribute('onclick');c.onclick=()=>{m.remove();o.click()};m.querySelector('.pm-l').appendChild(c)})}}
-    $('#pr_t').onclick=e=>{if(e.target.closest('input,select,button,img,a'))return;const tr=e.target.closest('tr.prw');if(tr)tr.classList.toggle('ab')};
+    $('#pr_t').onclick=e=>{if(e.target.closest('input,select,button,img,a,label'))return;const tr=e.target.closest('tr.prw');if(!tr)return;if(S.prSel){const id=tr.dataset.prw;S.prSel.has(id)?S.prSel.delete(id):S.prSel.add(id);draw();return}tr.classList.toggle('ab')};
+    $('#pr_vm')&&($('#pr_vm').onclick=()=>{S.prLim+=30;draw()});
+    $$('#pr_t [data-ped]').forEach(a=>a.onclick=e=>{e.stopPropagation();precioRapido(S.productos.find(x=>x.producto_id==a.dataset.ped),()=>draw())});
+    $$('#pr_t [data-ps]').forEach(i=>i.onchange=()=>{i.checked?S.prSel.add(i.dataset.ps):S.prSel.delete(i.dataset.ps);draw()});
+    {const sl=$('#pr_sel');if(sl){sl.textContent=S.prSel?'Listo':'Elegir varios';sl.onclick=()=>{S.prSel=S.prSel?null:new Set();draw()}}
+     let bb=document.getElementById('pr_bulk');if(S.prSel&&S.tab=='precios'){if(!bb){bb=document.createElement('div');bb.id='pr_bulk';bb.className='em-bulk';document.body.appendChild(bb)}
+       bb.innerHTML=`<b>${S.prSel.size} elegido${S.prSel.size==1?'':'s'}</b><a class="lnk" id="pb_all" style="color:#fff">Todos los del filtro</a><button class="wa" id="pb_pct" ${S.prSel.size?'':'disabled'}>${IC('up',15)} Subir / bajar %</button><button class="alt" id="pb_fam" ${S.prSel.size?'':'disabled'}>Cambiar familia</button><button class="alt" id="pb_nfj" ${S.prSel.size?'':'disabled'}>Quitar precio fijo</button>`;
+       bb.querySelector('#pb_all').onclick=()=>{sel.forEach(p=>S.prSel.add(p.producto_id));draw()};
+       bb.querySelector('#pb_pct').onclick=()=>{const x=prompt('¿Cuánto subís el costo de los '+S.prSel.size+' elegidos? (en %, con − para bajar; ej.: 10 o -5)');if(x===null)return;const pc=numAR(x);if(!pc||!(pc>-90&&pc<=500))return toast('Escribí un porcentaje, por ejemplo 10 o -5.',1);
+         let n=0;for(const id of S.prSel){const p=S.productos.find(y=>y.producto_id==id);if(p&&+p.costo>0){nuevo[id]=Math.round(+p.costo/(ppz(id)||1)*(1+pc/100)*100)/100;n++}}upd();S.prSel=null;draw();toast(n+' costos cambiados en pantalla (marcados en amarillo). Tocá «Guardar costos cambiados» para aplicarlos.');$('#pr_g').scrollIntoView({behavior:'smooth',block:'center'})};
+       bb.querySelector('#pb_fam').onclick=async()=>{const F=uniq('familia');const x=prompt('Nueva familia para los '+S.prSel.size+' elegidos. Escribila igual que una existente:\n'+F.slice(0,40).join(' · '));if(x===null||!x.trim())return;
+         const f=F.find(y=>y.toUpperCase()==x.trim().toUpperCase())||x.trim();const{error}=await sb.from('productos').update({familia:f}).in('id',[...S.prSel]);if(error)return toast(error.message,1);S.prSel=null;await recargarProductos();draw();toast('Familia cambiada a «'+f+'».')};
+       bb.querySelector('#pb_nfj').onclick=async()=>{const ids=[...S.prSel].filter(id=>+S.productos.find(y=>y.producto_id==id)?.precio_fijo>0);if(!ids.length)return toast('Ninguno de los elegidos tiene precio fijo.',1);if(!confirm('¿Quitar el precio fijo de '+ids.length+' productos? Vuelven a salir del costo y el margen.'))return;
+         const{error}=await sb.from('productos').update({precio_fijo:null}).in('id',ids);if(error)return toast(error.message,1);S.prSel=null;await recargarProductos();draw();toast(ids.length+' productos volvieron al precio automático.')};
+     }else if(bb)bb.remove()}
     $$('#pr_t [data-ft]').forEach(b=>b.onclick=()=>fotoProducto(b.dataset.ft,()=>{draw()},()=>sel.filter(x=>!S.min[x.producto_id]?.foto).map(x=>x.producto_id)));
     const gb=async id=>{const u=Math.max(1,Math.round(+$(`.ub[data-id="${id}"]`).value||1)),t=$(`.tb[data-id="${id}"]`).value;
       const{error}=await sb.rpc('fijar_bulto',{p_producto:id,p_unidades:u,p_tipo:t});if(error)return toast(error.message.includes('fijar_bulto')?'Corré bultos.sql en Supabase.':error.message,1);
@@ -1139,7 +1181,7 @@ SDMP-01279	8.900</pre>
       const v=e.value.trim()===''?null:Math.round(n*z*100)/100;const{error}=await sb.from('productos').update({precio_fijo:v}).eq('id',id);if(error)return toast(error.message,1);
       await recargarProductos();toast(v?'Precio fijo guardado: '+$m(n)+'. Minorista y gastronomía se ajustan en proporción.':'Listo: el precio vuelve a salir del costo y el margen.');draw()});
     $$('.cs').forEach(e=>e.onchange=()=>{const n=numAR(e.value);if(e.value===''||n===null)delete nuevo[e.dataset.id];else if(n>0)nuevo[e.dataset.id]=n;setTimeout(draw);upd()})};
-  ['#pr_q','#pr_pv','#pr_ma','#pr_fa','#pr_sf','#pr_mb','#pr_fj'].forEach(k=>$(k)[k=='#pr_q'?'oninput':'onchange']=()=>{$('#pr_conf').innerHTML='';draw()});
+  ['#pr_q','#pr_pv','#pr_ma','#pr_fa','#pr_sf','#pr_mb','#pr_fj'].forEach(k=>$(k)[k=='#pr_q'?'oninput':'onchange']=()=>{$('#pr_conf').innerHTML='';S.prLim=30;draw()});
   draw();
   $('#pr_sc').onclick=()=>escanear('Buscar producto por código',p=>{$('#pr_q').value=p.codigo;$('#pr_conf').innerHTML='';draw();return '✔ '+p.descripcion+' · costo '+(p.costo?$m(p.costo):'sin cargar')});
   $('#pr_g').onclick=async()=>{const it=Object.entries(nuevo).map(([id,costo])=>({id,costo}));if(!it.length)return toast('No hay costos para guardar. El precio de venta fijo ya quedó guardado solo cuando lo escribiste.');
@@ -3229,7 +3271,7 @@ async function tableroPedidos(){const box=$('#pl');if(!box)return;
 function fabPintar(){let f=document.getElementById('fab');if(!S.perfil){f&&f.remove();return}
   if(!f){f=document.createElement('div');f.id='fab';f.innerHTML=`<div class="fab-m" id="fab_m" hidden></div><button class="fab-b" id="fab_b" aria-label="Agregar" aria-expanded="false">${IC('plus',26)}</button>`;document.body.appendChild(f);
     f.querySelector('#fab_b').onclick=e=>{e.stopPropagation();fabMenu()};document.addEventListener('click',e=>{if(!f.contains(e.target))fabCerrar()})}
-  f.hidden=!!document.querySelector('.modal:not(.fab-sh)')||(S.tab=='pedidos'&&!!S.pcli);if(!document.querySelector('.fab-sh')&&$('#fab_m')?.hidden!==false)f.querySelector('#fab_b')?.classList.remove('on')}
+  f.hidden=!!document.querySelector('.modal:not(.fab-sh)')||(S.tab=='pedidos'&&!!S.pcli)||!!document.getElementById('pr_bulk');if(!document.querySelector('.fab-sh')&&$('#fab_m')?.hidden!==false)f.querySelector('#fab_b')?.classList.remove('on')}
 function fabCerrar(){const m=document.getElementById('fab_m'),b=document.getElementById('fab_b');if(m)m.hidden=true;if(document.querySelector('.fab-sh'))return;if(b){b.classList.remove('on');b.setAttribute('aria-expanded','false')}}
 function fabMenu(){
   /* en Pedidos (sin cliente elegido), el + va directo a elegir cliente */
@@ -3248,7 +3290,7 @@ function fabCliente(tit,fn){const m=document.createElement('div');m.className='m
     $('#fa_r').innerHTML=L.map(c=>`<button class="alt" data-fa="${c.id}">${avatar(c)}<span>${esc(nomVis(c))}<small>${esc(c.barrio||c.ciudad||'')}</small></span></button>`).join('')||'<p><small>No encontré ese cliente.</small></p>';
     m.querySelectorAll('[data-fa]').forEach(x=>x.onclick=()=>{m.remove();fabPintar();fn(S.clientes.find(c=>c.id==x.dataset.fa))})};
   m.onclick=e=>{if(e.target==m){m.remove();fabPintar()}};$('#fa_x').onclick=()=>{m.remove();fabPintar()};$('#fa_q').oninput=pinta;pinta();setTimeout(()=>$('#fa_q').focus(),50)}
-setInterval(()=>{try{fabPintar()}catch(e){}},700);
+setInterval(()=>{try{fabPintar();if(S.tab!='precios')document.getElementById('pr_bulk')?.remove()}catch(e){}},700);
 
 /* ======================= PANEL LATERAL DEL PEDIDO =======================
    Al tocar un pedido (lista o tablero) se abre a la derecha con el detalle y las acciones, sin salir de la pantalla. */

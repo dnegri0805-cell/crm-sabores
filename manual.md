@@ -388,6 +388,15 @@ Desde **Más → Cuenta y ajustes → Usuarios y accesos** (solo lo ve el dueño
 - **Próximo paso** en una línea, con fecha.
 - **Pestañas:** *Resumen* (oportunidades, lo que más compra, compras de 6 meses), *Historial* (todo junto con filtros: pedidos, pagos, notas, visitas y **cambios en sus datos**, y la nota rápida arriba), *Pedidos*, *Cuenta* (saldo, vencido, facturas y pagos) y *Precios* (pactados, puntos y link de pedidos online).
 
+### Precios y márgenes (versión nueva)
+- **Pestañas:** *Productos*, *Márgenes* (margen de cada lista y por familia), *Aumentos y promos* (promociones, aumentos programados y aumento por porcentaje) e *Importar lista* del proveedor.
+- **Avisos arriba de la lista** (se tocan y filtran): ⚠️ te dejan menos de tu mínimo, 📈 cambiaron de costo esta semana, 📌 con precio fijo, 📷 sin foto.
+- Cada producto muestra **cuánto te deja** (verde, o rojo si está debajo de tu mínimo) y, si cambió el costo en el último mes, **↑ 8 % el 20/10**.
+- **Cambiar un precio:** tocá el precio subrayado, escribí el nuevo y *Guardar precio* (queda fijo; con *Volver al automático* vuelve a salir del costo y el margen).
+- La lista muestra de a 30 con **Ver 30 más**.
+- **Elegir varios:** marcás productos (o *Todos los del filtro*) y abajo: *Subir / bajar %* (queda en amarillo hasta *Guardar costos cambiados*), *Cambiar familia* o *Quitar precio fijo*.
+- **Margen por familia:** cada familia muestra un ejemplo de precio y cómo cambia mientras escribís el ajuste; el botón *Guardar* queda fijo abajo.
+
 ## 13. Rutina diaria y preguntas frecuentes
 
 Repartís de lunes a sábado y los pedidos cierran a las 20:00 para el día siguiente.
