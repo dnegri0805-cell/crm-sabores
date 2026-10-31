@@ -1199,7 +1199,7 @@ html.oscuro .st-p img,html.oscuro .st-ph{background:#1c2536;border-color:#2a3446
 .rv-ped[draggable=true]{cursor:grab}.rv-ped.arr{opacity:.45}.rv-ped.sobre{box-shadow:0 0 0 2px var(--m)}
 /* Encabezado que se achica */
 .htit{display:none}
-@media(max-width:640px){header .htit{display:block;position:absolute;left:16px;right:170px;top:50%;transform:translateY(-50%);font-size:16.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transition:opacity .18s;pointer-events:none}
+@media(max-width:640px){header .htit{display:block;position:absolute;left:16px;right:238px;top:50%;transform:translateY(-50%);font-size:16.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transition:opacity .18s;pointer-events:none}
   header{position:sticky;top:0;z-index:19}.cl-pega,.pr-pega{top:var(--hh,52px)!important}
   body.tit-on header .htit{opacity:1}body.tit-on header .mjhn,body.tit-on header .hlogo{opacity:0}header .mjhn,header .hlogo{transition:opacity .18s}header:has(#hback:not([hidden])) .htit{left:64px}}
 /* Avatares con anillo de estado */
@@ -1279,12 +1279,35 @@ html.oscuro .cb-i{border-color:#232c3c}html.oscuro .cb-d{color:#c3c9d6}
 .prx{padding:12px 14px!important}.prx-i{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f0f1f5}.prx-i:last-child{border-bottom:0}.prx-i>div{flex:1;min-width:0;display:flex;flex-direction:column}.prx-i small{color:var(--tx2);font-size:12.5px}
 .prx-f{font-size:12.5px;font-weight:700;color:var(--tx2);white-space:nowrap}.prx-i.atr .prx-f{color:#b4232f}.prx-i.hoy .prx-f{color:var(--m)}.prx-i button{flex:none;min-height:38px;padding:6px 12px}
 html.oscuro .lm-h{background:#141b28;border-color:#232c3c}html.oscuro .lm-i{background:#18202f;border-color:#273246}html.oscuro .lm-oc button{background:#18202f;border-color:#2a3446;color:#e6e9f0}html.oscuro .lm-a{background:#2a1f12;color:#f1c56a}html.oscuro .lm-t img,html.oscuro .lm-ph{background:#1c2536;border-color:#2a3446}
+
+/* Inicio a medida */
+#v .ib-oc{display:none!important}
+.ini-pers{text-align:center;margin:14px 0 4px}.ini-pers .lnk{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--tx2);text-decoration:none;font-weight:600}
+.ipm{max-width:460px}.ip-l{display:flex;flex-direction:column;gap:6px;margin:8px 0 14px}
+.ip-i{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #e6e8ed;border-radius:12px;padding:6px 8px}.ip-i.off{opacity:.55}.ip-i .chk{flex:1;margin:0;font-weight:600}
+.ip-g{color:#b9bfcc;cursor:grab;font-weight:800;letter-spacing:-2px}.ip-i button{width:36px;height:36px;padding:0!important;display:grid!important;place-items:center;min-height:0!important}
+.ip-a{display:grid;grid-template-columns:1fr 1.4fr;gap:8px}.ip-a button{min-height:46px}
+html.oscuro .ip-i{background:#18202f;border-color:#273246}
+/* Logros */
+.logr{padding:14px 16px!important}.lg{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:10px}
+.lg-i{display:flex;gap:10px;align-items:flex-start;opacity:.85}.lg-i>div{flex:1;min-width:0}.lg-i b{font-size:13.5px}.lg-i small{color:var(--tx2);font-size:12px}
+.lg-e{font-size:24px;line-height:1;filter:grayscale(1);opacity:.5}.lg-i.ok .lg-e{filter:none;opacity:1}.lg-i.ok{opacity:1}
+.lg-r{font-size:12.5px;font-weight:700;color:#b85c00;background:#fff4e5;border-radius:999px;padding:2px 9px;white-space:nowrap}
+/* Listas guardadas */
+.clis{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0}.clis:empty{display:none}.lg-ch{display:inline-flex;align-items:center}.lg-ch .ecb{border-radius:999px 0 0 999px!important;border-right:0!important}
+.lg-x{border-radius:0 999px 999px 0!important;padding:5px 8px!important;min-height:0!important;background:#fff!important;border:1px solid #e3e6ee!important;color:var(--tx2)!important;box-shadow:none}.lg-new{border-style:dashed!important;color:var(--m)!important}
+/* Constancia de CUIT */
+.cuit-f{display:flex;align-items:center;gap:12px;border:1.5px dashed #d8b9c2;background:#fbf3f5;border-radius:14px;padding:12px 14px;margin:4px 0 14px;cursor:pointer;color:var(--m)}.cuit-f span{display:flex;flex-direction:column}.cuit-f b{color:#1c2333;font-size:14.5px}.cuit-f small{color:var(--tx2);font-size:12.5px}
+html.oscuro .cuit-f{background:#2a1a20;border-color:#5a2c3a}html.oscuro .cuit-f b{color:#e6e9f0}
+/* Semana: asignadas */
+.sm-u{font-size:11.5px;font-weight:700;color:#2457c5}.sm-who{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.xl-l{font-size:13px;text-decoration:none;margin-left:auto;margin-right:10px}
 </style>
 </head>
 <body>
 <div id="app"><div class="splash"><img src="logo.png" alt="Sabores de mi País"><i></i></div></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
-<script src="app.js?v=2026-10-31.8"></script>
+<script src="app.js?v=2026-10-31.9"></script>
 </body>
 </html>

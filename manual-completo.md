@@ -24,6 +24,8 @@ Guía ordenada por sección para consultar o pasarle al equipo. Cada punto dice 
 - **🔎 Buscar:** arriba a la derecha (o **Ctrl + K**) buscás un cliente, un producto (con precio, costo y stock) o un pedido por su número, desde cualquier pantalla.
 - **Menú principal:** en el celular, la barra de abajo es Inicio · Pedidos · Clientes · Precios · **Más**. En **Más** están las otras secciones (Cobranza, Caja, Stock, Contable, Manual), el **Dólar del día** y **Cuenta y ajustes** (Usuarios y accesos, Mercado Pago, Elegir pestañas del menú, Ver panel completo, Cambiar mi contraseña). En la compu, las pestañas van arriba. Los números en rojo indican cosas pendientes.
 - **Botón + flotante** (abajo a la derecha, en todas las pantallas): Nuevo pedido, Nuevo cliente, Registrar cobro, Nota a un cliente y Registrar visita.
+- **Personalizar el inicio:** cada usuario elige qué tarjetas ver y en qué orden.
+- **Bajar a Excel:** Clientes, Pedidos, Cobranza, Stock y Precios bajan lo que se está viendo con los filtros.
 - **Letra:** el CRM usa su propia tipografía (Inter), igual en todos los equipos.
 
 ## 2. Inicio
@@ -251,6 +253,9 @@ Todo lo que se configura acá **aparece solo en el catálogo del cliente** y se 
 - **Puntaje de salud** (0 a 100): frecuencia, monto, pago a tiempo y tendencia. Anillo de color en la lista y la ficha; **Ordenar por puntaje** en la lista.
 - **Filtros por estado** (arriba de la lista): Le toca comprar · Deben · Dormidos · Nuevos, con la cantidad.
 - **Estado de cada cliente:** cartelito de color en la lista y la ficha: Al día · Le toca comprar · Debe · Dormido · Nuevo, con el motivo en la ficha.
+- **Tareas para el equipo y @menciones:** cada tarea o próximo paso tiene responsable; le llega a su Semana y campanita. En las notas, @Nombre avisa a un compañero.
+- **Listas guardadas** y **alta con la constancia de CUIT** (foto → razón social, CUIT, IVA y domicilio).
+- **Racha y logros** del vendedor en su Inicio; la racha de cada uno en la tarjeta Vendedores.
 - **Próximo paso:** una acción con fecha por cliente (ficha → Agregar próximo paso). Se ve en la ficha, la lista y la Ruta de hoy, aparece en Tareas el día que toca y con **Hecho** queda en el historial.
 - **Visitas con ubicación y Recorridos:** cada visita guarda la ubicación y la distancia al negocio (aviso si son más de 300 m). En *Clientes → Recorridos* el dueño ve, por vendedor y día, el mapa del recorrido, las visitas, los pedidos y lo vendido.
 - **Semana:** agenda de 7 días con tareas y próximos pasos (tildar hecho, pasar al día siguiente o arrastrar a otro día), entregas, promesas de pago y visitas; **+ Agregar** una tarea por día.
