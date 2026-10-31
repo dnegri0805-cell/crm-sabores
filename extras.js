@@ -109,9 +109,10 @@ async function vReportes(){
     <div class="box"><div class="bh"><h3>Productos más vendidos</h3><button class="alt" id="cp_p">Copiar para Excel</button></div><div id="rp_pr"></div></div>
   </div>
   <div class="box"><div class="bh"><h3>Ventas y ganancia por familia</h3><button class="alt" id="cp_f">Copiar para Excel</button></div><div id="rp_fa"></div></div>`;
+  if(!verCostos()){$('#r4').hidden=true;$('#rp_fa').closest('.box').hidden=true;$('#v .bh').querySelectorAll('button').forEach(b=>b.hidden=true)}
   $$('[data-rp]').forEach(b=>b.onclick=()=>{S.rp=b.dataset.rp;$$('[data-rp]').forEach(x=>x.className=x.dataset.rp==S.rp?'':'alt');pintar()});
   const[pe,co]=await Promise.all([
-    todo(()=>sb.from('pedidos').select('id,numero,total,estado,cliente_id,fecha,creado_en,created_at,clientes(razon_social),pedido_items(producto_id,cantidad,precio_unitario)').not('estado','in','(pendiente,cancelado)').order('numero',{ascending:false})),
+    todo(()=>sb.from('pedidos').select('id,numero,total,estado,cliente_id,creado_en,clientes(razon_social),pedido_items(producto_id,cantidad,precio_unitario)').not('estado','in','(pendiente,cancelado)').order('numero',{ascending:false})),
     todo(()=>sb.from('productos').select('id,costo').order('id'))]);
   let P=pe.data;
   if(pe.error){const r2=await todo(()=>sb.from('pedidos').select('*,clientes(razon_social),pedido_items(producto_id,cantidad,precio_unitario)').not('estado','in','(pendiente,cancelado)').order('numero',{ascending:false}));
@@ -842,6 +843,9 @@ function vVentas(){
     ['🏷️ Ofertas y difusión',[['invitar','🚀 Invitar a pedir online'],['campanias','📣 Campañas'],['novsem','📋 Novedades semanal'],['estados','📱 Estados de WhatsApp'],['tarjeta','🖼️ Tarjeta de producto'],['difusion','🖼️ Folletos y catálogo'],['fiambres','🧀 Fiambres por kilo'],['fechas','📅 Fechas'],['rubros','🏪 Por rubro'],['qr','🔳 QR por campaña'],['contactos','📇 Contactos para WhatsApp'],['puntos','🏆 Puntos y desafío'],['liga','🏆 Liga de clientes'],['sorteo','🎟️ Sorteo del mes'],['cambios','📢 Cambios de precio'],['relampago','⚡ Relámpago'],['cupo','🔥 Oferta por cupo'],['personal','🎯 Ofertas personales'],['combos','🎁 Combos'],['cantidad','🏷️ Precio por cantidad'],['cupones','🎟️ Cupones'],['liquidar','📦 Liquidar stock'],['preventa','🔜 Preventa'],['novedades','✨ Novedades'],['acuerdos','📜 Acuerdos comerciales'],['micombo','🧺 Combo de siempre'],['checkout','🛒 Oferta de último momento'],['empujar','🚀 Productos para empujar'],['online','📲 Premio por pedir online'],['quincenal','📦 Pedido quincenal'],['niveles','🥇 Niveles'],['pvp','💰 Precio sugerido'],['bultos','📦 Venta por bulto'],['redondeo','🏷️ Precios redondeados'],['aumento','📈 Aviso de aumento'],['reglas','💲 Descuentos y mínimo']]],
     ['📸 Instagram',[['ig','📸 Contenido'],['igcal','🗓️ Calendario y reels'],['igbio','🔗 Página para la bio'],['igsorteo','🎁 Sorteo'],['igpros','📥 Prospectos de Instagram'],['igshop','🛍️ Catálogo para Shopping']]],
     ['📊 Analizar',[['semana','📊 Resumen semanal'],['anual','📆 Año contra año'],['rentkg','🧀 Rentabilidad quesos y fiambres'],['zonasrep','🗺️ Reparto por zona'],['captacion','🧲 Captación'],['pronostico','🔮 Pronóstico del mes'],['tablero','📺 Tablero en vivo'],['rentcli','💼 Rentabilidad por cliente'],['simulador','🧪 Simulador de aumento'],['abc','🅰️ ABC'],['potencial','📊 Potencial'],['competencia','🏁 Competencia'],['nocompra','🚶 Por qué no compran'],['perdidas','💸 Ventas perdidas'],['buscan','🔎 Qué buscan y piden'],['marcas','🏭 Por marca'],['zonas','🗺️ Por zona'],['horarios','🕐 Cuándo piden'],['proveedores','🏭 Metas y reintegros']]]];
+  /* El vendedor ve sólo las herramientas para vender (las de precios, márgenes y configuración son del dueño) */
+  if(S.perfil.rol=='vendedor'){const OK=['rapido','cola','plansem','plan','toca','miraron','carritos','menos','presupuestos','esperan','clave','nuevos90','bienvenida','reclamos','embudo','ruta','llamadas','buscarneg','cobertura','invitar','estados','tarjeta','difusion','fiambres','fechas','rubros','contactos','nocompra','buscan','potencial'];
+    GR=GR.map(([g,L])=>[g,L.filter(([k])=>OK.includes(k))]).filter(([,L])=>L.length);if(!OK.includes(S.vs))S.vs='rapido'}
   GR=menuAplicar(GR);
   const gAct=(GR.find(([g,L])=>g==S.vg&&L.some(([k])=>k==S.vs))||GR.find(([g,L])=>L.some(([k])=>k==S.vs))||GR[0])[0],act=GR.find(([g])=>g==gAct)[1];
   $('#v').innerHTML=`<div class="vhd"><h2>Ventas</h2><button class="alt vcfg" onclick="menuVentasCfg()" title="Ocultar pantallas y elegir favoritas" aria-label="Ajustes de Ventas">${IC('gear',20)}</button><input id="vbus" type="search" placeholder="Buscar herramienta…" autocomplete="off"></div>
@@ -2683,7 +2687,7 @@ async function garantiaCfg(){const G=await cfgJ('garantia',{activa:false,pct:10,
     <button id="ga_g">Guardar</button></div>`;
   m.querySelector('#ga_x').onclick=()=>m.remove();m.querySelector('#ga_g').onclick=async()=>{const v={activa:m.querySelector('#ga_a').checked,pct:Math.max(1,+m.querySelector('#ga_p').value||10),dias:Math.max(7,+m.querySelector('#ga_d').value||30)};
     const{error}=await guardaCfgJ('garantia',v);if(error)return toast(error.message,1);S.garantia=v;toast(v.activa?'Garantía activada: el sello ya aparece en el catálogo.':'Garantía apagada.');m.remove();if(S.vs=='reclamos')vReclamos()}}
-async function vFaq(){const{data:I,error}=await sb.rpc('faq_info');
+async function vFaq(){const{data:I0,error}=await sb.rpc('faq_info');const I=I0||{};
   if(error){$('#vs').innerHTML=`<div class="box"><h3>💬 Preguntas del catálogo</h3><p class="err">${/faq_info/.test(error.message)?SQL_PRAC:esc(error.message)}</p></div>`;return}
   const F=Object.assign({horario:'',retiro:'',cambios:'',envio:'',pago:'',extras:[],ocultar:[]},I.faq||{});
   const AUTO=[['horario','¿En qué horario atienden?',F.horario?'✔ '+F.horario:'⚠️ Cargá el horario abajo'],

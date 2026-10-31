@@ -278,7 +278,7 @@ Desde **Más → Cuenta y ajustes → Usuarios y accesos** (solo lo ve el dueño
 
 - **Socio / dueño:** ve y cambia todo, incluidos costos, márgenes, ganancias y configuración.
 - **Administración:** ve todo, sin tocar la configuración.
-- **Vendedor:** pedidos y **solo sus clientes**, sin ver costos, ganancias, proveedores ni compras. En el Inicio ve su **comisión** del mes.
+- **Vendedor:** pedidos y **solo sus clientes**, sin ver costos, ganancias, proveedores ni compras. En el Inicio ve su **comisión** del mes. Los costos están **protegidos en la base de datos**: aunque alguien sepa de computación, con un usuario de vendedor no puede leerlos. En **Ventas** ve solo las herramientas para vender (ruta, clientes, prospectos, ofertas y difusión); las de precios, márgenes y configuración quedan para el dueño. En **Reportes** ve sus ventas sin margen ni ganancia.
 - **Depósito:** armado y entregas.
 
 **Después:**

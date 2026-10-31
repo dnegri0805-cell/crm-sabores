@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-31.11';
+const VERSION='2026-10-31.12';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -3132,6 +3132,8 @@ function guiaVendedor(forzar){if(document.getElementById('guia'))return;const k=
   const L=P.filter(([s])=>{const e=document.querySelector(s);return e&&e.offsetParent!==null});if(!L.length)return;let i=0;
   const o=document.createElement('div');o.id='guia';document.body.appendChild(o);
   const fin=()=>{o.remove();try{localStorage.setItem(k,'1')}catch(e){}};
+  /* Si se va del Inicio, la guía se cierra (vuelve a aparecer la próxima vez que abra el CRM) */
+  const vig=setInterval(()=>{if(!document.body.contains(o))return clearInterval(vig);if(S.tab!='inicio'){o.remove();clearInterval(vig)}},400);
   const paso=()=>{const[s,t,d]=L[i],e=document.querySelector(s);if(!e)return fin();e.scrollIntoView({block:'center'});
     setTimeout(()=>{const r=e.getBoundingClientRect(),p=8,abajo=r.top<innerHeight/2;
       o.innerHTML=`<div class="gu-h" style="top:${r.top-p}px;left:${r.left-p}px;width:${r.width+2*p}px;height:${r.height+2*p}px"></div>
@@ -6589,7 +6591,7 @@ async function insightsPedidos(L){const P=L.filter(o=>['pendiente','aprobado','e
   const mm=S.margenMin??15,COMP={};
   for(const o of P){const box=$(`[data-ins="${o.id}"]`);if(!box)continue;const I=(it.data||[]).filter(i=>i.pedido_id==o.id),h=[];
     let v=0,c=0,sc=false;for(const i of I){const q=+i.cantidad,cu=i.costo_unitario!=null?+i.costo_unitario:(+S.productos.find(p=>p.producto_id==i.producto_id)?.costo||0);v+=q*+i.precio_unitario;c+=q*cu;if(!(cu>0))sc=true}
-    if(v>0&&!sc){const cp=costoParada(o),g=v-c-cp,pc=g/v*100;S.insG=S.insG||{};S.insG[o.id]=g;h.push(`<span class="${g<0||pc<mm?'baja':'ins-ok'}">${g<0?'🔴 ':pc<mm?'🟡 ':''}Te deja ${$m0(g)} (${nf(Math.round(pc*10)/10)} %)${cp?' después del reparto ('+$m0(cp)+')':''}${g<0?' · ⚠️ con este pedido perdés plata':pc<mm?' ⚠️ debajo de tu mínimo de '+nf(mm)+' %':''}</span>`)}
+    if(v>0&&!sc&&verCostos()){const cp=costoParada(o),g=v-c-cp,pc=g/v*100;S.insG=S.insG||{};S.insG[o.id]=g;h.push(`<span class="${g<0||pc<mm?'baja':'ins-ok'}">${g<0?'🔴 ':pc<mm?'🟡 ':''}Te deja ${$m0(g)} (${nf(Math.round(pc*10)/10)} %)${cp?' después del reparto ('+$m0(cp)+')':''}${g<0?' · ⚠️ con este pedido perdés plata':pc<mm?' ⚠️ debajo de tu mínimo de '+nf(mm)+' %':''}</span>`)}
     const deu=(fe.data||[]).filter(f=>f.cliente_id==o.cliente_id);{const PZ=I.filter(i=>esPeso(i.producto_id)||i.peso_real!=null);if(PZ.length){const pend=PZ.filter(i=>i.peso_real==null).length;h.push(pend?`<button class="alt" data-pes="${o.id}">⚖️ Pesar (${pend} ${pend==1?'producto':'productos'} por peso)</button>`:`<span class="sube">⚖️ Pesado</span> <a class="lnk" data-pes="${o.id}">corregir</a>`)}}
     if(deu.length)h.push(`<span class="baja">🚦 Debe ${$m(deu.reduce((a,f)=>a+ +f.pendiente,0))} vencido (hasta ${Math.max(...deu.map(f=>f.dias_mora))} días)</span>`);
     if(o.estado=='pendiente'){const prev=(hi.data||[]).filter(x=>x.cliente_id==o.cliente_id&&x.id!=o.id).slice(0,6);
