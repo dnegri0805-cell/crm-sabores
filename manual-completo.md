@@ -408,3 +408,14 @@ Una sola vez, en este orden:
 - **El PDF sale en tamaño Carta:** en la pantalla de impresión elegí **A4** en *Tamaño de papel*.
 - **Cantidades en notas y remitos:** *10 u.* son unidades sueltas; *20 (1 caja + 8 u.)*, una caja cerrada más 8 sueltas.
 - **Próximamente:** factura electrónica ARCA y conciliación automática de transferencias.
+
+## Novedades de diseño (octubre 2026)
+- **Íconos parejos:** los botones y títulos usan íconos de línea en el color de la marca en lugar de emojis.
+- **Etapas del pedido:** barrita *Recibido → Aprobado → Preparando → En reparto → Entregado* en cada pedido y en el panel lateral.
+- **Tendencia en el Inicio:** línea de 30 días y ▲/▼ contra el mismo momento del mes pasado en *Facturado hoy* y *Por aprobar*.
+- **Deshacer:** borrar un gasto, promoción, lista guardada o comprobante, o mover un pedido de etapa, muestra una barra con *Deshacer* por unos segundos. Si un pedido vuelve atrás desde *Listo* o *En reparto*, la mercadería vuelve al depósito sola.
+- **Festejos:** papel picado al llegar a la meta del mes, lograr una racha o cobrar una deuda de más de 60 días.
+- **PDF de pedido y presupuesto:** encabezado con la marca, cliente en recuadro, foto chica de cada producto y saludo al pie.
+- **Espacio en las listas:** en **Aa**, *Cómoda* o *Compacta*.
+- **Inicio en la compu:** dos columnas de tarjetas; con *Acomodar arrastrando* se ordenan con el mouse.
+

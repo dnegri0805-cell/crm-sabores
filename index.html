@@ -1302,12 +1302,75 @@ html.oscuro .cuit-f{background:#2a1a20;border-color:#5a2c3a}html.oscuro .cuit-f 
 /* Semana: asignadas */
 .sm-u{font-size:11.5px;font-weight:700;color:#2457c5}.sm-who{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
 .xl-l{font-size:13px;text-decoration:none;margin-left:auto;margin-right:10px}
+
+/* Etapas del pedido */
+.pasos{list-style:none;display:flex;margin:10px 0 4px;padding:0;gap:0}
+.pasos li{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;min-width:0}
+.pasos li::before{content:'';position:absolute;top:5px;right:50%;width:100%;height:2px;background:var(--l)}
+.pasos li:first-child::before{display:none}
+.pasos li.hecho::before,.pasos li.ahora::before{background:var(--m)}
+.pasos i{width:12px;height:12px;border-radius:50%;background:#fff;border:2px solid var(--l);position:relative;z-index:1;box-sizing:border-box}
+.pasos li.hecho i{background:var(--m);border-color:var(--m)}
+.pasos li.ahora i{background:#fff;border-color:var(--m);box-shadow:0 0 0 4px color-mix(in srgb,var(--m) 18%,transparent);width:14px;height:14px;margin-top:-1px}
+.pasos span{font-size:10.5px;color:#8a93a3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;line-height:1.2}
+.pasos li.hecho span{color:var(--tx2)}
+.pasos li.ahora span{color:var(--m);font-weight:700}
+.pasos-g{margin:4px 0 14px}.pasos-g span{font-size:11.5px}
+html.oscuro .pasos i,html.oscuro .pasos li.ahora i{background:#18202f}html.oscuro .pasos li.ahora span{color:#e8a6b4}
+.pasos li.hecho:last-child span{color:var(--ok);font-weight:700}.pasos li.hecho:last-child i{background:var(--ok);border-color:var(--ok)}
+
+/* Tendencia en los números del Inicio */
+.tdz{display:flex;flex-direction:column;gap:3px;margin-top:8px}
+.spk{width:100%;max-width:180px;height:28px;display:block}
+.spk-l{fill:none;stroke:var(--m);stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.spk-a{fill:color-mix(in srgb,var(--m) 12%,transparent);stroke:none}
+.spk-p{fill:var(--m)}
+.tdt{font-size:11.5px;color:var(--tx2)}
+.tdp{font-weight:700}.tdp.up{color:var(--ok)}.tdp.dn{color:var(--er)}
+
+html.oscuro .spk-l{stroke:#e8a6b4}html.oscuro .spk-p{fill:#e8a6b4}html.oscuro .spk-a{fill:rgba(232,166,180,.12)}
+
+/* Deshacer */
+.undo{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:14px;background:#1c2333;color:#fff;border-radius:12px;padding:10px 10px 10px 16px;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:calc(100vw - 32px);overflow:hidden;animation:undoIn .2s ease-out}
+.undo span{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.undo button{background:transparent;color:#ffb4c2;border:0;font-weight:700;padding:8px 10px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;min-height:auto;box-shadow:none}
+.undo i{position:absolute;left:0;bottom:0;height:3px;background:#ffb4c2;width:100%;transform-origin:left;animation:undoT linear forwards}
+.undo.fuera{opacity:0;transition:opacity .2s}
+@keyframes undoIn{from{opacity:0;transform:translate(-50%,10px)}}@keyframes undoT{to{transform:scaleX(0)}}
+@media(min-width:900px){.undo{bottom:24px}}
+#cfti{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:80}
+
+/* Vista compacta (como Gmail): más renglones por pantalla */
+html.compacto .ped{padding:7px 10px;gap:5px;margin-bottom:6px}
+html.compacto .cl-card{padding:7px 10px}
+html.compacto #v .box{padding:10px 12px;margin-bottom:10px}
+html.compacto #v td,html.compacto #v th{padding-top:3px!important;padding-bottom:3px!important}
+html.compacto .pasos{margin:2px 0 0}html.compacto .pasos span{display:none}html.compacto .pasos li.ahora span{display:block}
+html.compacto .tdz{margin-top:4px}html.compacto .spk{height:22px}
+html.compacto .ped-acc button,html.compacto .ped-acc select{padding-top:5px;padding-bottom:5px;min-height:34px}
+html.compacto .r{padding-top:5px;padding-bottom:5px}
+
+/* Inicio de escritorio en tarjetas */
+.ini-pers{display:flex;gap:18px;flex-wrap:wrap}.ini-aco{display:none}
+@media(min-width:1100px){
+  #v.ini-grid:has(>.pieini){column-count:2;column-gap:18px}
+  #v.ini-grid:has(>.pieini)>*{break-inside:avoid;column-span:all}
+  #v.ini-grid:has(>.pieini)>[data-ib]:not([data-ib=bot]):not([data-ib=num]){column-span:none;display:block;margin-bottom:18px}
+  #v.ini-grid:has(>.pieini)>[data-ib]:empty{display:none!important}
+  #v.ini-grid:has(>.pieini)>[data-ib]>.box{margin-bottom:0}
+  .ini-aco{display:inline-flex}
+  #v.ini-edit>[data-ib]{outline:2px dashed color-mix(in srgb,var(--m) 45%,transparent);outline-offset:4px;border-radius:12px;cursor:grab;min-height:40px}
+  #v.ini-edit>[data-ib] *{pointer-events:none}
+  #v.ini-edit>[data-ib].ib-arr{opacity:.4}
+}
+@media(min-width:1100px){#v.ini-grid:has(>.pieini)>[data-ib].ib-sola{column-span:all!important}}
+body:has(.undo) #fab{opacity:0;pointer-events:none;transition:opacity .15s}
 </style>
 </head>
 <body>
 <div id="app"><div class="splash"><img src="logo.png" alt="Sabores de mi País"><i></i></div></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
-<script src="app.js?v=2026-10-31.12"></script>
+<script src="app.js?v=2026-10-31.13"></script>
 </body>
 </html>

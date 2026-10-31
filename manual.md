@@ -11,7 +11,9 @@ Las funciones del CRM tal como quedaron, en el orden en que las usás en el día
 - **Botón + (abajo a la derecha):** desde cualquier pantalla, Nuevo pedido, Nuevo cliente, Registrar cobro, Nota a un cliente o Registrar visita.
 - **Barra de abajo:** Inicio · Pedidos · Clientes · Precios · **Más**. Compras y Ventas se abren desde los botones del Inicio. En **Más** están las demás secciones (Cobranza, Caja, Stock, Contable, este Manual y **Dólar del día**) y, abajo, **Cuenta y ajustes**: Usuarios y accesos, Mercado Pago, Elegir pestañas del menú, Ver panel completo y Cambiar mi contraseña.
 - **🔔 Campanita** (arriba, al lado de la lupa): lo que pasó en los últimos 7 días (pedidos online o de vendedores, entregas, comprobantes de pago, reclamos y pedidos del catálogo). El numerito dice cuántas novedades no viste; tocando cada una vas directo.
-- **Arriba:** la lupa busca un cliente, un producto o un pedido desde cualquier pantalla; **?** abre la ayuda de la pantalla en la que estás; **Aa** cambia el tamaño de letra y el modo oscuro.
+- **Arriba:** la lupa busca un cliente, un producto o un pedido desde cualquier pantalla; **?** abre la ayuda de la pantalla en la que estás; **Aa** cambia el tamaño de letra, el modo oscuro y el **espacio en las listas** (*Cómoda* o *Compacta*: la compacta muestra más pedidos y clientes por pantalla, ideal en la compu).
+- **Deshacer:** al borrar un gasto, una promoción, una lista guardada o un comprobante, o al pasar un pedido a otra etapa, abajo aparece una barra con **Deshacer** por unos segundos. Si te equivocaste, la tocás y queda como estaba (si la app se cierra, se aplica en el momento).
+- **Festejos:** cuando llegás a la meta del mes, lográs una racha o cobrás una deuda de más de 60 días, sale un poco de papel picado. 🎉
 - **Avisos de pedidos:** en **Aa → 📲 Activar en este celular** te llega una notificación por cada pedido nuevo, aunque el CRM esté cerrado. Con el CRM abierto, además suena un timbre que se repite hasta que tocás **Ver pedido** (probalo en **Aa → Probar la alarma**).
 - **Al bajar en una pantalla** (celular), el título pasa arriba, a la barra, y queda siempre a la vista.
 - **Se actualiza solo:** cuando hay una mejora, la página se recarga sola. Si algo no aparece, cerrá la app del todo y volvé a abrirla.
@@ -34,6 +36,10 @@ Es el tablero del día. De arriba hacia abajo:
 - **Desplegables:** *Vencidas y para reponer*, *Tareas y avisos del día* y *Configuración*. Sin abrirlos ya ves qué hay adentro: un numerito bordó con la cantidad, o *al día* en gris si no hay nada. *Configuración* muestra una barrita con los pasos que faltan (por ejemplo 5 de 11), cada uno con su botón **Ir**.
 
 **Personalizar el inicio** (abajo de todo, o *Más → Cuenta y ajustes*): elegís qué tarjetas ver y en qué orden. Cada usuario arma el suyo en su celular.
+
+**En la compu** el Inicio se ve en **dos columnas de tarjetas**. Con **Acomodar arrastrando** (abajo de todo) las movés con el mouse a donde quieras; tocás **Listo** y queda guardado.
+
+**Tendencia:** debajo de *Facturado hoy* y *Por aprobar* hay una línea con los últimos 30 días y la flechita **▲ / ▼** contra el mismo momento del mes pasado.
 
 **El pie del Inicio** (solo el dueño): las copias de seguridad.
 
@@ -74,6 +80,10 @@ Los gastos fijos se cargan en *Resumen de hoy → Ganancia neta*. Los pedidos ca
 ## 4. Pedidos
 
 Un pedido pasa por: cargarlo, pesarlo (si lleva fiambres o quesos), aprobarlo y facturarlo, prepararlo y entregarlo.
+
+**Etapas a la vista:** cada pedido muestra una barrita con *Recibido → Aprobado → Preparando → En reparto → Entregado*; el punto marcado es donde está ahora.
+
+**Nota de pedido y presupuesto en PDF:** salen con tu logo y colores, la foto chica de cada producto, los datos del cliente en un recuadro, los datos para pagar y un *¡Gracias por tu compra!* al pie.
 
 **Cargar un pedido:**
 
