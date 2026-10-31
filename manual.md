@@ -28,6 +28,8 @@ Es el tablero del día. De arriba hacia abajo:
 - **Editar inicio** (arriba a la derecha): elegís qué tarjetas ver y en qué orden, también en el celular.
 
 - **Vendido en el mes** (solo el dueño): lo vendido en el mes, el % de la meta con su barra (la rayita es el día de hoy), lo de hoy y a cuánto cerrás a este ritmo, unas **barritas con lo vendido cada día** (la oscura es hoy) y la comparación con el mes pasado a la misma altura (*▲ 12 % vs septiembre*). La meta se pone o se cambia tocando **Meta $ …**.
+- **Botón +** (abajo a la derecha): abre un panel con las acciones en grilla (Nuevo pedido, Nuevo cliente, Registrar cobro, Llegó mercadería, Cargar gasto, Nota, Visita); primero aparecen las que más usás. En **Pedidos**, el + va directo a elegir el cliente.
+- **Cargar un pedido:** elegís el cliente (las tarjetas dicen *Le toca*, *Debe*, *Nuevo*…). Mientras cargás se esconde la lista de pedidos. Arriba: **Repetir el último pedido** y **Suele llevar** (sus productos de siempre con la cantidad típica: un toque y entra; los que ya están dicen *✓ En el pedido*). Botones − y + grandes, y abajo siempre el total (y, para el dueño, cuánto te deja).
 - **Accesos rápidos:** una fila de íconos: **Pedido** (en bordó), Cliente, Cobrar, Compras, Proveedores, Ventas y Folletos. El vendedor ve *Mis clientes* y *Ruta* en lugar de Compras y Proveedores.
 - **Facturado hoy:** siempre a la vista. En $ 0 queda en un solo renglón; cuando facturás, se agranda.
 - **Números del día:** Por aprobar, Visitas de hoy, Te deben, Debés a proveedores y Para entregar. *Te deben* se pinta de rojo solo si hay facturas vencidas.
