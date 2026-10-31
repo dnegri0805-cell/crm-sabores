@@ -453,6 +453,15 @@ Desde **Más → Cuenta y ajustes → Usuarios y accesos** (solo lo ve el dueño
 - **Pestañas:** Clientes, Productos, Familias (con margen y ganancia), Zonas, Días de la semana, Vendedores y comisiones, y **En baja**: los clientes que compraron menos del 60 % que en el período anterior, con botón de WhatsApp para escribirles. Tocá un cliente para abrir su ficha. *Copiar para Excel* copia la pestaña que estás viendo.
 - **🕓 Historial** (sólo el dueño): quién cambió qué en el sistema.
 
+### Inicio: detalles
+
+- En los últimos días del mes, las **metas del mes que viene** aparecen con el cartel "Arrancan mañana" (sin barras vacías).
+- En **Actividad reciente**, los pedidos cancelados se ven en gris y tachados; los pedidos del catálogo dicen "desde el catálogo".
+- Si no hay facturas vencidas ni productos para reponer, ese plegable se esconde (ya lo dice "Todo al día").
+- Los seguimientos de prospectos vencidos se marcan en rojo.
+- El **respaldo** se muestra en una línea ("Respaldo al día"); tocala para ver el detalle y los botones.
+- En el celular, los accesos rápidos se ven en dos filas, sin tener que deslizar.
+
 ## 13. Rutina diaria y preguntas frecuentes
 
 Repartís de lunes a sábado y los pedidos cierran a las 20:00 para el día siguiente.
