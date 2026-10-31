@@ -163,13 +163,20 @@ El envío se suma solo: **gratis desde $ 150.000**, si no **$ 15.000**. Para pro
 
 - **Dónde:** *Clientes → Prospectos* (en lista) o *Ventas → Embudo de prospectos* (por etapas: Nuevo, Contactado, Visitado, Interesado y Ya es cliente).
 - **Filtrar:** arriba del embudo, **Zona o barrio** y **Tipo de negocio**. Por ejemplo *Saavedra* + *Supermercado chino* te deja solo esos para armar el recorrido del día.
+- **Cómo se usa el embudo:**
+  - Arriba, las **etapas con sus números** y el **% que pasa de una a la otra** (ahí ves dónde se te traban). En el celular tocás una etapa y ves solo esa; en la compu están todas en columnas.
+  - **Para hoy:** los 10 mejores para contactar hoy (primero los seguimientos vencidos, después los de más puntaje). Con **Cerca mío** se ordenan por distancia desde donde estás.
+  - Cada tarjeta: nombre y **puntaje**, rubro y barrio, **días en la etapa** (verde hasta 7, amarillo hasta 14, rojo más) y el **próximo paso** con fecha (en rojo si venció; si no tiene, dice *Sin próximo paso · cargar*). Botones: WhatsApp, Llamar, respuestas rápidas y **→ siguiente etapa**.
+  - **Al avanzar** te pregunta *¿Qué pasó?* y *¿Próximo paso y cuándo?* (o *Avanzar sin anotar*). La ✕ pide **el motivo** (precio, ya tiene proveedor, etc.); en la pestaña **Descartados** ves *Por qué se caen* y podés **Reactivar**.
+  - Ordená por **Más urgentes** o **Mayor puntaje**. Con **Elegir varios** marcás negocios y les mandás **WhatsApp uno por uno**, los movés de etapa o los descartás juntos.
+  - Para sumar un negocio: el botón **+ Prospecto** (abajo a la derecha): *El comercio donde estoy* o *Pegar una lista*.
 - **Ver los datos:** tocá el nombre y se despliega con dirección y barrio, teléfono (tocándolo llamás), notas y **Cómo llegar** (abre Google Maps en la puerta).
 - **Editar:** en la tarjeta desplegada, **Editar datos**, o **✏️ Editar** en la lista. Cambiás nombre, tipo, teléfono, contacto, dirección, barrio, etapa, prioridad, fecha para volver y notas.
 - **Avanzar de etapa:** **→ Contactado**, **→ Visitado**… Con **✕** queda como *No le interesa*. **WhatsApp** le manda el saludo y el catálogo de su rubro, y lo pasa a Contactado.
 - **Ver más:** cada columna muestra 40; abajo de todo, **Ver N más**.
 - **Seguimiento:** si le ponés fecha para volver, ese día aparece en *Seguimiento para hoy*.
 
-**📍 Agregar el comercio donde estoy** (arriba del embudo y de la lista), para los chinos que encontrás en la calle y no están en ninguna lista:
+**📍 Agregar el comercio donde estoy** (botón **+ Prospecto** del embudo y arriba de la lista), para los chinos que encontrás en la calle y no están en ninguna lista:
 
 1. Parado en la puerta, tocá el botón. La primera vez el celular pide permiso de ubicación: tocá *Permitir*.
 2. El CRM completa solo la **dirección** y el **barrio**. Revisalos.

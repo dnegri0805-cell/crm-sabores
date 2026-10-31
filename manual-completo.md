@@ -169,6 +169,13 @@ Abajo: accesos grandes a **Cola del día, Les toca comprar, Carritos y Presupues
 - **🌱 Primeros 90 días:** clientes nuevos y en qué pedido van (●○○). Si no hacen el 2° pedido les llega un mensaje; si no hacen el 3°, un cupón. Muestra qué % quedó como cliente fijo.
 - **🆘 Reclamos:** reclamos hechos desde "Mi cuenta" del cliente; respondé y cerralos.
 - **🧲 Embudo de prospectos:** Nuevo → Contactado → Visitado → Interesado → Ya es cliente. Botón **📋 Pegar una lista de prospectos** (nombre y teléfono por fila) y 💬 respuestas rápidas.
+  - **Cómo se usa el embudo:**
+    - Arriba, las **etapas con sus números** y el **% que pasa de una a la otra** (ahí ves dónde se te traban). En el celular tocás una etapa y ves solo esa; en la compu están todas en columnas.
+    - **Para hoy:** los 10 mejores para contactar hoy (primero los seguimientos vencidos, después los de más puntaje). Con **Cerca mío** se ordenan por distancia desde donde estás.
+    - Cada tarjeta: nombre y **puntaje**, rubro y barrio, **días en la etapa** (verde hasta 7, amarillo hasta 14, rojo más) y el **próximo paso** con fecha (en rojo si venció; si no tiene, dice *Sin próximo paso · cargar*). Botones: WhatsApp, Llamar, respuestas rápidas y **→ siguiente etapa**.
+    - **Al avanzar** te pregunta *¿Qué pasó?* y *¿Próximo paso y cuándo?* (o *Avanzar sin anotar*). La ✕ pide **el motivo** (precio, ya tiene proveedor, etc.); en la pestaña **Descartados** ves *Por qué se caen* y podés **Reactivar**.
+    - Ordená por **Más urgentes** o **Mayor puntaje**. Con **Elegir varios** marcás negocios y les mandás **WhatsApp uno por uno**, los movés de etapa o los descartás juntos.
+    - Para sumar un negocio: el botón **+ Prospecto** (abajo a la derecha): *El comercio donde estoy* o *Pegar una lista*.
 - **🚶 Ruta de prospección:** con tu ubicación (o una dirección) arma el recorrido con los prospectos más cercanos, con una frase para cada rubro. En cada negocio tocás 👍 Le interesa · 🔁 Volver · 👎 No · 🧾 Hizo pedido (lo da de alta en el momento). Botón para abrir la ruta en Google Maps.
 - **🧭 Zonas sin cubrir:** mapa con las zonas donde ya tenés clientes (verde) y las vecinas donde todavía no (naranja), con botones para buscar negocios, armar la ruta o **🚀 Lanzar** la zona ("¡Llegamos a tu barrio!" con cupón para el primer pedido a todos los prospectos de ahí). Abajo, los resultados de cada lanzamiento.
 - **📞 Modo llamadas:** prospectos con teléfono uno tras otro, ordenados por puntaje, con guion y el resultado en un toque (interesado, volver a llamar, no atendió, no le interesa).

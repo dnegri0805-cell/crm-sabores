@@ -2007,26 +2007,130 @@ async function vPreventa(){const due=S.perfil.rol=='dueno';
       await sb.from('pedido_items').insert({pedido_id:o.id,producto_id:p.producto_id,cantidad:r.cantidad,precio_unitario:pr,promo:'Preventa'});await sb.from('reservas').update({pedido_id:o.id}).eq('id',r.id);n++}
     toast(n+' pedidos creados en Pedidos → Por aprobar.');vPreventa()})}
 async function vEmbudo(){const{data,error}=await sb.from('prospectos').select('*').order('creado_en',{ascending:false}).limit(1000);if(error){$('#vs').innerHTML='<p class="err">'+esc(error.message)+'</p>';return}
-  const SCp=await cargarPuntajes().catch(()=>null);if(SCp)data.sort((a,b)=>SCp(b)-SCp(a));
+  const SCp=await cargarPuntajes().catch(()=>null),sc=x=>SCp?SCp(x):0;
   const zoE=x=>String(x.zona||x.ciudad||'').trim(),rbE=x=>String(x.rubro||'').trim(),ZE=[...new Set(data.map(zoE).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es')),RE=[...new Set(data.map(rbE).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
-  if(S.emZo&&!ZE.includes(S.emZo))S.emZo='';if(S.emRu&&!RE.includes(S.emRu))S.emRu='';S.emAll=S.emAll||{};
-  const vis=x=>(!S.emZo||zoE(x)==S.emZo)&&(!S.emRu||rbE(x)==S.emRu);
-  const G={},etK=x=>x.estado=='no_interesado'||ETAPAS.some(e=>e[0]==x.estado)?x.estado:'nuevo';for(const x of data.filter(vis))(G[etK(x)]=G[etK(x)]||[]).push(x);const tot=data.filter(x=>x.estado!='no_interesado').length,cl=(G.cliente||[]).length,hoy=diaLocal(new Date());
-  const seg=data.filter(x=>x.proximo_seguimiento&&x.proximo_seguimiento<=hoy&&!['cliente','no_interesado'].includes(x.estado));
-  const dias=x=>{const n=Math.floor((Date.now()-new Date(x.actualizado_en||x.creado_en||Date.now()))/864e5);return isNaN(n)?0:n};
-  $('#vs').innerHTML=`<div class="kp"><div class="box"><span class="lab">Prospectos</span><span class="num">${tot}</span></div><div class="box ok"><span class="lab">Se hicieron clientes</span><span class="num">${tot?Math.round(cl/tot*100):0} %</span><span class="det">${cl} de ${tot}</span></div><div class="box ${seg.length?'alerta':''}"><span class="lab">Seguimiento para hoy</span><span class="num">${seg.length}</span></div></div>
-  <div class="fc-acc" style="margin-bottom:8px;display:flex;flex-wrap:wrap;gap:8px"><button id="em_aqui">📍 Agregar el comercio donde estoy</button><button class="alt" id="em_imp">📋 Pegar una lista de prospectos</button></div>
-  <div class="box"><h3>🧲 Embudo de prospectos</h3><p><small>Cada negocio que querés sumar pasa por etapas. Movelo con "→" cuando avanza. Los que llevan muchos días quietos en una etapa necesitan un empujón (o una muestra).</small></p>
+  if(S.emZo&&!ZE.includes(S.emZo))S.emZo='';if(S.emRu&&!RE.includes(S.emRu))S.emRu='';S.emAll=S.emAll||{};S.emTab=S.emTab||'nuevo';S.emOrd=S.emOrd||'urg';
+  const vis=x=>(!S.emZo||zoE(x)==S.emZo)&&(!S.emRu||rbE(x)==S.emRu),V=data.filter(vis),hoy=diaLocal(new Date());
+  const etK=x=>x.estado=='no_interesado'||ETAPAS.some(e=>e[0]==x.estado)?x.estado:'nuevo',idx=k=>ETAPAS.findIndex(e=>e[0]==k),nomE=k=>k=='no_interesado'?'Descartados':(ETAPAS.find(e=>e[0]==k)||[,k])[1];
+  const dias=x=>{const n=Math.floor((Date.now()-new Date(x.etapa_desde||x.actualizado_en||x.creado_en||Date.now()))/864e5);return isNaN(n)?0:Math.max(0,n)};
+  const tono=x=>{const d=dias(x);return d>14?'r':d>7?'a':'v'};
+  const vence=x=>!x.proximo_seguimiento?'sin':x.proximo_seguimiento<hoy?'venc':x.proximo_seguimiento==hoy?'hoy':'fut';
+  const urg=x=>{const v=vence(x),d=dias(x);return v=='venc'?0:v=='hoy'?1:v=='sin'&&d>14?2:d>14?3:v=='sin'?4:5};
+  const ord=(a,b)=>S.emOrd=='pts'?(sc(b)-sc(a)):((urg(a)-urg(b))||(sc(b)-sc(a)));
+  const G={};for(const x of V)(G[etK(x)]=G[etK(x)]||[]).push(x);for(const k in G)G[k].sort(k=='no_interesado'?(a,b)=>(b.actualizado_en||'')>(a.actualizado_en||'')?1:-1:ord);
+  const TABS=[...ETAPAS.map(e=>e[0]),'no_interesado'];if(!TABS.includes(S.emTab))S.emTab='nuevo';
+  /* embudo: cuántos llegaron a cada etapa (los descartados cuentan hasta la etapa donde se cayeron) */
+  const lleg=ETAPAS.map((_,i)=>V.filter(x=>{const e=x.estado=='no_interesado'?(x.etapa_previa||'nuevo'):etK(x);return idx(e)>=i}).length);
+  const tot=V.filter(x=>x.estado!='no_interesado').length,cl=(G.cliente||[]).length,venc=V.filter(x=>!['cliente','no_interesado'].includes(x.estado)&&['venc','hoy'].includes(vence(x))).length;
+  const fdia=d=>{if(!d)return'';if(d==hoy)return'hoy';const a=new Date(hoy+'T12:00'),b=new Date(d+'T12:00'),n=Math.round((b-a)/864e5);if(n==1)return'mañana';if(n==-1)return'ayer';return b.toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'numeric'}).replace(',','')};
+  const masDias=n=>{const d=new Date();d.setDate(d.getDate()+n);return diaLocal(d)};
+  const MOT=['Precio','Ya tiene proveedor','No vende estos productos','Cerró / no existe','No contesta','Otro'];
+  const tel=x=>String(x.telefono||'').replace(/[^+\d]/g,'');
+  const paso=x=>{const k=etK(x);if(k=='no_interesado')return`<span class="cd-np mot">${IC('x',12)} ${esc(x.motivo_descarte||'Sin motivo')}${x.etapa_previa?' · estaba en '+esc(nomE(x.etapa_previa)):''}</span>`;if(k=='cliente')return'';
+    const v=vence(x);if(!x.proximo_paso&&v=='sin')return`<a class="cd-np sin" data-np="${x.id}">${IC('alert',12)} Sin próximo paso · cargar</a>`;
+    return`<a class="cd-np ${v}" data-np="${x.id}">${IC('calendar',12)} ${esc(x.proximo_paso||'Seguimiento')}${x.proximo_seguimiento?' · '+(v=='venc'?'venció ':'')+fdia(x.proximo_seguimiento):''}</a>`};
+  const pts=x=>{const s=sc(x);return SCp&&!['cliente','no_interesado'].includes(etK(x))?`<span class="cd-p ${s>=70?'hi':s>=45?'md':''}" title="Puntaje del prospecto">${s}</span>`:''};
+  const acc=x=>{const k=etK(x),i=idx(k),t=tel(x);return`<div class="cd-a">${t?`<button class="ib wa" data-ew="${x.id}" title="WhatsApp" aria-label="WhatsApp">${IC('chat',16)}</button><a class="ib" href="tel:${t}" title="Llamar" aria-label="Llamar">${IC('phone',16)}</a><button class="ib" data-err="${x.id}" title="Respuestas rápidas" aria-label="Respuestas rápidas">${IC('bolt',16)}</button>`:''}
+    ${k=='no_interesado'?`<button class="ib av" data-re="${x.id}">${IC('undo',14)} Reactivar</button>`:i>=0&&i<3?`<button class="ib av" data-av="${x.id}" data-e="${ETAPAS[i+1][0]}">→ ${ETAPAS[i+1][1]}</button>`:i==3?`<button class="ib av" data-ec="${x.id}">${IC('check',14)} Dar de alta</button>`:''}
+    ${k!='cliente'&&k!='no_interesado'?`<button class="ib x" data-en="${x.id}" title="No le interesa" aria-label="No le interesa">${IC('x',15)}</button>`:''}</div>`};
+  const tarjeta=x=>{const k=etK(x);return`<div class="cd t-${k=='cliente'||k=='no_interesado'?'n':tono(x)}${S.emSel&&S.emSel.has(x.id)?' sel':''}" data-cd="${x.id}">${S.emSel?`<label class="cd-ck"><input type="checkbox" data-sel="${x.id}" ${S.emSel.has(x.id)?'checked':''} aria-label="Elegir"></label>`:''}
+    <div class="cd-h"><details class="cdd"><summary><b>${esc(x.nombre)}</b></summary><div class="cdx">${x.domicilio?`<span>${IC('pin',14)} ${esc(x.domicilio)}${zoE(x)?' · '+esc(zoE(x)):''}</span>`:''}${x.telefono?`<span>${IC('phone',14)} <a class="lnk" href="tel:${esc(tel(x))}">${esc(x.telefono)}</a></span>`:''}${x.contacto?`<span>${IC('user',14)} ${esc(x.contacto)}</span>`:''}${x.observaciones?`<span class="ob">${esc(x.observaciones)}</span>`:''}${x.conversacion_obs?`<span class="ob">${esc(x.conversacion_obs).replace(/\n/g,'<br>')}</span>`:''}${x.domicilio||x.lat?`<a class="lnk" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${x.lat&&x.lng?x.lat+','+x.lng:encodeURIComponent(x.domicilio+', '+(x.ciudad||'Buenos Aires'))}">${IC('map',14)} Cómo llegar</a>`:''}<a class="lnk" data-ed="${x.id}">${IC('pencil',14)} Editar datos</a></div></details>${pts(x)}</div>
+    <small class="cd-s">${esc([rbE(x),zoE(x)].filter(Boolean).join(' · ')||'Sin rubro')}</small>
+    <div class="cd-m">${k!='cliente'&&k!='no_interesado'?`<span class="cd-d t-${tono(x)}" title="Días en esta etapa">${dias(x)} d</span>`:''}${paso(x)}</div>${S.emSel?'':acc(x)}</div>`};
+  /* Para hoy: los 10 mejores para contactar hoy (seguimientos vencidos primero, después puntaje; con «Cerca mío», por distancia) */
+  const km=(a,b,c,d)=>{const R=6371,r=Math.PI/180,x=Math.sin((c-a)*r/2)**2+Math.cos(a*r)*Math.cos(c*r)*Math.sin((d-b)*r/2)**2;return 2*R*Math.asin(Math.sqrt(x))};
+  const abiertos=V.filter(x=>idx(etK(x))>=0&&idx(etK(x))<4&&(x.telefono||x.lat));let PH;
+  if(S.emPos){PH=abiertos.filter(x=>x.lat&&x.lng).map(x=>({x,d:km(S.emPos[0],S.emPos[1],+x.lat,+x.lng)})).sort((a,b)=>(a.d-b.d)||(sc(b.x)-sc(a.x))).slice(0,10)}
+  else PH=abiertos.slice().sort((a,b)=>{const ua=['venc','hoy'].includes(vence(a))?0:1,ub=['venc','hoy'].includes(vence(b))?0:1;return(ua-ub)||(sc(b)-sc(a))}).slice(0,10).map(x=>({x}));
+  const por=o=>{const x=o.x,v=vence(x);return o.d!=null?(o.d<1?Math.round(o.d*1000)+' m':nf(Math.round(o.d*10)/10)+' km'):v=='venc'?'Seguimiento vencido':v=='hoy'?'Seguimiento hoy':SCp?'Puntaje '+sc(x):nomE(etK(x))};
+  const MS=V.filter(x=>x.estado=='no_interesado'),MC={};MS.forEach(x=>{const k=x.motivo_descarte||'Sin motivo';MC[k]=(MC[k]||0)+1});
+  $('#vs').innerHTML=`<div class="box em-box"><div class="bh"><h3 style="margin:0">${IC('target',20)} Embudo de prospectos</h3></div>
+    <p class="em-res"><b>${tot}</b> prospectos · <b>${tot?Math.round(cl/tot*100):0} %</b> se hicieron clientes${venc?` · <b class="err">${venc} seguimiento${venc==1?'':'s'} para hoy</b>`:''}</p>
     <div class="emf"><label class="f">Zona o barrio<select id="em_z"><option value="">Todas</option>${ZE.map(z=>`<option ${S.emZo==z?'selected':''}>${esc(z)}</option>`).join('')}</select></label><label class="f">Tipo de negocio<select id="em_r"><option value="">Todos</option>${RE.map(z=>`<option ${S.emRu==z?'selected':''}>${esc(z)}</option>`).join('')}</select></label></div>
-    <div class="emb">${ETAPAS.map(([k,t],i)=>`<div class="col"><div class="hd"><b>${t}</b> <span class="badge">${(G[k]||[]).length}</span></div>${(G[k]||[]).slice(0,S.emAll[k]?2000:40).map(x=>`<div class="cd ${dias(x)>14&&k!='cliente'?'viejo':''}"><details class="cdd"><summary><b>${esc(x.nombre)}</b></summary><div class="cdx">${x.domicilio?`<span>${IC('pin',14)} ${esc(x.domicilio)}${zoE(x)?' · '+esc(zoE(x)):''}</span>`:''}${x.telefono?`<span>${IC('phone',14)} <a class="lnk" href="tel:${esc(String(x.telefono).replace(/[^+\d]/g,''))}">${esc(x.telefono)}</a></span>`:''}${x.contacto?`<span>${IC('user',14)} ${esc(x.contacto)}</span>`:''}${x.observaciones?`<span class="ob">${esc(x.observaciones)}</span>`:''}${x.domicilio||x.lat?`<a class="lnk" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${x.lat&&x.lng?x.lat+','+x.lng:encodeURIComponent(x.domicilio+', '+(x.ciudad||'Buenos Aires'))}">${IC('map',14)} Cómo llegar</a>`:''}<a class="lnk" data-ed="${x.id}">${IC('pencil',14)} Editar datos</a></div></details>${SCp&&k!='cliente'?' '+badgeP(SCp(x)):''}<small>${esc(x.rubro||'')}${x.rubro?' · ':''}${dias(x)} d en esta etapa</small>
-      <div>${x.telefono?`<a class="lnk" data-ew="${x.id}">WhatsApp</a> <a class="lnk" data-err="${x.id}">💬</a>`:''}${i<3?` <a class="lnk" data-em="${x.id}" data-e="${ETAPAS[i+1][0]}">→ ${ETAPAS[i+1][1]}</a>`:''}${i==3?` <a class="lnk" data-ec="${x.id}">→ Dar de alta</a>`:''}${k!='cliente'?` <a class="lnk" data-en="${x.id}">✕</a>`:''}</div></div>`).join('')}${(G[k]||[]).length>40&&!S.emAll[k]?`<button class="alt" data-emv="${k}" style="width:100%">Ver ${(G[k]||[]).length-40} más</button>`:''}</div>`).join('')}</div></div>`;
-  $('#em_z').onchange=e=>{S.emZo=e.target.value;vEmbudo()};$('#em_r').onchange=e=>{S.emRu=e.target.value;vEmbudo()};$$('#vs [data-emv]').forEach(b=>b.onclick=()=>{S.emAll[b.dataset.emv]=1;vEmbudo()});$$('#vs [data-ed]').forEach(a=>a.onclick=()=>editarProspecto(data.find(y=>y.id==a.dataset.ed),vEmbudo));
-  const P=id=>data.find(x=>x.id==id),upd=async(id,o)=>{const{error}=await sb.from('prospectos').update({...o,actualizado_en:new Date().toISOString()}).eq('id',id);if(error)return toast(error.message,1);vEmbudo()};
-  $$('#vs [data-em]').forEach(a=>a.onclick=()=>upd(a.dataset.em,{estado:a.dataset.e,ultimo_contacto:diaLocal(new Date())}));
-  $$('#vs [data-en]').forEach(a=>a.onclick=()=>{if(confirm('¿Marcar como "No le interesa"?'))upd(a.dataset.en,{estado:'no_interesado'})});
-  $$('#vs [data-ew]').forEach(a=>a.onclick=()=>{const x=P(a.dataset.ew);window.open('https://wa.me/'+telWA(x.telefono)+'?text='+encodeURIComponent(`¡Hola! Te escribo de *Sabores de mi País*, distribuidora de alimentos 👋`+(x.rubro?' Te paso nuestro catálogo para '+x.rubro.toLowerCase()+'s:\n'+linkRubro(x.rubro):'')),'_blank');if(x.estado=='nuevo')upd(x.id,{estado:'contactado',ultimo_contacto:diaLocal(new Date())})});
-  $('#em_imp').onclick=()=>importarProspectos(vEmbudo);$('#em_aqui').onclick=()=>agregarAqui(vEmbudo);$$('#vs [data-err]').forEach(a=>a.onclick=()=>respuestasRapidas(P(a.dataset.err)));
-  $$('#vs [data-ec]').forEach(a=>a.onclick=async()=>{const x=P(a.dataset.ec);if(!confirm('¿Dar de alta a «'+x.nombre+'» como cliente'+(x.telefono?' y mandarle su catálogo por WhatsApp':'')+'?'))return;const w=x.telefono?window.open('','_blank'):null;if(await altaExpres(x,w))vEmbudo()})}
+    ${PH.length?`<details class="em-hoy" ${S.emHoyX?'':'open'}><summary>${IC('flame',17)} <b>Para hoy</b> <small>${S.emPos?'los más cerca tuyo':'los 10 mejores para contactar'}</small></summary>
+      <div class="em-hoyb"><div class="em-hoyt"><small>${S.emPos?'Ordenados por distancia desde donde estás.':'Primero los seguimientos vencidos, después los de más puntaje.'}</small><button class="alt" id="em_cerca">${IC('pin',14)} ${S.emPos?'Ver por puntaje':'Cerca mío'}</button></div>
+      ${PH.map((o,j)=>`<div class="em-hr${j>2&&!S.emHoyM?' em-hx':''}"><div><b>${esc(o.x.nombre)}</b><small>${esc(nomE(etK(o.x)))} · ${esc(por(o))}${rbE(o.x)?' · '+esc(rbE(o.x)):''}</small></div><span>${o.x.telefono?`<button class="ib wa" data-ew="${o.x.id}" aria-label="WhatsApp">${IC('chat',16)}</button>`:''}${o.x.lat?`<a class="ib" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${o.x.lat},${o.x.lng}" aria-label="Cómo llegar">${IC('map',16)}</a>`:''}${idx(etK(o.x))<3?`<button class="ib av" data-av="${o.x.id}" data-e="${ETAPAS[idx(etK(o.x))+1][0]}">→</button>`:''}</span></div>`).join('')}${PH.length>3&&!S.emHoyM?`<a class="lnk em-hm" id="em_hm">Ver ${PH.length-3} más</a>`:''}</div></details>`:''}
+    <div class="emt" role="tablist">${ETAPAS.map(([k,t],i)=>`${i?`<span class="emt-c" title="De ${lleg[i-1]} que llegaron a ${esc(ETAPAS[i-1][1])}, ${lleg[i]} pasaron a ${esc(t)}">${lleg[i-1]?Math.round(lleg[i]/lleg[i-1]*100):0} %</span>`:''}<button class="emt-s ${S.emTab==k?'on':''} ${k=='cliente'?'ok':''}" data-tab="${k}" role="tab" aria-selected="${S.emTab==k}"><span class="n">${(G[k]||[]).length}</span><span class="t">${t}</span></button>`).join('')}<button class="emt-s dsc ${S.emTab=='no_interesado'?'on':''}" data-tab="no_interesado" role="tab"><span class="n">${MS.length}</span><span class="t">Descartados</span></button></div>
+    <div class="em-tb"><span class="seg"><button class="${S.emOrd=='urg'?'on':''}" data-ord="urg">Más urgentes</button><button class="${S.emOrd=='pts'?'on':''}" data-ord="pts">Mayor puntaje</button></span><a class="lnk" id="em_sel">${S.emSel?'Cancelar selección':IC('check',14)+' Elegir varios'}</a></div>
+    ${S.emSel?`<p class="em-selh"><small>Tocá los negocios para elegirlos.</small> <a class="lnk" id="em_selall">Elegir todos los de ${esc(nomE(S.emTab))}</a></p>`:''}
+    <p class="em-ley"><small><i class="t-v"></i> hasta 7 días en la etapa <i class="t-a"></i> 8 a 14 <i class="t-r"></i> más de 14</small></p>
+    <div class="emb">${TABS.map(k=>{const L=G[k]||[],lim=S.emAll[k]?2000:40;return`<div class="col ${S.emTab==k?'on':''} ${k=='no_interesado'?'dsc':''}" data-col="${k}"><div class="hd"><b>${esc(nomE(k))}</b> <span class="badge">${L.length}</span></div>
+      ${k=='no_interesado'&&MS.length?`<div class="em-mot"><b>Por qué se caen</b>${Object.entries(MC).sort((a,b)=>b[1]-a[1]).map(([m,n])=>`<span>${esc(m)} <b>${n}</b></span>`).join('')}</div>`:''}
+      ${L.slice(0,lim).map(tarjeta).join('')||`<p class="em-vac"><small>${k=='no_interesado'?'Nadie descartado.':'No hay negocios en esta etapa'+(S.emZo||S.emRu?' con estos filtros':'')+'.'}</small></p>`}
+      ${L.length>lim?`<button class="alt" data-emv="${k}" style="width:100%">Ver ${L.length-lim} más</button>`:''}</div>`}).join('')}</div></div>
+`;
+  document.getElementById('em_fixed')?.remove();const FX=document.createElement('div');FX.id='em_fixed';document.body.appendChild(FX);
+  FX.innerHTML=`<div class="em-fab">${S.emSel?'':`<button id="em_fab" aria-label="Agregar prospecto">${IC('plus',20)} Prospecto</button>`}</div>
+    ${S.emSel?`<div class="em-bulk"><b id="em_n">${S.emSel.size} elegido${S.emSel.size==1?'':'s'}</b><button class="wa" id="em_bw">${IC('chat',16)} WhatsApp uno por uno</button><select id="em_bm"><option value="">Mover a…</option>${ETAPAS.slice(0,4).map(([k,t])=>`<option value="${k}">${t}</option>`).join('')}</select><button class="alt" id="em_bx">${IC('x',14)} No le interesa</button></div>`:''}`;
+  clearInterval(window.__emV);window.__emV=setInterval(()=>{if(!document.querySelector('#vs .em-box')){FX.remove();clearInterval(window.__emV)}},600);
+  const hm=$('#em_hm');if(hm)hm.onclick=()=>{S.emHoyM=1;$$('#vs .em-hx').forEach(r=>r.classList.remove('em-hx'));hm.remove()};
+  const P=id=>data.find(x=>x.id==id);
+  const upd=async(id,o)=>{const ids=[].concat(id);const q=sb.from('prospectos').update({...o,actualizado_en:new Date().toISOString()});const{error}=await(ids.length==1?q.eq('id',ids[0]):q.in('id',ids));if(error){toast(error.message,1);return false}return true};
+  const re=()=>vEmbudo();
+  $('#em_z').onchange=e=>{S.emZo=e.target.value;re()};$('#em_r').onchange=e=>{S.emRu=e.target.value;re()};
+  $$('#vs [data-emv]').forEach(b=>b.onclick=()=>{S.emAll[b.dataset.emv]=1;re()});$$('#vs [data-ed]').forEach(a=>a.onclick=()=>editarProspecto(P(a.dataset.ed),re));
+  $$('#vs [data-tab]').forEach(b=>b.onclick=()=>{S.emTab=b.dataset.tab;re();setTimeout(()=>{const c=$('#vs .emb .col.on');if(c&&innerWidth>=900)c.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'})},50)});
+  $$('#vs [data-ord]').forEach(b=>b.onclick=()=>{S.emOrd=b.dataset.ord;re()});
+  const hd=$('#vs .em-hoy');if(hd)hd.ontoggle=()=>{S.emHoyX=!hd.open};
+  const ce=$('#em_cerca');if(ce)ce.onclick=()=>{if(S.emPos){S.emPos=null;return re()}if(!navigator.geolocation)return toast('Este equipo no da la ubicación.',1);ce.disabled=true;ce.textContent='Buscando dónde estás…';
+    navigator.geolocation.getCurrentPosition(p=>{S.emPos=[p.coords.latitude,p.coords.longitude];re()},()=>{ce.disabled=false;toast('No pude tomar la ubicación: prendela y dale permiso al CRM.',1);re()},{enableHighAccuracy:true,timeout:12000})};
+  /* próximo paso: al avanzar de etapa o tocando la línea del calendario */
+  const pasoModal=(x,nuevo)=>{const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+    const SUG={contactado:'Visitar',visitado:'Mandar muestra',interesado:'Tomar el primer pedido'},sug=nuevo?SUG[nuevo]||'':'',vp=nuevo?sug:(x.proximo_paso||''),vf=nuevo?masDias(2):(x.proximo_seguimiento||'');
+    m.innerHTML=`<div class="mc em-pm"><div class="bh"><h3 style="margin:0">${nuevo?`${esc(x.nombre)} → ${esc(nomE(nuevo))}`:`Próximo paso · ${esc(x.nombre)}`}</h3><button class="alt" id="pm_x">Cerrar</button></div>
+      <label class="f">¿Qué pasó?<textarea id="pm_q" rows="3" placeholder="Ej.: hablé con el dueño, le interesa el dulce de leche y la manteca"></textarea></label>
+      <label class="f">Próximo paso<input id="pm_p" value="${esc(vp)}" placeholder="Qué vas a hacer"></label>
+      <div class="em-ch">${['Llamar','Visitar','Mandar lista','Mandar muestra','Tomar el primer pedido'].map(t=>`<button class="alt" data-pp="${t}">${t}</button>`).join('')}</div>
+      <label class="f">¿Cuándo?<input type="date" id="pm_f" value="${vf}"></label>
+      <div class="em-ch">${[['Hoy',0],['Mañana',1],['En 3 días',3],['Próxima semana',7]].map(([t,n])=>`<button class="alt" data-pf="${masDias(n)}">${t}</button>`).join('')}<button class="alt" data-pf="">Sin fecha</button></div>
+      <div class="fc-acc"><button id="pm_ok">${nuevo?'Avanzar y guardar':'Guardar'}</button>${nuevo?'<button class="alt" id="pm_sa">Avanzar sin anotar</button>':''}<button class="alt" id="pm_c">Cancelar</button></div></div>`;
+    const c2=()=>m.remove();m.querySelector('#pm_x').onclick=c2;m.querySelector('#pm_c').onclick=c2;m.onclick=e=>{if(e.target===m)c2()};
+    m.querySelectorAll('[data-pp]').forEach(b=>b.onclick=()=>{m.querySelector('#pm_p').value=b.dataset.pp});m.querySelectorAll('[data-pf]').forEach(b=>b.onclick=()=>{m.querySelector('#pm_f').value=b.dataset.pf;m.querySelectorAll('[data-pf]').forEach(z=>z.classList.toggle('on',z===b))});
+    const sa=m.querySelector('#pm_sa');if(sa)sa.onclick=async()=>{if(await upd(x.id,{estado:nuevo,ultimo_contacto:hoy})){c2();toast('Pasó a '+nomE(nuevo)+'.');re()}};
+    m.querySelector('#pm_ok').onclick=async()=>{const q=m.querySelector('#pm_q').value.trim(),o={proximo_paso:m.querySelector('#pm_p').value.trim()||null,proximo_seguimiento:m.querySelector('#pm_f').value||null};
+      if(nuevo){o.estado=nuevo;o.ultimo_contacto=hoy}if(q){const d=new Date().toLocaleDateString('es-AR',{day:'numeric',month:'numeric'});o.conversacion_obs=(x.conversacion_obs?x.conversacion_obs+'\n':'')+d+': '+q;if(!nuevo)o.ultimo_contacto=hoy}
+      const b=m.querySelector('#pm_ok');b.disabled=true;if(await upd(x.id,o)){c2();toast(nuevo?'Pasó a '+nomE(nuevo)+'.':'Próximo paso guardado.');if(nuevo=='interesado'&&typeof festejo=='function')festejo('emb_int','¡Un interesado más!');re()}else b.disabled=false}};
+  /* descartar con motivo (uno o varios) */
+  const descartar=ids=>{const m=document.createElement('div');m.className='modal';document.body.appendChild(m);const uno=ids.length==1?P(ids[0]):null;
+    m.innerHTML=`<div class="mc em-pm"><div class="bh"><h3 style="margin:0">No le interesa${uno?' · '+esc(uno.nombre):` · ${ids.length} negocios`}</h3><button class="alt" id="ds_x">Cerrar</button></div>
+      <p><small>¿Por qué? Así después ves dónde se te caen y si conviene volver a intentar.</small></p>
+      <div class="em-ch em-mo">${MOT.map(t=>`<button class="alt" data-mo="${t}">${t}</button>`).join('')}</div>
+      <label class="f">Detalle (opcional)<input id="ds_t" placeholder="Ej.: compra a $ 4.000 el dulce de leche"></label>
+      <div class="fc-acc"><button id="ds_ok" disabled>Descartar</button><button class="alt" id="ds_c">Cancelar</button></div></div>`;
+    let mo='';const c2=()=>m.remove();m.querySelector('#ds_x').onclick=c2;m.querySelector('#ds_c').onclick=c2;m.onclick=e=>{if(e.target===m)c2()};
+    m.querySelectorAll('[data-mo]').forEach(b=>b.onclick=()=>{mo=b.dataset.mo;m.querySelectorAll('[data-mo]').forEach(z=>z.classList.toggle('on',z===b));m.querySelector('#ds_ok').disabled=false});
+    m.querySelector('#ds_ok').onclick=async()=>{const t=m.querySelector('#ds_t').value.trim(),mot=mo=='Otro'&&t?t:mo+(t&&mo!='Otro'?' — '+t:'');
+      if(await upd(ids,{estado:'no_interesado',motivo_descarte:mot,proximo_seguimiento:null})){c2();S.emSel=null;toast(ids.length==1?'Descartado: '+mo+'.':ids.length+' descartados.');re()}}};
+  const msgWA=x=>`¡Hola! Te escribo de *Sabores de mi País*, distribuidora de alimentos 👋`+(x.rubro?' Te paso nuestro catálogo para '+x.rubro.toLowerCase()+'s:\n'+linkRubro(x.rubro):'');
+  $$('#vs [data-np]').forEach(a=>a.onclick=e=>{e.stopPropagation();pasoModal(P(a.dataset.np),null)});
+  $$('#vs [data-av]').forEach(a=>a.onclick=e=>{e.stopPropagation();pasoModal(P(a.dataset.av),a.dataset.e)});
+  $$('#vs [data-en]').forEach(a=>a.onclick=e=>{e.stopPropagation();descartar([a.dataset.en])});
+  $$('#vs [data-re]').forEach(a=>a.onclick=async()=>{const x=P(a.dataset.re),e=x.etapa_previa&&x.etapa_previa!='no_interesado'?x.etapa_previa:'nuevo';if(await upd(x.id,{estado:e,motivo_descarte:null})){toast('Volvió a '+nomE(e)+'.');re()}});
+  $$('#vs [data-ew]').forEach(a=>a.onclick=e=>{e.stopPropagation();const x=P(a.dataset.ew);window.open('https://wa.me/'+telWA(x.telefono)+'?text='+encodeURIComponent(msgWA(x)),'_blank');if(x.estado=='nuevo')upd(x.id,{estado:'contactado',ultimo_contacto:hoy,proximo_paso:x.proximo_paso||'Ver si respondió',proximo_seguimiento:x.proximo_seguimiento||masDias(2)}).then(ok=>ok&&re())});
+  $$('#vs [data-err]').forEach(a=>a.onclick=()=>respuestasRapidas(P(a.dataset.err)));
+  $$('#vs [data-ec]').forEach(a=>a.onclick=async()=>{const x=P(a.dataset.ec);if(!confirm('¿Dar de alta a «'+x.nombre+'» como cliente'+(x.telefono?' y mandarle su catálogo por WhatsApp':'')+'?'))return;const w=x.telefono?window.open('','_blank'):null;if(await altaExpres(x,w)){typeof festejo=='function'&&festejo('emb_cli','¡Cliente nuevo!');re()}});
+  /* botón flotante + Prospecto */
+  const fab=$('#em_fab');if(fab)fab.onclick=()=>{const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
+    m.innerHTML=`<div class="mc"><div class="bh"><h3 style="margin:0">Agregar prospecto</h3><button class="alt" id="fb_x">Cerrar</button></div><div class="fl-op">
+      <button class="alt" id="fb_aqui">${IC('pin',22)}<span><b>El comercio donde estoy</b><small>Toma la ubicación del celular</small></span></button>
+      <button class="alt" id="fb_imp">${IC('doc',22)}<span><b>Pegar una lista</b><small>Varios negocios de una vez</small></span></button></div></div>`;
+    const c2=()=>m.remove();m.querySelector('#fb_x').onclick=c2;m.onclick=e=>{if(e.target===m)c2()};m.querySelector('#fb_aqui').onclick=()=>{c2();agregarAqui(re)};m.querySelector('#fb_imp').onclick=()=>{c2();importarProspectos(re)}};
+  /* elegir varios y acciones en grupo */
+  $('#em_sel').onclick=()=>{S.emSel=S.emSel?null:new Set();re()};
+  if(S.emSel){const pn=()=>{const n=S.emSel.size;$('#em_n').textContent=n+' elegido'+(n==1?'':'s');['#em_bw','#em_bm','#em_bx'].forEach(s=>$(s).disabled=!n)};
+    $$('#vs [data-sel]').forEach(i=>i.onchange=()=>{i.checked?S.emSel.add(i.dataset.sel):S.emSel.delete(i.dataset.sel);i.closest('.cd').classList.toggle('sel',i.checked);pn()});
+    $$('#vs .cd[data-cd]').forEach(c=>c.onclick=e=>{if(e.target.closest('summary,.cdx,input,a'))return;const i=c.querySelector('[data-sel]');if(i){i.checked=!i.checked;i.onchange()}});
+    const sa=$('#em_selall');if(sa)sa.onclick=()=>{(G[S.emTab]||[]).slice(0,S.emAll[S.emTab]?2000:40).forEach(x=>S.emSel.add(x.id));re()};
+    $('#em_bx').onclick=()=>descartar([...S.emSel]);
+    $('#em_bm').onchange=async e=>{const k=e.target.value;if(!k)return;if(await upd([...S.emSel],{estado:k,ultimo_contacto:hoy})){toast(S.emSel.size+' pasaron a '+nomE(k)+'.');S.emSel=null;re()}};
+    $('#em_bw').onclick=()=>{const Q=[...S.emSel].map(P).filter(x=>x&&x.telefono);if(!Q.length)return toast('Ninguno de los elegidos tiene WhatsApp.',1);const m=document.createElement('div');m.className='modal';document.body.appendChild(m);let hechos=0;
+      const paso2=k=>{if(k>=Q.length){m.remove();toast(hechos?`Listo: ${hechos} mensaje${hechos==1?'':'s'}.`:'No se mandó ninguno.');S.emSel=null;re();return}const x=Q[k];
+        m.innerHTML=`<div class="mc em-pm"><div class="bh"><h3 style="margin:0">${k+1} de ${Q.length} · ${esc(x.nombre)}</h3><button class="alt" id="bw_x">Terminar</button></div><div class="fl-prog"><i style="width:${Math.round(k/Q.length*100)}%"></i></div>
+          <label class="f">Mensaje<textarea id="bw_t" rows="6">${esc(msgWA(x))}</textarea></label><p><small>Se abre su chat con el mensaje. Al volver, seguís con el próximo. Los que estaban en Nuevo pasan a Contactado.</small></p>
+          <div class="fc-acc"><button class="wa" id="bw_ok">${IC('chat',16)} Abrir WhatsApp</button><button class="alt" id="bw_sk">Saltar</button></div></div>`;
+        m.querySelector('#bw_x').onclick=()=>paso2(Q.length);m.querySelector('#bw_sk').onclick=()=>paso2(k+1);
+        m.querySelector('#bw_ok').onclick=()=>{window.open('https://wa.me/'+telWA(x.telefono)+'?text='+encodeURIComponent(m.querySelector('#bw_t').value),'_blank');hechos++;if(x.estado=='nuevo')upd(x.id,{estado:'contactado',ultimo_contacto:hoy,proximo_paso:x.proximo_paso||'Ver si respondió',proximo_seguimiento:x.proximo_seguimiento||masDias(2)});paso2(k+1)}};
+      paso2(0)};pn()}}
 /* ---------- 12. Precios redondeados ---------- */
 async function vRedondeo(){const due=S.perfil.rol=='dueno';
   const{data}=await sb.from('config_app').select('valor').eq('clave','redondeo_precios').maybeSingle();let d={};try{d=JSON.parse(data?.valor||'{}')||{}}catch(e){}
