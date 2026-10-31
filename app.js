@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-31.23';
+const VERSION='2026-10-31.24';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -3665,7 +3665,7 @@ async function tuDiaInicio(){const box=$('#tudia');if(!box)return;const hoy=diaL
 function metasResumen(){const box=$('#m1l');if(!box)return;const R=S.metaRes||{},L=[...(R.mani?[R.mani]:[]),...(R.kg||[])];if(!L.length){box.innerHTML='';return}
   const ab=S.metaAb||'',sig=L.find(x=>x.sig),mes=(sig?sig.mesSig:L[0].mes)||'';
   box.innerHTML=`<div class="box m1"><div class="m1-h"><h3>${IC('target',18)} Metas de ${esc(mes.toLowerCase())}</h3><small>Tocá una para ver el detalle</small></div>
-    ${L.map(x=>`<button class="m1-r${ab==x.key?' on':''}" data-m1="${x.key}" aria-expanded="${ab==x.key}"><span class="m1-f">${x.f?`<img src="${esc(x.f)}" alt="" loading="lazy">`:esc((x.n||'?')[0])}</span><span class="m1-t"><b>${esc(x.n)}</b><span class="m1-b"><i style="width:${Math.round(Math.min(1,x.pc||0)*100)}%" class="${(x.pc||0)>=1?'ok':''}"></i></span><small>${esc(x.sub||'')}</small></span><span class="m1-v">${esc(x.val||'')}</span><span class="m1-c">${IC('down',16)}</span></button>`).join('')}</div>`;
+    ${L.map(x=>`<button class="m1-r${ab==x.key?' on':''}" data-m1="${x.key}" aria-expanded="${ab==x.key}"><span class="m1-f">${x.f?`<img src="${esc(x.f)}" alt="" loading="lazy">`:esc((x.n||'?')[0])}</span><span class="m1-t"><b>${esc(x.n)}</b><span class="m1-b"><i style="width:${Math.round(Math.min(1,x.pc||0)*100)}%" class="${(x.pc||0)>=1?'ok':''}"></i></span><small>${esc(x.sub||'')}</small></span><span class="m1-v">${esc(x.val||'')}</span><span class="m1-c">${IC('down',16)}</span></button>`).join('')}${(R.kg||[]).length?'<p class="m1-eq">1 caja de Jamón BOYA ≈ 25 kg · 1 caja de queso La Tarantela ≈ 16 kg · 1 caja de salame ≈ 10 kg (aprox.)</p>':''}</div>`;
   const mostrar=()=>{const k=S.metaAb||'',mj=$('#manijl'),mk=$('#metaskg');if(mj)mj.hidden=k!='mani';if(mk)mk.hidden=!k.startsWith('kg')};mostrar();
   box.querySelectorAll('[data-m1]').forEach(b=>b.onclick=()=>{const k=b.dataset.m1;S.metaAb=S.metaAb==k?'':k;box.querySelectorAll('[data-m1]').forEach(z=>{const on=z.dataset.m1==S.metaAb;z.classList.toggle('on',on);z.setAttribute('aria-expanded',on)});mostrar();
     if(S.metaAb.startsWith('kg')){const i=+S.metaAb.slice(2);if(i!=R.kgSel){const t=$(`#metaskg [data-mk="${i}"]`);t&&t.click()}setTimeout(()=>$('#metaskg')?.scrollIntoView({behavior:'smooth',block:'nearest'}),60)}
