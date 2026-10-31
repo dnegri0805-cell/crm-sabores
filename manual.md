@@ -13,6 +13,7 @@ Las funciones del CRM tal como quedaron, en el orden en que las usás en el día
 - **🔔 Campanita** (arriba, al lado de la lupa): lo que pasó en los últimos 7 días (pedidos online o de vendedores, entregas, comprobantes de pago, reclamos y pedidos del catálogo). El numerito dice cuántas novedades no viste; tocando cada una vas directo.
 - **Arriba:** la lupa busca un cliente, un producto o un pedido desde cualquier pantalla; **?** abre la ayuda de la pantalla en la que estás; **Aa** cambia el tamaño de letra y el modo oscuro.
 - **Avisos de pedidos:** en **Aa → 📲 Activar en este celular** te llega una notificación por cada pedido nuevo, aunque el CRM esté cerrado. Con el CRM abierto, además suena un timbre que se repite hasta que tocás **Ver pedido** (probalo en **Aa → Probar la alarma**).
+- **Al bajar en una pantalla** (celular), el título pasa arriba, a la barra, y queda siempre a la vista.
 - **Se actualiza solo:** cuando hay una mejora, la página se recarga sola. Si algo no aparece, cerrá la app del todo y volvé a abrirla.
 - **Si se cierra tu sesión** (por ejemplo, saliste desde otro equipo), el CRM te lleva a la pantalla de ingreso con el aviso *Tu sesión se cerró*. Volvé a entrar con tu correo y contraseña.
 
@@ -103,6 +104,8 @@ El envío se suma solo: **gratis desde $ 150.000**, si no **$ 15.000**. Para pro
 
 ## 5. Clientes y prospectos
 
+- **Deslizar (celular):** deslizá un cliente a la izquierda para WhatsApp, Llamar o mandar su Lista; a la derecha, para cargarle un pedido.
+- **Anillo de color** alrededor de las iniciales: verde al día, amarillo le toca comprar, rojo debe, gris dormido, azul nuevo.
 - **Lista:** agrupada por rubro, con buscador por nombre o CUIT y filtros por rubro. Cada cliente muestra cuándo compró por última vez y tres botones: lista de precios, WhatsApp y llamar.
 - **Pestañas:** Clientes · Ruta de hoy · Agenda de visitas · Mapa · Dormidos · Prospectos · Pedidos fijos.
 - **Puntaje de salud** (0 a 100, en un anillo verde, amarillo o rojo): mezcla cada cuánto compra (40), cuánto compra comparado con los demás (25), si paga a tiempo (20) y si viene subiendo o bajando (15). En la ficha, tocando el anillo ves el detalle. En la lista, **Ordenar por puntaje** muestra primero los mejores.
@@ -158,7 +161,7 @@ Foto con fondo liso y buena luz. Con 10 por día, en un par de semanas completá
 
 Pestañas: Órdenes de compra · Facturas · Órdenes de pago · Proveedores · Sugerencia de compra · Mejor proveedor · Historial de costos.
 
-1. **Orden de compra:** elegís el proveedor, la fecha de entrega y los productos, y guardás. Se manda al proveedor por WhatsApp.
+1. **Orden de compra:** tocá **+ Nueva orden de compra**, elegís el proveedor, la fecha de entrega y los productos, y guardás. Se manda al proveedor por WhatsApp.
 2. **Factura del proveedor:** cuando llega la mercadería, la cargás en **Facturas**. Con **Factura por foto** (arriba) le sacás foto y el CRM lee los renglones; revisá todo antes de confirmar.
 3. **Orden de pago:** elegís las facturas que cancelás y con qué pagás (efectivo, transferencia, cheque). Sale el comprobante en PDF para que firme el proveedor.
 
@@ -197,7 +200,7 @@ Al final, **Configurar avisos y cobros**: tono del mensaje, datos para transferi
 
 - **Arriba:** el día, con flechas para ir al anterior o al siguiente, y **Cierre del día**.
 - **Números:** Cobrado, Pagado a proveedores, Gastos y Efectivo en caja.
-- **Cargar gasto:** categoría, importe, medio de pago y detalle.
+- **Cargar gasto:** tocá **+ Cargar gasto** (o el botón + de abajo a la derecha): categoría, importe, medio de pago y detalle.
 - **Cierre de caja:** contás el efectivo (con **Contar billetes** si querés) y el CRM lo compara con lo que debería haber.
 - **Ganancia del mes:** ventas menos costo de la mercadería y gastos.
 
@@ -212,7 +215,7 @@ La credencial queda guardada en el servidor y nadie la puede volver a ver desde 
 
 ## 10. Stock y Contable
 
-**Stock:** cada producto muestra Físico (lo que hay), Reservado (lo comprometido en pedidos) y Disponible.
+**Stock:** cada producto es un renglón con su foto y un cartelito: 🔴 *Sin stock*, 🟡 *Bajo el mínimo* o 🟢 *Disponible*. Tocándolo se abre con Físico (lo que hay), Reservado (lo comprometido en pedidos) y Disponible.
 
 - **Contar:** escribí en **Contado** lo que hay y en **Mínimo** desde cuánto querés que te avise. Después, **Guardar cambios**.
 - **Filtros:** *Bajo el mínimo* y *Quesos y fiambres* (se ven en kilos).

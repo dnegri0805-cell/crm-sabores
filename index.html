@@ -1181,12 +1181,49 @@ html.oscuro .rc-k div{background:#18202f;border-color:#273246}
 .cm-add select{width:100%}.cm-b{display:flex;flex-direction:column;gap:6px}#cm_g{width:100%;margin-top:14px;min-height:48px}
 .cm-pb{margin-top:8px}.cm-pb small{color:var(--tx2);font-size:13px}
 .rk-cfg{font-size:13px;display:inline-flex;align-items:center;gap:4px;text-decoration:none;font-weight:600}
+
+/* Formularios plegables (Caja: gasto, Compras: nueva orden) */
+details.nform>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:700;font-size:15.5px;color:var(--m);min-height:28px}
+details.nform>summary::-webkit-details-marker{display:none}
+details.nform:not([open]){border-style:dashed!important;background:transparent!important;box-shadow:none}
+details.nform[open]>summary{justify-content:flex-start;margin-bottom:10px;color:#1c2333}details.nform[open]>summary .ic{transform:rotate(45deg);transition:transform .2s}
+html.oscuro details.nform[open]>summary{color:#e6e9f0}
+/* Stock compacto */
+#s_t tr.srow{cursor:pointer}.st-p{display:flex;align-items:center;gap:10px}.st-p>div{flex:1;min-width:0}.st-p img,.st-ph{width:42px;height:42px;border-radius:9px;object-fit:contain;background:#f6f7fa;border:1px solid #eceef3;flex:none}
+.st-e{display:inline-block;margin-top:4px;font-size:12px;font-weight:700;border-radius:999px;padding:2px 9px}.st-e.ok{background:#e7f6ec;color:#1d7a46}.st-e.med{background:#fff4dc;color:#9a6200}.st-e.mal{background:#fde8ea;color:#b4232f}
+.st-ch{display:none;color:var(--tx2);transition:transform .2s}
+@media(max-width:640px){#s_t.tcard tr.srow:not(.ab) td:not(:first-child){display:none!important}#s_t.tcard tr.srow{padding:9px 12px!important}.st-ch{display:block}#s_t tr.srow.ab .st-ch{transform:rotate(180deg)}#s_t.tcard tr.srow td:first-child::before{display:none!important}}
+html.oscuro .st-p img,html.oscuro .st-ph{background:#1c2536;border-color:#2a3446}html.oscuro .st-e.ok{background:#12301f;color:#7fd3a0}html.oscuro .st-e.med{background:#3a2c0c;color:#f1c56a}html.oscuro .st-e.mal{background:#3d1519;color:#f19aa2}
+/* Reparto */
+.rv-ped .ped-acc .rv-m{margin-left:auto}.rv-ped .ped-acc .rv-m .masc{right:0;left:auto;min-width:230px}.rv-ped .ped-acc .rv-m .masc button{width:100%;text-align:left}
+.rv-ped[draggable=true]{cursor:grab}.rv-ped.arr{opacity:.45}.rv-ped.sobre{box-shadow:0 0 0 2px var(--m)}
+/* Encabezado que se achica */
+.htit{display:none}
+@media(max-width:640px){header .htit{display:block;position:absolute;left:62px;right:150px;top:50%;transform:translateY(-50%);font-size:16.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transition:opacity .18s;pointer-events:none}
+  header{position:sticky;top:0;z-index:30}.cl-pega,.pr-pega{top:var(--hh,52px)!important}
+  body.tit-on header .htit{opacity:1}body.tit-on header .mjhn{opacity:0}header .mjhn{transition:opacity .18s}}
+/* Avatares con anillo de estado */
+.cl-ini[class*=" an-"]{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--an,#cfd3dc)}
+.cl-ini.an-ok{--an:#2f9e5f}.cl-ini.an-toca{--an:#e0a21c}.cl-ini.an-debe{--an:#d13b47}.cl-ini.an-dormido{--an:#a3abbd}.cl-ini.an-nuevo{--an:#3b6fd8}.cl-ini.an-sin{--an:#dfe2e8}
+html.oscuro .cl-ini[class*=" an-"]{box-shadow:0 0 0 2px #18202f,0 0 0 4px var(--an,#2a3446)}
+/* Deslizar para actuar */
+.cl-swp{position:relative;border-radius:12px;overflow:hidden;min-width:0}
+.cl-swp .cl-card{position:relative;z-index:1;transition:transform .2s ease;background:#fff;touch-action:pan-y}
+.cl-sw{position:absolute;top:0;right:0;bottom:0;display:flex;z-index:0}
+.cl-sw a{width:72px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#fff;font-size:12px;font-weight:600;text-decoration:none}
+.sw-wa{background:#1d9e57}.sw-tel{background:#2457c5}.sw-lp{background:#7b2d3e}
+.sw-ped{position:absolute;inset:0;z-index:0;display:none;align-items:center;gap:8px;padding-left:22px;background:#7b2d3e;color:#fff;font-weight:700;font-size:14px}
+.cl-swp.der .sw-ped{display:flex}.cl-swp.der .cl-sw{display:none}
+.sw-ay{font-size:13px;color:var(--tx2);background:#f8f9fb;border:1px dashed #dfe2e8;border-radius:10px;padding:8px 12px;margin:8px 0}
+@media(hover:hover){.cl-sw,.sw-ped{display:none!important}}
+@media(hover:none) and (max-width:640px){.cl-bts .cl-bt:not(.tel){display:none}}
+html.oscuro .cl-swp .cl-card{background:#18202f}html.oscuro .sw-ay{background:#18202f;border-color:#2a3446}
 </style>
 </head>
 <body>
 <div id="app"><div class="splash"><img src="logo.png" alt="Sabores de mi País"><i></i></div></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
-<script src="app.js?v=2026-10-31.4"></script>
+<script src="app.js?v=2026-10-31.5"></script>
 </body>
 </html>
