@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-30.11';
+const VERSION='2026-10-30.12';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -316,7 +316,7 @@ async function vInicio(){
   // 1 facturado hoy y en el mes
   if(fv.error)fallo('k1',fv.error);else{
     let h=0,nh=0,m=0;for(const f of fv.data){if(f.anulada)continue;const d=fechaDe(f);if(!d)continue;const k=diaLocal(d);const t=Number(f.total||0);if(k==hoy){h+=t;nh++}if(k.slice(0,7)==mes)m+=t}
-    {const pe=n=>'$ '+Math.round(+n||0).toLocaleString('es-AR');kp('k1',pe(h),nh+(nh==1?' factura':' facturas')+' · en el mes '+pe(m))}}
+    {const pe=n=>'$ '+Math.round(+n||0).toLocaleString('es-AR');kp('k1',pe(h),h>0?nh+(nh==1?' factura':' facturas')+' · en el mes '+pe(m):'$ 0 · en el mes '+pe(m));$('#k1').classList.toggle('vacio',!(h>0))}}
   // 2 pedidos pendientes
   if(pe.error){fallo('k2',pe.error);$('#t1').innerHTML='<p class="err">'+esc(pe.error.message)+'</p>'}else{
     const P=pe.data,tot=P.reduce((a,o)=>a+Number(o.total||0),0);
@@ -617,6 +617,7 @@ async function cajaBackup(){const b=$('#bk');if(!b)return;
     mal=dA!=null&&dA<2?(dias==null||dias>=30):(dias==null||dias>=7),
     autoTxt=A?(dA<2?'✅ Copia automática: '+(dA==0?'hoy':'ayer')+' a las '+new Date(A).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}):'⚠️ La copia automática no corre desde el '+fd(A)):'';
   b.innerHTML=mal?`<div class="box alerta bkbox"><span class="bkic">${IC('download',22)}</span><div style="flex:1;min-width:0"><b>${dias==null?'Todavía no hiciste ninguna copia de seguridad':'Hace '+dias+' días que no hacés copia de seguridad'}</b><br><small>${autoTxt?autoTxt+'. ':''}Conviene tener también una copia guardada en tu equipo. Lleva un minuto.</small></div><button id="bk_d">Hacer la copia ahora</button><a class="lnk" id="bk_s">🩺 Estado del sistema</a></div>`
+    :A&&dA<2&&dias!=null&&dias<7?`<p class="pfila"><span class="pic">${IC('check',16)}</span><span>Copias de seguridad al día</span><a class="lnk" id="bk_s">Ver</a><a id="bk_d" hidden></a></p>`
     :`${A?`<p class="pfila${dA<2?'':' viejo'}"><span class="pic">${IC(dA<2?'check':'alert',16)}</span><span>${dA<2?'Copia automática: '+(dA==0?'hoy':'ayer')+' '+new Date(A).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}):'La copia automática no corre desde el '+fd(A)}</span></p>`:''}<p class="pfila${dias>=7?' viejo':''}"><span class="pic">${IC(dias>=7?'alert':'download',16)}</span><span>Copia en tu equipo: ${u?new Date(u).toLocaleDateString('es-AR',{day:'numeric',month:'numeric'}):'nunca'}${dias?' · hace '+dias+(dias==1?' día':' días'):' · hoy'}</span><a class="lnk" id="bk_d">Hacer otra</a></p><p class="pfila plink"><span class="pic">${IC('gauge',16)}</span><a class="lnk" id="bk_s">Estado del sistema</a></p>`;
   $('#bk_d').onclick=descargarBackup;$('#bk_s').onclick=estadoSistema}
 async function descargarBackup(){
@@ -3201,7 +3202,9 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
   V.sort((x,y)=>y.pri-x.pri);const VIS=V.slice(0,6);
   let abierto=false;try{abierto=localStorage.getItem('mj_abierto')=='1'}catch(e){}
   const habSig=(()=>{let n=0;const y=M==11?Y+1:Y,mm=(M+1)%12,d=new Date(y,mm+1,0).getDate();for(let k=1;k<=d;k++)if(new Date(y,mm,k).getDay()!=0)n++;return n})(),pvV=Math.ceil(faltaSem/visSem),R=30,CI=2*Math.PI*R,ring=(f,t)=>`<svg class="mjr" viewBox="0 0 76 76" aria-hidden="true"><circle cx="38" cy="38" r="${R}" class="tr"/>${f>0?'':`<circle cx="38" cy="8" r="4" class="dot"/>`}${f>0?`<circle cx="38" cy="38" r="${R}" class="fl" stroke-dasharray="${(CI*f).toFixed(1)} ${CI.toFixed(1)}"/>`:''}<text x="38" y="43" text-anchor="middle">${t}</text></svg>`;
+  const mesSigJ=mesNom(diaLocal(new Date(Y,M+1,1)).slice(0,7)).split(' ')[0],semSigJ=Math.ceil(cjMetaMes/(habSig/6));
   const hero=faltaMg<=0?`<div class="mjh ok"><div><div class="ey">Objetivo de ${esc(mes.toLowerCase())}</div><div class="mjhn">Cumplido</div><div class="hs">Vas ${m0(limpio-meta)} arriba de la meta. Lo que sumes ya es extra.</div></div></div>`
+    :semIni&&pvV>LIMV&&faltaSem>0&&hab(dh,dm)<=6?`<div class="mjh sig">${ring(0,esc(mesSigJ.slice(0,3).toLowerCase()))}<div><div class="ey">${esc(mesSigJ)} arranca</div><div class="mjhn">${nf(semSigJ)}<span> cajas por semana</span></div><div class="hs">Para las ${nf(cjMetaMes)} cajas del mes · en ${esc(mes.toLowerCase())} llevás ${nf(Math.round(cj))}</div></div></div>`
     :semIni?`<div class="mjh">${ring(pcS,Math.round(pcS*100)+'%')}<div><div class="ey">${pvV>LIMV&&faltaSem>0?esc(mes)+' no llega':semTit}</div><div class="mjhn">${pvV>LIMV&&faltaSem>0?`${nf(Math.round(cj))}<span> / ${nf(cjMetaMes)} cajas</span>`:`${nf(Math.round(cjS))}<span> / ${nf(objSem)} cajas</span>`}</div>
       <div class="hs">${faltaSem>0?(pvV>LIMV?`Desde el 1/${(M+1)%12+1}: <b>${nf(Math.ceil(cjMetaMes/(habSig/6)))} cajas por semana</b>`:`${nf(pvV)} cajas por visita · ${visSem} visita${visSem==1?'':'s'}`):'Semana cumplida. Lo que sumes adelanta el mes.'}</div>${realista?'':'<span class="pill">Foco: cubrir gastos</span>'}</div></div>`
     :`<div class="mjh"><div><div class="ey">${esc(mes)}</div><div class="mjhn">${nf(faltaCj)}<span> cajas por vender</span></div></div></div>`;
@@ -3214,7 +3217,7 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
     <div id="mj_h" role="button" tabindex="0" aria-expanded="${abierto}" style="cursor:pointer">${hero}</div>
     <button class="mjver" id="mj_t">${abierto?'Ocultar detalle':'Ver detalle del mes'} <span>${abierto?'▴':'▾'}</span></button>
     <div id="mj_d"${abierto?'':' hidden'}>${aviso}
-    <div class="mjsec"><div class="mjrow"><span class="ey">Mes</span><span class="mjg">${m0(mg)} <small>de ${m0(obj)} (meta + gastos)</small></span></div>
+    <div class="mjsec"><div class="mjrow"><span class="ey">${esc(mes)}</span><span class="mjg">${m0(mg)} <small>de ${m0(obj)} (meta + gastos)</small></span></div>
     <div class="obar mjb">${pcF>0&&pcF<1?`<span class="gz" style="width:${(pcF*100).toFixed(1)}%"></span>`:''}${pcG>0?`<i style="width:${(pcG*100).toFixed(1)}%" class="${pcG>=1?'lleno':''}"></i>`:''}${pcF>0&&pcF<1?`<span class="gf" style="left:${(pcF*100).toFixed(1)}%"></span>`:''}</div>
     ${pcF>0&&pcF<1?`<div class="mjl"><span style="left:${(pcF*100).toFixed(1)}%">${cubre?'Gastos cubiertos':'Gastos '+m0(fijos)}</span></div>`:''}
     <div class="mjk"><div><small>Vendiste</small><b>${nf(Math.round(cj))}</b><small>cajas · ${cl.size} cliente${cl.size==1?'':'s'}</small></div>
@@ -3222,7 +3225,7 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
       <div><small>Limpio</small>${limpio<0&&!(cj>0)?`<b style="color:var(--mu)">${m0(0)}</b><small>faltan ${mM(fijos)}</small>`:`<b class="${limpio<0?'baja':limpio>=meta?'sube':''}">${m0(limpio)}</b><small>${limpio<0?'faltan '+mM(-limpio):Math.round(limpio/meta*100)+' % de la meta'}</small>`}</div></div>
     ${palMes?`<div class="mjpal"><div><small>${realista?'Para la meta':'Desde el mes que viene'}</small><b>${palMes.toLocaleString('es-AR',{maximumFractionDigits:1})} pallets por mes</b><small>${nf(cjMetaMes)} cajas · ${nf(Math.round(bpP))} por pallet</small></div><div><small>Cada pallet te deja</small><b>${mM(mb*bpP)}</b><small>de ganancia</small></div>${SEL}</div>`:SEL}${nota?`<p class="mjn">${nota}</p>`:''}</div>
     <div class="mjsec mjv"><div class="mjrow"><span class="ey">A quién visitar</span>${VIS.length?`<small>${VIS.length} sugerido${VIS.length==1?'':'s'}</small>`:''}</div>
-      ${VIS.length?VIS.map(x=>{const nm=String(x.c.razon_social||'Cliente');return`<div class="mjc"><span class="av">${esc(nm.trim()[0]||'?').toUpperCase()}</span><div><b>${esc(nm)}</b><small>${esc(x.why)}</small></div><button class="alt" data-mjp="${x.c.id}">Pedido</button></div>`}).join('')
+      ${VIS.length?VIS.map(x=>{const nm=String(nomVis(x.c)||x.c.razon_social||'Cliente');return`<div class="mjc"><span class="av">${esc(nm.trim()[0]||'?').toUpperCase()}</span><div><b>${esc(nm)}</b><small>${esc(x.why)}</small></div><button class="alt" data-mjp="${x.c.id}">Pedido</button></div>`}).join('')
         :'<p class="mjn">Cuando haya ventas, acá aparecen los clientes a los que les toca reponer JL y los que compran mucho y no lo llevan.</p>'}</div></div></div>`;
   const plegar=()=>{const d=$('#mj_d'),ab=d.hidden;d.hidden=!ab;try{localStorage.setItem('mj_abierto',ab?'1':'0')}catch(e){}$('#mj_h').setAttribute('aria-expanded',ab);$('#mj_t').innerHTML=(ab?'Ocultar detalle':'Ver detalle del mes')+' <span>'+(ab?'▴':'▾')+'</span>'};
   $('#mj_h').onclick=plegar;$('#mj_t').onclick=plegar;
@@ -3288,9 +3291,11 @@ async function metasKgInicio(){const box=$('#metaskg');if(!box||S.perfil.rol!='d
   const R=30,CI=2*Math.PI*R,ring=(f,t)=>`<svg class="mjr" viewBox="0 0 76 76" aria-hidden="true"><circle cx="38" cy="38" r="${R}" class="tr"/>${f>0?`<circle cx="38" cy="38" r="${R}" class="fl" stroke-dasharray="${(CI*f).toFixed(1)} ${CI.toFixed(1)}"/>`:`<circle cx="38" cy="8" r="4" class="dot"/>`}<text x="38" y="43" text-anchor="middle">${t}</text></svg>`;
   /* fin de mes: si lo que falta por visita es más del doble de lo normal, no se llega; mostrar el ritmo del mes que viene */
   const habSig=(()=>{let n=0;const y=M==11?Y+1:Y,mm=(M+1)%12,d=new Date(y,mm+1,0).getDate();for(let k=1;k<=d;k++)if(new Date(y,mm,k).getDay()!=0)n++;return n})(),
-    pvNorm=meta/Math.max(1,Math.round(habTot/2)),noLlega=meta>0&&falta>0&&faltaSem>0&&faltaSem/visSem>pvNorm*2,semSig=Math.ceil(meta/(habSig/6)),mesSig=mesNom(diaLocal(new Date(Y,M+1,1)).slice(0,7)).split(' ')[0];
-  const pvV=faltaSem/visSem,hero=noLlega?`<div class="mjh mkh">${ring(pc0,Math.round(pc0*100)+'%')}<div><div class="ey">${esc(mes)} no llega</div><div class="mjhn">${nf(Math.round(kg))}<span> / ${nf(meta)} kg</span></div>
-      <div class="hs">Desde el 1/${(M+1)%12+1}: <b>${nf(semSig)} kg por semana</b></div><span class="pill">Foco: ${esc(mesSig.toLowerCase())}</span>${ST&&stMeta?`<span class="pill">⭐ ${esc(stN)}: ${nf(Math.round(stKg*10)/10)} / ${nf(stMeta)} kg</span>`:''}</div></div>`:!meta?`<div class="mjh mkh"><div><div class="ey">${esc(mes)}</div><div class="mjhn">${k0(kg)}<span> vendidos</span></div><div class="hs">Poné una meta para ver cuánto te falta.</div></div></div>`
+    pvNorm=meta/Math.max(1,Math.round(habTot/2)),noLlega=meta>0&&falta>0&&faltaSem>0&&faltaSem/visSem>pvNorm*2,finMes=hab(dh,dm)<=6,semSig=Math.ceil(meta/(habSig/6)),mesSig=mesNom(diaLocal(new Date(Y,M+1,1)).slice(0,7)).split(' ')[0];
+  const pvV=faltaSem/visSem,hero=noLlega&&finMes?`<div class="mjh mkh sig">${ring(0,esc(mesSig.slice(0,3).toLowerCase()))}<div><div class="ey">${esc(mesSig)} arranca</div><div class="mjhn">${nf(semSig)}<span> kg por semana</span></div>
+      <div class="hs">Para llegar a ${nf(meta)} kg en el mes · en ${esc(mes.toLowerCase())} llevás ${nf(Math.round(kg))} kg</div>${ST&&stMeta?`<span class="pill">⭐ ${esc(stN)}: ${nf(Math.ceil(stMeta/(habSig/6)))} kg</span>`:''}</div></div>`
+    :noLlega?`<div class="mjh mkh">${ring(pc0,Math.round(pc0*100)+'%')}<div><div class="ey">${esc(mes)} no llega</div><div class="mjhn">${nf(Math.round(kg))}<span> / ${nf(meta)} kg</span></div>
+      <div class="hs">Desde el 1/${(M+1)%12+1}: <b>${nf(semSig)} kg por semana</b></div>${ST&&stMeta?`<span class="pill">⭐ ${esc(stN)}: ${nf(Math.round(stKg*10)/10)} / ${nf(stMeta)} kg</span>`:''}</div></div>`:!meta?`<div class="mjh mkh"><div><div class="ey">${esc(mes)}</div><div class="mjhn">${k0(kg)}<span> vendidos</span></div><div class="hs">Poné una meta para ver cuánto te falta.</div></div></div>`
     :falta<=0?`<div class="mjh ok"><div><div class="ey">Meta de ${esc(mes.toLowerCase())}</div><div class="mjhn">Cumplida</div><div class="hs">Vas ${k0(kg-meta)} arriba de la meta. Lo que sumes ya es extra.</div></div></div>`
     :semIni?`<div class="mjh mkh">${ring(pcS,Math.round(pcS*100)+'%')}<div><div class="ey">${semTit}</div><div class="mjhn">${nf(Math.round(kgS))}<span> / ${nf(objSem)} kg</span></div>
       <div class="hs">${faltaSem>0?`${nf(Math.ceil(pvV))} kg por visita · ${visSem} visita${visSem==1?'':'s'}`:'Semana cumplida. Lo que sumes adelanta el mes.'}</div>${ST&&stMeta?`<span class="pill">⭐ ${esc(stN)}: ${nf(Math.round(stKg*10)/10)} / ${nf(stMeta)} kg</span>`:''}</div></div>`
@@ -3301,7 +3306,7 @@ async function metasKgInicio(){const box=$('#metaskg');if(!box||S.perfil.rol!='d
     ${tabs}<div id="mk_h" role="button" tabindex="0" aria-expanded="${abierto}" style="cursor:pointer;margin-top:${tabs?'10px':'0'}">${hero}</div>
     <button class="mjver" id="mk_t">${abierto?'Ocultar detalle':'Ver detalle del mes'} <span>${abierto?'▴':'▾'}</span></button>
     <div id="mk_d"${abierto?'':' hidden'}>
-    <div class="mjsec"><div class="mjrow"><span class="ey">Mes</span><span class="mjg">${k0(kg)} <small>${meta?'de '+nf(meta)+' kg':''}</small></span></div>
+    <div class="mjsec"><div class="mjrow"><span class="ey">${esc(mes)}</span><span class="mjg">${k0(kg)} <small>${meta?'de '+nf(meta)+' kg':''}</small></span></div>
     ${meta?`<div class="obar mjb">${pc>0?`<i style="width:${(pc*100).toFixed(1)}%" class="${pc>=1?'lleno':''}"></i>`:''}</div>`:''}
     <div class="mjk"><div><small>Vendiste</small><b>${k0(kg)}</b><small>${cl.size} cliente${cl.size==1?'':'s'}</small></div>
       <div><small>Facturado</small><b>${m0(vta)}</b><small>en ${esc(mes.toLowerCase())}</small></div>
@@ -3312,10 +3317,10 @@ async function metasKgInicio(){const box=$('#metaskg');if(!box||S.perfil.rol!='d
       <div class="sth">${ft?`<img src="${esc(ft)}" alt="">`:''}<div class="stt"><span class="ey">⭐ El que más te deja</span><b>${esc(stN)}</b></div><div class="stk">${k0(stKg)}<br><small>${stMeta?'de '+nf(stMeta)+' kg':''}</small></div></div>
       ${stMeta?`<div class="stbar"><i style="width:${(pcSt*100).toFixed(1)}%"></i></div>`:''}
       <div class="stn"><div><b>${m0(stGk)}</b><small>por kilo${gk>0&&stGk>gk?' · '+nf(Math.round(stGk/gk*10)/10)+' × el promedio':''}</small></div>${stMeta?`<div><b>${m0(stMeta*stGk)}</b><small>si llegás a ${nf(stMeta)} kg</small></div>`:''}</div>
-      ${stMeta?`<span class="stf${fal<=0?' ok':''}">${fal<=0?'¡Meta cumplida! 🎉':'Te faltan '+k0(fal)}</span>`:''}
+      ${stMeta?`<p class="stf${fal<=0?' ok':''}">${fal<=0?'¡Meta cumplida! 🎉':'Te faltan <b>'+k0(fal)+'</b> de '+esc(stN)}</p>`:''}
       ${mezcla?`<div class="mja"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5"/><path d="M10 9v5M10 6.2v.1"/></svg><span>${esc(mezcla)}</span></div>`:''}</div>`})():''}
     <div class="mjsec mjv"><div class="mjrow"><span class="ey">A quién visitar</span>${VIS.length?`<small>${VIS.length} sugerido${VIS.length==1?'':'s'}</small>`:''}</div>
-      ${VIS.length?VIS.map(x=>{const nm=String(x.c.razon_social||'Cliente');return`<div class="mjc"><span class="av">${esc(nm.trim()[0]||'?').toUpperCase()}</span><div><b>${esc(nm)}</b><small>${esc(x.why)}</small></div><button class="alt" data-mkp="${x.c.id}">Pedido</button></div>`}).join('')
+      ${VIS.length?VIS.map(x=>{const nm=String(nomVis(x.c)||x.c.razon_social||'Cliente');return`<div class="mjc"><span class="av">${esc(nm.trim()[0]||'?').toUpperCase()}</span><div><b>${esc(nm)}</b><small>${esc(x.why)}</small></div><button class="alt" data-mkp="${x.c.id}">Pedido</button></div>`}).join('')
         :'<p class="mjn">Cuando haya ventas, acá aparecen los clientes a los que les toca reponer y los que compran mucho y no lo llevan.</p>'}</div></div></div>`;
   const plegar=()=>{const d=$('#mk_d'),ab=d.hidden;d.hidden=!ab;try{localStorage.setItem('mk_abierto',ab?'1':'0')}catch(e){}$('#mk_h').setAttribute('aria-expanded',ab);$('#mk_t').innerHTML=(ab?'Ocultar detalle':'Ver detalle del mes')+' <span>'+(ab?'▴':'▾')+'</span>'};
   $('#mk_h').onclick=plegar;$('#mk_t').onclick=plegar;
