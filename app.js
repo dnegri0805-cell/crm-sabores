@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-31.25';
+const VERSION='2026-10-31.26';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -52,6 +52,10 @@ function contar(el,txt){try{if(matchMedia('(prefers-reduced-motion: reduce)').ma
   const t0=performance.now(),dur=700,f=x=>m[1]?(m[3]?$m(x):$m0(x)):Math.round(x).toLocaleString('es-AR');const paso=t=>{const k=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-k,3);el.textContent=k<1?f(v*e):txt;if(k<1)requestAnimationFrame(paso)};requestAnimationFrame(paso)}catch(e){}}
 const vacioHTML=(t,ic='box',btn,chico)=>`<div class="vacio${chico?' chico':''}"><span class="vac-ic">${IC(ic,chico?24:32)}</span><p>${t}</p>${btn?`<button class="alt vac-b" onclick="${btn[1]}">${btn[0]}</button>`:''}</div>`;
 /* Saber qué se usa: cada pantalla que se abre suma 1 por usuario y por día (el dueño lo ve en Más → Qué se usa) */
+/* errores de la app: se guardan para poder ver qué falló (solo el dueño los lee) */
+const _errV={};function reportarError(e,donde){try{const msg=String(e&&e.message||e||'').slice(0,300);if(!msg||/ResizeObserver|Script error|AbortError|Load failed|Failed to fetch|NetworkError/i.test(msg))return;const k=msg+'|'+(donde||'');if(_errV[k]||Object.keys(_errV).length>20)return;_errV[k]=1;
+  if(!S.perfil||typeof sb=='undefined')return;sb.from('errores_app').insert({pantalla:String(donde||[S.tab,S.sub,S.vs,S.cs].filter(Boolean).join(':')).slice(0,120),mensaje:msg,detalle:String(e&&e.stack||'').slice(0,1500),version:typeof VERSION!='undefined'?VERSION:'',navegador:navigator.userAgent.slice(0,200)}).then(()=>{},()=>{})}catch(x){}}
+addEventListener('error',ev=>reportarError(ev.error||ev.message));addEventListener('unhandledrejection',ev=>reportarError(ev.reason));
 const _uso={};function marcarUso(p){try{if(!S.perfil||!p||/undefined|null/.test(p))return;const t=Date.now();if(_uso[p]>t-20000)return;_uso[p]=t;sb.rpc('uso_marcar',{p:String(p)}).then(()=>{},()=>{})}catch(e){}}
 /* Festejos (como Monday/Asana): confeti breve al llegar a la meta, lograr una racha o cobrar una deuda vieja. Con "clave", una sola vez. */
 function festejo(clave,texto){if(clave){const k='fest_'+(S.perfil?.id||'')+'_'+clave;try{if(localStorage.getItem(k))return;localStorage.setItem(k,'1')}catch(e){}}
@@ -2258,13 +2262,16 @@ const OC_TXT={borrador:'Borrador',enviada:'Enviada',recibida_parcial:'Recibida p
 const provSel=(id,sel)=>`<select id="${id}"><option value="">Elegí un proveedor</option>${S.prov.map(p=>`<option value="${p.id}" ${p.id==sel?'selected':''}>${esc(p.razon_social)}</option>`).join('')}</select>`;
 const prodNom=id=>S.productos.find(p=>p.producto_id==id)?.descripcion||('Producto '+id);
 
-async function vCompras(){
+const COMPRAS_SUB=['ordenes','cuenta','pagos','proveedores','sugerencia','mejor','costos'];
+async function vCompras(){if(!COMPRAS_SUB.includes(S.sub))S.sub='ordenes';
   $('#v').innerHTML=`<div class="bh"><h2 style="margin:0">Compras</h2><div class="fc-acc"><button onclick="llegoMercaderia()">📦 Llegó mercadería</button><button class="alt" onclick="facturaFoto()">🧾 Factura por foto</button></div></div><div class="sub tabs">${[['ordenes','Órdenes de compra'],['cuenta','Facturas'],['pagos','Órdenes de pago'],['proveedores','Proveedores'],['sugerencia','Sugerencia de compra'],['mejor','🏷️ Mejor proveedor'],['costos','📈 Historial de costos']].map(([k,t])=>`<button class="${S.sub==k?'':'alt'}" data-s="${k}">${t}</button>`).join('')}</div><div id="cv"><span class="skl" role="status" aria-label="Cargando"></span></div>`;
   $$('[data-s]').forEach(b=>b.onclick=()=>{S.sub=b.dataset.s;vCompras()});
+  {const on=$('#v .sub.tabs button:not(.alt)');on&&on.scrollIntoView({block:'nearest',inline:'center'})}
   const{data,error}=await sb.from('proveedores').select('*').eq('activo',true).order('razon_social');
   if(error){$('#cv').innerHTML='<p class="err">No se pudo leer Compras: '+esc(error.message)+'<br>¿Ya corriste compras.sql en Supabase?</p>';return}
   S.prov=data;
-  marcarUso('compras:'+S.sub);  ({costos:cHistCostos,mejor:cMejorProv,ordenes:cOrdenes,sugerencia:cSugerencia,proveedores:cProveedores,cuenta:cCuenta,pagos:cOrdenesPago})[S.sub]();
+  marcarUso('compras:'+S.sub);try{await({costos:cHistCostos,mejor:cMejorProv,ordenes:cOrdenes,sugerencia:cSugerencia,proveedores:cProveedores,cuenta:cCuenta,pagos:cOrdenesPago})[S.sub]()}
+  catch(e){reportarError(e,'compras:'+S.sub);if($('#cv'))$('#cv').innerHTML=`<p class="err">No se pudo abrir esta parte: ${esc(e.message||e)}</p><button class="alt" onclick="vCompras()">Reintentar</button>`}
 }
 
 /* Unificar proveedores repetidos (el mismo proveedor cargado con varios nombres) */
@@ -7001,7 +7008,7 @@ function navSync(){
 }
 function navIr(nav){
   NAV.restoring=true;
-  try{NAVK.forEach(k=>S[k]=nav[k]??undefined);shell();if(S.fc){const c=S.clientes.find(x=>x.id==S.fc);if(c)fichaCliente(c);else S.fc=null}}finally{NAV.restoring=false}
+  try{NAVK.forEach(k=>{if(k=='sub'&&!nav[k])return;S[k]=nav[k]??undefined});shell();if(S.fc){const c=S.clientes.find(x=>x.id==S.fc);if(c)fichaCliente(c);else S.fc=null}}finally{NAV.restoring=false}
   const s=navSnap();NAV.cur=navKey(s);
   try{const d=navD();history.replaceState({nav:s,d:d<0?0:d},'')}catch(e){}
   navBtn();scrollTo(0,0);
