@@ -425,6 +425,14 @@ Desde **Más → Cuenta y ajustes → Usuarios y accesos** (solo lo ve el dueño
 - **Últimos cobros:** los últimos 10 recibos de todos, con WhatsApp y PDF.
 - **Herramientas** (arriba): semáforo de riesgo, crédito inteligente, conciliar transferencias y **mandar estado de cuenta a todos los que deben** (uno por uno por WhatsApp, con su link de cuenta).
 
+### Compras (versión nueva)
+- **Arriba:** cuánto le debés a proveedores (y si hay vencido), lo que **vence esta semana** y lo **comprado en el mes**; cada número te lleva al detalle.
+- **Pestañas:** *Órdenes* (con la cantidad abiertas), *Facturas y pagos* (facturas del proveedor y órdenes de pago), *Proveedores* y *Análisis* (sugerencia de compra, mejor proveedor e historial de costos).
+- En Órdenes: **Para pedir** (lo que está bajo el mínimo por proveedor, con *Armar órdenes*), **Pagos que vencen** en 7 días con *Pagar*, y *Por recibir*.
+- **Cada orden** muestra sus etapas (Borrador → Enviada → Recibida parcial → Recibida). Si lleva días enviada y no llegó, aparece el aviso con **Reclamar** por WhatsApp. **Mandar** la envía por WhatsApp y la pasa a *Enviada*; **PDF** para imprimir.
+- **Al recibir:** si falta algo, te muestra qué faltó antes de confirmar (queda *Recibida parcial*) y te avisa si algún costo subió.
+- **Ficha del proveedor** (tocando su renglón): le debés, cuánto le comprás por mes (con gráfico de 6 meses), cuánto tarda en entregar, sus productos, últimas órdenes, WhatsApp, *Nueva orden* y *Cuenta y pagos*.
+
 ## 13. Rutina diaria y preguntas frecuentes
 
 Repartís de lunes a sábado y los pedidos cierran a las 20:00 para el día siguiente.
