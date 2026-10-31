@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-30.10';
+const VERSION='2026-10-30.11';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -740,7 +740,7 @@ const docCss=()=>{const pie=['Sabores de mi País','Distribuidora de alimentos',
   table:has(th) tr.tot td{background:#fff!important;border-top:2px solid ${MARCA.c}!important;border-bottom:0!important;font-size:17px}
   body::after{content:"${pie}";display:block;text-align:center;font-size:10.5px;color:var(--tx2,#5b6274);border-top:1px solid #eee;padding:6px 0 0;margin-top:24px}
   @media print{body::after{position:fixed;bottom:0;left:0;right:0;background:#fff;margin:0}}`};
-const logoImg=(h=110)=>MARCA.logo?`<img src="${MARCA.logo}" alt="" style="height:${h}px;max-width:${h*4}px;object-fit:contain;display:block;margin-bottom:6px">`:'';
+const logoImg=(h=110)=>MARCA.logo?`<img src="${MARCA.logo}" alt="" onerror="this.remove()" style="height:${h}px;max-width:${h*4}px;object-fit:contain;display:block;margin-bottom:6px">`:'';
 aplicarMarca();
 
 let instalarEv=null;
