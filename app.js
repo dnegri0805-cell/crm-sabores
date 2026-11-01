@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-01.5';
+const VERSION='2026-11-01.6';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -7464,12 +7464,12 @@ async function actualizarTodo(){const ind=document.getElementById('ptr');setTime
  const fin=ok=>{if(y0==null&&!ind)return;y0=null;if(ind){if(ok&&d>110){ind.classList.add('gira');ind.style.transform='translate(-50%,50px)';actualizarTodo()}else ind.remove();ind=null}};
  document.addEventListener('touchend',()=>fin(true));document.addEventListener('touchcancel',()=>fin(false));
  document.addEventListener('scroll',()=>{if(scrollY>10&&ind&&!ind.classList.contains('gira')){ind.remove();ind=null;y0=null}},{passive:true})}
-/* Ventanas como hoja que sube desde abajo: se cierran deslizando hacia abajo */
-{let y0=null,mc=null,dy=0;
+/* Ventanas como hoja que sube desde abajo: se cierran deslizando hacia abajo (no al deslizar de costado) */
+{let y0=null,x0s=0,mc=null,dy=0;
  document.addEventListener('touchstart',e=>{const c=e.target.closest('.modal>.mc');if(!c||!matchMedia('(max-width:640px)').matches||c.closest('.fl-big,.scanm,.firma'))return;
-   const enAsa=e.touches[0].clientY-c.getBoundingClientRect().top<44;if(c.scrollTop>0&&!enAsa)return;if(e.target.closest('input,textarea,select,canvas'))return;y0=e.touches[0].clientY;mc=c;dy=0},{passive:true});
- document.addEventListener('touchmove',e=>{if(!mc)return;dy=e.touches[0].clientY-y0;if(dy>0){mc.style.transition='none';mc.style.transform=`translateY(${dy}px)`}},{passive:true});
- document.addEventListener('touchend',()=>{if(!mc)return;const c=mc;mc=null;c.style.transition='transform .2s ease';if(dy>110){c.style.transform='translateY(100%)';setTimeout(()=>{const m=c.closest('.modal');m&&m.remove()},180)}else c.style.transform=''});}
+   const enAsa=e.touches[0].clientY-c.getBoundingClientRect().top<44;if(c.scrollTop>0&&!enAsa)return;if(e.target.closest('input,textarea,select,canvas,.fl-car,.pr-tabs,.rp-per,.li-ch,.p1l,[data-noswipe]'))return;y0=e.touches[0].clientY;x0s=e.touches[0].clientX;mc=c;dy=0},{passive:true});
+ document.addEventListener('touchmove',e=>{if(!mc)return;dy=e.touches[0].clientY-y0;const dx=Math.abs(e.touches[0].clientX-x0s);if(dx>Math.abs(dy)&&dx>8){mc.style.transform='';mc=null;return}if(dy>12){mc.style.transition='none';mc.style.transform=`translateY(${dy-12}px)`}},{passive:true});
+ document.addEventListener('touchend',()=>{if(!mc)return;const c=mc;mc=null;c.style.transition='transform .2s ease';if(dy>122){c.style.transform='translateY(100%)';setTimeout(()=>{const m=c.closest('.modal');m&&m.remove()},180)}else c.style.transform=''});}
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(b&&!b.classList.contains('alt')&&!b.disabled)vibrar(10)},true);
 /* Mensajes de WhatsApp: el nombre del negocio en vez de la razón social en mayúsculas */
 {const _open=window.open.bind(window);window.open=function(u,...r){try{if(typeof u=='string'&&/^https:\/\/wa\.me\//.test(u)&&u.includes('text=')){const U=new URL(u);let t=U.searchParams.get('text')||'';
