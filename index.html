@@ -1898,12 +1898,79 @@ html.oscuro .cp-k,html.oscuro .oc-c{background:#18202f;border-color:#273246}html
 .bksem.bk-min::after{content:"Ver detalle ›";margin-left:auto;font-size:12.5px;color:var(--tx2)}
 @media(max-width:899px){#v .ppal.acc{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;row-gap:14px!important;overflow:visible}#v .ppal.acc button{max-width:none;min-width:0}}
 
+/* ===================== DISEÑO 2: una sola mano en todo el CRM ===================== */
+:root{--fs-xs:12px;--fs-s:13.5px;--fs-m:15px;--fs-l:20px;--fs-xl:26px;--r-card:14px;--sh-1:0 1px 2px rgba(23,33,58,.04),0 1px 1px rgba(23,33,58,.02);
+  --c1:#7b2d3e;--c2:#2f6fb5;--c3:#1d7a46;--c4:#c99a3a;--c5:#6b4bb8;--e-ok:#1d7a46;--e-w:#b7791f;--e-er:#d92d20;--e-g:#c99a3a;--e-az:#2f6fb5}
+html.oscuro{--sh-1:none}
+/* Letras: una escala fija y números de ancho parejo */
+body{font-feature-settings:"cv11","ss01";-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body,table,.num,.rh b,.rp-n span,.n{font-variant-numeric:tabular-nums}
+#v>.bh h2,#v>h2,#v .bh>h2,#v .rp-hd h2,#v .ini-h h2{font-size:var(--fs-l)!important;font-weight:750;letter-spacing:-.01em}
+@media(min-width:900px){#v>.bh h2,#v>h2,#v .bh>h2,#v .rp-hd h2,#v .ini-h h2{font-size:24px!important}}
+#v .box h3,#v .td-h h3,#v .m1-h h3,.modal h3{font-size:16px!important;font-weight:700;letter-spacing:-.005em}
+#v h4{font-size:var(--fs-m);font-weight:700}
+#v small,#v .det{font-size:var(--fs-s)}
+.kp .lab,.mv-ey,.rh small,#v .lab{text-transform:none!important;letter-spacing:0!important;font-size:var(--fs-s)!important;font-weight:600!important;color:var(--tx2)}
+.kp .num{font-weight:750!important;letter-spacing:-.015em}
+#v th{font-size:var(--fs-xs);font-weight:700;text-transform:none;letter-spacing:0;color:var(--tx2)}
+/* Tarjetas: un solo estilo, menos ruido */
+#v .box{border-radius:var(--r-card);border-color:var(--borde,#e3e6ec);box-shadow:var(--sh-1)}
+#v .box .box{box-shadow:none}
+#v .box h3+hr,#v hr{border:0;border-top:1px solid var(--borde,#e3e6ec)}
+/* Íconos en lugar de emojis */
+svg.eic{width:1.08em;height:1.08em;vertical-align:-.17em;margin-right:.08em;stroke-width:2;flex:none;color:currentColor}
+h2 svg.eic,h3 svg.eic,h4 svg.eic{color:var(--m,#7b2d3e)}
+svg.eic.e-ok{color:var(--e-ok)}svg.eic.e-w{color:var(--e-w)}svg.eic.e-er{color:var(--e-er)}svg.eic.e-g{color:var(--e-g)}
+.edot{display:inline-block;width:.62em;height:.62em;border-radius:50%;vertical-align:.04em;margin-right:.25em;background:#a3abbd}.edot.er{background:var(--e-er)}.edot.w{background:#e0a100}.edot.ok{background:#2f9e5f}.edot.az{background:var(--e-az)}
+.medal{display:inline-grid;place-items:center;width:1.45em;height:1.45em;border-radius:50%;font:800 .78em/1 inherit;font-style:normal;color:#fff;vertical-align:.02em;background:#c99a3a;box-shadow:inset 0 -2px 0 rgba(0,0,0,.15)}.medal.m2{background:#9aa3b2}.medal.m3{background:#b4743f}
+/* Estados: píldoras con un color fijo cada uno */
+.badge{border-radius:999px!important;padding:2px 9px 2px 8px!important;font-size:12px!important;font-weight:650!important;display:inline-flex;align-items:center;gap:5px;line-height:1.5;vertical-align:1px}
+.badge[class*="b-"]::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.85;flex:none}
+.b-pendiente{background:#fff4d6!important;color:#8a5a00!important}
+.b-aprobado,.b-aprob{background:#e6efff!important;color:#2453a6!important}
+.b-en_preparacion{background:#f1eafe!important;color:#5b3a9a!important}
+.b-listo{background:#e2f4f4!important;color:#0f6b6f!important}
+.b-en_reparto{background:#dde7f6!important;color:#234a87!important}
+.b-entregado{background:#dff2e6!important;color:#17663b!important}
+.b-cancelado{background:#eef0f3!important;color:#6b7385!important;text-decoration:none}
+html.oscuro .badge[class*="b-"]{filter:none!important;background:rgba(255,255,255,.08)!important}
+.act-r small .badge{margin:0 2px}
+/* Avatares con color */
+.td-i{font-weight:700!important;font-size:12.5px!important;letter-spacing:.02em}
+/* Minigráficos */
+.rh.con-spk{position:relative;padding-right:84px!important}
+.rh .spk2{position:absolute;right:10px;bottom:12px;overflow:visible}
+.spk2 .spk-l{fill:none;stroke:var(--c1);stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round}.spk2 .spk-a{fill:color-mix(in srgb,var(--c1) 10%,transparent);stroke:none}.spk2 .spk-p{fill:var(--c1)}
+.spk2.c2 .spk-l{stroke:var(--c3)}.spk2.c2 .spk-a{fill:color-mix(in srgb,var(--c3) 10%,transparent)}.spk2.c2 .spk-p{fill:var(--c3)}
+.spk2.c3 .spk-l{stroke:var(--c2)}.spk2.c3 .spk-a{fill:color-mix(in srgb,var(--c2) 10%,transparent)}.spk2.c3 .spk-p{fill:var(--c2)}
+@media(max-width:520px){.rh.con-spk{padding-right:12px!important;padding-bottom:30px!important}.rh .spk2{left:12px;right:auto;bottom:8px;width:calc(100% - 24px);height:18px}}
+/* Gráficos: una sola paleta */
+#rp_g .bar path,.graf .bar path{fill:color-mix(in srgb,var(--c1) 28%,#fff)}#rp_g .bar.on path,.graf .bar.on path{fill:var(--c1)}
+/* Vacíos */
+p.vac{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:18px 10px;margin:4px 0;color:var(--tx2)}
+p.vac .vac-i{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 30% 30%,#fbf3f5,#f3e3e8);color:var(--m,#7b2d3e)}
+html.oscuro p.vac .vac-i{background:radial-gradient(circle at 30% 30%,#3a1d26,#2a141b)}
+/* Movimiento sutil */
+@media (prefers-reduced-motion:no-preference){
+  button,.rh,.hc,.rp-r,.act-r,.td-r,[data-fc],a.lnk{transition:transform .12s ease,background-color .15s ease,border-color .15s ease,box-shadow .15s ease,color .15s ease}
+  button:active:not(:disabled),.rh:active{transform:scale(.97)}
+  .pr-tabs button{transition:color .15s,border-color .2s}
+  details[open]>:not(summary){animation:dz .2s ease-out}
+  @keyframes dz{from{opacity:0;transform:translateY(-4px)}}
+  .rp-b i,.rp-bar i,.m1-b i,.rk-bar i,.pgb i,.barra i{transition:width .5s cubic-bezier(.2,.8,.2,1)}
+  #t{animation:tin .22s cubic-bezier(.2,.8,.2,1)}
+  @keyframes tin{from{opacity:0;transform:translate(-50%,8px)}}
+  input[type=checkbox]:checked{animation:pop .18s ease-out}
+  @keyframes pop{50%{transform:scale(1.18)}}
+  .badge{transition:background-color .2s,color .2s}
+}
+
 </style>
 </head>
 <body>
 <div id="app"><div class="splash"><img src="logo.png" alt="Sabores de mi País"><i></i></div></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
-<script src="app.js?v=2026-10-31.38"></script>
+<script src="app.js?v=2026-11-01.1"></script>
 </body>
 </html>

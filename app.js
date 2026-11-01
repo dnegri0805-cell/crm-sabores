@@ -1,5 +1,5 @@
 
-const VERSION='2026-10-31.38';
+const VERSION='2026-11-01.1';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -326,12 +326,19 @@ async function resumenHoy(){const box=document.getElementById('rhoy');if(!box)re
   let qp2=sb.from('pedidos').select('total').neq('estado','cancelado').or('es_prueba.is.null,es_prueba.eq.false').gte('creado_en',ha).lt('creado_en',hasta);if(yo)qp2=qp2.eq('vendedor_id',S.perfil.id);
   let qv=sb.from('contactos_clientes').select('id',{count:'exact',head:true}).gte('fecha',h);if(yo)qv=qv.eq('usuario_id',S.perfil.id);
   let qv2=sb.from('contactos_clientes').select('id',{count:'exact',head:true}).gte('fecha',ha).lt('fecha',hasta);if(yo)qv2=qv2.eq('usuario_id',S.perfil.id);
+  const d14=diaLocal(new Date(ahora.getTime()-13*864e5));let qs=sb.from('pedidos').select('total,creado_en').neq('estado','cancelado').or('es_prueba.is.null,es_prueba.eq.false').gte('creado_en',tsAR(d14)).limit(3000);if(yo)qs=qs.eq('vendedor_id',S.perfil.id);
+  let qvs=sb.from('contactos_clientes').select('fecha').gte('fecha',tsAR(d14)).limit(3000);if(yo)qvs=qvs.eq('usuario_id',S.perfil.id);
+  const SP=Promise.all([qs,sb.from('recibos').select('importe,fecha').eq('anulado',false).gte('fecha',d14).limit(3000),qvs].map(q=>q.then(x=>x,()=>({}))));
   const[p,r,v,p2,r2,v2]=await Promise.all([qp,sb.from('recibos').select('importe').eq('anulado',false).gte('fecha',diaLocal(ahora)),qv,qp2,sb.from('recibos').select('importe').eq('anulado',false).eq('fecha',diaLocal(ant)),qv2].map(q=>q.then(x=>x,()=>({}))));
   if(!document.body.contains(box))return;const sum=(L,k)=>(L||[]).reduce((a,o)=>a+(+o[k]||0),0),P=p.data||[],vt=sum(P,'total'),cb=sum(r.data,'importe'),nv=v.count||0,vt2=sum(p2.data,'total'),cb2=sum(r2.data,'importe'),nv2=v2.count||0;
   const cmp=(x,y,f,vacio)=>{if(!x&&!y)return`<span>${vacio}</span>`;const fl=x>y?'<i class="rh-up">▲</i>':x<y?'<i class="rh-dn">▼</i>':'';return`<span title="El ${esc(dn)} pasado a esta hora">${fl}${f(y)} el ${esc(dn)}</span>`};
   box.innerHTML=`<button class="rh" onclick="irA('pedidos')"><small>Vendido hoy</small><b>${$k(vt)}</b>${cmp(vt,vt2,$k,'Sin pedidos aún')}</button>
     <button class="rh" onclick="irA('cobranza')"><small>Cobrado hoy</small><b>${$k(cb)}</b>${cmp(cb,cb2,$k,'Sin cobros aún')}</button>
-    <button class="rh" onclick="irA('clientes',{cs:'agenda'})"><small>Visitas hoy</small><b>${nv}</b>${cmp(nv,nv2,String,'Ninguna aún')}</button>`}
+    <button class="rh" onclick="irA('clientes',{cs:'agenda'})"><small>Visitas hoy</small><b>${nv}</b>${cmp(nv,nv2,String,'Ninguna aún')}</button>`;
+  SP.then(([a,b,c])=>{if(!document.body.contains(box))return;const D=[...Array(14)].map((_,i)=>diaLocal(new Date(ahora.getTime()-(13-i)*864e5)));
+    const ser=(L,kf,kv)=>D.map(d=>(L||[]).filter(x=>diaLocal(x[kf])==d||String(x[kf]).slice(0,10)==d&&kf=='fecha'&&!String(x[kf]).includes('T')).reduce((s,x)=>s+(kv?+x[kv]||0:1),0));
+    const R3=[ser(a.data,'creado_en','total'),ser(b.data,'fecha','importe'),ser(c.data,'fecha',null)];
+    box.querySelectorAll('.rh').forEach((el,i)=>{const h=spark(R3[i],'c'+(i+1));if(h){el.classList.add('con-spk');el.insertAdjacentHTML('beforeend',h);el.title='Últimos 14 días'}})})}
 async function vInicio(){
   if(esEstacion()&&!S.estVista){S.estVista=1;return irA('impresora')}S.estVista=1;
   const hoyD=new Date(),hoy=diaLocal(hoyD),mes=hoy.slice(0,7);
@@ -3949,7 +3956,7 @@ async function tuDiaInicio(){const box=$('#tudia');if(!box)return;const hoy=diaL
   const tot=G.reduce((s,g)=>s+g.n,0);
   box.innerHTML=`<div class="box td"><div class="td-h"><h3>${IC('calendar',18)} Tu día</h3><small>${tot?tot+(tot==1?' cosa':' cosas')+' para hoy':'Nada pendiente'}</small></div>
     ${G.length?G.map(g=>`<div class="td-g td-${g.k}"><div class="td-gh"><span class="td-gi">${IC(g.ic,15)}</span><b>${g.t}</b><span class="td-n">${g.n}</span>${g.sum?`<small>${g.sum}</small>`:''}${g.go&&g.n>3?`<a class="lnk" onclick="${g.go}">Ver ${g.n}</a>`:''}</div>
-      ${g.R.map(r=>`<div class="td-r"><span class="td-i">${r.i}</span><div class="td-t"><b>${esc(r.b)}</b><small${r.v?' class="td-venc"':''}>${esc(r.s)}</small></div><span class="td-a">${r.a}</span></div>`).join('')}</div>`).join('')
+      ${g.R.map(r=>`<div class="td-r"><span class="td-i" style="background:${colAv(r.b)};color:#fff">${r.i}</span><div class="td-t"><b>${esc(r.b)}</b><small${r.v?' class="td-venc"':''}>${esc(r.s)}</small></div><span class="td-a">${r.a}</span></div>`).join('')}</div>`).join('')
       :`<p class="td-ok">${IC('check',16)} Nada para entregar, cobrar ni seguir hoy. Buen momento para salir a vender.</p>`}</div>`;
   box.querySelectorAll('[data-tdp]').forEach(b=>b.onclick=()=>{S.preCli=cl(b.dataset.tdp);irA('pedidos')});
   box.querySelectorAll('[data-tdh]').forEach(b=>b.onclick=async()=>{b.disabled=true;const{error}=await sb.from('tareas').update({hecha:true,hecha_en:new Date().toISOString()}).eq('id',b.dataset.tdh);if(error){b.disabled=false;return toast(error.message,1)}toast('Tarea hecha.');tuDiaInicio()})}
@@ -3975,7 +3982,7 @@ async function actividadInicio(){const box=$('#acti');if(!box)return;await equip
   const nc=id=>{const c=S.clientes.find(c=>c.id==id);return c?(nomVis?nomVis(c):'')||c.razon_social:'Cliente'},quien=id=>id&&id!=S.perfil.id?nomU(id):'Vos';
   const ESN={pendiente:'Por aprobar',aprobado:'Aprobado',en_preparacion:'En preparación',listo:'Listo',en_reparto:'En reparto',entregado:'Entregado',cancelado:'Cancelado'};
   const ET={contactado:'Contactado',visitado:'Visitado',interesado:'Interesado',cliente:'cliente',no_interesado:'Descartado'};
-  const A=[...(p.data||[]).filter(o=>!o.es_prueba).map(o=>({t:o.actualizado_en||o.creado_en,ic:'cart',c:o.estado=='cancelado'?'baja':o.estado=='entregado'?'sube':'',x:o.estado=='cancelado',h:`Pedido N° ${o.numero} · ${esc(S.clientes.some(c=>c.id==o.cliente_id)?nc(o.cliente_id):(o.clientes?.nombre_fantasia||o.clientes?.razon_social||'Cliente web'))}`,s:`${$m0(o.total)} · ${ESN[o.estado]||o.estado} · ${/^🌐/.test(o.observaciones||'')?'desde el catálogo':esc(quien(o.vendedor_id))}`})),
+  const A=[...(p.data||[]).filter(o=>!o.es_prueba).map(o=>({t:o.actualizado_en||o.creado_en,ic:'cart',c:o.estado=='cancelado'?'baja':o.estado=='entregado'?'sube':'',x:o.estado=='cancelado',h:`Pedido N° ${o.numero} · ${esc(S.clientes.some(c=>c.id==o.cliente_id)?nc(o.cliente_id):(o.clientes?.nombre_fantasia||o.clientes?.razon_social||'Cliente web'))}`,s:`${$m0(o.total)} <span class="badge b-${o.estado}">${ESN[o.estado]||o.estado}</span> · ${/^🌐/.test(o.observaciones||'')?'desde el catálogo':esc(quien(o.vendedor_id))}`})),
     ...(r.data||[]).filter(x=>!x.anulado).map(x=>({t:x.fecha+'T12:00:00-03:00',ic:'cash',c:'sube',h:`Cobro de ${$m0(x.importe)}`,s:`${esc(nc(x.cliente_id))} · ${esc(quien(x.usuario_id))}`})),
     ...(q.data||[]).map(x=>({t:x.etapa_desde,ic:'target',c:x.estado=='no_interesado'?'baja':'',h:`${esc(x.nombre)} ${x.estado=='cliente'?'se hizo cliente':x.estado=='no_interesado'?'se descartó':'pasó a '+(ET[x.estado]||x.estado)}`,s:'Prospecto · '+esc(quien(x.vendedor_id))}))]
     .filter(x=>x.t).sort((a,b)=>new Date(b.t)-new Date(a.t)).slice(0,6);
@@ -6112,6 +6119,42 @@ const ICP={home:'<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path
  grid:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
  rows:'<path d="M4 6h16M4 12h16M4 18h16"/>'};
 const IC=(n,z=20)=>`<svg class="ic" width="${z}" height="${z}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICP[n]||''}</svg>`;
+
+/* ===================== DISEÑO: una sola mano en todo el CRM =====================
+   1) Los emojis de la interfaz se muestran como íconos de línea (los mensajes de WhatsApp no se tocan).
+   2) En los resúmenes (tarjetas de números, inicio, rankings) la plata va sin centavos.
+   3) "No hay…" sueltos pasan a un estado vacío con ícono. */
+const EIC={'🚚':'truck','⚠':'alert:w','✅':'check:ok','✔':'check:ok','🛒':'cart','🎁':'gift','📲':'phone','📦':'box','⭐':'star:g','⚖':'scale','📋':'note','🔥':'flame:w','📍':'pin','📈':'chart:ok','🎉':'sparkle:g','📞':'phone','🏆':'trophy:g','📅':'calendar','🔔':'bell','⚡':'bolt:w','💵':'cash','🚀':'sparkle','⏳':'clock','👀':'eye','🤝':'users','🎯':'target','💡':'bulb:g','📷':'camera','🖨':'print','💬':'chat','🗺':'map','📥':'inbox','📝':'note','📊':'bars','🗓':'calendar','🏷':'tag','📸':'camera','🧺':'cart','💸':'cash','📉':'chart:er','🎂':'gift','🌐':'globe','🧾':'receipt','👑':'trophy:g','💳':'card','📣':'megaphone','🧲':'target','🔎':'search','🔍':'search','🖼':'image','📌':'pin','🕐':'clock','🕓':'clock','🕒':'clock','💰':'cash','🎟':'tag','🔁':'repeat','📄':'doc','✨':'sparkle','⚙':'gear','📖':'book','✏':'pencil','🏦':'bank','🧭':'map','⏰':'clock','💲':'cash','🤖':'sparkle','🔗':'link','📆':'calendar','🚶':'user','🏭':'building','📱':'phone','🏪':'building','✍':'pencil','🚦':'alert:w','🚐':'truck','🏖':'sun','🔳':'grid','🏁':'flag','🏠':'home','🛠':'gear','📤':'upload','🧮':'calc','📂':'folder','📜':'doc','🔙':'back','📺':'film','🗂':'folder','🚩':'flag:er','🏅':'trophy:g','💼':'card','🚫':'x:er','👤':'user','🔐':'lock','🔒':'lock','🔓':'lock','🔑':'lock','🗳':'inbox','👥':'users','➕':'plus','💾':'download','♻':'repeat','📢':'megaphone','📇':'user','🛍':'cart','❓':'help','❔':'help','📵':'x','🎙':'mic','🎤':'mic','🔀':'repeat','📒':'book','🎨':'image','🧹':'sparkle','🧪':'sparkle','🔜':'clock','⏹':'x','🎬':'film','🌡':'gauge','🧩':'grid','🛵':'truck','🏬':'building','🥇':'#1','🥈':'#2','🥉':'#3','🔴':'.er','🟡':'.w','🟢':'.ok','⚪':'.mu','🟧':'.w','🔵':'.az','👋':'','🙌':'','😊':'','👉':'','🙏':'','💪':'','👌':'','👍':'check:ok','👎':'x:er'};
+const EIC_RE=new RegExp('('+Object.keys(EIC).sort((a,b)=>b.length-a.length).map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')\\ufe0f?\\s?','gu');
+const EIC_NO='textarea,input,select,option,script,style,svg,pre,code,[contenteditable],.wa-prev,.no-eic,title';
+const EIC_SUM='.kp .num,.kp .det,.rh,.act-l,.td-g,.mesv,.rank,.rp-c,.rp-kp,.hc,#fc_kpi,.m1,.cb-dash,.cobd,.pp-tot,.pgv';
+function eicNodo(t){const p=t.parentElement;if(!p||p.closest(EIC_NO))return;let s=t.nodeValue;
+  if(p.closest(EIC_SUM)&&/\$\s?-?[\d.]+,\d\d/.test(s)){const n=s.replace(/(\$\s?)(-?[\d.]+),(\d\d)(?!\d)/g,(m,a,e,c)=>a+Math.round(+(e.replace(/\./g,'')+'.'+c)).toLocaleString('es-AR'));if(n!=s){t.nodeValue=s=n}}
+  EIC_RE.lastIndex=0;if(!EIC_RE.test(s))return;EIC_RE.lastIndex=0;
+  const f=document.createDocumentFragment();let i=0,m;
+  while((m=EIC_RE.exec(s))){if(m.index>i)f.appendChild(document.createTextNode(s.slice(i,m.index)));i=m.index+m[0].length;
+    const v=EIC[m[1]],sp=/\s$/.test(m[0])?' ':'';if(!v)continue;let el;
+    if(v[0]=='#'){el=document.createElement('i');el.className='medal m'+v[1];el.textContent=v[1]}
+    else if(v[0]=='.'){el=document.createElement('i');el.className='edot '+v.slice(1)}
+    else{const[n,c]=v.split(':');const w=document.createElement('span');w.innerHTML=IC(n,16);el=w.firstChild;el.classList.add('eic');if(c)el.classList.add('e-'+c);el.setAttribute('aria-hidden','true')}
+    el.dataset.e=m[1];f.appendChild(el);if(sp&&i<s.length)f.appendChild(document.createTextNode(' '))}
+  if(i<s.length)f.appendChild(document.createTextNode(s.slice(i)));t.replaceWith(f)}
+function eicVacio(el){if(el.tagName!='P'||el.classList.contains('vac')||el.closest('.modal .mc>p:first-child'))return;const k=el.children;
+  if(k.length==1&&k[0].tagName=='SMALL'&&el.textContent.trim()==k[0].textContent.trim()&&/^(No hay|Todavía no hay|Sin )/.test(el.textContent.trim())&&el.textContent.length<90){el.classList.add('vac');el.insertAdjacentHTML('afterbegin',`<span class="vac-i">${IC('inbox',22)}</span>`)}}
+function eicRecorrer(r){if(!r)return;if(r.nodeType==3)return eicNodo(r);if(r.nodeType!=1||r.closest?.(EIC_NO))return;
+  const w=document.createTreeWalker(r,NodeFilter.SHOW_TEXT),L=[];let n;while((n=w.nextNode()))L.push(n);L.forEach(eicNodo);
+  if(r.tagName=='P')eicVacio(r);r.querySelectorAll?.('p').forEach(eicVacio)}
+let eicCola=new Set(),eicT=0;
+function eicIniciar(){if(window.__eic)return;window.__eic=1;eicRecorrer(document.body);
+  new MutationObserver(M=>{for(const m of M){if(m.type=='characterData'){eicCola.add(m.target);continue}for(const n of m.addedNodes)eicCola.add(n)}
+    if(!eicT)eicT=requestAnimationFrame(()=>{eicT=0;const C=[...eicCola];eicCola.clear();for(const n of C)if(n.isConnected)eicRecorrer(n)})}).observe(document.body,{childList:true,subtree:true,characterData:true})}
+/* Avatares: cada nombre con su color (siempre el mismo) */
+const AV_COL=['#7b2d3e','#2f6fb5','#1d7a46','#a35a12','#6b4bb8','#0f7c80','#b0384f','#4f6d1f','#8a5a00','#3b5ba8'];
+const colAv=t=>{let h=0;for(const c of String(t||''))h=(h*31+c.codePointAt(0))>>>0;return AV_COL[h%AV_COL.length]};
+/* Minigráfico de tendencia (para los números de arriba) */
+function spark(V,cls=''){V=(V||[]).map(x=>+x||0);if(V.length<2||!V.some(x=>x))return '';const W=72,H=22,mx=Math.max(...V),dx=W/(V.length-1),y=v=>H-2-(mx?v/mx*(H-4):0);
+  const pts=V.map((v,i)=>(i*dx).toFixed(1)+','+y(v).toFixed(1)).join(' ');return `<svg class="spk2 ${cls}" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" aria-hidden="true"><polyline points="0,${H} ${pts} ${W},${H}" class="spk-a"/><polyline points="${pts}" class="spk-l"/><circle cx="${W}" cy="${y(V[V.length-1])}" r="2.2" class="spk-p"/></svg>`}
+if(document.body)setTimeout(eicIniciar,0);else addEventListener('DOMContentLoaded',eicIniciar);
 const BN_IC={inicio:'home',pedidos:'cart',clientes:'user',precios:'tag',stock:'box'};
 const TAB_PRI=['inicio','pedidos','clientes','compras','ventas'];
 const TAB_ICO={inicio:'🏠',pedidos:'🛒',clientes:'👤',compras:'📦',ventas:'📈',reparto:'🚚',cobranza:'💵',caja:'🧾',stock:'📊',precios:'🏷️',reportes:'📑',contable:'📚',manual:'📖'};

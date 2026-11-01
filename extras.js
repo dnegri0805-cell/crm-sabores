@@ -148,7 +148,7 @@ async function vReportes(){
         const f=famDeId(it.producto_id),y=fa[f]=fa[f]||{f,g:famGrupo(f)||'Otras',v:0,c:0,vc:0};y.v+=q*pu;if(cu>0){y.vc+=q*pu;y.c+=q*cu}}}
     const v=L.reduce((x,o)=>x+Number(o.total||0),0),conC=vi-sinC;
     return{v,n:L.length,cc,pc,zc,dc,dn,fa,vi,sinC,mg:conC>0?(conC-ci)/conC:null,gan:conC-ci,tk:L.length?v/L.length:0}};
-  const flecha=(x,y,pp)=>{if(!(y>0)&&!pp)return '<span class="rp-d">sin datos para comparar</span>';const d=pp?(x-y)*100:(x-y)/y*100;if(!isFinite(d))return '';
+  const flecha=(x,y,pp)=>{if(!(y>0)&&!pp)return x>0?'<span class="rp-d">sin datos para comparar</span>':'';const d=pp?(x-y)*100:(x-y)/y*100;if(!isFinite(d))return '';
     const t=pp?nf(Math.abs(Math.round(d*10)/10))+' pts':Math.abs(Math.round(d))+' %';return `<span class="rp-d ${d>=0.5?'up':d<=-0.5?'dn':''}">${d>=0.5?'▲':d<=-0.5?'▼':'='} ${t}</span>`};
   let A,B,ant,txtAnt;
   const pintar=()=>{const[a,b]=rg(),[pa,pb]=previo(a,b);
@@ -192,7 +192,7 @@ async function vReportes(){
   const fila=(i,n,sub,val,pc,extra='',at='')=>`<div class="rp-r"${at}><span class="rp-i">${i<3?['🥇','🥈','🥉'][i]:i+1}</span><div class="rp-c"><div class="rp-n"><b>${n}</b><span>${val}</span></div><div class="rp-b"><i style="width:${Math.max(1,Math.min(100,pc*100)).toFixed(1)}%"></i></div>${sub?`<small>${sub}</small>`:''}</div>${extra}</div>`;
   const mas=(L,lim)=>L.length>lim?`<button class="alt rp-mas" id="rp_mas">${S.rpTodo?'Ver menos':'Ver todos ('+L.length+')'}</button>`:'';
   const tabla=()=>{const box=$('#rp_x'),vb=$('#rp_v'),t=S.rpTab,lim=S.rpTodo?9999:10;vb.hidden=t!='vendedores';box.hidden=t=='vendedores';$('#rp_cp').hidden=false;COPIA=null;
-    const sinV='<p><small>No hay ventas en este período.</small></p>';
+    const sinV=vacioHTML('No hay ventas en este período.','chart',['Cargar un pedido',"irA('pedidos')"]);
     if(t=='clientes'){const L=Object.values(A.cc).sort((x,y)=>y.v-x.v);$('#rp_ts').textContent=L.length+' clientes compraron';
       box.innerHTML=L.length?L.slice(0,lim).map((x,i)=>{const pv=B.cc[x.id]?.v||0;return fila(i,esc(x.n),`${x.p} ${x.p==1?'pedido':'pedidos'} · ${Math.round(x.v/A.v*100)} % del total ${pv?flecha(x.v,pv):'<span class="rp-d up">nuevo en el período</span>'}`,$m0(x.v),x.v/L[0].v,'',` data-cli="${esc(x.id)}" role="button" tabindex="0"`)}).join('')+mas(L,10):sinV;
       COPIA=[['Cliente','Pedidos','Ventas','% del total','Período anterior'],L.map(x=>[x.n,x.p,xl(x.v),xl(x.v/A.v*100),xl(B.cc[x.id]?.v||0)])]}

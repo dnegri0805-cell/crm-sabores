@@ -462,6 +462,16 @@ Desde **Más → Cuenta y ajustes → Usuarios y accesos** (solo lo ve el dueño
 - El **respaldo** se muestra en una línea ("Respaldo al día"); tocala para ver el detalle y los botones.
 - En el celular, los accesos rápidos se ven en dos filas, sin tener que deslizar.
 
+### Diseño general
+
+- Toda la interfaz usa **íconos de línea** del mismo estilo; los emojis quedan solo en los mensajes de WhatsApp y en el catálogo del cliente.
+- **Letras:** una escala fija de tamaños, títulos sin mayúsculas sostenidas y números de ancho parejo para que las columnas se alineen.
+- **Plata:** en los resúmenes (números de arriba, rankings, actividad) va sin centavos; con centavos solo en precios, pedidos y comprobantes.
+- **Estados** (Por aprobar, Aprobado, En preparación, Listo, En reparto, Entregado, Cancelado) en píldoras de color, iguales en todo el CRM.
+- **Avatares** con un color propio por cliente.
+- **Minigráficos** de los últimos 14 días en Vendido, Cobrado y Visitas de hoy.
+- Pantallas vacías con ícono y, cuando corresponde, un botón para empezar.
+
 ## 13. Rutina diaria y preguntas frecuentes
 
 Repartís de lunes a sábado y los pedidos cierran a las 20:00 para el día siguiente.
