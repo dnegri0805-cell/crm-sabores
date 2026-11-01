@@ -532,7 +532,7 @@ function flItem(x){const p=S.productos.find(q=>q.producto_id==x.id),m=S.min[x.id
   else if(b){const D=[];if(m.ud>1&&m.ud<b.n)D.push('Display x '+m.ud+': '+flPes(pr*m.ud));D.push(b.t+' x '+b.n+': '+flPes(pr*b.n));
     if(m.bp>0)D.push('Pallet x '+m.bp+' '+String(b.t||'caja').toLowerCase()+(m.bp==1?'':'s')+': '+flPes(Math.round(pr*b.n*m.bp)));det=D.join(' · ');dets=D}
   return{n:x.n||p.descripcion,cod:String(p.codigo||'').trim(),p:v,suf,det,dets,foto:m.foto||''}}
-function flLineas(c,t,maxW,maxL){const w=String(t).split(/\s+/),L=[];let cur='';for(const x of w){const tt=cur?cur+' '+x:x;if(c.measureText(tt).width<=maxW)cur=tt;else{if(cur)L.push(cur);cur=x}}if(cur)L.push(cur);return L.slice(0,maxL)}
+function flLineas(c,t,maxW,maxL){const w=String(t).replace(/(\d+(?:[.,]\d+)?) (g|gr|kg|ml|cc|l|lt|L|u|un)\b/g,'$1\u00a0$2').split(/[ \t\n]+/),L=[];let cur='';for(const x of w){const tt=cur?cur+' '+x:x;if(c.measureText(tt).width<=maxW)cur=tt;else{if(cur)L.push(cur);cur=x}}if(cur)L.push(cur);return L.slice(0,maxL)}
 async function flPagina(f,n,total,cuerpo,logo){const{W,H,CAB,PIE,FONT}=FL,cv=document.createElement('canvas');cv.width=W;cv.height=H;const c=cv.getContext('2d');
   c.fillStyle=FL.CREMA;c.fillRect(0,0,W,H);
   const g=c.createLinearGradient(0,0,0,CAB);g.addColorStop(0,MARCA.n);g.addColorStop(1,MARCA.c);c.fillStyle=g;c.fillRect(0,0,W,CAB);
@@ -579,9 +579,9 @@ async function flArmar(f,prog){
           c.textBaseline='top';c.fillStyle=FL.TXT;const ty=nt+(NL.length==1?31:0);NL.forEach((l,j)=>c.fillText(l,X+24,ty+j*31));
           c.textBaseline='alphabetic';c.fillStyle=MARCA.c;c.font=`800 44px ${FONT}`;const pt=flPes(x.p);c.fillText(pt,X+24,pb);const pw2=c.measureText(pt).width;
           c.fillStyle=FL.GRI;c.font=`600 24px ${FONT}`;c.fillText(x.suf,X+24+pw2+8,pb);
-          const D=x.dets||(x.det?[x.det]:[]);let ly=pb+14;D.forEach((t,j)=>{const caja=j==D.length-1;c.font=`${caja?800:500} ${caja?23:21}px ${FONT}`;let tt=t;while(c.measureText(tt).width>cw-48-24&&tt.length>8)tt=tt.slice(0,-2);if(tt!==t)tt=tt.trim()+'…';
+          const D=x.dets||(x.det?[x.det]:[]),jc=Math.max(0,D.findIndex(t=>!/^(Display|Pallet)/i.test(t)));let ly=pb+14;D.forEach((t,j)=>{const caja=j==jc;c.font=`${caja?800:500} ${caja?23:21}px ${FONT}`;let tt=t;while(c.measureText(tt).width>cw-48-24&&tt.length>8)tt=tt.slice(0,-2);if(tt!==t)tt=tt.trim()+'…';
             const tw=c.measureText(tt).width;if(caja){c.fillStyle=/^#[0-9a-f]{6}$/i.test(MARCA.c)?MARCA.c+'1f':'rgba(123,45,62,.12)';rrect(c,X+20,ly,tw+24,32,10);c.fill();c.fillStyle=MARCA.c}else c.fillStyle=FL.GRI;
-            c.textBaseline='middle';c.fillText(tt,X+32,ly+17);c.textBaseline='alphabetic';ly+=36});
+            c.textBaseline='middle';c.fillText(tt,caja?X+32:X+24,ly+17);c.textBaseline='alphabetic';ly+=36});
           if(x.cod){c.fillStyle='#9aa0ad';c.font=`500 20px ${FONT}`;c.fillText('Cód. '+x.cod,X+24,pb+14+ND*36+22)}})}
       else if(Q.t=='m'){let y=TOP;c.fillStyle=MARCA.c;rrect(c,40,y,W-80,96,18);c.fill();c.fillStyle='#fff';c.textBaseline='middle';c.font=`800 38px ${FONT}`;c.fillText(Q.pg.titulo.toUpperCase(),68,y+32);c.font=`400 24px ${FONT}`;c.fillStyle='rgba(240,225,229,1)';c.fillText(Q.pg.sub||'',68,y+72);y+=114;
         /* hoja compacta: toda la línea en una sola imagen, 3 columnas con foto chica */
