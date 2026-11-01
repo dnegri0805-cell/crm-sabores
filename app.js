@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-01.7';
+const VERSION='2026-11-01.8';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -4024,10 +4024,10 @@ async function actividadInicio(){const box=$('#acti');if(!box)return;await equip
   const A=[...(p.data||[]).filter(o=>!o.es_prueba).map(o=>({t:o.actualizado_en||o.creado_en,ic:'cart',c:o.estado=='cancelado'?'baja':o.estado=='entregado'?'sube':'',x:o.estado=='cancelado',h:`Pedido N° ${o.numero} · ${esc(S.clientes.some(c=>c.id==o.cliente_id)?nc(o.cliente_id):(o.clientes?.nombre_fantasia||o.clientes?.razon_social||'Cliente web'))}`,s:`${$m0(o.total)} <span class="badge b-${o.estado}">${ESN[o.estado]||o.estado}</span> · ${/^🌐/.test(o.observaciones||'')?'desde el catálogo':esc(quien(o.vendedor_id))}`})),
     ...(r.data||[]).filter(x=>!x.anulado).map(x=>({t:x.fecha+'T12:00:00-03:00',ic:'cash',c:'sube',h:`Cobro de ${$m0(x.importe)}`,s:`${esc(nc(x.cliente_id))} · ${esc(quien(x.usuario_id))}`})),
     ...(q.data||[]).map(x=>({t:x.etapa_desde,ic:'target',c:x.estado=='no_interesado'?'baja':'',h:`${esc(x.nombre)} ${x.estado=='cliente'?'se hizo cliente':x.estado=='no_interesado'?'se descartó':'pasó a '+(ET[x.estado]||x.estado)}`,s:'Prospecto · '+esc(quien(x.vendedor_id))}))]
-    .filter(x=>x.t).sort((a,b)=>new Date(b.t)-new Date(a.t)).slice(0,6);
+    .filter(x=>x.t&&!x.x).sort((a,b)=>new Date(b.t)-new Date(a.t)).slice(0,6);
   if(!A.length){box.innerHTML='';return}
   const cuando=t=>{const d=new Date(t),m=(Date.now()-d)/6e4;if(m<1)return'recién';if(m<60)return'hace '+Math.round(m)+' min';const h=d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});if(diaLocal(d)==diaLocal(new Date()))return h;const ay=new Date();ay.setDate(ay.getDate()-1);return diaLocal(d)==diaLocal(ay)?'ayer':d.toLocaleDateString('es-AR',{day:'numeric',month:'numeric'})};
-  box.innerHTML=`<div class="box act"><div class="td-h"><h3>${IC('clock',18)} Actividad reciente</h3></div><div class="act-l">${A.map(x=>`<div class="act-r${x.x?' act-x':''}"><span class="act-i ${x.c}">${IC(x.ic,14)}</span><div><b>${x.h}</b><small>${x.s}</small></div><time>${cuando(x.t)}</time></div>`).join('')}</div></div>`}
+  box.innerHTML=`<details class="plg act-plg"><summary>🕓 Actividad reciente</summary><div class="box act"><div class="act-l">${A.map(x=>`<div class="act-r${x.x?' act-x':''}"><span class="act-i ${x.c}">${IC(x.ic,14)}</span><div><b>${x.h}</b><small>${x.s}</small></div><time>${cuando(x.t)}</time></div>`).join('')}</div></div></details>`}
 /* ======================= INICIO A MEDIDA ======================= */
 const INI_B=[['dia','Tu día','#tudia'],['bot','Accesos rápidos','#v>.ppal'],['mesv','Vendido en el mes','#mesv',['dueno']],['aprb','Precios para aprobar','#aprb',['dueno']],['num','Números del día','#v>.kp'],['rank','Vendedores','#rank',['dueno']],
   ['comv','Tu comisión','#comv',['vendedor']],['logr','Racha y logros','#logr',['vendedor']],['metas1','Metas del mes','#metas1',['dueno']],['venc','Vencidas y para reponer','#v>details.plg.ib-venc'],['tar','Tareas y avisos del día','#v>details.plg.ib-tar'],['act','Actividad reciente','#acti']];
