@@ -555,7 +555,9 @@ async function flPagina(f,n,total,cuerpo,logo){const{W,H,CAB,PIE,FONT}=FL,cv=doc
     c.translate(7.4,6.6);c.scale(.42,.42);c.fillStyle='#fff';c.fill(new Path2D('M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z'));c.restore()}else c.fillText(tt,W/2,yb+140)}
   c.font=`400 23px ${FONT}`;c.fillStyle='rgba(240,225,229,1)';c.fillText('Sabores de mi País · Distribuidora de alimentos · Precios sujetos a cambio',W/2,yb+196);c.textAlign='left';
   return cv}
-async function flArmar(f,prog){
+/* f.ancho: hoja más ancha (ej. 1440×1920 = 3:4) para que WhatsApp la muestre entera en el chat, sin recortar */
+async function flArmar(f,prog){const W0=FL.W;if(+f.ancho>0)FL.W=+f.ancho;try{return await flArmar0(f,prog)}finally{FL.W=W0}}
+async function flArmar0(f,prog){
   const logo=await flImg(MARCA.logo||LOGO_DEF),{W,H,CAB,PIE,FONT}=FL,BOT=H-PIE-24,TOP=CAB+28,P=[];
   for(const pg of f.paginas||[]){
     if(pg.tipo=='fotos'){const L=(pg.items||[]).map(flItem).filter(Boolean);if(L.length)P.push({t:'f',pg,L})}
@@ -587,7 +589,7 @@ async function flArmar(f,prog){
           if(x.cod){c.fillStyle='#9aa0ad';c.font=`500 20px ${FONT}`;c.fillText('Cód. '+x.cod,X+24,pb+14+ND*36+22)}})}
       else if(Q.t=='m'){let y=TOP;c.fillStyle=MARCA.c;rrect(c,40,y,W-80,96,18);c.fill();c.fillStyle='#fff';c.textBaseline='middle';c.font=`800 38px ${FONT}`;c.fillText(Q.pg.titulo.toUpperCase(),68,y+32);c.font=`400 24px ${FONT}`;c.fillStyle='rgba(240,225,229,1)';c.fillText(Q.pg.sub||'',68,y+72);y+=114;
         /* hoja compacta: toda la línea en una sola imagen, 3 columnas con foto chica */
-        const COL=3,gap=14,cw=(W-80-gap*(COL-1))/COL,NR=Math.ceil(Q.L.length/COL),ch=(BOT-y-(NR-1)*gap)/NR,imgs=await Promise.all(Q.L.map(x=>flImg(x.foto,1)));
+        const COL=W>=1400?4:3,gap=14,cw=(W-80-gap*(COL-1))/COL,NR=Math.ceil(Q.L.length/COL),ch=(BOT-y-(NR-1)*gap)/NR,imgs=await Promise.all(Q.L.map(x=>flImg(x.foto,1)));
         Q.L.forEach((x,i)=>{const X=40+(i%COL)*(cw+gap),Y=y+Math.floor(i/COL)*(ch+gap);c.fillStyle='#fff';rrect(c,X,Y,cw,ch,18);c.fill();c.strokeStyle=FL.LIN;c.lineWidth=2;c.stroke();
           const iw=Math.min(ch-20,cw*.36),im=imgs[i];if(im){const k=Math.min(iw/im.width,(ch-20)/im.height);c.drawImage(im,X+10+(iw-im.width*k)/2,Y+(ch-im.height*k)/2,im.width*k,im.height*k)}
           const tx=X+iw+16,tw=cw-iw-24;c.textBaseline='top';c.fillStyle=FL.TXT;c.font=`700 20px ${FONT}`;
@@ -662,7 +664,7 @@ async function folletosListos(){
   const bajar=async(f,lst,o={})=>{const{X,F}=await salida(f,lst,o);toast('Descargando '+X.length+' imagen'+(X.length==1?'':'es')+'…');X.forEach((b,i)=>descargar(b,nom(f,i+1,F)))};
   const compartir=async(f,lst,o={})=>{const t=o.texto||flMsg(f);copiar(t);try{const{X,F}=await salida(f,lst,o),files=X.map((b,i)=>new File([b],nom(f,i+1,F),{type:'image/jpeg'}));
     if(navigator.canShare&&navigator.canShare({files})){await navigator.share(o.sinTexto?{files}:{files,text:t});let k=0;try{k=+(localStorage.getItem('fl_hd')||0);localStorage.setItem('fl_hd',k+1)}catch(x){}if(k<4)setTimeout(()=>toast('Tip: en WhatsApp tocá «HD» arriba de la foto antes de enviarla, así la letra chica sale nítida.'),600)}else X.forEach((b,i)=>descargar(b,nom(f,i+1,F)))}catch(e){est('');if(e&&e.name!='AbortError')toast('No se pudo compartir: '+(e.message||e),1)}};
-  const archivoPDF=async(f,lst,o={})=>{const{X,I,F,n}=await salida(f,lst,o);est('⏳ Armando el PDF…');const D=FLF[F],blob=await pdfDeJpgs(X,D.w,D.h),nm=base(f,F)+(I.length<n?'-hojas-'+I.join('-'):'')+'.pdf';est('');return{blob,nm,file:new File([blob],nm,{type:'application/pdf'})}};
+  const archivoPDF=async(f,lst,o={})=>{const{X,I,F,n}=await salida(f,lst,o);est('⏳ Armando el PDF…');const D=+f.ancho>0&&F=='historia'?{w:+f.ancho,h:1920}:FLF[F],blob=await pdfDeJpgs(X,D.w,D.h),nm=base(f,F)+(I.length<n?'-hojas-'+I.join('-'):'')+'.pdf';est('');return{blob,nm,file:new File([blob],nm,{type:'application/pdf'})}};
   const pdf=async(f,soloBajar,lst,o={})=>{const t=o.texto||flMsg(f);if(!soloBajar)copiar(t);try{const{blob,nm,file}=await archivoPDF(f,lst,o);
     if(!soloBajar&&navigator.canShare&&navigator.canShare({files:[file]}))await navigator.share({files:[file],text:t});
     else{descargar(blob,nm);toast('PDF descargado: '+nm)}}catch(e){est('');if(e&&e.name!='AbortError')toast('No se pudo armar el PDF: '+(e.message||e),1)}};
