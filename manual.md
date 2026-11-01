@@ -493,6 +493,12 @@ Desde **Más → Cuenta y ajustes → Usuarios y accesos** (solo lo ve el dueño
 - **Sin señal:** además de pedidos y reparto, ahora se guardan sin internet los cobros de Cobranza, las notas, las visitas (Llegué) y las notas del equipo. Arriba aparece "Sin señal · N pendientes" y se mandan solas al volver la conexión.
 - **WhatsApp automático (API de Meta)** (Más → WhatsApp automático): se conecta la cuenta de WhatsApp Business con el token y el número; después se prenden los avisos de *recordatorio de cobro* y *tu pedido sale hoy*, que salen solos todos los días a las 9.
 
+### Aumentar precios (por marca, familia, proveedor o elegidos)
+
+- **Al toque:** Precios → buscá o filtrá (ej. marca *Maní JL*) → *Elegir varios* → *Todos los del filtro* → **Subir / bajar %**. Elegís qué sube: **Costo y precio de venta** (te aumentó el proveedor), **Solo mi precio de venta** o **Solo el costo**.
+- **Programado:** Precios → *Aumentos* → elegís marca/familia/proveedor, el %, qué sube y la fecha. Unos días antes la Cola del día les avisa a los clientes, y ese día a las 0:05 se aplica solo, aunque nadie abra el CRM.
+- Los productos con **precio fijo** solo cambian su precio de venta si elegís "Costo y precio" o "Solo mi precio".
+
 ## 13. Rutina diaria y preguntas frecuentes
 
 Repartís de lunes a sábado y los pedidos cierran a las 20:00 para el día siguiente.

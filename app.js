@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-01.3';
+const VERSION='2026-11-01.4';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -1126,7 +1126,7 @@ async function vPrecios(){
       <select id="pr_ma"><option value="">Todas las marcas</option></select>
       <select id="pr_fa"><option value="">Todas las familias</option></select>
       <label class="chk"><input type="checkbox" id="pr_sf"> Solo sin foto</label><label class="chk"><input type="checkbox" id="pr_mb"> Solo margen bajo</label><label class="chk"><input type="checkbox" id="pr_fj"> Solo precio fijo</label></div></details>
-    <details class="prf praum" id="pr_ad" hidden><summary>Aumento por porcentaje ${IC('down',14)}</summary><p><small>Sube (o baja, con −) el costo de <b>todos los productos que muestra el filtro</b>. Primero te muestra cómo queda.</small></p><div class="aum"><span>Aumentar costo</span><input id="pr_pct" type="number" step="0.1" placeholder="%"><span>%</span><button class="alt" id="pr_prev">Ver cómo queda</button></div></details>
+    <details class="prf praum" id="pr_ad" hidden><summary>Aumento por porcentaje ${IC('down',14)}</summary><p><small>Sube (o baja, con −) <b>todos los productos que muestra el filtro</b>. Primero te muestra cómo queda.</small></p><div class="aum"><span>Aumentar</span><select id="pr_que" class="aum-que"><option value="ambos">Costo y precio de venta</option><option value="venta">Solo mi precio de venta</option><option value="costo">Solo el costo</option></select><input id="pr_pct" type="number" step="0.1" placeholder="%"><span>%</span><button class="alt" id="pr_prev">Ver cómo queda</button></div></details>
     <div id="pr_conf"></div>
     <div class="tw"><table id="pr_t"></table></div>
     <button id="pr_g">Guardar costos cambiados</button> <span id="pr_n"></span></div>
@@ -1243,8 +1243,15 @@ SDMP-01279	8.900</pre>
      let bb=document.getElementById('pr_bulk');if(S.prSel&&S.tab=='precios'){if(!bb){bb=document.createElement('div');bb.id='pr_bulk';bb.className='em-bulk';document.body.appendChild(bb)}
        bb.innerHTML=`<b>${S.prSel.size} elegido${S.prSel.size==1?'':'s'}</b><a class="lnk" id="pb_all" style="color:#fff">Todos los del filtro</a><button class="wa" id="pb_pct" ${S.prSel.size?'':'disabled'}>${IC('up',15)} Subir / bajar %</button><button class="alt" id="pb_fam" ${S.prSel.size?'':'disabled'}>Cambiar familia</button><button class="alt" id="pb_nfj" ${S.prSel.size?'':'disabled'}>Quitar precio fijo</button>`;
        bb.querySelector('#pb_all').onclick=()=>{sel.forEach(p=>S.prSel.add(p.producto_id));draw()};
-       bb.querySelector('#pb_pct').onclick=()=>{const x=prompt('¿Cuánto subís el costo de los '+S.prSel.size+' elegidos? (en %, con − para bajar; ej.: 10 o -5)');if(x===null)return;const pc=numAR(x);if(!pc||!(pc>-90&&pc<=500))return toast('Escribí un porcentaje, por ejemplo 10 o -5.',1);
-         let n=0;for(const id of S.prSel){const p=S.productos.find(y=>y.producto_id==id);if(p&&+p.costo>0){nuevo[id]=Math.round(+p.costo/(ppz(id)||1)*(1+pc/100)*100)/100;n++}}upd();S.prSel=null;draw();toast(n+' costos cambiados en pantalla (marcados en amarillo). Tocá «Guardar costos cambiados» para aplicarlos.');$('#pr_g').scrollIntoView({behavior:'smooth',block:'center'})};
+       bb.querySelector('#pb_pct').onclick=()=>{const ids=[...S.prSel],m=document.createElement('div');m.className='modal';document.body.appendChild(m);const nfj=ids.filter(id=>+S.productos.find(y=>y.producto_id==id)?.precio_fijo>0).length;
+         m.innerHTML=`<div class="mc"><div class="bh"><h3 style="margin:0">${IC('up',18)} Subir o bajar ${ids.length} ${ids.length==1?'producto':'productos'}</h3><button class="alt" data-x>Cancelar</button></div>
+           <label class="f">Porcentaje (con − para bajar)<input id="pb_v" type="number" step="0.1" placeholder="ej. 5" inputmode="decimal"></label>
+           <div class="pb-q">${[['ambos','Costo y precio de venta','Te aumentó el proveedor y lo trasladás.'],['venta','Solo mi precio de venta','Subís tu precio; el costo queda igual.'],['costo','Solo el costo','El precio de venta sube solo con el margen'+(nfj?', menos en los '+nfj+' con precio fijo':'')+'.']].map(([v,t,d],i)=>`<label class="pb-o"><input type="radio" name="pb_q" value="${v}" ${i?'':'checked'}><span><b>${t}</b><small>${d}</small></span></label>`).join('')}</div>
+           <button id="pb_ok">Aplicar</button></div>`;
+         m.querySelector('[data-x]').onclick=()=>m.remove();setTimeout(()=>m.querySelector('#pb_v').focus(),50);
+         m.querySelector('#pb_ok').onclick=async()=>{const pc=numAR(m.querySelector('#pb_v').value),que=m.querySelector('[name=pb_q]:checked').value;if(!pc||!(pc>-90&&pc<=500))return toast('Escribí un porcentaje, por ejemplo 5 o -3.',1);
+           m.querySelector('#pb_ok').disabled=true;const{data,error}=await sb.rpc('aumentar_precios',{p_ids:ids,p_pct:pc,p_que:que});if(error){m.querySelector('#pb_ok').disabled=false;return toast(error.message,1)}
+           m.remove();S.prSel=null;await recargarProductos();draw();toast((data??ids.length)+' productos con '+(pc>0?'+':'')+nf(pc)+' % '+(que=='ambos'?'en costo y precio':que=='venta'?'en el precio de venta':'en el costo')+'.')}};
        bb.querySelector('#pb_fam').onclick=async()=>{const F=uniq('familia');const x=prompt('Nueva familia para los '+S.prSel.size+' elegidos. Escribila igual que una existente:\n'+F.slice(0,40).join(' · '));if(x===null||!x.trim())return;
          const f=F.find(y=>y.toUpperCase()==x.trim().toUpperCase())||x.trim();const{error}=await sb.from('productos').update({familia:f}).in('id',[...S.prSel]);if(error)return toast(error.message,1);S.prSel=null;await recargarProductos();draw();toast('Familia cambiada a «'+f+'».')};
        bb.querySelector('#pb_nfj').onclick=async()=>{const ids=[...S.prSel].filter(id=>+S.productos.find(y=>y.producto_id==id)?.precio_fijo>0);if(!ids.length)return toast('Ninguno de los elegidos tiene precio fijo.',1);if(!confirm('¿Quitar el precio fijo de '+ids.length+' productos? Vuelven a salir del costo y el margen.'))return;
@@ -1269,14 +1276,15 @@ SDMP-01279	8.900</pre>
     if(viejo.length)snack((data||it.length)+' costos actualizados',async()=>{const{error:e2}=await sb.rpc('fijar_costos',{p_items:viejo});if(e2)return toast(e2.message,1);await recargarProductos();if(S.tab=='precios')vPrecios();toast('Volvieron los costos anteriores.')})};
   /* aumento por porcentaje */
   $('#pr_prev').onclick=()=>{const p=numAR($('#pr_pct').value);if(!p||!(p>-90&&p<=500))return toast('Escribí un porcentaje, por ejemplo 12 o -5.',1);
-    const con=sel.filter(x=>+x.costo>0);if(!con.length)return toast('Ningún producto del filtro tiene costo cargado.',1);
+    const que=$('#pr_que')?.value||'ambos',con=que=='costo'?sel.filter(x=>+x.costo>0):sel;if(!con.length)return toast('Ningún producto del filtro tiene costo cargado.',1);
     const ej=con[0],nc=Math.round(ej.costo*(1+p/100)*100)/100,filtro=[$('#pr_pv').selectedOptions[0].text,$('#pr_ma').value,$('#pr_fa').value,$('#pr_q').value&&'"'+$('#pr_q').value+'"'].filter(x=>x&&!/^Todos|^Todas/.test(x)).join(' · ')||'todos los productos';
-    $('#pr_conf').innerHTML=`<div class="aviso"><p><b>${p>0?'Aumento':'Baja'} de ${pctf(Math.abs(p))}</b> al costo de <b>${con.length}</b> ${con.length==1?'producto':'productos'} (${esc(filtro)}).${sel.length>con.length?(sel.length-con.length==1?' El que no tiene costo cargado no cambia.':' Los '+(sel.length-con.length)+' sin costo cargado no cambian.'):''}</p>
-      <p>Ejemplo: ${esc(ej.descripcion)} pasa de costo ${$m(ej.costo)} a <b>${$m(nc)}</b>; precio mayorista de ${$m(precio(+ej.costo,'mayorista'))} a <b>${$m(precio(nc,'mayorista'))}</b>.</p>
+    const z0=ppz(ej.producto_id)||1,pa=+ej.precio_fijo>0?+ej.precio_fijo/z0:precio(+ej.costo,'mayorista',ej.familia),pn=que=='costo'&&!(+ej.precio_fijo>0)?precio(nc,'mayorista',ej.familia):que=='costo'?pa:Math.round(pa*(1+p/100));
+    $('#pr_conf').innerHTML=`<div class="aviso"><p><b>${p>0?'Aumento':'Baja'} de ${pctf(Math.abs(p))}</b> ${que=='ambos'?'en costo y precio de venta':que=='venta'?'en el precio de venta':'en el costo'} de <b>${con.length}</b> ${con.length==1?'producto':'productos'} (${esc(filtro)}).${sel.length>con.length?(sel.length-con.length==1?' El que no tiene costo cargado no cambia.':' Los '+(sel.length-con.length)+' sin costo cargado no cambian.'):''}</p>
+      <p>Ejemplo: ${esc(ej.descripcion)}: ${que=='venta'?'el costo queda igual':`costo de ${$m(ej.costo)} a <b>${$m(nc)}</b>`}; precio mayorista de ${$m(pa)} a <b>${$m(pn)}</b>.${que=='costo'&&+ej.precio_fijo>0?' <b>Ojo:</b> tiene precio fijo, así que su precio de venta no cambia.':''}${que=='venta'?'<br><small>Los que no tenían precio fijo quedan con precio fijo nuevo (ya no siguen al costo).</small>':''}</p>
       <button id="pr_ap">Aplicar ${p>0?'aumento':'baja'}</button> <button class="alt" id="pr_no">Cancelar</button></div>`;
     $('#pr_no').onclick=()=>$('#pr_conf').innerHTML='';
     $('#pr_ap').onclick=async()=>{$('#pr_ap').disabled=true;$('#pr_ap').textContent='Aplicando…';
-      const{data,error}=await sb.rpc('aumentar_costos',{p_ids:con.map(x=>x.producto_id),p_pct:p});
+      let{data,error}=await sb.rpc('aumentar_precios',{p_ids:con.map(x=>x.producto_id),p_pct:p,p_que:que});if(error&&/aumentar_precios/.test(error.message)&&que=='costo')({data,error}=await sb.rpc('aumentar_costos',{p_ids:con.map(x=>x.producto_id),p_pct:p}));
       if(error){$('#pr_ap').disabled=false;return toast(error.message,1)}
       $('#pr_pct').value='';await recargarProductos();vPrecios();toast((data??con.length)+' productos actualizados con '+(p>0?'+':'')+pctf(p)+'.')}};
   /* pegar lista del proveedor */
@@ -6458,21 +6466,21 @@ function bindMinProv(re){$$('[data-pmin],[data-ppct],[data-pdes]').forEach(i=>i.
 async function aumentosProg(){let A=(await cfgJ('aumentos_prog',{l:[]})).l||[];const due=S.perfil.rol=='dueno',m=document.createElement('div');m.className='modal';document.body.appendChild(m);
   const uniq=k=>[...new Set(S.productos.map(p=>p[k]).filter(Boolean))].sort(),hoy=diaLocal(new Date());
   const draw=()=>{m.innerHTML=`<div class="mc"><div class="bh"><h3>📅 Aumentos programados</h3><button class="alt" id="ap_x">Cerrar</button></div>
-    <p><small>Cuando un proveedor te avisa un aumento para una fecha, cargalo acá. Unos días antes, la <b>Cola del día</b> les avisa a los clientes que compran esos productos ("pedí antes del aumento"), y ese día los costos (y tus precios) suben solos.</small></p>
+    <p><small>Cargá un aumento para una fecha (de un proveedor, una marca como <b>Maní JL</b>, una familia o todo). Unos días antes, la <b>Cola del día</b> les avisa a los clientes que compran esos productos ("pedí antes del aumento"), y ese día a las 0:05 los precios suben solos, aunque nadie abra el CRM.</small></p>
     ${due?`<div class="g"><select id="ap_t"><option value="proveedor">De un proveedor</option><option value="marca">De una marca</option><option value="familia">De una familia</option><option value="todos">Todos los productos</option></select><select id="ap_v"></select>
-      <input type="number" id="ap_p" step="0.5" min="0.5" max="100" placeholder="% de aumento"><input type="date" id="ap_f" min="${hoy}"><label class="f">Avisar días antes<input type="number" id="ap_a" min="0" max="15" value="3"></label></div><button id="ap_g">Programar</button>`:''}
-    <div class="tw" style="margin-top:8px"><table>${A.map((x,k)=>`<tr><td><b>+${nf(x.pct)} %</b> ${x.tipo=='todos'?'en todos los productos':esc(x.tipo)+' '+esc(x.tipo=='proveedor'?((S.prov||[]).find(p=>p.id==x.valor)?.razon_social||'proveedor'):x.valor)}<br><small>${x.aplicado?'✓ aplicado el '+fd(x.fecha):'el '+fd(x.fecha)+' · aviso '+x.aviso+' días antes'} · ${idsAumento(x).length} productos</small></td><td>${due&&!x.aplicado?`<a class="lnk" data-apx="${k}">Quitar</a>`:''}</td></tr>`).join('')||'<tr><td><small>No hay aumentos programados.</small></td></tr>'}</table></div></div>`;
+      <input type="number" id="ap_p" step="0.5" min="0.5" max="100" placeholder="% de aumento"><select id="ap_q" class="aum-que"><option value="ambos">Costo y precio de venta</option><option value="venta">Solo mi precio de venta</option><option value="costo">Solo el costo</option></select><input type="date" id="ap_f" min="${hoy}"><label class="f">Avisar días antes<input type="number" id="ap_a" min="0" max="15" value="3"></label></div><button id="ap_g">Programar</button>`:''}
+    <div class="tw" style="margin-top:8px"><table>${A.map((x,k)=>`<tr><td><b>+${nf(x.pct)} %</b> <small>${x.que=='venta'?'(precio de venta)':x.que=='ambos'?'(costo y precio)':'(costo)'}</small> ${x.tipo=='todos'?'en todos los productos':esc(x.tipo)+' '+esc(x.tipo=='proveedor'?((S.prov||[]).find(p=>p.id==x.valor)?.razon_social||'proveedor'):x.valor)}<br><small>${x.aplicado?'✓ aplicado el '+fd(x.fecha):'el '+fd(x.fecha)+' · aviso '+x.aviso+' días antes'} · ${idsAumento(x).length} productos</small></td><td>${due&&!x.aplicado?`<a class="lnk" data-apx="${k}">Quitar</a>`:''}</td></tr>`).join('')||'<tr><td><small>No hay aumentos programados.</small></td></tr>'}</table></div></div>`;
     const q=s=>m.querySelector(s);q('#ap_x').onclick=()=>m.remove();
     const opts=async()=>{const t=q('#ap_t').value;let L=[];if(t=='proveedor'){if(!S.prov){const{data}=await sb.from('proveedores').select('id,razon_social').eq('activo',true).order('razon_social');S.prov=data||[]}L=S.prov.map(p=>[p.id,p.razon_social])}else if(t!='todos')L=uniq(t).map(x=>[x,x]);q('#ap_v').innerHTML=L.map(([v,n])=>`<option value="${esc(v)}">${esc(n)}</option>`).join('');q('#ap_v').hidden=t=='todos'};
     if(q('#ap_t')){q('#ap_t').onchange=opts;opts()}
     const sv=async()=>{const{error}=await guardaCfgJ('aumentos_prog',{l:A});if(error)toast(error.message,1)};
-    q('#ap_g')&&(q('#ap_g').onclick=async()=>{const x={id:Date.now().toString(36),tipo:q('#ap_t').value,valor:q('#ap_v').value,pct:+q('#ap_p').value,fecha:q('#ap_f').value,aviso:+q('#ap_a').value||0,aplicado:false};
+    q('#ap_g')&&(q('#ap_g').onclick=async()=>{const x={id:Date.now().toString(36),tipo:q('#ap_t').value,valor:q('#ap_v').value,pct:+q('#ap_p').value,que:q('#ap_q').value,fecha:q('#ap_f').value,aviso:+q('#ap_a').value||0,aplicado:false};
       if(!(x.pct>0&&x.pct<=100))return toast('Poné el porcentaje.',1);if(!x.fecha)return toast('Elegí la fecha.',1);if(!idsAumento(x).length)return toast('No hay productos con ese filtro.',1);A.push(x);A.sort((a,b)=>a.fecha.localeCompare(b.fecha));await sv();toast('Aumento programado.');draw()});
     m.querySelectorAll('[data-apx]').forEach(a=>a.onclick=async()=>{A.splice(+a.dataset.apx,1);await sv();draw()})};
   draw()}
 const idsAumento=x=>S.productos.filter(p=>S.min[p.producto_id]?.a!==false&&(x.tipo=='todos'||(x.tipo=='proveedor'&&S.min[p.producto_id]?.pv==x.valor)||(x.tipo!='proveedor'&&String(p[x.tipo]||'')==x.valor))).map(p=>p.producto_id);
 async function aplicarAumentosProg(){if(S.perfil.rol!='dueno')return;const C=await cfgJ('aumentos_prog',{l:[]}),hoy=diaLocal(new Date());let ch=false;
-  for(const x of C.l||[]){if(x.aplicado||x.fecha>hoy)continue;const ids=idsAumento(x);const{data,error}=await sb.rpc('aumentar_costos',{p_ids:ids,p_pct:x.pct});if(error){toast('No se pudo aplicar el aumento programado: '+error.message,1);continue}
+  for(const x of C.l||[]){if(x.aplicado||x.fecha>hoy)continue;const ids=idsAumento(x);const{data,error}=await sb.rpc('aumentar_precios',{p_ids:ids,p_pct:x.pct,p_que:x.que||'costo'});if(error){toast('No se pudo aplicar el aumento programado: '+error.message,1);continue}
     x.aplicado=true;ch=true;toast('📅 Se aplicó el aumento programado: +'+nf(x.pct)+' % en '+(data??ids.length)+' productos.')}
   if(ch){await guardaCfgJ('aumentos_prog',C);await recargarProductos().catch(()=>{})}}
 
