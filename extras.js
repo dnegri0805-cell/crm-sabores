@@ -533,7 +533,9 @@ function flItem(x){const p=S.productos.find(q=>q.producto_id==x.id),m=S.min[x.id
     if(m.bp>0)D.push('Pallet x '+m.bp+' '+String(b.t||'caja').toLowerCase()+(m.bp==1?'':'s')+': '+flPes(Math.round(pr*b.n*m.bp)));det=D.join(' · ');dets=D}
   return{n:x.n||p.descripcion,cod:String(p.codigo||'').trim(),p:v,suf,det,dets,foto:m.foto||''}}
 function flLineas(c,t,maxW,maxL){const w=String(t).replace(/(\d+(?:[.,]\d+)?) (g|gr|kg|ml|cc|l|lt|L|u|un)\b/g,'$1\u00a0$2').split(/[ \t\n]+/),L=[];let cur='';for(const x of w){const tt=cur?cur+' '+x:x;if(c.measureText(tt).width<=maxW)cur=tt;else{if(cur)L.push(cur);cur=x}}if(cur)L.push(cur);return L.slice(0,maxL)}
-async function flPagina(f,n,total,cuerpo,logo){const{W,H,CAB,PIE,FONT}=FL,cv=document.createElement('canvas');cv.width=W;cv.height=H;const c=cv.getContext('2d');
+/* las hojas se dibujan al doble de resolución: en WhatsApp (con HD) la letra chica sale nítida */
+const FL_ESC=2;
+async function flPagina(f,n,total,cuerpo,logo){const{W,H,CAB,PIE,FONT}=FL,cv=document.createElement('canvas');cv.width=W*FL_ESC;cv.height=H*FL_ESC;const c=cv.getContext('2d');c.scale(FL_ESC,FL_ESC);c.imageSmoothingQuality='high';
   c.fillStyle=FL.CREMA;c.fillRect(0,0,W,H);
   const g=c.createLinearGradient(0,0,0,CAB);g.addColorStop(0,MARCA.n);g.addColorStop(1,MARCA.c);c.fillStyle=g;c.fillRect(0,0,W,CAB);
   let tx=44;if(logo){const lh=230,lw=logo.width*lh/logo.height,ly=(CAB-lh)/2-4;c.save();c.shadowColor='rgba(0,0,0,.45)';c.shadowBlur=22;c.shadowOffsetY=6;c.drawImage(logo,30,ly,lw,lh);c.restore();tx=30+lw+24}
@@ -603,7 +605,7 @@ async function flArmar(f,prog){
         let fs=30;c.font=`600 ${fs}px ${FONT}`;while(c.measureText(r.n).width>W-40-28-pw-sw-38-64&&fs>20){fs--;c.font=`600 ${fs}px ${FONT}`}
         const d2=!!(r.det||r.cod);c.fillStyle=FL.TXT;c.textBaseline='middle';c.fillText(r.n,64,d2?y+30:y+40);if(d2){let dx=64;if(r.cod){const ct='Cód. '+r.cod;c.font=`500 21px ${FONT}`;c.fillStyle='#9aa0ad';c.fillText(ct,dx,y+59);dx+=c.measureText(ct).width}if(r.det){c.font=`400 23px ${FONT}`;c.fillStyle=FL.GRI;c.fillText((r.cod?'  ·  ':'')+r.det,dx,y+59)}}
         c.textAlign='right';c.font=`600 22px ${FONT}`;c.fillStyle=FL.GRI;c.fillText(r.suf,W-64,y+42);c.font=`800 38px ${FONT}`;c.fillStyle=MARCA.c;c.fillText(pt,W-64-sw-8,y+40);c.textAlign='left';y+=80}}},logo);
-    out.push(await new Promise(r=>cv.toBlob(r,'image/jpeg',.88)))}
+    out.push(await new Promise(r=>cv.toBlob(r,'image/jpeg',.9)))}
   {const pf=f.id+'|'+(window.FL_LISTA||'')+'|';for(const k of [...FL_OUT.keys()])if(k.startsWith(pf))FL_OUT.delete(k)};FL_OUT.set(clave,out);
   return out}
 /* Junta las imágenes JPG del folleto en un solo PDF (una imagen por hoja), sin librerías */
@@ -655,11 +657,11 @@ async function folletosListos(){
   const copiar=t=>{try{navigator.clipboard&&navigator.clipboard.writeText(t).catch(()=>{})}catch(e){}};
   /* las hojas elegidas, ya pasadas al formato pedido */
   const salida=async(f,lst,o={})=>{const{B}=await armar(f,o.lista);const I=(lst&&lst.length?lst:B.map((_,k)=>k+1)).filter(i=>i>=1&&i<=B.length),F=o.fmt||fmt;
-    let X=I.map(i=>B[i-1]);if(F!='historia'){est('⏳ Pasando a '+FLF[F].t+'…');X=await flFormato(X,F);est('')}return{X,I,F,n:B.length}};
+    let X=I.map(i=>B[i-1]);if(F!='historia'&&!(F=='cuadrado'&&I.length==1&&(f.paginas||[]).some(p=>p.tipo=='mini'))){est('⏳ Pasando a '+FLF[F].t+'…');X=await flFormato(X,F);est('')}return{X,I,F,n:B.length}};
   const descargar=(blob,nm)=>{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nm;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)};
   const bajar=async(f,lst,o={})=>{const{X,F}=await salida(f,lst,o);toast('Descargando '+X.length+' imagen'+(X.length==1?'':'es')+'…');X.forEach((b,i)=>descargar(b,nom(f,i+1,F)))};
   const compartir=async(f,lst,o={})=>{const t=o.texto||flMsg(f);copiar(t);try{const{X,F}=await salida(f,lst,o),files=X.map((b,i)=>new File([b],nom(f,i+1,F),{type:'image/jpeg'}));
-    if(navigator.canShare&&navigator.canShare({files}))await navigator.share(o.sinTexto?{files}:{files,text:t});else X.forEach((b,i)=>descargar(b,nom(f,i+1,F)))}catch(e){est('');if(e&&e.name!='AbortError')toast('No se pudo compartir: '+(e.message||e),1)}};
+    if(navigator.canShare&&navigator.canShare({files})){await navigator.share(o.sinTexto?{files}:{files,text:t});let k=0;try{k=+(localStorage.getItem('fl_hd')||0);localStorage.setItem('fl_hd',k+1)}catch(x){}if(k<4)setTimeout(()=>toast('Tip: en WhatsApp tocá «HD» arriba de la foto antes de enviarla, así la letra chica sale nítida.'),600)}else X.forEach((b,i)=>descargar(b,nom(f,i+1,F)))}catch(e){est('');if(e&&e.name!='AbortError')toast('No se pudo compartir: '+(e.message||e),1)}};
   const archivoPDF=async(f,lst,o={})=>{const{X,I,F,n}=await salida(f,lst,o);est('⏳ Armando el PDF…');const D=FLF[F],blob=await pdfDeJpgs(X,D.w,D.h),nm=base(f,F)+(I.length<n?'-hojas-'+I.join('-'):'')+'.pdf';est('');return{blob,nm,file:new File([blob],nm,{type:'application/pdf'})}};
   const pdf=async(f,soloBajar,lst,o={})=>{const t=o.texto||flMsg(f);if(!soloBajar)copiar(t);try{const{blob,nm,file}=await archivoPDF(f,lst,o);
     if(!soloBajar&&navigator.canShare&&navigator.canShare({files:[file]}))await navigator.share({files:[file],text:t});
