@@ -557,6 +557,7 @@ async function flArmar(f,prog){
   const logo=await flImg(MARCA.logo||LOGO_DEF),{W,H,CAB,PIE,FONT}=FL,BOT=H-PIE-24,TOP=CAB+28,P=[];
   for(const pg of f.paginas||[]){
     if(pg.tipo=='fotos'){const L=(pg.items||[]).map(flItem).filter(Boolean);if(L.length)P.push({t:'f',pg,L})}
+    else if(pg.tipo=='mini'){const L=(pg.items||[]).map(flItem).filter(Boolean);if(L.length)P.push({t:'m',pg,L})}
     else if(pg.tipo=='lista'){const SEC=70,ROW=80;let cur=[],y=TOP,last=null;
       for(const s of pg.secciones||[])for(const x of s.items){const it=flItem(x);if(!it)continue;let need=ROW+(s.t!==last?SEC:0);
         if(y+need>BOT){P.push({t:'l',rows:cur});cur=[];y=TOP;last=null;need=ROW+SEC}
@@ -564,7 +565,7 @@ async function flArmar(f,prog){
       if(cur.length)P.push({t:'l',rows:cur})}}
   const clave=f.id+'|'+(window.FL_LISTA||'')+'|'+(f.v||'')+'|'+S.telEmp+'|'+(S.vcfg?.envio||'')+'|'+(S.vcfg?.costoEnvio||'')+'|'+JSON.stringify(P);
   if(FL_OUT.has(clave))return FL_OUT.get(clave);
-  P.forEach(Q=>Q.t=='f'&&Q.L.forEach(x=>flImg(x.foto,1)));
+  P.forEach(Q=>(Q.t=='f'||Q.t=='m')&&Q.L.forEach(x=>flImg(x.foto,1)));
   const out=[];
   for(let k=0;k<P.length;k++){prog&&prog(k+1,P.length);const Q=P[k];
     const cv=await flPagina(f,k+1,P.length,async c=>{
@@ -582,6 +583,15 @@ async function flArmar(f,prog){
             const tw=c.measureText(tt).width;if(caja){c.fillStyle=/^#[0-9a-f]{6}$/i.test(MARCA.c)?MARCA.c+'1f':'rgba(123,45,62,.12)';rrect(c,X+20,ly,tw+24,32,10);c.fill();c.fillStyle=MARCA.c}else c.fillStyle=FL.GRI;
             c.textBaseline='middle';c.fillText(tt,X+32,ly+17);c.textBaseline='alphabetic';ly+=36});
           if(x.cod){c.fillStyle='#9aa0ad';c.font=`500 20px ${FONT}`;c.fillText('Cód. '+x.cod,X+24,pb+14+ND*36+22)}})}
+      else if(Q.t=='m'){let y=TOP;c.fillStyle=MARCA.c;rrect(c,40,y,W-80,96,18);c.fill();c.fillStyle='#fff';c.textBaseline='middle';c.font=`800 38px ${FONT}`;c.fillText(Q.pg.titulo.toUpperCase(),68,y+32);c.font=`400 24px ${FONT}`;c.fillStyle='rgba(240,225,229,1)';c.fillText(Q.pg.sub||'',68,y+72);y+=114;
+        /* hoja compacta: toda la línea en una sola imagen, 3 columnas con foto chica */
+        const COL=3,gap=14,cw=(W-80-gap*(COL-1))/COL,NR=Math.ceil(Q.L.length/COL),ch=(BOT-y-(NR-1)*gap)/NR,imgs=await Promise.all(Q.L.map(x=>flImg(x.foto,1)));
+        Q.L.forEach((x,i)=>{const X=40+(i%COL)*(cw+gap),Y=y+Math.floor(i/COL)*(ch+gap);c.fillStyle='#fff';rrect(c,X,Y,cw,ch,18);c.fill();c.strokeStyle=FL.LIN;c.lineWidth=2;c.stroke();
+          const iw=Math.min(ch-20,cw*.36),im=imgs[i];if(im){const k=Math.min(iw/im.width,(ch-20)/im.height);c.drawImage(im,X+10+(iw-im.width*k)/2,Y+(ch-im.height*k)/2,im.width*k,im.height*k)}
+          const tx=X+iw+18,tw=cw-iw-28;c.textBaseline='top';c.fillStyle=FL.TXT;let fs=21;c.font=`700 ${fs}px ${FONT}`;let NL=flLineas(c,x.n.replace(/^Crocante Horneado sabor /,'Crocante ').replace(/ pelado sin sal/,' sin sal'),tw,3);
+          NL.forEach((l,j)=>c.fillText(l,tx,Y+12+j*25));const py=Y+12+NL.length*25+6;
+          c.fillStyle=MARCA.c;c.font=`800 32px ${FONT}`;const pt=flPes(x.p);c.fillText(pt,tx,py);const pw=c.measureText(pt).width;c.fillStyle=FL.GRI;c.font=`600 18px ${FONT}`;c.fillText(x.suf,tx+pw+5,py+12);
+          const D=x.dets||(x.det?[x.det]:[]),dt=D[D.length-1];if(dt){c.font=`700 17px ${FONT}`;let t=dt;while(c.measureText(t).width>tw&&t.length>6)t=t.slice(0,-2);c.fillStyle=MARCA.c;c.fillText(t,tx,py+40)}})}
       else{let y=TOP;for(const r of Q.rows){
         if(r.sec){c.fillStyle=MARCA.c;rrect(c,40,y+14,W-80,70-22,14);c.fill();c.fillStyle='#fff';c.textBaseline='middle';c.font=`800 28px ${FONT}`;c.fillText(r.sec.toUpperCase(),64,y+14+24);y+=70;continue}
         c.fillStyle='#fff';rrect(c,40,y+4,W-80,80-8,14);c.fill();const pt=flPes(r.p);c.font=`800 38px ${FONT}`;const pw=c.measureText(pt).width;c.font=`600 22px ${FONT}`;const sw=c.measureText(r.suf).width;
