@@ -472,6 +472,17 @@ Desde **Más → Cuenta y ajustes → Usuarios y accesos** (solo lo ve el dueño
 - **Minigráficos** de los últimos 14 días en Vendido, Cobrado y Visitas de hoy.
 - Pantallas vacías con ícono y, cuando corresponde, un botón para empezar.
 
+### Herramientas de CRM profesional
+
+- **Listas inteligentes** (Clientes → *Listas*): filtrás por estado, zona, rubro, vendedor, días sin comprar, deuda, compras de 90 días, día de visita, etiquetas, cuentas clave y tus campos propios. *Guardar como lista* la deja guardada y se actualiza sola. Desde una lista: **WhatsApp a todos** (escribís el mensaje una vez con {nombre} y {link}, y lo mandás de a uno con un toque), **Excel** y **Ver en Clientes**.
+- **Ficha del cliente → pestaña Equipo:** *Notas del equipo* (con @Nombre le avisás a esa persona en la campanita), *Archivos y fotos* (constancia de CUIT, fotos del local, acuerdos; las fotos se achican solas) y *Datos propios*.
+- **Llegué / Me voy** en la ficha: registra la llegada con ubicación, al irte cuánto duró la visita, un comentario y una foto de la góndola (queda en Archivos). Se ve en Clientes → Recorridos.
+- **Agenda en tu calendario** (Más → Agenda en mi calendario): tus tareas, visitas, seguimientos y entregas aparecen solos en Google Calendar o en el iPhone. Cada usuario tiene su link.
+- **Pronóstico** (acceso rápido en Inicio): quién debería pedirte en los próximos 7 días, cuánto vas a vender, quién está atrasado y qué productos te conviene tener.
+- **Automatizaciones** (Más → Automatizaciones): reglas que crean tareas solas todos los días a las 7:30 (cliente que deja de comprar, factura que vence mañana, pedido entregado, prospecto sin seguimiento, cumpleaños). Se prenden y apagan con un toque.
+- **Notas en un pedido:** en el pedido, ••• → *Notas del equipo*.
+- **Campos propios** (Más → Campos propios de clientes): agregás los datos que quieras (texto, número, sí/no, opciones o fecha).
+
 ## 13. Rutina diaria y preguntas frecuentes
 
 Repartís de lunes a sábado y los pedidos cierran a las 20:00 para el día siguiente.

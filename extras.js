@@ -3669,3 +3669,191 @@ async function contadoresHoy(nOf){const pon=(k,n)=>{const e=document.getElementB
 /* Cuántos clientes alcanza cada público del folleto */
 function audCant(k){const A=S.clientes.filter(c=>c.activo!==false),rb=c=>String(c.rubro||'');const H=c=>/helad|panad/i.test(rb(c)),C=c=>/chin|super/i.test(rb(c)),G=c=>c.lista=='especial';
   return k=='todos'?A.length:k=='gastro'?A.filter(G).length:k=='helado'?A.filter(H).length:k=='chino'?A.filter(C).length:k=='publico'?A.filter(c=>c.lista=='minorista').length:A.filter(c=>!G(c)&&!H(c)&&!C(c)).length}
+
+/* ======================= CRM PRO: listas, archivos, visitas, agenda, pronóstico, reglas, notas y campos ======================= */
+function hojaPro(titulo,ic){const m=document.createElement('div');m.className='modal pro-m';m.innerHTML=`<div class="mc pro-mc"><div class="bh"><h3 style="margin:0">${IC(ic,19)} ${titulo}</h3><button class="alt" data-x>Cerrar</button></div><div class="pro-b"><span class="skl" role="status" aria-label="Cargando"></span></div></div>`;
+  document.body.appendChild(m);const cerrar=()=>m.remove();m.querySelector('[data-x]').onclick=cerrar;m.onclick=e=>{if(e.target===m)cerrar()};return{m,b:m.querySelector('.pro-b'),cerrar}}
+async function camposDef(){const C=await cfgJ('campos_cliente',{l:[]});return(C.l||[]).filter(x=>x&&x.k&&x.n)}
+
+/* ---------- 1. Listas inteligentes ---------- */
+const LI_EST={debe:'Debe (vencido)',toca:'Le toca comprar',dormido:'Dormido',nuevo:'Nuevo',ok:'Al día',sin:'Sin compras'};
+async function listasInteligentes(pre){const{m,b,cerrar}=hojaPro('Listas inteligentes','list');
+  const[E,sal,LG,CP]=await Promise.all([cargarEstados().catch(()=>({})),todo(()=>sb.from('saldos_clientes').select('cliente_id,saldo').order('cliente_id')).then(r=>r,()=>({})),sb.from('listas_guardadas').select('*').order('nombre').then(r=>r,()=>({})),camposDef(),equipo().catch(()=>[])]);
+  const SAL={};for(const x of sal.data||[])SAL[x.cliente_id]=+x.saldo||0;let L=LG.data||[];
+  const C=S.clientes.filter(c=>c.activo!==false),zn=c=>String(c.zona||c.ciudad||'').trim(),uniq=a=>[...new Set(a.filter(Boolean))].sort((x,y)=>x.localeCompare(y,'es'));
+  const Z=uniq(C.map(zn)),RB=uniq(C.map(c=>c.rubro)),ET=uniq(C.flatMap(c=>c.etiquetas||[])),V=(S.eq||[]).filter(u=>u.nombre);
+  let F=pre?{...pre}:{},nom='',sel=null,abre=matchMedia('(min-width:700px)').matches&&!L.length;
+  const cumple=c=>{const e=E[c.id]||{};if(F.zona&&zn(c)!=F.zona)return false;if(F.rubro&&c.rubro!=F.rubro)return false;if(F.vend&&(F.vend=='casa'?c.vendedor_id:c.vendedor_id!=F.vend))return false;
+    if(F.etq&&!(c.etiquetas||[]).includes(F.etq))return false;if(F.est&&e.k!=F.est)return false;if(+F.sin>0&&!(e.hace!=null&&e.hace>=+F.sin))return false;
+    if(+F.deu>0&&!((SAL[c.id]||0)>=+F.deu))return false;if(+F.c90>0&&!((e.t90||0)>=+F.c90))return false;if(F.clave&&!c.cuenta_clave)return false;if(F.vis&&!(c.dias_visita||[]).includes(+F.vis))return false;
+    for(const d of CP){const v=(F.cx||{})[d.k];if(v==null||v==='')continue;const x=(c.extra||{})[d.k];if(d.t=='si_no'){if(String(!!x)!=v)return false}else if(d.t=='numero'){if(!(+x>=+v))return false}else if(!String(x||'').toLowerCase().includes(String(v).toLowerCase()))return false}return true};
+  const resumenF=f=>{const t=[];if(f.zona)t.push(f.zona);if(f.rubro)t.push(f.rubro);if(f.est)t.push(LI_EST[f.est]);if(+f.sin>0)t.push('sin comprar '+f.sin+'+ días');if(+f.deu>0)t.push('deben '+$m0(f.deu)+'+');if(+f.c90>0)t.push('compran '+$m0(f.c90)+'+ en 90 días');if(f.etq)t.push('#'+f.etq);if(f.clave)t.push('cuenta clave');if(f.vend)t.push(f.vend=='casa'?'de la casa':nomU(f.vend));if(f.vis)t.push('visita '+['','lun','mar','mié','jue','vie','sáb','dom'][f.vis]);return t.join(' · ')||'todos los clientes'};
+  const opt=(v,a,t)=>`<option value="${esc(v)}" ${String(a??'')==String(v)?'selected':''}>${esc(t)}</option>`;
+  const pinta=()=>{const R=C.filter(cumple).sort((x,y)=>(E[y.id]?.t90||0)-(E[x.id]?.t90||0));
+    b.innerHTML=`${L.length?`<div class="li-gs"><small>Tus listas</small><div class="li-ch">${L.map(x=>`<span class="li-c${sel==x.id?' on':''}"><button data-lg="${x.id}">${esc(x.nombre)} <b>${C.filter(c=>{const s=F;F=x.filtro||{};const r=cumple(c);F=s;return r}).length}</b></button><a data-lb="${x.id}" aria-label="Borrar lista" title="Borrar">×</a></span>`).join('')}</div></div>`:''}
+      <details class="li-f" ${abre?'open':''}><summary><b>${IC('sliders',16)} Filtros</b> <small>${esc(resumenF(F))}</small></summary><div class="li-g">
+        <label>Estado<select data-f="est"><option value="">Cualquiera</option>${Object.entries(LI_EST).map(([k,t])=>opt(k,F.est,t)).join('')}</select></label>
+        <label>Zona<select data-f="zona"><option value="">Todas</option>${Z.map(z=>opt(z,F.zona,z)).join('')}</select></label>
+        <label>Rubro<select data-f="rubro"><option value="">Todos</option>${RB.map(z=>opt(z,F.rubro,z)).join('')}</select></label>
+        ${S.perfil.rol!='vendedor'&&V.length?`<label>Vendedor<select data-f="vend"><option value="">Todos</option>${opt('casa',F.vend,'De la casa')}${V.map(u=>opt(u.id,F.vend,u.nombre)).join('')}</select></label>`:''}
+        <label>No compra hace (días o más)<input type="number" min="0" data-f="sin" value="${esc(F.sin||'')}" placeholder="ej. 30"></label>
+        <label>Deuda desde ($)<input type="number" min="0" data-f="deu" value="${esc(F.deu||'')}" placeholder="ej. 100000"></label>
+        <label>Compró en 90 días desde ($)<input type="number" min="0" data-f="c90" value="${esc(F.c90||'')}" placeholder="ej. 500000"></label>
+        <label>Día de visita<select data-f="vis"><option value="">Cualquiera</option>${['lunes','martes','miércoles','jueves','viernes','sábado'].map((d,i)=>opt(i+1,F.vis,d)).join('')}</select></label>
+        ${ET.length?`<label>Etiqueta<select data-f="etq"><option value="">Cualquiera</option>${ET.map(z=>opt(z,F.etq,z)).join('')}</select></label>`:''}
+        ${CP.map(d=>`<label>${esc(d.n)}${d.t=='si_no'?`<select data-cx="${d.k}"><option value="">Cualquiera</option>${opt('true',(F.cx||{})[d.k],'Sí')}${opt('false',(F.cx||{})[d.k],'No')}</select>`:d.t=='opciones'?`<select data-cx="${d.k}"><option value="">Cualquiera</option>${(d.o||[]).map(o=>opt(o,(F.cx||{})[d.k],o)).join('')}</select>`:`<input data-cx="${d.k}" value="${esc((F.cx||{})[d.k]||'')}" placeholder="${d.t=='numero'?'desde':'contiene'}">`}</label>`).join('')}
+        <label class="li-ck"><input type="checkbox" data-f="clave" ${F.clave?'checked':''}> Solo cuentas clave</label></div>
+        <div class="li-ac"><button class="alt" id="li_lp">Limpiar</button><button id="li_gu">${IC('check',15)} Guardar como lista</button></div></details>
+      <div class="li-rh"><b>${R.length} ${R.length==1?'cliente':'clientes'}</b><span><button class="alt" id="li_wa">${IC('chat',15)} WhatsApp a todos</button><button class="alt" id="li_xl">${IC('download',15)} Excel</button><button class="alt" id="li_vc">Ver en Clientes</button></span></div>
+      <div class="li-l">${R.slice(0,300).map(c=>{const e=E[c.id]||{},t=telWA(c.telefono);return`<div class="li-r" data-fc="${c.id}"><span class="td-i" style="background:${colAv(c.razon_social)};color:#fff">${esc(inicCli(c))}</span><div><b>${esc(nomVis(c))}</b><small>${esc([zn(c),e.why,SAL[c.id]>0?'saldo '+$m0(SAL[c.id]):''].filter(Boolean).join(' · '))}</small></div>${t?`<a class="li-w" href="https://wa.me/${t}" target="_blank" rel="noopener" onclick="event.stopPropagation()" aria-label="WhatsApp">${IC('chat',17)}</a>`:''}</div>`}).join('')||vacioHTML('Ningún cliente cumple estos filtros.','users')}</div>`;
+    b.querySelector('.li-f').ontoggle=e=>abre=e.target.open;
+    b.querySelectorAll('[data-f]').forEach(i=>i.onchange=()=>{const k=i.dataset.f,v=i.type=='checkbox'?i.checked:i.value;if(v===''||v===false)delete F[k];else F[k]=v;sel=null;pinta()});
+    b.querySelectorAll('[data-cx]').forEach(i=>i.onchange=()=>{F.cx=F.cx||{};if(i.value==='')delete F.cx[i.dataset.cx];else F.cx[i.dataset.cx]=i.value;sel=null;pinta()});
+    b.querySelectorAll('[data-lg]').forEach(x=>x.onclick=()=>{const l=L.find(y=>y.id==x.dataset.lg);sel=l.id;nom=l.nombre;F={...(l.filtro||{})};pinta()});
+    b.querySelectorAll('[data-lb]').forEach(x=>x.onclick=async()=>{const l=L.find(y=>y.id==x.dataset.lb);if(!confirm('¿Borrar la lista "'+l.nombre+'"? Los clientes no se tocan.'))return;const{error}=await sb.from('listas_guardadas').delete().eq('id',l.id);if(error)return toast(error.message,1);L=L.filter(y=>y.id!=l.id);if(sel==l.id)sel=null;pinta()});
+    b.querySelectorAll('.li-r[data-fc]').forEach(r=>r.onclick=()=>{cerrar();S.tab='clientes';fichaCliente(S.clientes.find(c=>c.id==r.dataset.fc))});
+    $('#li_lp').onclick=()=>{F={};sel=null;pinta()};
+    $('#li_gu').onclick=async()=>{const n=prompt('Nombre de la lista (ej.: Panaderías que no compran hace 30 días):',nom||resumenF(F));if(!n)return;
+      const ex=L.find(y=>y.nombre.toLowerCase()==n.trim().toLowerCase());const q=ex?sb.from('listas_guardadas').update({filtro:F}).eq('id',ex.id).select().single():sb.from('listas_guardadas').insert({nombre:n.trim(),filtro:F}).select().single();
+      const{data,error}=await q;if(error)return toast(error.message,1);L=ex?L.map(y=>y.id==ex.id?data:y):[...L,data].sort((x,y)=>x.nombre.localeCompare(y.nombre,'es'));sel=data.id;nom=data.nombre;toast('Lista guardada. Se actualiza sola.');pinta()};
+    $('#li_xl').onclick=()=>copiarTabla(['Cliente','Zona','Rubro','Teléfono','Estado','Días sin comprar','Saldo','Compras 90 días'],R.map(c=>{const e=E[c.id]||{};return[c.razon_social,zn(c),c.rubro||'',c.telefono||'',e.t||'',e.hace??'',xl(SAL[c.id]||0),xl(e.t90||0)]}));
+    $('#li_vc').onclick=()=>{S.cliIds=new Set(R.map(c=>c.id));S.cliIdsN=sel?nom:resumenF(F);cerrar();irA('clientes',{cs:'lista'})};
+    $('#li_wa').onclick=()=>waCadena(R)};
+  pinta()}
+/* WhatsApp a muchos, de a uno: arma el mensaje con el nombre y el link de cada cliente */
+function waCadena(R){R=R.filter(c=>telWA(c.telefono));if(!R.length)return toast('Ninguno de estos clientes tiene teléfono cargado.',1);
+  const{b}=hojaPro('WhatsApp a '+R.length+(R.length==1?' cliente':' clientes'),'chat');let msg='',env=new Set();try{msg=localStorage.getItem('wa_cad')||''}catch(e){}
+  msg=msg||'¡Hola {nombre}! ¿Cómo andás? Te escribo de Sabores de mi País. Esta semana tenemos ofertas para tu negocio: {link}';
+  const arma=c=>msg.replace(/\{nombre\}/g,nomCorto?nomCorto(c):c.razon_social).replace(/\{link\}/g,c.token_pedidos?linkPedidos(c):'');
+  const pinta=()=>{b.innerHTML=`<p><small>Escribí el mensaje una vez. <b>{nombre}</b> se cambia por el nombre de cada cliente y <b>{link}</b> por su catálogo con precios. Después tocá <b>Enviar</b> en cada uno: se abre WhatsApp con todo listo.</small></p>
+      <textarea id="wc_m" rows="4" class="wa-prev">${esc(msg)}</textarea>
+      <div class="li-rh"><b>${env.size} de ${R.length} enviados</b><button id="wc_sig">${IC('send',15)} Enviar al siguiente</button></div>
+      <div class="li-l">${R.map(c=>`<div class="li-r${env.has(c.id)?' li-ok':''}"><span class="td-i" style="background:${colAv(c.razon_social)};color:#fff">${esc(inicCli(c))}</span><div><b>${esc(nomVis(c))}</b><small>${env.has(c.id)?'Enviado':esc(c.telefono)}</small></div><a class="li-w" data-wc="${c.id}" href="https://wa.me/${telWA(c.telefono)}?text=${encodeURIComponent(arma(c))}" target="_blank" rel="noopener">${env.has(c.id)?IC('check',17):'Enviar'}</a></div>`).join('')}</div>`;
+    $('#wc_m').oninput=e=>{msg=e.target.value;try{localStorage.setItem('wa_cad',msg)}catch(x){}b.querySelectorAll('[data-wc]').forEach(a=>{const c=R.find(x=>x.id==a.dataset.wc);a.href='https://wa.me/'+telWA(c.telefono)+'?text='+encodeURIComponent(arma(c))})};
+    b.querySelectorAll('[data-wc]').forEach(a=>a.onclick=()=>{env.add(a.dataset.wc);setTimeout(pinta,300)});
+    $('#wc_sig').onclick=()=>{const c=R.find(x=>!env.has(x.id));if(!c)return toast('¡Listo! Ya le mandaste a todos.');env.add(c.id);window.open('https://wa.me/'+telWA(c.telefono)+'?text='+encodeURIComponent(arma(c)),'_blank');setTimeout(pinta,300)}};
+  pinta()}
+
+/* ---------- Ficha del cliente: pestaña "Equipo" (notas internas, archivos y datos propios) + "Llegué" ---------- */
+async function fichaPro(c){const box=$('#fc_equ');if(!box)return;await equipo().catch(()=>{});
+  box.innerHTML=`<div class="box"><div class="bh"><h3 style="margin:0">${IC('chat',17)} Notas del equipo</h3><small>solo las ve el equipo</small></div><div id="ni_l"><span class="skl"></span></div>
+      <div class="ni-n"><textarea id="ni_t" rows="2" placeholder="Escribí una nota. Con @ avisás a alguien (ej.: @Marcelo ojo que paga con cheque)"></textarea><div class="ni-m">${(S.eq||[]).filter(u=>u.id!=S.perfil.id).map(u=>`<button class="alt" data-mn="${esc(String(u.nombre).trim().split(/\s+/)[0])}">@${esc(String(u.nombre).trim().split(/\s+/)[0])}</button>`).join('')}<button id="ni_g">Guardar nota</button></div></div></div>
+    <div class="box"><div class="bh"><h3 style="margin:0">${IC('folder',17)} Archivos y fotos</h3><label class="alt btn-up">${IC('upload',15)} Subir<input type="file" id="ar_f" multiple hidden accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.txt"></label></div><div id="ar_l"><span class="skl"></span></div></div>
+    <div class="box" id="cx_b"></div>`;
+  notasPinta('cliente',c.id,c.id,$('#ni_l'));
+  box.querySelectorAll('[data-mn]').forEach(x=>x.onclick=()=>{const t=$('#ni_t');t.value=(t.value.trim()?t.value.trimEnd()+' ':'')+'@'+x.dataset.mn+' ';t.focus()});
+  $('#ni_g').onclick=()=>notaGuardar('cliente',c.id,c.id,$('#ni_t'),$('#ni_l'));
+  archivosPinta(c);$('#ar_f').onchange=e=>archivosSubir(c,[...e.target.files]);
+  camposFicha(c);checkinBoton(c)}
+async function notasPinta(ent,ref,cid,box){const{data,error}=await sb.from('notas_internas').select('*').eq('entidad',ent).eq('ref',String(ref)).order('creado_en',{ascending:false}).limit(50);
+  if(error){box.innerHTML='<p><small>Las notas del equipo todavía no están activadas.</small></p>';return}
+  box.innerHTML=(data||[]).length?(data||[]).map(n=>`<div class="ni-r"><span class="td-i" style="background:${colAv(nomU(n.autor))};color:#fff">${esc((nomU(n.autor)||'?')[0])}</span><div><b>${esc(n.autor==S.perfil.id?'Vos':nomU(n.autor))}</b> <small>${new Date(n.creado_en).toLocaleString('es-AR',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'})}</small><p>${esc(n.texto).replace(/@([\wÁÉÍÓÚÑáéíóúñ]+)/g,'<mark>@$1</mark>')}</p></div>${n.autor==S.perfil.id||S.perfil.rol=='dueno'?`<a class="ni-x" data-nx="${n.id}" title="Borrar">×</a>`:''}</div>`).join(''):'<p><small>Todavía no hay notas. Sirven para lo que el equipo tiene que saber de este cliente.</small></p>';
+  box.querySelectorAll('[data-nx]').forEach(x=>x.onclick=async()=>{if(!confirm('¿Borrar esta nota?'))return;const{error}=await sb.from('notas_internas').delete().eq('id',x.dataset.nx);if(error)return toast(error.message,1);notasPinta(ent,ref,cid,box)})}
+async function notaGuardar(ent,ref,cid,ta,box){const t=ta.value.trim();if(!t)return toast('Escribí la nota.',1);await equipo().catch(()=>{});
+  const men=[...new Set([...t.matchAll(/@([\wÁÉÍÓÚÑáéíóúñ]+)/g)].map(m=>norm(m[1])))].map(n=>(S.eq||[]).find(u=>norm(String(u.nombre).trim().split(/\s+/)[0])==n)?.id).filter(Boolean);
+  const{error}=await sb.from('notas_internas').insert({entidad:ent,ref:String(ref),cliente_id:cid||null,texto:t,menciones:men});if(error)return toast(error.message,1);
+  ta.value='';toast(men.length?'Nota guardada. Le avisamos a '+men.map(nomU).join(' y ')+'.':'Nota guardada.');notasPinta(ent,ref,cid,box)}
+/* Notas del equipo en un pedido (se abre desde el pedido) */
+async function notasPedido(pid,num,cid){const{b}=hojaPro('Notas del pedido N° '+num,'chat');await equipo().catch(()=>{});
+  b.innerHTML=`<div id="np_l"></div><div class="ni-n"><textarea id="np_t" rows="2" placeholder="Ej.: @Marcelo cargar primero, el cliente cierra a las 12"></textarea><div class="ni-m">${(S.eq||[]).filter(u=>u.id!=S.perfil.id).map(u=>`<button class="alt" data-mn="${esc(String(u.nombre).trim().split(/\s+/)[0])}">@${esc(String(u.nombre).trim().split(/\s+/)[0])}</button>`).join('')}<button id="np_g">Guardar nota</button></div></div>`;
+  notasPinta('pedido',pid,cid,$('#np_l'));b.querySelectorAll('[data-mn]').forEach(x=>x.onclick=()=>{const t=$('#np_t');t.value=(t.value.trim()?t.value.trimEnd()+' ':'')+'@'+x.dataset.mn+' ';t.focus()});
+  $('#np_g').onclick=()=>notaGuardar('pedido',pid,cid,$('#np_t'),$('#np_l'))}
+/* Archivos del cliente */
+async function archivosPinta(c){const box=$('#ar_l');if(!box)return;const{data,error}=await sb.from('cliente_archivos').select('*').eq('cliente_id',c.id).order('creado_en',{ascending:false});
+  if(error){box.innerHTML='<p><small>Los archivos todavía no están activados.</small></p>';return}const L=data||[];
+  if(!L.length){box.innerHTML='<p><small>Guardá acá la constancia de CUIT, fotos del local y la góndola, acuerdos firmados o comprobantes.</small></p>';return}
+  const U=await Promise.all(L.map(a=>sb.storage.from('clientes').createSignedUrl(a.path,3600).then(r=>r.data?.signedUrl||'',()=>'')));
+  box.innerHTML=`<div class="ar-g">${L.map((a,i)=>{const img=/^image\//.test(a.tipo||'');return`<div class="ar-i">${img&&U[i]?`<a href="${esc(U[i])}" target="_blank" rel="noopener"><img src="${esc(U[i])}" alt="${esc(a.nombre)}" loading="lazy"></a>`:`<a class="ar-d" href="${esc(U[i])}" target="_blank" rel="noopener">${IC('doc',26)}<span>${esc((a.nombre.split('.').pop()||'').toUpperCase())}</span></a>`}<small title="${esc(a.nombre)}">${esc(a.nombre)}</small><small class="ar-f">${fd(String(a.creado_en).slice(0,10))} · ${esc(nomU(a.creado_por))}</small><a class="ni-x" data-ab="${a.id}" title="Borrar">×</a></div>`}).join('')}</div>`;
+  box.querySelectorAll('[data-ab]').forEach(x=>x.onclick=async()=>{const a=L.find(y=>y.id==x.dataset.ab);if(!confirm('¿Borrar "'+a.nombre+'"?'))return;await sb.storage.from('clientes').remove([a.path]).catch(()=>{});const{error}=await sb.from('cliente_archivos').delete().eq('id',a.id);if(error)return toast(error.message,1);archivosPinta(c)})}
+async function archivosSubir(c,F){if(!F.length)return;toast('Subiendo '+F.length+(F.length==1?' archivo…':' archivos…'));let ok=0;
+  for(let f of F){try{let blob=f,tipo=f.type||'application/octet-stream',nombre=f.name;
+      if(/^image\//.test(tipo)&&!/gif|svg/.test(tipo)){blob=await achicarFoto(f,1600);tipo='image/webp';nombre=nombre.replace(/\.[^.]+$/,'')+'.webp'}
+      if(blob.size>15e6){toast(nombre+' es muy grande (máximo 15 MB).',1);continue}
+      const path=c.id+'/'+Date.now()+'-'+nombre.normalize('NFD').replace(/[^\w.-]+/g,'_').slice(-80);
+      const up=await sb.storage.from('clientes').upload(path,blob,{contentType:tipo});if(up.error)throw up.error;
+      const{error}=await sb.from('cliente_archivos').insert({cliente_id:c.id,nombre,path,tipo,tam:blob.size});if(error)throw error;ok++}
+    catch(e){toast('No se pudo subir '+f.name+': '+(e.message||e),1)}}
+  if(ok)toast(ok==1?'Archivo guardado.':ok+' archivos guardados.');archivosPinta(c)}
+
+/* ---------- 3. Visitas con llegada y salida ---------- */
+async function checkinBoton(c){const b=$('#fc_ci');if(!b)return;const d0=new Date();d0.setHours(0,0,0,0);
+  const{data}=await sb.from('contactos_clientes').select('id,llegada,salida').eq('cliente_id',c.id).eq('usuario_id',S.perfil.id).not('llegada','is',null).is('salida',null).gte('llegada',d0.toISOString()).order('llegada',{ascending:false}).limit(1).then(r=>r,()=>({}));
+  const ab=(data||[])[0];let iv;
+  const pinta=()=>{clearInterval(iv);if(ab){const t=()=>{const m=Math.max(0,Math.round((Date.now()-new Date(ab.llegada))/6e4));b.innerHTML=`${IC('clock',22)}<span>Me voy · ${m} min</span>`};t();iv=setInterval(()=>{if(!document.body.contains(b))return clearInterval(iv);t()},30000);b.classList.add('ci-on')}
+    else{b.innerHTML=`${IC('pin',22)}<span>Llegué</span>`;b.classList.remove('ci-on')}};pinta();
+  b.onclick=async()=>{b.disabled=true;try{
+    if(!ab){const g=await geoVisita(c);const{data:x,error}=await sb.from('contactos_clientes').insert({cliente_id:c.id,tipo:'visita',detalle:'Visita en el local',usuario_id:S.perfil.id,llegada:new Date().toISOString(),...g}).select('id,llegada,salida').single();
+      if(error)throw error;Object.assign(ab||{},{});checkinBoton(c);toast(g.dist_m>300?'Llegada registrada, pero a '+kmTxt(g.dist_m)+' del negocio.':'Llegada registrada'+(g.lat?' con tu ubicación':'')+'. Cuando te vayas tocá "Me voy".',g.dist_m>300)}
+    else{const det=prompt('¿Cómo fue la visita? (opcional)','')??'';const ft=await new Promise(ok=>{if(!confirm('¿Querés sacarle una foto a la góndola o la exhibición?'))return ok(null);const i=document.createElement('input');i.type='file';i.accept='image/*';i.capture='environment';i.onchange=()=>ok(i.files[0]||null);i.click();setTimeout(()=>ok(null),120000)});
+      let foto=null;if(ft){try{const bl=await achicarFoto(ft,1400),p=c.id+'/visita-'+Date.now()+'.webp';const up=await sb.storage.from('clientes').upload(p,bl,{contentType:'image/webp'});if(!up.error){foto=p;await sb.from('cliente_archivos').insert({cliente_id:c.id,nombre:'Visita '+new Date().toLocaleDateString('es-AR')+'.webp',path:p,tipo:'image/webp',tam:bl.size})}}catch(e){}}
+      const min=Math.round((Date.now()-new Date(ab.llegada))/6e4);const{error}=await sb.from('contactos_clientes').update({salida:new Date().toISOString(),...(det?{detalle:det}:{}),...(foto?{foto}:{})}).eq('id',ab.id);if(error)throw error;
+      toast('Visita de '+min+' min registrada.'+(foto?' Foto guardada en Archivos.':''));checkinBoton(c);archivosPinta(c)}}
+  catch(e){toast(e.message||String(e),1)}b.disabled=false}}
+
+/* ---------- 8. Campos propios ---------- */
+async function camposFicha(c){const box=$('#cx_b');if(!box)return;const D=await camposDef();
+  if(!D.length){box.innerHTML=`<div class="bh"><h3 style="margin:0">${IC('list',17)} Datos propios</h3>${S.perfil.rol=='dueno'?'<a class="lnk" onclick="camposCfg()">Crear campos</a>':''}</div><p><small>Agregá los datos que quieras de cada cliente: horario de recepción, si tiene heladera exhibidora, día de cobro…</small></p>`;return}
+  const X={...(c.extra||{})};
+  box.innerHTML=`<div class="bh"><h3 style="margin:0">${IC('list',17)} Datos propios</h3>${S.perfil.rol=='dueno'?'<a class="lnk" onclick="camposCfg()">Editar campos</a>':''}</div><div class="li-g">${D.map(d=>`<label>${esc(d.n)}${d.t=='si_no'?`<select data-cxf="${d.k}"><option value="">—</option><option value="1" ${X[d.k]===true?'selected':''}>Sí</option><option value="0" ${X[d.k]===false?'selected':''}>No</option></select>`:d.t=='opciones'?`<select data-cxf="${d.k}"><option value="">—</option>${(d.o||[]).map(o=>`<option ${X[d.k]==o?'selected':''}>${esc(o)}</option>`).join('')}</select>`:`<input data-cxf="${d.k}" ${d.t=='numero'?'type="number"':''} ${d.t=='fecha'?'type="date"':''} value="${esc(X[d.k]??'')}">`}</label>`).join('')}</div>`;
+  box.querySelectorAll('[data-cxf]').forEach(i=>i.onchange=async()=>{const d=D.find(x=>x.k==i.dataset.cxf);let v=i.value;if(d.t=='si_no')v=v===''?null:v=='1';else if(d.t=='numero')v=v===''?null:+v;if(v===''||v==null)delete X[d.k];else X[d.k]=v;
+    const{error}=await sb.from('clientes').update({extra:X}).eq('id',c.id);if(error)return toast(error.message,1);c.extra={...X};const k=S.clientes.find(y=>y.id==c.id);if(k)k.extra={...X};toast('Guardado.')})}
+async function camposCfg(){const{b}=hojaPro('Campos propios de los clientes','list');let L=(await camposDef()).map(x=>({...x}));
+  const T={texto:'Texto',numero:'Número',si_no:'Sí / No',opciones:'Opciones',fecha:'Fecha'};
+  const pinta=()=>{b.innerHTML=`<p><small>Se ven en la ficha de cada cliente (pestaña <b>Equipo</b>) y se pueden usar como filtro en <b>Listas inteligentes</b>.</small></p>
+    ${L.map((x,i)=>`<div class="cx-r"><input data-n="${i}" value="${esc(x.n)}" placeholder="Nombre del campo"><select data-t="${i}">${Object.entries(T).map(([k,t])=>`<option value="${k}" ${x.t==k?'selected':''}>${t}</option>`).join('')}</select>${x.t=='opciones'?`<input data-o="${i}" value="${esc((x.o||[]).join(', '))}" placeholder="Opciones separadas por coma">`:''}<a class="ni-x" data-q="${i}">×</a></div>`).join('')}
+    <div class="li-ac"><button class="alt" id="cx_a">+ Agregar campo</button><button id="cx_g">Guardar</button></div>
+    <p><small>Ideas: Horario de recepción · Tiene heladera exhibidora (Sí/No) · Día de cobro · Cantidad de cajas · Encargado.</small></p>`;
+    b.querySelectorAll('[data-n]').forEach(i=>i.oninput=()=>L[+i.dataset.n].n=i.value);b.querySelectorAll('[data-t]').forEach(i=>i.onchange=()=>{L[+i.dataset.t].t=i.value;pinta()});
+    b.querySelectorAll('[data-o]').forEach(i=>i.oninput=()=>L[+i.dataset.o].o=i.value.split(',').map(s=>s.trim()).filter(Boolean));b.querySelectorAll('[data-q]').forEach(i=>i.onclick=()=>{L.splice(+i.dataset.q,1);pinta()});
+    $('#cx_a').onclick=()=>{L.push({k:'c'+Date.now().toString(36),n:'',t:'texto'});pinta();b.querySelector('[data-n]:last-of-type')?.focus()};
+    $('#cx_g').onclick=async()=>{L=L.filter(x=>x.n.trim()).map(x=>({...x,n:x.n.trim()}));const{error}=await guardaCfgJ('campos_cliente',{l:L});if(error)return toast(error.message,1);toast('Campos guardados.');pinta()}};pinta()}
+
+/* ---------- 4. Agenda en el calendario del celular ---------- */
+async function agendaCfg(){const{b}=hojaPro('Agenda en tu calendario','calendar');const{data:t,error}=await sb.rpc('agenda_mi_link');
+  if(error){b.innerHTML='<p class="err">'+esc(error.message)+'</p>';return}
+  const url='https://ggfqdkgqtpnkvxoykoty.supabase.co/functions/v1/agenda?t='+t,wc=url.replace(/^https:/,'webcal:');
+  b.innerHTML=`<p>Tus <b>tareas</b>, <b>visitas</b>, <b>seguimientos de prospectos</b> y <b>entregas</b> aparecen solas en el calendario de tu celular, con aviso a las 9 de la mañana. Se actualiza cada 2 horas.</p>
+    <div class="ag-o"><a class="btn-ver" href="https://calendar.google.com/calendar/r?cid=${encodeURIComponent(wc)}" target="_blank" rel="noopener">${IC('calendar',17)} Agregar a Google Calendar</a><a class="alt btn-ver" href="${esc(wc)}">${IC('calendar',17)} iPhone / Outlook</a></div>
+    <label class="f">O copiá este link y pegalo en tu calendario («Agregar calendario» → «Desde URL»)<input readonly value="${esc(url)}" onclick="this.select()"></label><button class="alt" id="ag_cp">Copiar link</button>
+    <p><small>${IC('lock',13)} El link es solo tuyo: no lo compartas. Cada persona del equipo tiene el suyo desde este mismo botón.</small></p>`;
+  $('#ag_cp').onclick=()=>{navigator.clipboard?.writeText(url).then(()=>toast('Link copiado.'),()=>toast('Mantené apretado el link para copiarlo.'))}}
+
+/* ---------- 6. Automatizaciones ---------- */
+async function automatizacionesCfg(){const{b}=hojaPro('Automatizaciones','bolt');let C=await cfgJ('automatizaciones',{});const U=await cfgJ('automatizaciones_ult',{});
+  const R=[['sin_compra','Cliente que deja de comprar','Si un cliente no compra en {d} días, se crea una tarea para su vendedor: "Llamar a…".',21],
+    ['vence','Factura que vence mañana','Un día antes del vencimiento, tarea para recordarle al cliente que tiene que pagar.'],
+    ['entregado','Pedido entregado','Al día siguiente de entregar, tarea: "Preguntarle si llegó todo bien". Así detectás faltantes antes del reclamo.'],
+    ['prospecto','Prospecto sin seguimiento','Si un prospecto en curso no tiene contacto en {d} días, tarea de seguimiento.',7],
+    ['cumple','Cumpleaños del cliente','El día del cumpleaños, tarea para saludarlo (si tiene la fecha cargada en su ficha).']];
+  const on=k=>C[k]?.on!==false,dd=(k,v)=>+C[k]?.dias||v;
+  const pinta=()=>{b.innerHTML=`<p><small>Todos los días a las 7:30 el CRM revisa estas reglas y crea las tareas solo. Le llegan a cada vendedor (o a vos si el cliente es de la casa) y aparecen en <b>Tareas</b> y en el calendario.</small></p>
+    ${R.map(([k,t,d,v])=>`<div class="au-r${on(k)?' on':''}"><label class="au-sw"><input type="checkbox" data-au="${k}" ${on(k)?'checked':''}><i></i></label><div><b>${t}</b><small>${d.replace('{d}',`<input type="number" min="3" max="120" data-ad="${k}" value="${dd(k,v)}">`)}</small></div></div>`).join('')}
+    <div class="li-ac"><small>${U.f?'Última revisión: '+new Date(U.f).toLocaleString('es-AR',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'})+' · '+(U.n||0)+' tareas creadas':''}</small><button class="alt" id="au_y">${IC('bolt',15)} Revisar ahora</button></div>`;
+    const g=async()=>{const{error}=await guardaCfgJ('automatizaciones',C);if(error)toast(error.message,1);else toast('Guardado.')};
+    b.querySelectorAll('[data-au]').forEach(i=>i.onchange=()=>{C[i.dataset.au]={...(C[i.dataset.au]||{}),on:i.checked};g();pinta()});
+    b.querySelectorAll('[data-ad]').forEach(i=>i.onchange=()=>{C[i.dataset.ad]={...(C[i.dataset.ad]||{}),dias:Math.max(3,+i.value||7)};g()});
+    $('#au_y').onclick=async()=>{const{data,error}=await sb.rpc('automatizaciones_correr');if(error)return toast(error.message,1);toast(data?.creadas?data.creadas+' tareas nuevas creadas.':'Nada nuevo para hoy.');Object.assign(U,{f:new Date().toISOString(),n:data?.creadas||0});pinta()}};pinta()}
+
+/* ---------- 5. Pronóstico de la semana ---------- */
+async function pronosticoSemana(){const{b}=hojaPro('Pronóstico de la semana','chart');
+  const d180=new Date(Date.now()-180*864e5).toISOString();let q=sb.from('pedidos').select('cliente_id,creado_en,total,pedido_items(producto_id,cantidad)').neq('estado','cancelado').or('es_prueba.is.null,es_prueba.eq.false').gte('creado_en',d180).order('creado_en');
+  if(S.perfil.rol=='vendedor')q=q.eq('vendedor_id',S.perfil.id);const[{data,error}]=await Promise.all([todo(()=>q),cargarStock().catch(()=>{})]);
+  if(error){b.innerHTML='<p class="err">'+esc(error.message)+'</p>';return}
+  const hoy=new Date(),fin=new Date(hoy);fin.setDate(hoy.getDate()+7),G={};
+  for(const o of data||[]){const g=G[o.cliente_id]=G[o.cliente_id]||{f:[],t:[],it:{}};g.f.push(diaLocal(o.creado_en));g.t.push(+o.total||0);for(const i of o.pedido_items||[])g.it[i.producto_id]=(g.it[i.producto_id]||0)+(+i.cantidad||0)}
+  const dd=(a,b)=>Math.round((new Date(b+'T12:00')-new Date(a+'T12:00'))/864e5),R=[];
+  for(const[cid,g]of Object.entries(G)){const c=S.clientes.find(x=>x.id==cid);if(!c||c.activo===false)continue;const F=[...new Set(g.f)].sort();if(F.length<2)continue;
+    const gaps=F.slice(1).map((x,i)=>dd(F[i],x)).filter(x=>x>0),cada=Math.max(3,Math.round(gaps.reduce((s,x)=>s+x,0)/gaps.length)),ult=F[F.length-1],prox=new Date(ult+'T12:00');prox.setDate(prox.getDate()+cada);
+    const atr=Math.round((hoy-prox)/864e5);if(prox>fin||atr>cada*2)continue;const tk=g.t.reduce((s,x)=>s+x,0)/g.t.length,n=g.f.length;
+    R.push({c,cada,ult,prox,atr,tk,it:Object.fromEntries(Object.entries(g.it).map(([k,v])=>[k,v/n])),p:atr>0?Math.max(.35,1-atr/(cada*2)):.85})}
+  R.sort((x,y)=>x.prox-y.prox);const tot=R.reduce((s,x)=>s+x.tk*x.p,0),atr=R.filter(x=>x.atr>0);
+  const ST={};for(const k of Object.keys(S.stock||{}))ST[k]=+stk(k).d||0;const NEC={};for(const x of R)for(const[k,v]of Object.entries(x.it))NEC[k]=(NEC[k]||0)+v*x.p;
+  const FAL=Object.entries(NEC).map(([k,v])=>({k,v:Math.ceil(v),s:ST[k]??null})).filter(x=>x.v>0&&(x.s==null||x.s<x.v)).sort((a,b)=>(b.v-(b.s||0))-(a.v-(a.s||0))).slice(0,25);
+  const dia=d=>d.toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'numeric'});
+  b.innerHTML=`<div class="kp rp-kp"><div class="box"><span class="lab">Venta esperada (7 días)</span><span class="num">${$m0(tot)}</span><span class="det">${R.length} clientes deberían pedir</span></div><div class="box${atr.length?' alerta':''}"><span class="lab">Atrasados</span><span class="num">${atr.length}</span><span class="det">ya les tocaba y no pidieron</span></div></div>
+    <p><small>Sale de cada cuánto compra cada cliente y cuánto lleva en promedio (últimos 6 meses). Llamá primero a los atrasados.</small></p>
+    <div class="pr-tabs" id="pn_t"><button class="on" data-pn="c">A quién llamar</button><button data-pn="p">Qué conviene tener</button></div>
+    <div data-pp="c" class="li-l">${R.map(x=>{const t=telWA(x.c.telefono);return`<div class="li-r" data-fc="${x.c.id}"><span class="td-i" style="background:${colAv(x.c.razon_social)};color:#fff">${esc(inicCli(x.c))}</span><div><b>${esc(nomVis(x.c))}</b><small>${x.atr>0?`<span class="rp-d dn">atrasado ${x.atr} ${x.atr==1?'día':'días'}</span>`:'le toca el '+dia(x.prox)} · compra cada ${x.cada} días · suele llevar ${$m0(x.tk)}</small></div>${t?`<a class="li-w" href="https://wa.me/${t}?text=${encodeURIComponent('¡Hola! ¿Cómo andás? Te escribo de Sabores de mi País para tomarte el pedido de esta semana. ¿Qué te mando?')}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${IC('chat',17)}</a>`:''}</div>`}).join('')||vacioHTML('Todavía no hay suficiente historia de compras para pronosticar.','chart')}</div>
+    <div data-pp="p" hidden>${FAL.length?`<p><small>Productos que tus clientes van a pedir esta semana y no te alcanzan con el stock cargado.</small></p><table><tr><th>Producto</th><th class="n">Van a pedir</th><th class="n">Tenés</th></tr>${FAL.map(x=>`<tr><td>${esc(nomProd(x.k))}</td><td class="n">${nf(x.v)}</td><td class="n">${x.s==null?'—':nf(x.s)}</td></tr>`).join('')}</table>`:vacioHTML('Con el stock que tenés alcanza para lo que se espera vender.','box')}</div>`;
+  b.querySelectorAll('[data-pn]').forEach(x=>x.onclick=()=>{b.querySelectorAll('[data-pn]').forEach(y=>y.classList.toggle('on',y==x));b.querySelectorAll('[data-pp]').forEach(p=>p.hidden=p.dataset.pp!=x.dataset.pn)});
+  b.querySelectorAll('.li-r[data-fc]').forEach(r=>r.onclick=()=>{document.querySelector('.pro-m')?.remove();S.tab='clientes';fichaCliente(S.clientes.find(c=>c.id==r.dataset.fc))})}

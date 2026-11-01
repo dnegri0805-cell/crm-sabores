@@ -1,0 +1,5 @@
+-- CRM PRO (2026-11-01) — aplicado como migraciones crm_pro_listas_archivos_checkin_notas_campos_auto y automatizaciones_reglas
+-- listas_guardadas, cliente_archivos (+ bucket privado "clientes"), contactos_clientes.llegada/salida/foto,
+-- notas_internas (menciones uuid[]), clientes.extra jsonb, perfiles.agenda_token + agenda_mi_link(),
+-- automatizaciones_correr() (reglas en config_app 'automatizaciones') con cron diario 'automatizaciones-diarias' (07:31 AR).
+-- Edge function "agenda": calendario .ics por usuario (?t=token).
