@@ -1682,5 +1682,127 @@
     ]
    }
   ]
+ },
+ {
+  "id": "mani-jl",
+  "titulo": "Maní JL",
+  "sub": "Maní salado y tostado, crocantes horneados y manteca de maní",
+  "n": 5,
+  "fecha": "2026-11-01",
+  "rubro": "Supermercado",
+  "v": 1,
+  "t1": "MANÍ",
+  "t2": "JL",
+  "lema": "Maní, crocantes y manteca de maní",
+  "icono": "🥜",
+  "paginas": [
+   {
+    "tipo": "fotos",
+    "titulo": "Maní clásico 85 g",
+    "sub": "Salado con y sin piel, y tostado sin sal · pack x 48",
+    "items": [
+     {
+      "id": "af2dc1be-494e-4c4a-9eb8-1c9d9adb14c2",
+      "n": "Maní salado sin piel 85 g"
+     },
+     {
+      "id": "78802606-e9af-430e-b4a7-aefb86a763c0",
+      "n": "Maní salado con piel 85 g"
+     },
+     {
+      "id": "b798306f-7ae8-48a1-b5b4-571bee11d705",
+      "n": "Maní tostado pelado sin sal 85 g"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Maní clásico 500 g",
+    "sub": "El formato familiar · caja x 12",
+    "items": [
+     {
+      "id": "489ee2a5-bdac-43a0-8398-f0319254bc4d",
+      "n": "Maní salado sin piel 500 g"
+     },
+     {
+      "id": "d82cd4d4-f58f-4ac5-a487-dc835d08b1ab",
+      "n": "Maní salado con piel 500 g"
+     },
+     {
+      "id": "1211c1af-513e-4f2d-b9af-93317fe0b68d",
+      "n": "Maní tostado pelado sin sal 500 g"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Crocantes horneados 65 g",
+    "sub": "Maní japonés horneado: pizza, queso, jamón y mix · pack x 48",
+    "items": [
+     {
+      "id": "d82f1caa-b368-40a2-ad98-afe967e3593d",
+      "n": "Mix Crocante de Maní (3 sabores) 65 g"
+     },
+     {
+      "id": "c12e6d2e-cef7-4f7e-9b6d-2339a097ab7c",
+      "n": "Crocante Horneado sabor Pizza 65 g"
+     },
+     {
+      "id": "eeca7bdf-5742-43ce-9e39-5a22e4b2ef2f",
+      "n": "Crocante Horneado sabor Queso 65 g"
+     },
+     {
+      "id": "d2bad437-ff7f-4f2e-9ce3-68f522231581",
+      "n": "Crocante Horneado sabor Jamón 65 g"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Crocantes horneados 500 g",
+    "sub": "Seis sabores para la góndola · caja x 12",
+    "items": [
+     {
+      "id": "79d915d4-5eef-42b8-aaef-0e5a602ded95",
+      "n": "Crocante Horneado sabor Pizza 500 g"
+     },
+     {
+      "id": "e2493769-3c2d-4392-818f-ad5a356e4344",
+      "n": "Crocante Horneado sabor Queso 500 g"
+     },
+     {
+      "id": "5f894413-f3d2-469f-a813-94049fb44ac2",
+      "n": "Crocante Horneado sabor Jamón 500 g"
+     },
+     {
+      "id": "d785aa12-0cff-40d7-aeca-a39b9f1e6304",
+      "n": "Crocante Horneado sabor Salado 500 g"
+     },
+     {
+      "id": "5e47e752-5ca2-4bd6-a3c3-ac8731e7af38",
+      "n": "Crocante Horneado sabor Asado 500 g"
+     },
+     {
+      "id": "04266162-dbe1-46d0-b7ff-d57f91fd0d79",
+      "n": "Crocante Horneado sabor Salame 500 g"
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Manteca de maní 360 g",
+    "sub": "Cremosa y chispeada · caja x 12",
+    "items": [
+     {
+      "id": "5dfe18e1-6084-43cd-b552-68ffb5680c66",
+      "n": "Manteca Maní Cremosa 360 g"
+     },
+     {
+      "id": "d2980fd6-fa4a-4114-8ad4-dab2e39c1ffd",
+      "n": "Manteca Maní Chispeada 360 g"
+     }
+    ]
+   }
+  ]
  }
 ]
