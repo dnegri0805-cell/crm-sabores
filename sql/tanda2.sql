@@ -1,0 +1,4 @@
+-- Tanda 2 (2026-11-01): resumen_semanal() + cron 'resumen-semanal' (lun 08:04 AR) + edge function "resumen";
+-- entregas_prueba + chofer_prueba(); arca_cfg.ta13_* + acción 'padron' en la función arca;
+-- es_usuario_activo() exige aal2 si el usuario tiene código en dos pasos; accesos_dispositivos;
+-- wa_clave_guardar/wa_clave/wa_estado (vault 'wa_token'), wa_envios, edge function "whatsapp" + cron 'whatsapp-auto' (09:07 AR).

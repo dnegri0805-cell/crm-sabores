@@ -39,11 +39,12 @@ async function nuevaClaveYCSR(cuit: string, rs: string) {
 }
 
 // ---------- WSAA ----------
-async function ticket(c: any) {
-  if (c.ta_token && c.ta_sign && c.ta_vence && new Date(c.ta_vence).getTime() > Date.now() + 10 * 60e3) return { token: c.ta_token, sign: c.ta_sign };
+async function ticket(c: any, svc = 'wsfe') {
+  const px = svc == 'wsfe' ? 'ta_' : 'ta13_';
+  if (c[px + 'token'] && c[px + 'sign'] && c[px + 'vence'] && new Date(c[px + 'vence']).getTime() > Date.now() + 10 * 60e3) return { token: c[px + 'token'], sign: c[px + 'sign'] };
   if (!c.cert_pem || !c.key_pem) throw new Aviso('Falta cargar el certificado de ARCA.');
   const ahora = new Date();
-  const tra = `<?xml version="1.0" encoding="UTF-8"?><loginTicketRequest version="1.0"><header><uniqueId>${Math.floor(ahora.getTime() / 1000)}</uniqueId><generationTime>${isoAR(new Date(ahora.getTime() - 10 * 60e3))}</generationTime><expirationTime>${isoAR(new Date(ahora.getTime() + 10 * 60e3))}</expirationTime></header><service>wsfe</service></loginTicketRequest>`;
+  const tra = `<?xml version="1.0" encoding="UTF-8"?><loginTicketRequest version="1.0"><header><uniqueId>${Math.floor(ahora.getTime() / 1000)}</uniqueId><generationTime>${isoAR(new Date(ahora.getTime() - 10 * 60e3))}</generationTime><expirationTime>${isoAR(new Date(ahora.getTime() + 10 * 60e3))}</expirationTime></header><service>${svc}</service></loginTicketRequest>`;
   const cert = forge.pki.certificateFromPem(c.cert_pem), key = forge.pki.privateKeyFromPem(c.key_pem);
   const p7 = forge.pkcs7.createSignedData();
   p7.content = forge.util.createBuffer(tra, 'utf8');
@@ -58,15 +59,30 @@ async function ticket(c: any) {
     const f = xun(tag(x, 'faultstring') || x.slice(0, 300));
     if (/ya posee un TA valido/i.test(f)) throw new Aviso('ARCA dice que ya hay un acceso abierto de hace un rato. Probá de nuevo en unos minutos.');
     if (/cms.cert.untrusted|certificado/i.test(f)) throw new Aviso('ARCA no reconoce el certificado: ' + f);
-    if (/not authorized|no autorizado|notAuthorized/i.test(f)) throw new Aviso('El certificado todavía no tiene permiso para Facturación Electrónica (falta la relación "wsfe" en ARCA). Detalle: ' + f);
+    if (/not authorized|no autorizado|notAuthorized/i.test(f)) throw new Aviso(svc == 'wsfe' ? 'El certificado todavía no tiene permiso para Facturación Electrónica (falta la relación "wsfe" en ARCA). Detalle: ' + f : 'Falta habilitar en ARCA el servicio "Consulta a Padrón A13" (ws_sr_padron_a13) para tu certificado. Detalle: ' + f);
     throw new Aviso('ARCA (login): ' + f);
   }
   const ret = xun(tag(x, 'loginCmsReturn') || '');
   const token = tag(ret, 'token'), sign = tag(ret, 'sign'), vence = tag(ret, 'expirationTime');
   if (!token || !sign) throw new Aviso('ARCA no devolvió el acceso. Respuesta: ' + ret.slice(0, 200));
-  await guardarCfg({ ta_token: token, ta_sign: sign, ta_vence: vence });
-  c.ta_token = token; c.ta_sign = sign; c.ta_vence = vence;
+  await guardarCfg({ [px + 'token']: token, [px + 'sign']: sign, [px + 'vence']: vence });
+  c[px + 'token'] = token; c[px + 'sign'] = sign; c[px + 'vence'] = vence;
   return { token, sign };
+}
+
+// ---------- Padrón A13 (datos de un CUIT) ----------
+async function padron(c: any, cuitBuscar: string) {
+  const t = await ticket(c, 'ws_sr_padron_a13');
+  const body = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:a13="http://a13.soap.ws.server.puc.sr/"><soapenv:Header/><soapenv:Body><a13:getPersona><token>${t.token}</token><sign>${t.sign}</sign><cuitRepresentada>${c.cuit}</cuitRepresentada><idPersona>${cuitBuscar}</idPersona></a13:getPersona></soapenv:Body></soapenv:Envelope>`;
+  const r = await fetch('https://aws.afip.gov.ar/sr-padron/webservices/personaServiceA13', { method: 'POST', headers: { 'Content-Type': 'text/xml; charset=utf-8', SOAPAction: '' }, body });
+  const x = await r.text();
+  if (/faultstring/.test(x)) { const f = xun(tag(x, 'faultstring') || ''); if (/no existe|inexistente/i.test(f)) throw new Aviso('Ese CUIT no existe en el padrón de ARCA.'); throw new Aviso('ARCA (padrón): ' + f); }
+  const p = tag(x, 'persona'); if (!p) throw new Aviso('ARCA no devolvió datos para ese CUIT.');
+  const nom = xun(tag(p, 'razonSocial') || [tag(p, 'apellido'), tag(p, 'nombre')].filter(Boolean).join(' ') || '');
+  const doms = tags(p, 'domicilio'), d = doms.find((z) => /FISCAL/i.test(tag(z, 'tipoDomicilio') || '')) || doms[0] || '';
+  const imp = tags(p, 'idImpuesto').map(Number), mono = /monotribut/i.test(p) || imp.includes(20);
+  const civa = imp.includes(30) ? 'responsable_inscripto' : mono ? 'monotributista' : imp.includes(32) ? 'exento' : 'consumidor_final';
+  return { cuit: cuitBuscar, razon_social: nom.trim(), domicilio: xun(tag(d, 'direccion') || ''), ciudad: xun(tag(d, 'localidad') || tag(d, 'descripcionProvincia') || ''), provincia: xun(tag(d, 'descripcionProvincia') || ''), codigo_postal: xun(tag(d, 'codigoPostal') || ''), condicion_iva: civa, estado: xun(tag(p, 'estadoClave') || ''), tipo: xun(tag(p, 'tipoPersona') || '') };
 }
 
 // ---------- WSFEv1 ----------
@@ -127,6 +143,12 @@ Deno.serve(async (req) => {
     const E = typeof em == 'string' ? JSON.parse(em || '{}') : (em || {});
 
     switch (b.accion) {
+      case 'padron': {
+        const q = String(b.cuit || '').replace(/\D/g, '');
+        if (q.length != 11) throw new Aviso('El CUIT tiene que tener 11 números.');
+        if (!c.cert_pem) throw new Aviso('La búsqueda por CUIT se activa cuando termines de vincular ARCA.');
+        return resp({ ok: true, ...(await padron(c, q)) });
+      }
       case 'csr': {
         if (!dueno) return resp({ error: 'Sólo el dueño.' }, 403);
         const cuit = String(E.cuit || '').replace(/\D/g, '');

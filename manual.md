@@ -483,6 +483,16 @@ Desde **Más → Cuenta y ajustes → Usuarios y accesos** (solo lo ve el dueño
 - **Notas en un pedido:** en el pedido, ••• → *Notas del equipo*.
 - **Campos propios** (Más → Campos propios de clientes): agregás los datos que quieras (texto, número, sí/no, opciones o fecha).
 
+### Más herramientas (tanda 2)
+
+- **Resumen semanal por mail:** los lunes a las 8 te llega un mail con lo vendido y cobrado (contra la semana anterior), los mejores clientes, los que dejaron de comprar, lo vencido y quién debería pedirte. Se ve y se manda al toque desde Más → Automatizaciones → *Resumen semanal*.
+- **Entrega con firma y foto:** en el link del chofer, al tocar *Entregado* se carga quién recibió, la firma con el dedo y una foto de la mercadería. En el CRM: pedido → ••• → *Firma y foto de la entrega*.
+- **Factura de proveedor con una foto:** en Compras → proveedor → *Leer con una foto*. Lee tipo, número, fecha, neto, IVA y percepciones, y los deja marcados en verde para revisar. La foto no sale del celular.
+- **Alta de cliente con el CUIT:** al escribir el CUIT valida que sea correcto y, con ARCA vinculado (y el servicio *Consulta a Padrón A13* habilitado para el certificado), completa razón social, domicilio y condición de IVA.
+- **Seguridad** (Más → Seguridad): código en dos pasos con Google Authenticator, lista de equipos desde donde entraste, *Cerrar la sesión en todos los equipos* y cierre por inactividad (por defecto 12 horas). Al dueño le avisa en la campanita si alguien entra desde un equipo nuevo.
+- **Sin señal:** además de pedidos y reparto, ahora se guardan sin internet los cobros de Cobranza, las notas, las visitas (Llegué) y las notas del equipo. Arriba aparece "Sin señal · N pendientes" y se mandan solas al volver la conexión.
+- **WhatsApp automático (API de Meta)** (Más → WhatsApp automático): se conecta la cuenta de WhatsApp Business con el token y el número; después se prenden los avisos de *recordatorio de cobro* y *tu pedido sale hoy*, que salen solos todos los días a las 9.
+
 ## 13. Rutina diaria y preguntas frecuentes
 
 Repartís de lunes a sábado y los pedidos cierran a las 20:00 para el día siguiente.

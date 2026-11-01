@@ -3751,6 +3751,7 @@ async function notasPinta(ent,ref,cid,box){const{data,error}=await sb.from('nota
   box.querySelectorAll('[data-nx]').forEach(x=>x.onclick=async()=>{if(!confirm('¿Borrar esta nota?'))return;const{error}=await sb.from('notas_internas').delete().eq('id',x.dataset.nx);if(error)return toast(error.message,1);notasPinta(ent,ref,cid,box)})}
 async function notaGuardar(ent,ref,cid,ta,box){const t=ta.value.trim();if(!t)return toast('Escribí la nota.',1);await equipo().catch(()=>{});
   const men=[...new Set([...t.matchAll(/@([\wÁÉÍÓÚÑáéíóúñ]+)/g)].map(m=>norm(m[1])))].map(n=>(S.eq||[]).find(u=>norm(String(u.nombre).trim().split(/\s+/)[0])==n)?.id).filter(Boolean);
+  if(!navigator.onLine){await guardarSinSenal({t:'ins',tb:'notas_internas',row:{entidad:ent,ref:String(ref),cliente_id:cid||null,texto:t,menciones:men},cli:nomCli(cid)||''});ta.value='';return toast('📴 Sin señal: la nota quedó guardada y se manda sola cuando vuelva internet.')}
   const{error}=await sb.from('notas_internas').insert({entidad:ent,ref:String(ref),cliente_id:cid||null,texto:t,menciones:men});if(error)return toast(error.message,1);
   ta.value='';toast(men.length?'Nota guardada. Le avisamos a '+men.map(nomU).join(' y ')+'.':'Nota guardada.');notasPinta(ent,ref,cid,box)}
 /* Notas del equipo en un pedido (se abre desde el pedido) */
@@ -3782,6 +3783,7 @@ async function checkinBoton(c){const b=$('#fc_ci');if(!b)return;const d0=new Dat
   const pinta=()=>{clearInterval(iv);if(ab){const t=()=>{const m=Math.max(0,Math.round((Date.now()-new Date(ab.llegada))/6e4));b.innerHTML=`${IC('clock',22)}<span>Me voy · ${m} min</span>`};t();iv=setInterval(()=>{if(!document.body.contains(b))return clearInterval(iv);t()},30000);b.classList.add('ci-on')}
     else{b.innerHTML=`${IC('pin',22)}<span>Llegué</span>`;b.classList.remove('ci-on')}};pinta();
   b.onclick=async()=>{b.disabled=true;try{
+    if(!ab&&!navigator.onLine){const g=await geoVisita(c);await guardarSinSenal({t:'ins',tb:'contactos_clientes',row:{cliente_id:c.id,tipo:'visita',detalle:'Visita en el local (cargada sin señal)',usuario_id:S.perfil.id,llegada:new Date().toISOString(),salida:new Date().toISOString(),...g},cli:c.razon_social});toast('📴 Sin señal: la visita quedó guardada y se manda sola cuando vuelva internet.');b.disabled=false;return}
     if(!ab){const g=await geoVisita(c);const{data:x,error}=await sb.from('contactos_clientes').insert({cliente_id:c.id,tipo:'visita',detalle:'Visita en el local',usuario_id:S.perfil.id,llegada:new Date().toISOString(),...g}).select('id,llegada,salida').single();
       if(error)throw error;Object.assign(ab||{},{});checkinBoton(c);toast(g.dist_m>300?'Llegada registrada, pero a '+kmTxt(g.dist_m)+' del negocio.':'Llegada registrada'+(g.lat?' con tu ubicación':'')+'. Cuando te vayas tocá "Me voy".',g.dist_m>300)}
     else{const det=prompt('¿Cómo fue la visita? (opcional)','')??'';const ft=await new Promise(ok=>{if(!confirm('¿Querés sacarle una foto a la góndola o la exhibición?'))return ok(null);const i=document.createElement('input');i.type='file';i.accept='image/*';i.capture='environment';i.onchange=()=>ok(i.files[0]||null);i.click();setTimeout(()=>ok(null),120000)});
@@ -3824,7 +3826,8 @@ async function automatizacionesCfg(){const{b}=hojaPro('Automatizaciones','bolt')
     ['vence','Factura que vence mañana','Un día antes del vencimiento, tarea para recordarle al cliente que tiene que pagar.'],
     ['entregado','Pedido entregado','Al día siguiente de entregar, tarea: "Preguntarle si llegó todo bien". Así detectás faltantes antes del reclamo.'],
     ['prospecto','Prospecto sin seguimiento','Si un prospecto en curso no tiene contacto en {d} días, tarea de seguimiento.',7],
-    ['cumple','Cumpleaños del cliente','El día del cumpleaños, tarea para saludarlo (si tiene la fecha cargada en su ficha).']];
+    ['cumple','Cumpleaños del cliente','El día del cumpleaños, tarea para saludarlo (si tiene la fecha cargada en su ficha).'],
+    ['resumen','Resumen semanal por mail','Los lunes a las 8 te llega un mail con lo vendido y cobrado, los clientes que dejaron de comprar, lo vencido y quién debería pedirte esa semana. <a class="lnk" onclick="resumenAhora(true)">Ver cómo es</a> · <a class="lnk" onclick="resumenAhora()">Mandármelo ahora</a>']];
   const on=k=>C[k]?.on!==false,dd=(k,v)=>+C[k]?.dias||v;
   const pinta=()=>{b.innerHTML=`<p><small>Todos los días a las 7:30 el CRM revisa estas reglas y crea las tareas solo. Le llegan a cada vendedor (o a vos si el cliente es de la casa) y aparecen en <b>Tareas</b> y en el calendario.</small></p>
     ${R.map(([k,t,d,v])=>`<div class="au-r${on(k)?' on':''}"><label class="au-sw"><input type="checkbox" data-au="${k}" ${on(k)?'checked':''}><i></i></label><div><b>${t}</b><small>${d.replace('{d}',`<input type="number" min="3" max="120" data-ad="${k}" value="${dd(k,v)}">`)}</small></div></div>`).join('')}
@@ -3857,3 +3860,99 @@ async function pronosticoSemana(){const{b}=hojaPro('Pronóstico de la semana','c
     <div data-pp="p" hidden>${FAL.length?`<p><small>Productos que tus clientes van a pedir esta semana y no te alcanzan con el stock cargado.</small></p><table><tr><th>Producto</th><th class="n">Van a pedir</th><th class="n">Tenés</th></tr>${FAL.map(x=>`<tr><td>${esc(nomProd(x.k))}</td><td class="n">${nf(x.v)}</td><td class="n">${x.s==null?'—':nf(x.s)}</td></tr>`).join('')}</table>`:vacioHTML('Con el stock que tenés alcanza para lo que se espera vender.','box')}</div>`;
   b.querySelectorAll('[data-pn]').forEach(x=>x.onclick=()=>{b.querySelectorAll('[data-pn]').forEach(y=>y.classList.toggle('on',y==x));b.querySelectorAll('[data-pp]').forEach(p=>p.hidden=p.dataset.pp!=x.dataset.pn)});
   b.querySelectorAll('.li-r[data-fc]').forEach(r=>r.onclick=()=>{document.querySelector('.pro-m')?.remove();S.tab='clientes';fichaCliente(S.clientes.find(c=>c.id==r.dataset.fc))})}
+/* Prueba de entrega: firma, foto y quién recibió (lo carga el chofer desde su link) */
+async function verEntrega(pid,num){const{b}=hojaPro('Entrega del pedido N° '+num,'check');const{data,error}=await sb.from('entregas_prueba').select('*').eq('pedido_id',pid).maybeSingle();
+  if(error){b.innerHTML='<p class="err">'+esc(error.message)+'</p>';return}
+  if(!data){b.innerHTML=vacioHTML('El chofer no dejó firma ni foto de esta entrega.','check');return}
+  b.innerHTML=`<p><b>${data.recibio?'Recibió: '+esc(data.recibio):'Entregado'}</b> · ${new Date(data.creado_en).toLocaleString('es-AR',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'})}${data.lat?` · <a class="lnk" href="https://www.google.com/maps?q=${data.lat},${data.lng}" target="_blank" rel="noopener">ver dónde</a>`:''}</p>
+    ${data.firma?`<div><small>Firma</small><img src="${esc(data.firma)}" alt="Firma del cliente" style="width:100%;max-width:420px;border:1px solid var(--borde);border-radius:12px;background:#fff;display:block"></div>`:''}
+    ${data.foto?`<div><small>Foto de la mercadería</small><img src="${esc(data.foto)}" alt="Foto de la entrega" style="width:100%;max-width:420px;border-radius:12px;display:block"></div>`:''}`}
+/* Resumen semanal: verlo o mandarlo ahora */
+async function resumenAhora(ver){const{data,error}=await sb.functions.invoke('resumen',{body:ver?{ver:true}:{}});if(error||data?.error)return toast((data&&data.error)||error.message,1);
+  if(ver){const{b}=hojaPro('Resumen semanal','chart');b.innerHTML=`<div style="background:#fff;border-radius:12px;padding:6px">${data.html}</div>`;return}toast('Listo: te mandamos el resumen a '+data.a+'.')}
+/* Factura de proveedor con una foto: lee el texto en el celular (sin mandar la foto a ningún lado) y completa tipo, número, fecha e importes */
+let _tess=null;
+async function leerFacturaFoto(f){if(!f)return;const prog=document.createElement('div');prog.className='modal';prog.innerHTML=`<div class="mc"><h3 style="margin:0">${IC('camera',18)} Leyendo la factura…</h3><p id="ocr_e">Preparando el lector (la primera vez tarda un poco)…</p><div class="barra"><i id="ocr_b" style="width:5%"></i></div></div>`;document.body.appendChild(prog);
+  const est=(t,p)=>{const e=prog.querySelector('#ocr_e'),b=prog.querySelector('#ocr_b');if(e)e.textContent=t;if(b&&p!=null)b.style.width=Math.round(p*100)+'%'};
+  try{if(!window.Tesseract)await new Promise((ok,no)=>{const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';sc.onload=ok;sc.onerror=()=>no(new Error('sin conexión'));document.head.appendChild(sc)});
+    const img=await achicarFoto(f,2200);est('Leyendo el texto…',.15);
+    const{data}=await Tesseract.recognize(img,'spa',{logger:m=>{if(m.status=='recognizing text')est('Leyendo el texto… '+Math.round(m.progress*100)+' %',.15+m.progress*.8)}});
+    const t=(data.text||'').replace(/[ \t]+/g,' '),R=leerFacturaTexto(t);prog.remove();
+    const set=(id,v)=>{const e=document.getElementById(id);if(e&&v!=null&&v!==''){e.value=v;e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));e.classList.add('ocr-ok')}};
+    set('f_t',R.tipo);set('f_n',R.num);set('f_f',R.fecha);set('f_ne',R.neto);set('f_iv',R.iva);set('f_pi',R.pi);set('f_pb',R.pb);
+    const n=['tipo','num','fecha','neto','iva'].filter(k=>R[k]!=null).length;
+    const m=document.createElement('div');m.className='modal';m.innerHTML=`<div class="mc"><h3 style="margin:0">${n?IC('check',18)+' Leímos la factura':IC('alert',18)+' No se pudo leer bien'}</h3>
+      ${n?`<p>Completamos lo marcado en verde. <b>Revisalo antes de guardar</b>: la lectura puede equivocarse en algún número.</p><ul style="margin:0;padding-left:18px;line-height:1.6">${R.tipo?`<li>Tipo ${esc(R.tipo)}</li>`:''}${R.num?`<li>Número ${esc(R.num)}</li>`:''}${R.fecha?`<li>Fecha ${fd(R.fecha)}</li>`:''}${R.neto!=null?`<li>Neto ${$m(R.neto)}</li>`:''}${R.iva!=null?`<li>IVA ${$m(R.iva)}</li>`:''}${R.total!=null?`<li>Total de la factura ${$m(R.total)}</li>`:''}${R.cuit?`<li>CUIT del proveedor ${esc(R.cuit)}</li>`:''}</ul><p><small>Los productos se cargan abajo como siempre.</small></p>`:'<p>Probá con más luz, la factura bien derecha y que se vea entera. También podés cargarla a mano.</p>'}
+      <div class="fc-acc"><button id="ocr_x">Entendido</button></div></div>`;document.body.appendChild(m);m.querySelector('#ocr_x').onclick=()=>m.remove()}
+  catch(e){prog.remove();toast('No se pudo leer la foto: '+(e.message||e),1)}}
+function leerFacturaTexto(t){const U=t.toUpperCase(),num=v=>{if(v==null)return null;v=String(v).replace(/[^\d.,]/g,'');if(/,\d{1,2}$/.test(v))v=v.replace(/\./g,'').replace(',','.');else if(/\.\d{3}$/.test(v)||/\.\d{3}\./.test(v))v=v.replace(/\./g,'');const n=+v;return isFinite(n)&&n>0?Math.round(n*100)/100:null};
+  const imp=re=>{const m=U.match(re);return m?num(m[1]):null};const R={};
+  const cod=U.match(/C[OÓ0]D(?:IGO)?\.?\s*(?:N[°ºO]?\.?)?\s*0?(01|06|11|03|08|13)\b/);
+  if(cod)R.tipo={'01':'A','06':'B','11':'C','03':'NC','08':'NC','13':'NC'}[cod[1]];else if(/NOTA DE CR[EÉ]DITO/.test(U))R.tipo='NC';else{const l=U.match(/FACTURA\s*["'“]?\s*([ABC])\b/)||U.match(/\n\s*([ABC])\s*\n/);if(l)R.tipo=l[1]}
+  let m=U.match(/PUNTO DE VENTA:?\s*(\d{1,5})\s*COMP(?:ROBANTE)?\.?\s*N(?:RO|°|º)?\.?:?\s*(\d{1,8})/)||U.match(/\b(\d{4,5})\s*-\s*(\d{6,8})\b/)||U.match(/N[°º]\s*(\d{4,5})\s*-?\s*(\d{8})/);
+  if(m)R.num=String(+m[1]).padStart(4,'0')+'-'+m[2].padStart(8,'0');
+  m=U.match(/FECHA DE EMISI[OÓ]N:?\s*(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})/)||U.match(/FECHA:?\s*(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})/)||U.match(/\b(\d{1,2})\/(\d{1,2})\/(20\d{2})\b/);
+  if(m){const y=m[3].length==2?'20'+m[3]:m[3];R.fecha=y+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0')}
+  R.neto=imp(/(?:IMPORTE\s+)?NETO\s+GRAVADO:?\s*\$?\s*([\d.,]+)/)??imp(/SUBTOTAL:?\s*\$?\s*([\d.,]+)/);
+  const i21=imp(/IVA\s*21\s*%:?\s*\$?\s*([\d.,]+)/),i10=imp(/IVA\s*10[,.]5\s*%:?\s*\$?\s*([\d.,]+)/),i27=imp(/IVA\s*27\s*%:?\s*\$?\s*([\d.,]+)/);
+  if(i21!=null||i10!=null||i27!=null)R.iva=Math.round(((i21||0)+(i10||0)+(i27||0))*100)/100;
+  R.pi=imp(/PERC(?:EPCI[OÓ]N)?\.?\s*(?:DE\s+)?IVA:?\s*\$?\s*([\d.,]+)/);R.pb=imp(/PERC(?:EPCI[OÓ]N)?\.?\s*(?:DE\s+)?(?:IIBB|I\.?B\.?|INGRESOS BRUTOS)[^\d\n]*([\d.,]+)/);
+  R.total=imp(/IMPORTE\s+TOTAL:?\s*\$?\s*([\d.,]+)/)??imp(/\bTOTAL:?\s*\$?\s*([\d.,]+)/);
+  if(R.total!=null&&R.neto==null&&R.iva!=null)R.neto=Math.round((R.total-R.iva-(R.pi||0)-(R.pb||0))*100)/100;
+  if(R.total!=null&&R.neto!=null&&R.iva==null&&R.tipo=='A')R.iva=Math.round((R.total-R.neto-(R.pi||0)-(R.pb||0))*100)/100;
+  if(R.total!=null&&R.neto==null&&R.iva==null&&(R.tipo=='B'||R.tipo=='C')){R.neto=R.total;R.iva=0}
+  const c=U.match(/\b(20|23|24|27|30|33|34)-?(\d{8})-?(\d)\b/);if(c)R.cuit=c[1]+'-'+c[2]+'-'+c[3];return R}
+/* CUIT: valida el dígito verificador y, si ARCA está vinculado, trae razón social, domicilio y condición de IVA del padrón */
+const cuitValido=v=>{const d=String(v||'').replace(/\D/g,'');if(d.length!=11)return false;const k=[5,4,3,2,7,6,5,4,3,2];let s=0;for(let i=0;i<10;i++)s+=+d[i]*k[i];let r=11-s%11;r=r==11?0:r==10?9:r;return r==+d[10]};
+async function cuitAuto(v,cb){const d=String(v||'').replace(/\D/g,'');if(!d)return;if(d.length!=11||!cuitValido(d))return toast('Ese CUIT no es válido: revisá los números.',1);
+  toast('Buscando el CUIT en ARCA…');const{data,error}=await sb.functions.invoke('arca',{body:{accion:'padron',cuit:d}});
+  if(error||data?.error){const m=(data&&data.error)||error?.message||'';if(/vincular ARCA|certificado/i.test(m))return toast('CUIT válido. Cuando termines de vincular ARCA se van a completar los datos solos.');return toast(m,1)}
+  if(data?.estado&&!/ACTIVO/i.test(data.estado))toast('Ojo: en ARCA ese CUIT figura como '+data.estado.toLowerCase()+'.',1);else toast('Datos completados desde ARCA: '+(data.razon_social||''));cb&&cb(data)}
+/* Seguridad: código en dos pasos, equipos desde donde se entró y cierre por inactividad */
+async function seguridadCfg(){const{b}=hojaPro('Seguridad','lock');
+  const pinta=async()=>{const[{data:F},{data:D}]=await Promise.all([sb.auth.mfa.listFactors(),sb.from('accesos_dispositivos').select('*').eq('usuario_id',S.perfil.id).order('ultimo',{ascending:false}).then(r=>r,()=>({}))]);
+    const tot=(F?.totp||[]).filter(x=>x.status=='verified'),mio=localStorage.getItem('crm_disp'),h=inactLimite();
+    b.innerHTML=`<div class="box"><div class="bh"><h3 style="margin:0">${IC('lock',17)} Código en dos pasos</h3>${tot.length?'<span class="badge b-entregado">Activado</span>':'<span class="badge b-pendiente">Apagado</span>'}</div>
+      <p><small>Además de la contraseña, al entrar en un equipo nuevo te pide un código de 6 números que te da la app <b>Google Authenticator</b> (o Microsoft Authenticator) del celular. Si alguien consigue tu contraseña, igual no puede entrar.</small></p>
+      ${tot.length?'<button class="alt" id="sg_off">Desactivar el código</button>':'<button id="sg_on">Activar el código en dos pasos</button>'}<div id="sg_en"></div></div>
+    <div class="box"><h3>${IC('phone',17)} Equipos desde donde entraste</h3>${(D||[]).map(x=>`<div class="li-r" style="cursor:default"><span class="td-i" style="background:${x.disp==mio?'var(--ok)':'#9aa3b2'};color:#fff">${IC('phone',15)}</span><div><b>${esc(x.ua||'Equipo')}${x.disp==mio?' · este equipo':''}</b><small>Primera vez ${new Date(x.creado_en).toLocaleDateString('es-AR')} · último uso ${new Date(x.ultimo).toLocaleString('es-AR',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'})}</small></div></div>`).join('')||'<p><small>Sin datos todavía.</small></p>'}
+      <div class="li-ac"><button class="alt" id="sg_glob">Cerrar la sesión en todos los equipos</button></div></div>
+    <div class="box"><h3>${IC('clock',17)} Cierre por inactividad</h3><p><small>Si el CRM queda abierto sin usar, pide entrar de nuevo (en este equipo).</small></p>
+      <select id="sg_h">${[[2,'Después de 2 horas'],[4,'Después de 4 horas'],[8,'Después de 8 horas'],[12,'Después de 12 horas'],[24,'Después de 1 día'],[0,'Nunca']].map(([v,t])=>`<option value="${v}" ${v==h?'selected':''}>${t}</option>`).join('')}</select></div>`;
+    $('#sg_h').onchange=e=>{try{localStorage.setItem('crm_seg',JSON.stringify({h:+e.target.value}))}catch(x){}toast('Guardado.')};
+    $('#sg_glob').onclick=async()=>{if(!confirm('Se va a cerrar tu sesión en todos los celulares y computadoras, también en este. ¿Seguro?'))return;await sb.auth.signOut({scope:'global'}).catch(()=>{});location.reload()};
+    $('#sg_off')&&($('#sg_off').onclick=async()=>{if(!confirm('¿Desactivar el código en dos pasos? Vas a entrar solo con la contraseña.'))return;for(const f of tot){const{error}=await sb.auth.mfa.unenroll({factorId:f.id});if(error)return toast(error.message,1)}toast('Código desactivado.');pinta()});
+    $('#sg_on')&&($('#sg_on').onclick=async()=>{for(const f of(F?.all||[]).filter(x=>x.status!='verified'))await sb.auth.mfa.unenroll({factorId:f.id}).catch(()=>{});
+      const{data,error}=await sb.auth.mfa.enroll({factorType:'totp',friendlyName:'CRM Sabores '+new Date().toLocaleDateString('es-AR'),issuer:'CRM Sabores'});if(error)return toast(error.message,1);
+      $('#sg_on').hidden=true;$('#sg_en').innerHTML=`<ol class="cm-pasos"><li>Bajá <b>Google Authenticator</b> en tu celular (es gratis).</li><li>Tocá <b>+</b> → <b>Escanear código QR</b> y apuntá a este cuadrado${matchMedia('(max-width:700px)').matches?' (o tocá "Ingresar clave de configuración" y copiá la clave de abajo)':''}.</li><li>Escribí acá los 6 números que te muestra.</li></ol>
+        <div style="display:grid;place-items:center;margin:8px 0"><img src="${esc(data.totp.qr_code)}" alt="Código QR" style="width:200px;height:200px;background:#fff;padding:8px;border-radius:12px"></div>
+        <label class="f">Clave (si no podés escanear)<input readonly value="${esc(data.totp.secret)}" onclick="this.select()"></label>
+        <label class="f">Código de 6 números<input id="sg_c" inputmode="numeric" maxlength="6" placeholder="123456" style="font-size:20px;letter-spacing:.25em"></label><button id="sg_v">Confirmar y activar</button>`;
+      $('#sg_v').onclick=async()=>{const c=$('#sg_c').value.replace(/\D/g,'');if(c.length!=6)return toast('Son 6 números.',1);const{error}=await sb.auth.mfa.challengeAndVerify({factorId:data.id,code:c});if(error)return toast(/invalid|expired/i.test(error.message)?'Código incorrecto. Probá con el que aparece ahora.':error.message,1);toast('¡Listo! El código en dos pasos quedó activado.');pinta()}})};
+  pinta()}
+/* WhatsApp Business API (Meta): conectar la cuenta y prender los avisos automáticos */
+async function whatsappApiCfg(){const{b}=hojaPro('WhatsApp automático','chat');let C=await cfgJ('wa_api',{idioma:'es_AR',auto:{}});const{data:E}=await sb.rpc('wa_estado').then(r=>r,()=>({data:{}}));
+  const{data:L}=await sb.from('wa_envios').select('*').order('creado_en',{ascending:false}).limit(8).then(r=>r,()=>({}));C.auto=C.auto||{};
+  const g=async()=>{const{error}=await guardaCfgJ('wa_api',C);if(error)toast(error.message,1);else toast('Guardado.')};
+  const AU=[['cobro','Recordatorio de cobro','Un día antes de que venza una factura. Variables de la plantilla: {{1}} nombre, {{2}} importe, {{3}} fecha.','recordatorio_pago'],
+    ['sale','Tu pedido sale hoy','A la mañana, a cada cliente cuyo pedido sale ese día. Variables: {{1}} nombre, {{2}} N° de pedido, {{3}} importe.','pedido_en_camino']];
+  b.innerHTML=`<p><small>Con la <b>API oficial de WhatsApp Business</b> (de Meta) los mensajes salen solos desde el número de la empresa, sin tocar el celular. Meta cobra unos centavos de dólar por mensaje.</small></p>
+    <details class="box" ${E?.clave&&C.phone_id?'':'open'}><summary><b>${E?.clave&&C.phone_id?IC('check',16)+' Cuenta conectada':'Cómo conectarla (una sola vez)'}</b></summary>
+      <ol class="cm-pasos"><li>Entrá a <a class="lnk" href="https://business.facebook.com" target="_blank" rel="noopener">business.facebook.com</a> y creá (o usá) la cuenta de la empresa.</li>
+        <li>En <a class="lnk" href="https://developers.facebook.com/apps" target="_blank" rel="noopener">developers.facebook.com</a> creá una app tipo <b>Empresa</b> y agregale <b>WhatsApp</b>.</li>
+        <li>Agregá el número de la empresa (no puede estar usándose en la app común de WhatsApp) y verificalo con el código.</li>
+        <li>En <b>Configuración del negocio → Usuarios del sistema</b> creá un usuario, dale permiso a la app y generá un <b>token permanente</b> con los permisos <i>whatsapp_business_messaging</i>.</li>
+        <li>Copiá el <b>Identificador del número de teléfono</b> (Phone number ID) y el token, y pegalos acá.</li>
+        <li>En <b>Plantillas de mensajes</b> creá las plantillas (categoría <i>Utilidad</i>, idioma español Argentina) con los nombres de abajo. Meta las aprueba en minutos u horas.</li></ol>
+      <label class="f">Identificador del número (Phone number ID)<input id="wa_pid" value="${esc(C.phone_id||'')}" placeholder="ej. 123456789012345" inputmode="numeric"></label>
+      <label class="f">Token permanente ${E?.clave?'<small>(ya cargado; pegá uno nuevo solo para cambiarlo)</small>':''}<input id="wa_tk" placeholder="EAAG…" autocomplete="off"></label>
+      <div class="li-ac"><button id="wa_g">Guardar conexión</button></div></details>
+    <div class="box"><h3>${IC('bolt',17)} Avisos automáticos</h3>${AU.map(([k,t,d,p])=>`<div class="au-r${C.auto[k]?.on?' on':''}"><label class="au-sw"><input type="checkbox" data-wa="${k}" ${C.auto[k]?.on?'checked':''}><i></i></label><div><b>${t}</b><small>${d}</small><label class="f" style="margin-top:4px">Nombre de la plantilla<input data-wp="${k}" value="${esc(C.auto[k]?.plantilla||p)}"></label></div></div>`).join('')}
+      <p><small>Se mandan todos los días a las 9. Cada cliente recibe cada aviso una sola vez.</small></p></div>
+    <div class="box"><h3>${IC('send',17)} Probar</h3><div class="g"><label class="f">Tu celular<input id="wa_tel" type="tel" placeholder="11 2345-6789"></label><label class="f">Plantilla<input id="wa_pl" value="hello_world"></label></div><button class="alt" id="wa_p">Mandarme una prueba</button>
+      ${(L||[]).length?`<h4 style="margin:12px 0 4px">Últimos envíos</h4>${L.map(x=>`<div class="li-r" style="cursor:default"><span class="edot ${x.ok?'ok':'er'}"></span><div><b>${esc(nomCli(x.cliente_id)||x.telefono||'')}</b><small>${esc(x.plantilla||'')} · ${new Date(x.creado_en).toLocaleString('es-AR',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'})}${x.ok?'':' · '+esc(x.detalle||'')}</small></div></div>`).join('')}`:''}</div>`;
+  $('#wa_g').onclick=async()=>{C.phone_id=$('#wa_pid').value.replace(/\D/g,'');const tk=$('#wa_tk').value.trim();if(tk){const{error}=await sb.rpc('wa_clave_guardar',{p:tk});if(error)return toast(error.message,1)}await g();whatsappApiCfg();document.querySelectorAll('.pro-m').forEach((m,i,a)=>{if(i<a.length-1)m.remove()})};
+  b.querySelectorAll('[data-wa]').forEach(i=>i.onchange=()=>{const k=i.dataset.wa;C.auto[k]={...(C.auto[k]||{}),on:i.checked,plantilla:b.querySelector(`[data-wp="${k}"]`).value.trim()};g()});
+  b.querySelectorAll('[data-wp]').forEach(i=>i.onchange=()=>{const k=i.dataset.wp;C.auto[k]={...(C.auto[k]||{}),plantilla:i.value.trim()};g()});
+  $('#wa_p').onclick=async()=>{const{data,error}=await sb.functions.invoke('whatsapp',{body:{accion:'probar',tel:$('#wa_tel').value,plantilla:$('#wa_pl').value.trim()||'hello_world'}});
+    if(error||data?.error)return toast((data&&data.error)||error.message,1);toast('¡Mensaje enviado! Fijate en tu WhatsApp.')}}

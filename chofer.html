@@ -36,6 +36,10 @@ main{padding:12px 12px 90px;max-width:640px;margin:0 auto}
 .mc .b{width:100%;padding:13px;border:0;border-radius:12px;background:var(--ok);color:#fff;font:700 16px system-ui;margin-top:6px}
 .mc .b2{width:100%;padding:11px;border:1px solid var(--l);border-radius:12px;background:#fff;font:600 15px system-ui;margin-top:6px}
 .fin{background:#fff;border-radius:14px;padding:16px;text-align:center}
+.fir{border:1.5px dashed #c9ccd4;border-radius:12px;background:#fafafb;touch-action:none;width:100%;height:150px;display:block}
+.fir-h{display:flex;justify-content:space-between;align-items:baseline;margin:10px 0 4px;font-size:14px;color:#5b6274}.fir-h a{color:#7b2d3e;font-weight:600;cursor:pointer}
+.ft{display:flex;gap:10px;align-items:center;margin:8px 0}.ft img{width:64px;height:64px;object-fit:cover;border-radius:10px;border:1px solid #e3e6ec}
+.ft label{display:inline-flex;align-items:center;gap:6px;border:1px solid #e3e6ec;border-radius:10px;padding:9px 12px;font-weight:600;cursor:pointer;margin:0}
 </style>
 </head>
 <body>
@@ -79,8 +83,23 @@ async function marcar(p,acc,extra){const{error}=await sb.rpc('chofer_marcar',{p_
 function entregar(p){hoja(`<h3 style="margin:0 0 4px">Entregado · ${esc(p.cliente)}</h3><p style="margin:0;color:#5b6274">Pedido N° ${p.numero} · ${pes(p.total)}${p.contado?' · <b>contado</b>':' · cuenta corriente'}</p>
   <label>¿Cuánto cobraste? (dejalo vacío si no cobraste)<input id="c_i" inputmode="decimal" value="${p.contado?Math.round(p.total):''}"></label>
   <select id="c_m"><option value="efectivo">Efectivo</option><option value="transferencia">Transferencia</option><option value="cheque">Cheque</option></select>
+  <input id="c_r" placeholder="¿Quién recibió? (nombre)">
+  <div class="fir-h"><span>✍️ Firma del cliente</span><a id="c_fl">Borrar</a></div><canvas class="fir" id="c_f"></canvas>
+  <div class="ft"><label>📷 Foto de la mercadería<input type="file" id="c_ft" accept="image/*" capture="environment" hidden></label><img id="c_fi" hidden alt=""></div>
   <button class="b" id="c_ok">✅ Confirmar entrega</button><button class="b2" id="c_x">Cancelar</button>`,m=>{
-  m.querySelector('#c_x').onclick=()=>m.remove();m.querySelector('#c_ok').onclick=async e=>{e.target.disabled=true;const v=num(m.querySelector('#c_i').value);if(await marcar(p,'entregado',{cobrado:v>0?v:null,medio:v>0?m.querySelector('#c_m').value:null}))m.remove();else e.target.disabled=false}})}
+  const cv=m.querySelector('#c_f'),cx=cv.getContext('2d');let fir=false,dib=false,foto=null;
+  const ajustar=()=>{const r=cv.getBoundingClientRect(),k=window.devicePixelRatio||1;cv.width=r.width*k;cv.height=r.height*k;cx.scale(k,k);cx.lineWidth=2.4;cx.lineCap='round';cx.lineJoin='round';cx.strokeStyle='#17213a'};setTimeout(ajustar,30);
+  const pos=e=>{const r=cv.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
+  cv.onpointerdown=e=>{dib=true;cv.setPointerCapture(e.pointerId);const[x,y]=pos(e);cx.beginPath();cx.moveTo(x,y)};
+  cv.onpointermove=e=>{if(!dib)return;const[x,y]=pos(e);cx.lineTo(x,y);cx.stroke();fir=true};cv.onpointerup=cv.onpointercancel=()=>dib=false;
+  m.querySelector('#c_fl').onclick=()=>{cx.clearRect(0,0,cv.width,cv.height);fir=false};
+  m.querySelector('#c_ft').onchange=async ev=>{const f=ev.target.files[0];if(!f)return;foto=await achicar(f,1000,.6);const im=m.querySelector('#c_fi');im.src=foto;im.hidden=false};
+  m.querySelector('#c_x').onclick=()=>m.remove();m.querySelector('#c_ok').onclick=async e=>{e.target.disabled=true;e.target.textContent='Guardando…';const v=num(m.querySelector('#c_i').value),rec=m.querySelector('#c_r').value;
+    if(fir||foto||rec.trim()){const g=await ubic();const{error}=await sb.rpc('chofer_prueba',{p_token:T,p_pedido:p.id,p_firma:fir?achicarFirma(cv):null,p_foto:foto,p_recibio:rec||null,p_lat:g?.lat??null,p_lng:g?.lng??null});if(error){alert(error.message);e.target.disabled=false;e.target.textContent='✅ Confirmar entrega';return}}
+    if(await marcar(p,'entregado',{cobrado:v>0?v:null,medio:v>0?m.querySelector('#c_m').value:null,nota:rec?('Recibió '+rec):null}))m.remove();else{e.target.disabled=false;e.target.textContent='✅ Confirmar entrega'}}})}
+function achicar(f,max,q){return new Promise((ok,no)=>{const r=new FileReader();r.onerror=no;r.onload=()=>{const im=new Image();im.onerror=no;im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);let u=c.toDataURL('image/webp',q);if(!u.startsWith('data:image/webp'))u=c.toDataURL('image/jpeg',q);ok(u)};im.src=r.result};r.readAsDataURL(f)})}
+function achicarFirma(cv){const c=document.createElement('canvas'),k=Math.min(1,600/cv.width);c.width=Math.round(cv.width*k);c.height=Math.round(cv.height*k);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(cv,0,0,c.width,c.height);return c.toDataURL('image/png')}
+function ubic(){return new Promise(ok=>{if(!navigator.geolocation)return ok(null);const t=setTimeout(()=>ok(null),5000);navigator.geolocation.getCurrentPosition(p=>{clearTimeout(t);ok({lat:+p.coords.latitude.toFixed(6),lng:+p.coords.longitude.toFixed(6)})},()=>{clearTimeout(t);ok(null)},{timeout:4500,maximumAge:120000})})}
 function noEstaba(p){hoja(`<h3 style="margin:0 0 8px">No estaba · ${esc(p.cliente)}</h3><input id="n_t" placeholder="¿Qué pasó? (ej.: cerrado, sin plata)" value="Cerrado / no estaba"><button class="b" style="background:#b3261e" id="n_ok">Guardar</button><button class="b2" id="n_x">Cancelar</button>`,m=>{
   m.querySelector('#n_x').onclick=()=>m.remove();m.querySelector('#n_ok').onclick=async e=>{e.target.disabled=true;if(await marcar(p,'no_estaba',{nota:m.querySelector('#n_t').value}))m.remove();else e.target.disabled=false}})}
 if(!T){$('#m').innerHTML='<div class="err"><b>Falta el código del reparto.</b><p>Abrí el link completo que te mandaron.</p></div>'}else{cargar();setInterval(()=>{if(!document.querySelector('.modal'))cargar()},60000)}
