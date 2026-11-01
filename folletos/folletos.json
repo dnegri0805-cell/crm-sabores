@@ -1690,7 +1690,7 @@
   "n": 5,
   "fecha": "2026-11-01",
   "rubro": "Supermercado",
-  "v": 1,
+  "v": 2,
   "t1": "MANÍ",
   "t2": "JL",
   "lema": "Maní, crocantes y manteca de maní",
@@ -1737,7 +1737,7 @@
    {
     "tipo": "fotos",
     "titulo": "Crocantes horneados 65 g",
-    "sub": "Maní japonés horneado: pizza, queso, jamón y mix · pack x 48",
+    "sub": "Mix de 3 sabores, pizza, queso y jamón · pack x 48",
     "items": [
      {
       "id": "d82f1caa-b368-40a2-ad98-afe967e3593d",
@@ -1760,7 +1760,7 @@
    {
     "tipo": "fotos",
     "titulo": "Crocantes horneados 500 g",
-    "sub": "Seis sabores para la góndola · caja x 12",
+    "sub": "Pizza, queso, jamón y salado · caja x 12",
     "items": [
      {
       "id": "79d915d4-5eef-42b8-aaef-0e5a602ded95",
@@ -1777,7 +1777,14 @@
      {
       "id": "d785aa12-0cff-40d7-aeca-a39b9f1e6304",
       "n": "Crocante Horneado sabor Salado 500 g"
-     },
+     }
+    ]
+   },
+   {
+    "tipo": "fotos",
+    "titulo": "Crocantes 500 g y manteca de maní",
+    "sub": "Crocantes asado y salame · manteca cremosa y chispeada · caja x 12",
+    "items": [
      {
       "id": "5e47e752-5ca2-4bd6-a3c3-ac8731e7af38",
       "n": "Crocante Horneado sabor Asado 500 g"
@@ -1785,14 +1792,7 @@
      {
       "id": "04266162-dbe1-46d0-b7ff-d57f91fd0d79",
       "n": "Crocante Horneado sabor Salame 500 g"
-     }
-    ]
-   },
-   {
-    "tipo": "fotos",
-    "titulo": "Manteca de maní 360 g",
-    "sub": "Cremosa y chispeada · caja x 12",
-    "items": [
+     },
      {
       "id": "5dfe18e1-6084-43cd-b552-68ffb5680c66",
       "n": "Manteca Maní Cremosa 360 g"
@@ -1803,6 +1803,13 @@
      }
     ]
    }
+  ],
+  "lista": "Maní JL",
+  "intro": "Toda la línea:",
+  "msg": [
+   "🥜 Maní salado (con y sin piel) y tostado sin sal, en 85 g y 500 g",
+   "🔥 Crocantes horneados de 65 g y 500 g: pizza, queso, jamón, salado, asado, salame y mix",
+   "🥄 Manteca de maní cremosa y chispeada 360 g"
   ]
  },
  {
@@ -1812,7 +1819,7 @@
   "n": 1,
   "fecha": "2026-11-01",
   "rubro": "Supermercado",
-  "v": 1,
+  "v": 2,
   "t1": "MANÍ",
   "t2": "JL",
   "lema": "Maní, crocantes y manteca de maní",
@@ -1897,6 +1904,13 @@
      }
     ]
    }
+  ],
+  "lista": "Maní JL",
+  "intro": "Toda la línea:",
+  "msg": [
+   "🥜 Maní salado (con y sin piel) y tostado sin sal, en 85 g y 500 g",
+   "🔥 Crocantes horneados de 65 g y 500 g: pizza, queso, jamón, salado, asado, salame y mix",
+   "🥄 Manteca de maní cremosa y chispeada 360 g"
   ]
  }
 ]
