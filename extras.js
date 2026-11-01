@@ -591,7 +591,7 @@ async function flArmar(f,prog){
           const tx=X+iw+18,tw=cw-iw-28;c.textBaseline='top';c.fillStyle=FL.TXT;let fs=21;c.font=`700 ${fs}px ${FONT}`;let NL=flLineas(c,x.n.replace(/^Crocante Horneado sabor /,'Crocante ').replace(/ pelado sin sal/,' sin sal'),tw,3);
           NL.forEach((l,j)=>c.fillText(l,tx,Y+12+j*25));const py=Y+12+NL.length*25+6;
           c.fillStyle=MARCA.c;c.font=`800 32px ${FONT}`;const pt=flPes(x.p);c.fillText(pt,tx,py);const pw=c.measureText(pt).width;c.fillStyle=FL.GRI;c.font=`600 18px ${FONT}`;c.fillText(x.suf,tx+pw+5,py+12);
-          const D=x.dets||(x.det?[x.det]:[]),dt=D[D.length-1];if(dt){c.font=`700 17px ${FONT}`;let t=dt;while(c.measureText(t).width>tw&&t.length>6)t=t.slice(0,-2);c.fillStyle=MARCA.c;c.fillText(t,tx,py+40)}})}
+          const D=x.dets||(x.det?[x.det]:[]),dt=D.find(t=>!/^(Display|Pallet)/i.test(t))||D[0];if(dt){let fz=18;c.font=`700 ${fz}px ${FONT}`;while(c.measureText(dt).width>tw&&fz>13){fz--;c.font=`700 ${fz}px ${FONT}`}let t=dt;while(c.measureText(t).width>tw&&t.length>6)t=t.slice(0,-2);c.fillStyle=MARCA.c;c.fillText(t,tx,py+40)}})}
       else{let y=TOP;for(const r of Q.rows){
         if(r.sec){c.fillStyle=MARCA.c;rrect(c,40,y+14,W-80,70-22,14);c.fill();c.fillStyle='#fff';c.textBaseline='middle';c.font=`800 28px ${FONT}`;c.fillText(r.sec.toUpperCase(),64,y+14+24);y+=70;continue}
         c.fillStyle='#fff';rrect(c,40,y+4,W-80,80-8,14);c.fill();const pt=flPes(r.p);c.font=`800 38px ${FONT}`;const pw=c.measureText(pt).width;c.font=`600 22px ${FONT}`;const sw=c.measureText(r.suf).width;
