@@ -588,10 +588,15 @@ async function flArmar(f,prog){
         const COL=3,gap=14,cw=(W-80-gap*(COL-1))/COL,NR=Math.ceil(Q.L.length/COL),ch=(BOT-y-(NR-1)*gap)/NR,imgs=await Promise.all(Q.L.map(x=>flImg(x.foto,1)));
         Q.L.forEach((x,i)=>{const X=40+(i%COL)*(cw+gap),Y=y+Math.floor(i/COL)*(ch+gap);c.fillStyle='#fff';rrect(c,X,Y,cw,ch,18);c.fill();c.strokeStyle=FL.LIN;c.lineWidth=2;c.stroke();
           const iw=Math.min(ch-20,cw*.36),im=imgs[i];if(im){const k=Math.min(iw/im.width,(ch-20)/im.height);c.drawImage(im,X+10+(iw-im.width*k)/2,Y+(ch-im.height*k)/2,im.width*k,im.height*k)}
-          const tx=X+iw+18,tw=cw-iw-28;c.textBaseline='top';c.fillStyle=FL.TXT;let fs=21;c.font=`700 ${fs}px ${FONT}`;let NL=flLineas(c,x.n.replace(/^Crocante Horneado sabor /,'Crocante ').replace(/ pelado sin sal/,' sin sal'),tw,3);
-          NL.forEach((l,j)=>c.fillText(l,tx,Y+12+j*25));const py=Y+12+NL.length*25+6;
-          c.fillStyle=MARCA.c;c.font=`800 32px ${FONT}`;const pt=flPes(x.p);c.fillText(pt,tx,py);const pw=c.measureText(pt).width;c.fillStyle=FL.GRI;c.font=`600 18px ${FONT}`;c.fillText(x.suf,tx+pw+5,py+12);
-          const D=x.dets||(x.det?[x.det]:[]),dt=D.find(t=>!/^(Display|Pallet)/i.test(t))||D[0];if(dt){let fz=18;c.font=`700 ${fz}px ${FONT}`;while(c.measureText(dt).width>tw&&fz>13){fz--;c.font=`700 ${fz}px ${FONT}`}let t=dt;while(c.measureText(t).width>tw&&t.length>6)t=t.slice(0,-2);c.fillStyle=MARCA.c;c.fillText(t,tx,py+40)}})}
+          const tx=X+iw+16,tw=cw-iw-24;c.textBaseline='top';c.fillStyle=FL.TXT;c.font=`700 20px ${FONT}`;
+          const nm=x.n.replace(/^Crocante Horneado sabor /,'Crocante ').replace(/ pelado sin sal/,' sin sal').replace(/^Mix Crocante de Maní \(3 sabores\)/,'Mix crocante 3 sabores');let NL=flLineas(c,nm,tw,2);
+          NL.forEach((l,j)=>c.fillText(l,tx,Y+10+j*23));let py=Y+10+NL.length*23+4;
+          c.fillStyle=MARCA.c;c.font=`800 30px ${FONT}`;const pt=flPes(x.p);c.fillText(pt,tx,py);const pw=c.measureText(pt).width;c.fillStyle=FL.GRI;c.font=`600 17px ${FONT}`;c.fillText(x.suf,tx+pw+5,py+11);py+=36;
+          /* debajo del precio: display, pack/caja (resaltado) y pallet, en corto para que entren */
+          const D=(x.dets||(x.det?[x.det]:[])).map(t=>t.replace(/ x (\d+)/,' x$1').replace(/^Pallet x(\d+) [^:]+:/,'Pallet x$1:'));
+          D.forEach(t=>{const fuerte=!/^(Display|Pallet)/i.test(t);let fz=fuerte?17:15;c.font=`${fuerte?800:500} ${fz}px ${FONT}`;while(c.measureText(t).width>tw-(fuerte?12:0)&&fz>12){fz--;c.font=`${fuerte?800:500} ${fz}px ${FONT}`}
+            if(fuerte){const w=c.measureText(t).width;c.fillStyle=/^#[0-9a-f]{6}$/i.test(MARCA.c)?MARCA.c+'1f':'rgba(123,45,62,.12)';rrect(c,tx-4,py-3,w+12,fz+8,7);c.fill();c.fillStyle=MARCA.c}else c.fillStyle=FL.GRI;
+            c.fillText(t,tx+(fuerte?2:0),py);py+=fuerte?fz+10:fz+6})})}
       else{let y=TOP;for(const r of Q.rows){
         if(r.sec){c.fillStyle=MARCA.c;rrect(c,40,y+14,W-80,70-22,14);c.fill();c.fillStyle='#fff';c.textBaseline='middle';c.font=`800 28px ${FONT}`;c.fillText(r.sec.toUpperCase(),64,y+14+24);y+=70;continue}
         c.fillStyle='#fff';rrect(c,40,y+4,W-80,80-8,14);c.fill();const pt=flPes(r.p);c.font=`800 38px ${FONT}`;const pw=c.measureText(pt).width;c.font=`600 22px ${FONT}`;const sw=c.measureText(r.suf).width;
