@@ -662,7 +662,7 @@ async function folletosListos(){
     let X=I.map(i=>B[i-1]);if(F!='historia'&&!(F=='cuadrado'&&I.length==1&&(f.paginas||[]).some(p=>p.tipo=='mini'))){est('⏳ Pasando a '+FLF[F].t+'…');X=await flFormato(X,F);est('')}return{X,I,F,n:B.length}};
   const descargar=(blob,nm)=>{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nm;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)};
   const bajar=async(f,lst,o={})=>{const{X,F}=await salida(f,lst,o);toast('Descargando '+X.length+' imagen'+(X.length==1?'':'es')+'…');X.forEach((b,i)=>descargar(b,nom(f,i+1,F)))};
-  const compartir=async(f,lst,o={})=>{const t=o.texto||flMsg(f);copiar(t);try{const{X,F}=await salida(f,lst,o),files=X.map((b,i)=>new File([b],nom(f,i+1,F),{type:'image/jpeg'}));
+  const compartir=async(f,lst,o={})=>{const t=o.texto||flMsg(f);if(!o.sinTexto)copiar(t);try{const{X,F}=await salida(f,lst,o),files=X.map((b,i)=>new File([b],nom(f,i+1,F),{type:'image/jpeg'}));
     if(navigator.canShare&&navigator.canShare({files})){await navigator.share(o.sinTexto?{files}:{files,text:t});let k=0;try{k=+(localStorage.getItem('fl_hd')||0);localStorage.setItem('fl_hd',k+1)}catch(x){}if(k<4)setTimeout(()=>toast('Tip: en WhatsApp tocá «HD» arriba de la foto antes de enviarla, así la letra chica sale nítida.'),600)}else X.forEach((b,i)=>descargar(b,nom(f,i+1,F)))}catch(e){est('');if(e&&e.name!='AbortError')toast('No se pudo compartir: '+(e.message||e),1)}};
   const archivoPDF=async(f,lst,o={})=>{const{X,I,F,n}=await salida(f,lst,o);est('⏳ Armando el PDF…');const D=+f.ancho>0&&F=='historia'?{w:+f.ancho,h:1920}:FLF[F],blob=await pdfDeJpgs(X,D.w,D.h),nm=base(f,F)+(I.length<n?'-hojas-'+I.join('-'):'')+'.pdf';est('');return{blob,nm,file:new File([blob],nm,{type:'application/pdf'})}};
   const pdf=async(f,soloBajar,lst,o={})=>{const t=o.texto||flMsg(f);if(!soloBajar)copiar(t);try{const{blob,nm,file}=await archivoPDF(f,lst,o);
@@ -711,13 +711,13 @@ async function folletosListos(){
     if(ENV)pintarEnv()};
   /* un solo botón Compartir con las opciones */
   const menu=(f,lst)=>{const g=document.createElement('div');g.className='modal fl-sh';document.body.appendChild(g);const n=lst&&lst.length,parc=n&&cache[f.id+'|mayorista']&&n<cache[f.id+'|mayorista'].B.length;
-    const O=[['wa','chat','Por WhatsApp · hoja completa','Cada hoja entera como foto, tal cual la ves. Tocá «HD» antes de enviar'],['pdf','doc',parc?`PDF con ${n} hoja${n==1?'':'s'}`:'PDF completo','Un solo archivo, con el mensaje listo'],...(fmt=='historia'?[]:[['img','image','Imágenes en formato '+FLF[fmt].t,FLF[fmt].d]]),
+    const O=[['wa','chat','Por WhatsApp · solo la foto','La hoja entera, tal cual la ves, sin texto abajo. Tocá «HD» antes de enviar'],['wat','chat','Por WhatsApp · foto con mensaje','La hoja con el mensaje de la lista de precios escrito abajo'],['pdf','doc',parc?`PDF con ${n} hoja${n==1?'':'s'}`:'PDF completo','Un solo archivo, con el mensaje listo'],...(fmt=='historia'?[]:[['img','image','Imágenes en formato '+FLF[fmt].t,FLF[fmt].d]]),
       ...(parc?[]:[['hojas','check','Solo algunas hojas','Elegí qué hojas mandar']]),['hist','phone','Historia de WhatsApp','Hojas en formato estado, para subir a «Mi estado»'],
       ['cli','user','Mandar a un cliente','Con sus precios, su nombre y su link de pedidos'],['dpdf','download','Descargar PDF','Guardarlo en el celular o la compu'],['msg','chat','Ver el mensaje','Lo que va escrito junto al folleto']];
     g.innerHTML=`<div class="mc"><div class="bh"><h3 style="margin:0">Compartir · ${esc(f.titulo)}</h3><button class="alt" id="sh_x">Cerrar</button></div>
       <div class="fl-op">${O.map(([k,ic,t,d])=>`<button class="alt" data-op="${k}">${IC(ic,22)}<span><b>${t}</b><small>${d}</small></span></button>`).join('')}</div></div>`;
     const c2=()=>g.remove();g.querySelector('#sh_x').onclick=c2;g.onclick=e=>{if(e.target===g)c2()};
-    const A={wa:()=>compartir(f,lst,{fmt:'historia'}),pdf:()=>pdf(f,false,lst),img:()=>compartir(f,lst),hojas:()=>ver(f),hist:()=>{toast('En WhatsApp elegí «Mi estado».');compartir(f,lst,{fmt:'historia',sinTexto:true})},cli:()=>aCliente(f,lst),dpdf:()=>pdf(f,true,lst),msg:()=>verMsg(f)};
+    const A={wa:()=>compartir(f,lst,{fmt:'historia',sinTexto:true}),wat:()=>compartir(f,lst,{fmt:'historia'}),pdf:()=>pdf(f,false,lst),img:()=>compartir(f,lst),hojas:()=>ver(f),hist:()=>{toast('En WhatsApp elegí «Mi estado».');compartir(f,lst,{fmt:'historia',sinTexto:true})},cli:()=>aCliente(f,lst),dpdf:()=>pdf(f,true,lst),msg:()=>verMsg(f)};
     g.querySelectorAll('[data-op]').forEach(b=>b.onclick=()=>{c2();A[b.dataset.op]()})};
   /* mandar a clientes elegidos: cada uno con su lista de precios, su nombre y su link de pedidos */
   const aCliente=async(f,lst,pre)=>{if(!ENV)await cargarEnv();const g=document.createElement('div');g.className='modal';document.body.appendChild(g);
