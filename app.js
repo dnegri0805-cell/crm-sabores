@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-03.1';
+const VERSION='2026-11-03.2';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -673,7 +673,7 @@ async function usuarios(){if(S.perfil.rol!='dueno')return toast('Solo el dueño 
     let d;try{d=await fx({accion:'lista'})}catch(e){m.querySelector('.mc').insertAdjacentHTML('beforeend',`<p class="err">${esc(e.message)}</p>`);return}
     const U=d.usuarios||[];
     m.innerHTML=`<div class="mc"><div class="bh"><h3 style="margin:0">👥 Usuarios y accesos</h3><button class="alt" id="us_x">Cerrar</button></div>
-      <div class="usl">${U.map(u=>{const yo=u.id==d.yo;return`<div class="usu ${u.activo?'':'off'}"><div class="usn"><b>${esc(u.nombre||u.email||'')}</b>${yo?' <span class="badge">vos</span>':''}${u.activo?'':' <span class="badge b-cancelado">dado de baja</span>'}<small>${esc(u.email||'')}${u.ultimo?' · entró el '+new Date(u.ultimo).toLocaleDateString('es-AR',{day:'numeric',month:'numeric'}):' · todavía no entró'}${u.temporal&&!yo?' · con contraseña temporal':''}</small></div>
+      <div class="usl">${U.map(u=>{const yo=u.id==d.yo;return`<div class="usu ${u.activo?'':'off'}"><div class="usn"><b>${esc(u.nombre||u.email||'')}</b>${yo?' <span class="badge">vos</span>':''} <a class="lnk" data-unom="${u.id}" data-un="${esc(u.nombre||'')}" style="font-size:13px;font-weight:400">Editar nombre</a>${u.activo?'':' <span class="badge b-cancelado">dado de baja</span>'}<small>${esc(u.email||'')}${u.ultimo?' · entró el '+new Date(u.ultimo).toLocaleDateString('es-AR',{day:'numeric',month:'numeric'}):' · todavía no entró'}${u.temporal&&!yo?' · con contraseña temporal':''}</small></div>
         ${yo?`<small>${esc(ROL_TXT[u.rol]||u.rol)}</small>`:`<select data-urol="${u.id}" style="margin:6px 0 0">${Object.entries(ROL_TXT).map(([k,t])=>`<option value="${k}" ${u.rol==k?'selected':''}>${t}</option>`).join('')}</select>
         <div class="usa">${u.rol=='vendedor'&&u.activo?`<a class="lnk" data-uas="${u.id}" data-un="${esc(u.nombre||'')}"><b>Asignar clientes</b></a> · `:''}<a class="lnk" data-ucl="${u.id}" data-un="${esc(u.nombre||'')}">Nueva contraseña temporal</a> · <a class="lnk" data-uac="${u.id}" data-v="${u.activo?0:1}">${u.activo?'Dar de baja':'Volver a dar acceso'}</a></div>`}</div>`}).join('')}</div>
       <details class="mpf" ${U.length<2?'open':''}><summary><b>➕ Agregar usuario</b></summary>
@@ -685,6 +685,9 @@ async function usuarios(){if(S.perfil.rol!='dueno')return toast('Solo el dueño 
       q('#us_g').disabled=true;try{const r=await fx({accion:'crear',nombre:n,email:e,rol:q('#us_r').value});mostrarClave(n,r.email,r.clave)}catch(x){q('#us_g').disabled=false;toast(x.message,1)}};
     m.querySelectorAll('[data-urol]').forEach(sl=>sl.onchange=async()=>{try{await fx({accion:'rol',id:sl.dataset.urol,rol:sl.value});toast('Acceso actualizado.')}catch(x){toast(x.message,1);pinta()}});
     m.querySelectorAll('[data-uac]').forEach(a=>a.onclick=async()=>{const v=a.dataset.v=='1';if(!v&&!confirm('¿Dar de baja este usuario? No va a poder entrar más al CRM (podés volver a darle acceso cuando quieras).'))return;try{await fx({accion:'activo',id:a.dataset.uac,activo:v});toast(v?'Acceso restablecido.':'Usuario dado de baja.');pinta()}catch(x){toast(x.message,1)}});
+    m.querySelectorAll('[data-unom]').forEach(a=>a.onclick=async()=>{const n=(prompt('Nombre y apellido:',a.dataset.un||'')||'').trim();if(!n||n==a.dataset.un)return;
+      const{error}=await sb.from('perfiles').update({nombre:n}).eq('id',a.dataset.unom);if(error)return toast('No se pudo cambiar el nombre: '+error.message,1);
+      if(S.perfil&&S.perfil.id==a.dataset.unom)S.perfil.nombre=n;toast('Nombre actualizado.');pinta()});
     m.querySelectorAll('[data-uas]').forEach(a=>a.onclick=()=>{m.remove();asignarClientes(a.dataset.uas,a.dataset.un)});
     m.querySelectorAll('[data-ucl]').forEach(a=>a.onclick=async()=>{if(!confirm('¿Generar una contraseña temporal nueva? La anterior deja de funcionar.'))return;try{const r=await fx({accion:'clave',id:a.dataset.ucl});mostrarClave(a.dataset.un||'',r.email,r.clave)}catch(x){toast(x.message,1)}})};
   pinta()}
