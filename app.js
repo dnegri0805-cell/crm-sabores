@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-01.15';
+const VERSION='2026-11-03.1';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -86,7 +86,7 @@ function loginView(){
     <label class="lgf">Contraseña<span class="lgpw"><input id="pw" type="password" autocomplete="current-password" placeholder="••••••••"><button type="button" class="lgojo" id="lg_ojo" aria-label="Mostrar contraseña">Ver</button></span></label>
     <button id="go">Ingresar</button><p id="le" class="err"></p></div><p class="lgpie">Sabores de mi País · Distribuidora de alimentos</p></div>`;
   $('#lg_ojo').onclick=()=>{const i=$('#pw'),v=i.type=='password';i.type=v?'text':'password';$('#lg_ojo').textContent=v?'Ocultar':'Ver'};
-  const go=async()=>{const{error}=await sb.auth.signInWithPassword({email:$('#em').value.trim(),password:$('#pw').value});
+  const go=async()=>{window.__claveLogin=$('#pw').value;const{error}=await sb.auth.signInWithPassword({email:$('#em').value.trim(),password:$('#pw').value});
     if(error)$('#le').textContent=error.message==='Invalid login credentials'?'Correo o contraseña incorrectos.':'Error de conexión: '+error.message+(error.status?' ('+error.status+')':'');else{actividadMarca();init()}};
   $('#go').onclick=go;$('#pw').onkeydown=e=>{if(e.key==='Enter')go()};
 }
@@ -691,16 +691,25 @@ async function usuarios(){if(S.perfil.rol!='dueno')return toast('Solo el dueño 
 
 /* Cambiar mi contraseña (obligatorio la primera vez, si entró con una temporal) */
 function cambiarClave(oblig){const m=document.createElement('div');m.className='modal';document.body.appendChild(m);const q=i=>m.querySelector(i);
+  const pre=oblig&&window.__claveLogin?window.__claveLogin:'';
   m.innerHTML=`<div class="mc"><div class="bh"><h3 style="margin:0">🔒 ${oblig?'Elegí tu contraseña':'Cambiar mi contraseña'}</h3>${oblig?'':'<button class="alt" id="cc_x">Cerrar</button>'}</div>
     ${oblig?'<p>Entraste con una contraseña temporal. Elegí una propia para seguir.</p>':''}
-    <label class="f">Nueva contraseña<input id="cc_1" type="password" autocomplete="new-password" placeholder="Mínimo 8 caracteres"></label>
+    <label class="f" ${pre?'style="display:none"':''}>${oblig?'Contraseña temporal (la que te pasaron)':'Contraseña actual'}<input id="cc_0" type="password" autocomplete="current-password"></label>
+    <label class="f">Nueva contraseña<input id="cc_1" type="password" autocomplete="new-password" placeholder="Ej: Nombre-2026!"></label>
+    <p style="margin:2px 0 6px;font-size:13px;opacity:.8">Mínimo 8 caracteres, con al menos <b>una minúscula</b>, <b>una mayúscula</b>, <b>un número</b> y <b>un símbolo</b> (por ejemplo - ! . _ #).</p>
     <label class="f">Repetila<input id="cc_2" type="password" autocomplete="new-password"></label>
     <p style="display:flex;gap:8px;justify-content:flex-end;margin:10px 0 0">${oblig?'<button class="alt" id="cc_o">Salir</button>':''}<button id="cc_g">Guardar</button></p></div>`;
+  if(pre)q('#cc_0').value=pre;
   if(q('#cc_x'))q('#cc_x').onclick=()=>m.remove();if(q('#cc_o'))q('#cc_o').onclick=()=>out();
-  q('#cc_g').onclick=async()=>{const a=q('#cc_1').value,b=q('#cc_2').value;if(a.length<8)return toast('Usá al menos 8 caracteres.',1);if(a!=b)return toast('Las dos contraseñas no coinciden.',1);
-    q('#cc_g').disabled=true;const{error}=await sb.auth.updateUser({password:a,data:{clave_temporal:false}});q('#cc_g').disabled=false;
-    if(error)return toast(/should be different|same/i.test(error.message)?'Elegí una contraseña distinta a la temporal.':error.message,1);
-    toast('Contraseña guardada.');m.remove();if(oblig)init()}}
+  q('#cc_g').onclick=async()=>{const c=q('#cc_0').value,a=q('#cc_1').value,b=q('#cc_2').value;
+    if(!c)return toast(oblig?'Escribí la contraseña temporal que te pasaron.':'Escribí tu contraseña actual.',1);
+    if(a.length<8)return toast('Usá al menos 8 caracteres.',1);
+    const falta=[!/[a-z]/.test(a)&&'una minúscula',!/[A-Z]/.test(a)&&'una mayúscula',!/[0-9]/.test(a)&&'un número',!/[^A-Za-z0-9]/.test(a)&&'un símbolo (- ! . _ #)'].filter(Boolean);
+    if(falta.length)return toast('A la contraseña le falta '+falta.join(', ')+'.',1);
+    if(a!=b)return toast('Las dos contraseñas no coinciden.',1);
+    q('#cc_g').disabled=true;const{error}=await sb.auth.updateUser({password:a,current_password:c,data:{clave_temporal:false}});q('#cc_g').disabled=false;
+    if(error){const t=error.message||'';return toast(/should be different|same/i.test(t)?'Elegí una contraseña distinta a la temporal.':/current password|invalid.*password|incorrect/i.test(t)?(oblig?'La contraseña temporal no es correcta.':'La contraseña actual no es correcta.'):/should contain|at least one character/i.test(t)?'La contraseña tiene que tener minúscula, mayúscula, número y símbolo.':/weak|pwned|leaked|known/i.test(t)?'Esa contraseña es muy común. Elegí otra.':/reauth|recent/i.test(t)?'Por seguridad, salí y volvé a entrar, y cambiala enseguida.':'No se pudo guardar: '+t,1)}
+    window.__claveLogin='';toast('Contraseña guardada.');m.remove();if(oblig)init()}}
 
 /* ---------- Mercado Pago: conectar la cuenta y ver las transferencias que entran ---------- */
 async function mercadoPago(){if(S.perfil.rol!='dueno')return toast('Solo el dueño puede conectar Mercado Pago.',1);
