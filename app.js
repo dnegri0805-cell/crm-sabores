@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-03.2';
+const VERSION='2026-11-03.3';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -126,7 +126,7 @@ async function init(){
   else{const r=await pq;if(r.status==401)return sesionVencida();p=r.data;pe=r.error;if(p&&p.activo)try{localStorage.setItem(PK,JSON.stringify(p))}catch(e){}}
   if(pe){app.innerHTML='<div class="box login"><p class="err">No se pudo leer tu perfil: '+esc(pe.message)+'</p><button onclick="out()">Salir</button></div>';return}
   if(!p||!p.activo){app.innerHTML='<div class="box login"><p>Tu usuario todavía no está activado. Pedile al dueño que lo active.</p><button onclick="out()">Salir</button></div>';return}
-  S.perfil=p;actividadMarca();setTimeout(dispositivoAnotar,4000);
+  S.perfil=p;S.mpPuede=false;if(p.rol=='dueno')sb.rpc('mp_puedo_ver').then(({data})=>{S.mpPuede=!!data}).catch(()=>{});actividadMarca();setTimeout(dispositivoAnotar,4000);
   if(session.user.user_metadata?.clave_temporal){cambiarClave(true);return}
   const traer=()=>Promise.all([
     todo(()=>sb.from('clientes').select('*').eq('activo',true).order('razon_social').order('id')),
@@ -715,7 +715,7 @@ function cambiarClave(oblig){const m=document.createElement('div');m.className='
     window.__claveLogin='';toast('Contraseña guardada.');m.remove();if(oblig)init()}}
 
 /* ---------- Mercado Pago: conectar la cuenta y ver las transferencias que entran ---------- */
-async function mercadoPago(){if(S.perfil.rol!='dueno')return toast('Solo el dueño puede conectar Mercado Pago.',1);
+async function mercadoPago(){if(S.perfil.rol!='dueno'||!S.mpPuede)return toast('Mercado Pago lo ve solo el titular de la cuenta.',1);
   const m=document.createElement('div');m.className='modal';document.body.appendChild(m);const q=i=>m.querySelector(i);
   const llamar=async o=>{const{data,error}=await sb.functions.invoke('mp-movimientos',{body:o||{}});if(error){let t=error.message;try{const j=await error.context.json();t=j.error||t}catch(e){}throw new Error(t)}return data};
   const pinta=async()=>{m.innerHTML=`<div class="mc"><div class="bh"><h3 style="margin:0">💵 Mercado Pago</h3><button class="alt" id="mp_x">Cerrar</button></div><p><span class="skl" role="status" aria-label="Cargando"></span> Revisando la conexión…</p></div>`;q('#mp_x').onclick=()=>m.remove();
@@ -6223,7 +6223,7 @@ function menuMas(todas){const LT=(todas===1?(()=>{const t=tabsMenu();return [...
   m.innerHTML=`<div class="mc"><div class="bh"><h3>Más secciones</h3><button class="alt" id="mm_x">Cerrar</button></div>
   <div class="mmas">${LT.map(t=>`<button class="${S.tab==t?'on':'alt'}" data-mt="${t}">${IC(MAS_IC[t]?.[0]||'box',24)}<span><b>${t=='manual'?'Manual':t[0].toUpperCase()+t.slice(1)}</b><small>${MAS_IC[t]?.[1]||''}</small></span></button>`).join('')}${S.perfil.rol=='dueno'?`<button class="alt" id="mm_dl">${IC('cash',24)}<span><b>Dólar del día</b><small>Costos en dólares</small></span></button>`:''}</div>
   ${S.perfil.rol=='dueno'?`<div id="chk" style="margin-top:10px"></div>`:''}
-  <div class="mmaj"><small>Cuenta y ajustes</small>${(S.perfil.rol=='dueno'?[['users','Usuarios y accesos','usuarios()'],['cash','Mercado Pago: cobros por transferencia','mercadoPago()'],['menu','Elegir pestañas del menú','menuTabsCfg()'],['cash','Comisiones de vendedores','comisionesCfg()'],['clock','Quién cambió qué','cambiosModal()'],['bolt','Automatizaciones','automatizacionesCfg()'],['chat','WhatsApp automático (API de Meta)','whatsappApiCfg()'],['list','Campos propios de clientes','camposCfg()'],['receipt','Factura electrónica (ARCA)','arcaConfig()'],['bars','Qué se usa del CRM','queSeUsa()'],['download','Copias de seguridad','copiasNube()'],['trash','Papelera (lo borrado)','papelera()'],['doc','Ver panel completo',"S.inicioModo='completa';S.tab='inicio';shell();scrollTo(0,0)"]]:[]).concat([['lock','Seguridad (código en dos pasos)','seguridadCfg()'],['calendar','Agenda en mi calendario','agendaCfg()'],['sliders','Personalizar el inicio','iniPersonalizar()'],['bulb',S.perfil.rol=='vendedor'?'Ver la guía de nuevo':'Ver la guía para vendedores',"irA('inicio');setTimeout(()=>guiaVendedor(1),900)"],['lock','Cambiar mi contraseña','cambiarClave()']]).map(([i,t,f])=>`<button class="alt" data-mf="${f}">${IC(i,18)}<span>${t}</span><b>›</b></button>`).join('')}</div></div>`;
+  <div class="mmaj"><small>Cuenta y ajustes</small>${(S.perfil.rol=='dueno'?[['users','Usuarios y accesos','usuarios()'],...(S.mpPuede?[['cash','Mercado Pago: cobros por transferencia','mercadoPago()']]:[]),['menu','Elegir pestañas del menú','menuTabsCfg()'],['cash','Comisiones de vendedores','comisionesCfg()'],['clock','Quién cambió qué','cambiosModal()'],['bolt','Automatizaciones','automatizacionesCfg()'],['chat','WhatsApp automático (API de Meta)','whatsappApiCfg()'],['list','Campos propios de clientes','camposCfg()'],['receipt','Factura electrónica (ARCA)','arcaConfig()'],['bars','Qué se usa del CRM','queSeUsa()'],['download','Copias de seguridad','copiasNube()'],['trash','Papelera (lo borrado)','papelera()'],['doc','Ver panel completo',"S.inicioModo='completa';S.tab='inicio';shell();scrollTo(0,0)"]]:[]).concat([['lock','Seguridad (código en dos pasos)','seguridadCfg()'],['calendar','Agenda en mi calendario','agendaCfg()'],['sliders','Personalizar el inicio','iniPersonalizar()'],['bulb',S.perfil.rol=='vendedor'?'Ver la guía de nuevo':'Ver la guía para vendedores',"irA('inicio');setTimeout(()=>guiaVendedor(1),900)"],['lock','Cambiar mi contraseña','cambiarClave()']]).map(([i,t,f])=>`<button class="alt" data-mf="${f}">${IC(i,18)}<span>${t}</span><b>›</b></button>`).join('')}</div></div>`;
   m.onclick=e=>{if(e.target==m)m.remove()};m.querySelector('#mm_x').onclick=()=>m.remove();
   m.querySelectorAll('[data-mt]').forEach(b=>b.onclick=()=>{m.remove();S.tab=b.dataset.mt;shell()});m.querySelectorAll('[data-mf]').forEach(b=>b.onclick=()=>{m.remove();(0,eval)(b.dataset.mf)});
   const dl=m.querySelector('#mm_dl');if(dl)dl.onclick=()=>{m.remove();dolarModal()};if(m.querySelector('#chk'))chequeoInicio().catch(()=>{})}
