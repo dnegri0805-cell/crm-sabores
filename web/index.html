@@ -3,305 +3,154 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sabores de mi País · Distribuidora de alimentos</title>
-<meta name="description" content="Distribuidora de fiambres, quesos, lácteos y almacén para comercios. Repartimos en CABA y Gran Buenos Aires de lunes a sábado. Envío gratis desde $150.000.">
-<meta name="theme-color" content="#17213a">
+<title>Sabores de mi País · Distribuidora</title>
+<meta name="description" content="Fiambres, quesos y almacén para comercios. Repartimos en CABA y Gran Buenos Aires de lunes a sábado.">
+<meta name="theme-color" content="#f4ede2">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Sabores de mi País · Distribuidora de alimentos">
-<meta property="og:description" content="Fiambres, quesos y almacén para tu comercio. Entregas de lunes a sábado en CABA y GBA. Pedí tu lista de precios por WhatsApp.">
+<meta property="og:title" content="Sabores de mi País · Distribuidora">
+<meta property="og:description" content="Fiambres, quesos y almacén para tu comercio. CABA y Gran Buenos Aires, de lunes a sábado.">
 <meta property="og:image" content="https://dnegri0805-cell.github.io/crm-sabores/logo.png">
 <meta property="og:url" content="https://dnegri0805-cell.github.io/crm-sabores/web/">
 <link rel="icon" href="../icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-@font-face{font-family:Inter;src:url(../fonts/inter-Regular.woff) format('woff');font-weight:400;font-display:swap}
-@font-face{font-family:Inter;src:url(../fonts/inter-Medium.woff) format('woff');font-weight:500;font-display:swap}
-@font-face{font-family:Inter;src:url(../fonts/inter-SemiBold.woff) format('woff');font-weight:600;font-display:swap}
-@font-face{font-family:Inter;src:url(../fonts/inter-Bold.woff) format('woff');font-weight:700;font-display:swap}
-@font-face{font-family:Inter;src:url(../fonts/inter-ExtraBold.woff) format('woff');font-weight:800;font-display:swap}
 :root{
-  --bordo:#7b2d3e;--bordo-2:#5f1f2f;--navy:#17213a;--navy-2:#222f52;
-  --oro:#f5c400;--crema:#f6f1ea;--papel:#fffdf9;--tinta:#1d2233;--gris:#5b6172;--linea:#e7e0d6;
-  --wa:#1f9d55;
+  --papel:#f4ede2;--papel-2:#ece3d4;--tinta:#1b2238;--suave:#5d5a55;--linea:#d9cdb9;
+  --bordo:#7b2d3e;--bordo-2:#651f30;--celeste:#74acdf;--wa:#1f9d55;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--tinta);background:var(--crema);line-height:1.5;-webkit-font-smoothing:antialiased}
-img{max-width:100%;display:block}
+body{margin:0;background:var(--papel);color:var(--tinta);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased}
 a{color:inherit}
-.w{max-width:1080px;margin:0 auto;padding:0 20px}
+.w{max-width:960px;margin:0 auto;padding:0 22px}
+.serif{font-family:Fraunces,Georgia,"Times New Roman",serif}
 
-/* Barra superior */
-.top{position:sticky;top:0;z-index:20;background:rgba(23,33,58,.96);backdrop-filter:blur(8px);color:#fff}
-.top .w{display:flex;align-items:center;justify-content:space-between;gap:12px;height:64px}
-.marca{display:flex;align-items:center;gap:10px;text-decoration:none}
-.marca img{width:52px;height:auto}
-.marca b{font-weight:700;font-size:16px;letter-spacing:.01em}
-.marca small{display:block;font-size:11px;opacity:.7;font-weight:500;letter-spacing:.08em;text-transform:uppercase}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:999px;padding:13px 22px;font-weight:700;font-size:15px;text-decoration:none;border:0;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
+/* franja patria */
+.franja{height:8px;background:linear-gradient(var(--celeste) 0 33%,#fff 33% 66%,var(--celeste) 66%)}
+
+/* portada */
+.hero{text-align:center;padding:52px 0 60px}
+.hero img{width:170px;height:auto;margin:0 auto 26px;display:block}
+.kicker{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--bordo);font-weight:600;margin:0 0 14px}
+h1{font-family:Fraunces,Georgia,serif;font-weight:600;font-size:clamp(34px,6.4vw,62px);line-height:1.05;letter-spacing:-.01em;margin:0 auto 18px;max-width:13em}
+h1 i{font-style:italic;color:var(--bordo);font-weight:500}
+.lead{font-size:clamp(16px,2.2vw,19px);color:var(--suave);margin:0 auto 30px;max-width:30em}
+.btn{display:inline-flex;align-items:center;gap:10px;background:var(--wa);color:#fff;text-decoration:none;font-weight:600;font-size:16px;padding:15px 26px;border-radius:999px;box-shadow:0 8px 22px rgba(31,157,85,.25);transition:transform .15s ease}
 .btn:active{transform:scale(.97)}
-.btn svg{width:20px;height:20px;flex:none}
-.btn-wa{background:var(--wa);color:#fff;box-shadow:0 6px 18px rgba(31,157,85,.28)}
-.btn-wa:hover{box-shadow:0 8px 24px rgba(31,157,85,.38)}
-.btn-sec{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.45)}
-.top .btn{padding:9px 16px;font-size:14px}
-@media(max-width:520px){.top .btn span{display:none}.top .btn{padding:10px}}
+.btn svg{width:21px;height:21px}
+.hechos{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 0;margin:34px auto 0;padding:0;list-style:none;font-size:14px;color:var(--suave)}
+.hechos li{padding:0 16px}
+.hechos li+li{border-left:1px solid var(--linea)}
+.hechos b{color:var(--tinta);font-weight:600}
+@media(max-width:560px){.hechos{flex-direction:column;gap:6px}.hechos li+li{border-left:0}}
 
-/* Portada */
-.hero{background:radial-gradient(1200px 500px at 85% -10%,#2c3b66 0%,transparent 60%),var(--navy);color:#fff;overflow:hidden;position:relative}
-.hero .w{display:grid;grid-template-columns:1.1fr .9fr;gap:32px;align-items:center;padding-top:56px;padding-bottom:64px}
-.eyebrow{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--oro);margin-bottom:14px}
-h1{font-size:clamp(32px,5.2vw,54px);line-height:1.05;margin:0 0 18px;font-weight:800;letter-spacing:-.02em}
-h1 em{font-style:normal;color:var(--oro)}
-.hero p.lead{font-size:clamp(16px,2vw,19px);color:#d7dcea;margin:0 0 28px;max-width:34em}
-.ctas{display:flex;flex-wrap:wrap;gap:12px}
-.collage{position:relative;height:380px}
-.collage .p{position:absolute;background:#fff;border-radius:22px;padding:14px;box-shadow:0 18px 40px rgba(0,0,0,.35)}
-.collage .p img{width:100%;height:100%;object-fit:contain;border-radius:12px}
-.collage .p1{width:52%;height:62%;left:2%;top:4%;transform:rotate(-5deg)}
-.collage .p2{width:46%;height:56%;right:0;top:0;transform:rotate(4deg)}
-.collage .p3{width:44%;height:50%;left:26%;bottom:0;transform:rotate(-1deg)}
-.sello{position:absolute;right:4%;bottom:6%;background:var(--oro);color:var(--navy);border-radius:50%;width:118px;height:118px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-weight:800;line-height:1.05;transform:rotate(8deg);box-shadow:0 10px 26px rgba(0,0,0,.3);font-size:13px}
-.sello b{font-size:22px}
-@media(max-width:820px){
-  .hero .w{grid-template-columns:1fr;padding-top:40px;padding-bottom:44px}
-  .collage{height:300px;max-width:440px;margin:6px auto 0;width:100%}
-}
+/* lo que llevamos */
+.llevamos{background:#fffaf2;border-top:1px solid var(--linea);border-bottom:1px solid var(--linea);padding:64px 0}
+h2{font-family:Fraunces,Georgia,serif;font-weight:600;font-size:clamp(28px,4.2vw,40px);line-height:1.1;margin:0 0 8px;text-align:center}
+.h2sub{text-align:center;color:var(--suave);margin:0 auto 38px;max-width:30em}
+.lista{display:grid;grid-template-columns:1fr 1fr;gap:0 48px;margin:0;padding:0;list-style:none}
+.lista li{padding:20px 0;border-top:1px solid var(--linea);display:flex;gap:16px}
+.lista li:nth-child(-n+2){border-top:0}
+.num{font-family:Fraunces,Georgia,serif;color:var(--bordo);font-size:15px;font-weight:600;padding-top:4px;min-width:24px}
+.lista h3{font-family:Fraunces,Georgia,serif;font-weight:600;font-size:21px;margin:0 0 4px}
+.lista p{margin:0;color:var(--suave);font-size:15px}
+.sello{display:inline-block;margin-top:8px;font-size:12px;font-weight:600;color:var(--bordo);border:1px solid var(--bordo);border-radius:999px;padding:3px 10px}
+@media(max-width:700px){.lista{grid-template-columns:1fr}.lista li:nth-child(2){border-top:1px solid var(--linea)}}
 
-/* Franja de datos */
-.datos{background:var(--oro);color:var(--navy)}
-.datos .w{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
-.dato{display:flex;gap:12px;align-items:center;padding:18px 16px}
-.dato+.dato{border-left:1px solid rgba(23,33,58,.15)}
-.dato svg{width:30px;height:30px;flex:none}
-.dato b{display:block;font-size:16px;line-height:1.2}
-.dato span{font-size:13px;opacity:.8}
-@media(max-width:760px){.datos .w{grid-template-columns:1fr}.dato+.dato{border-left:0;border-top:1px solid rgba(23,33,58,.15)}}
+/* cómo pedir */
+.pedir{padding:64px 0}
+.pasos{display:grid;grid-template-columns:repeat(3,1fr);gap:30px;margin-top:8px;text-align:center}
+.paso .n{width:44px;height:44px;border-radius:50%;border:1.5px solid var(--bordo);color:var(--bordo);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-family:Fraunces,Georgia,serif;font-weight:600;font-size:18px}
+.paso h3{font-family:Fraunces,Georgia,serif;font-weight:600;font-size:19px;margin:0 0 6px}
+.paso p{margin:0;color:var(--suave);font-size:15px}
+@media(max-width:700px){.pasos{grid-template-columns:1fr;gap:26px}}
 
-/* Secciones */
-section{padding:72px 0}
-.tit{margin:0 0 8px;font-size:clamp(26px,3.6vw,38px);line-height:1.1;font-weight:800;letter-spacing:-.015em;color:var(--navy)}
-.sub{margin:0 0 34px;color:var(--gris);font-size:17px;max-width:40em}
-.k{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--bordo);margin-bottom:10px;display:block}
+/* cierre */
+.cierre{background:var(--bordo);color:#fff;text-align:center;padding:60px 0}
+.cierre h2{color:#fff}
+.cierre p{color:#f0d8dd;margin:0 auto 26px;max-width:28em}
+.cierre .tel{display:block;margin-top:16px;font-size:15px;color:#f0d8dd}
+.cierre .tel a{color:#fff;font-weight:600;text-decoration:none}
+footer{padding:22px 0;text-align:center;font-size:13px;color:var(--suave)}
 
-/* Rubros */
-.rubros{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-.rubro{background:var(--papel);border:1px solid var(--linea);border-radius:20px;overflow:hidden;display:flex;flex-direction:column}
-.rubro .fotos{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:14px;background:#fff;border-bottom:1px solid var(--linea)}
-.rubro .fotos img{aspect-ratio:1;object-fit:contain;border-radius:10px;background:#fff}
-.rubro .tx{padding:18px 20px 22px}
-.rubro h3{margin:0 0 6px;font-size:20px;color:var(--navy)}
-.rubro p{margin:0;color:var(--gris);font-size:15px}
-.rubro .tag{display:inline-block;margin-top:12px;font-size:12px;font-weight:700;color:var(--bordo);background:#f7e9ec;border-radius:999px;padding:4px 10px}
-.rubro.dest{border-color:var(--bordo);box-shadow:0 0 0 2px rgba(123,45,62,.12)}
-@media(max-width:900px){.rubros{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:560px){.rubros{grid-template-columns:1fr}}
-
-/* Para quién */
-.quien{background:var(--papel);border-top:1px solid var(--linea);border-bottom:1px solid var(--linea)}
-.chips{display:flex;flex-wrap:wrap;gap:10px}
-.chip{display:inline-flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--linea);border-radius:14px;padding:12px 16px;font-weight:600;font-size:15px}
-.chip i{font-style:normal;font-size:20px}
-
-/* Cómo trabajamos */
-.pasos{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;counter-reset:p}
-.paso{background:var(--navy);color:#fff;border-radius:20px;padding:26px 24px;position:relative}
-.paso:before{counter-increment:p;content:counter(p);display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;background:var(--oro);color:var(--navy);font-weight:800;font-size:18px;margin-bottom:16px}
-.paso h3{margin:0 0 8px;font-size:19px}
-.paso p{margin:0;color:#cdd3e4;font-size:15px}
-.extras{display:flex;flex-wrap:wrap;gap:10px 22px;margin-top:22px;color:var(--gris);font-size:14px}
-.extras span{display:inline-flex;align-items:center;gap:8px}
-.extras svg{width:18px;height:18px;color:var(--bordo)}
-@media(max-width:760px){.pasos{grid-template-columns:1fr}}
-
-/* Marcas */
-.marcas{display:flex;flex-wrap:wrap;gap:10px}
-.marcas span{border:1.5px solid var(--navy);color:var(--navy);border-radius:999px;padding:8px 16px;font-weight:700;font-size:14px;letter-spacing:.02em}
-
-/* Cierre */
-.cierre{background:var(--bordo);color:#fff;text-align:center;padding:64px 0;position:relative;overflow:hidden}
-.cierre:before{content:"";position:absolute;inset:auto -10% -60% -10%;height:120%;background:radial-gradient(closest-side,rgba(255,255,255,.08),transparent);pointer-events:none}
-.cierre h2{margin:0 0 10px;font-size:clamp(26px,3.8vw,40px);font-weight:800;letter-spacing:-.015em}
-.cierre p{margin:0 auto 26px;max-width:32em;color:#f1d9de;font-size:17px}
-.tel{display:block;margin-top:16px;font-size:15px;color:#f1d9de}
-.tel a{font-weight:700;color:#fff;text-decoration:none}
-
-footer{background:var(--navy);color:#aab2c8;font-size:13px;padding:26px 0}
-footer .w{display:flex;flex-wrap:wrap;gap:8px 20px;justify-content:space-between;align-items:center}
-footer b{color:#fff}
-
-/* WhatsApp flotante */
-.flota{position:fixed;right:16px;bottom:16px;z-index:30;width:58px;height:58px;border-radius:50%;background:var(--wa);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 28px rgba(0,0,0,.28)}
-.flota svg{width:30px;height:30px}
-
+.flota{position:fixed;right:16px;bottom:16px;width:56px;height:56px;border-radius:50%;background:var(--wa);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 26px rgba(0,0,0,.22);z-index:10}
+.flota svg{width:29px;height:29px}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn{transition:none}}
 </style>
 </head>
 <body>
+<div class="franja" aria-hidden="true"></div>
 
-<header class="top">
-  <div class="w">
-    <a class="marca" href="#inicio" aria-label="Sabores de mi País, inicio">
-      <img src="../logo.png" alt="" width="52" height="41">
-      <div><b>Sabores de mi País</b><small>Distribuidora</small></div>
-    </a>
-    <a class="btn btn-wa js-wa" href="#" data-msg="Hola! Quiero recibir la lista de precios de Sabores de mi País.">
-      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1-.7-.3-1.4-.7-2-1.3-.5-.5-1-1.1-1.3-1.7-.1-.2 0-.4.1-.5l.4-.5.3-.4v-.5l-.8-1.9c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.7.3-.2.3-.9.9-.9 2.2s.9 2.5 1 2.7c.1.2 1.8 2.8 4.4 3.9 1.6.7 2.3.8 3.1.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg>
-      <span>Pedí tu lista</span>
-    </a>
-  </div>
-</header>
-
-<main id="inicio">
-  <div class="hero">
+<main>
+  <header class="hero">
     <div class="w">
-      <div>
-        <span class="eyebrow">Distribuidora de alimentos para comercios</span>
-        <h1>Fiambres, quesos y almacén, <em>directo a tu comercio</em></h1>
-        <p class="lead">Repartimos en CABA y Gran Buenos Aires de lunes a sábado. Pedís por WhatsApp o desde tu link con tus precios, y te lo llevamos.</p>
-        <div class="ctas">
-          <a class="btn btn-wa js-wa" href="#" data-msg="Hola! Tengo un comercio y quiero recibir la lista de precios de Sabores de mi País.">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1-.7-.3-1.4-.7-2-1.3-.5-.5-1-1.1-1.3-1.7-.1-.2 0-.4.1-.5l.4-.5.3-.4v-.5l-.8-1.9c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.7.3-.2.3-.9.9-.9 2.2s.9 2.5 1 2.7c.1.2 1.8 2.8 4.4 3.9 1.6.7 2.3.8 3.1.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg>
-            Pedí tu lista de precios
-          </a>
-          <a class="btn btn-sec" href="#productos">Ver qué vendemos</a>
-        </div>
-      </div>
-      <div class="collage" aria-hidden="true">
-        <div class="p p1"><img src="../fotos/boya/jamon-cocido-boya.webp" alt=""></div>
-        <div class="p p2"><img src="../fotos/jl/mani-salado-sin-piel-85.webp" alt=""></div>
-        <div class="p p3"><img src="../fotos/catalogo/96002-queso-cremoso-arroyo-cabral.webp" alt=""></div>
-        <div class="sello"><span>Envío gratis</span><span>desde</span><b>$150.000</b></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="datos">
-    <div class="w">
-      <div class="dato">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg>
-        <div><b>Entregas de lunes a sábado</b><span>CABA y Gran Buenos Aires</span></div>
-      </div>
-      <div class="dato">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-        <div><b>Pedidos hasta las 20 h</b><span>para la próxima entrega</span></div>
-      </div>
-      <div class="dato">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12v8H4v-8M2 7h20v5H2zM12 20V7M12 7H8a2.5 2.5 0 1 1 0-5c3 0 4 5 4 5ZM12 7h4a2.5 2.5 0 1 0 0-5c-3 0-4 5-4 5Z"/></svg>
-        <div><b>Envío gratis desde $150.000</b><span>si es menor, el envío cuesta $15.000</span></div>
-      </div>
-    </div>
-  </div>
-
-  <section id="productos">
-    <div class="w">
-      <span class="k">Qué vendemos</span>
-      <h2 class="tit">Todo lo que tu mostrador necesita</h2>
-      <p class="sub">Trabajamos con marcas que tus clientes conocen. Pedinos la lista y te pasamos precios por caja, por pieza y por kilo.</p>
-      <div class="rubros">
-        <article class="rubro">
-          <div class="fotos"><img src="../fotos/boya/jamon-cocido-boya.webp" alt="Jamón cocido" loading="lazy"><img src="../fotos/grion/1000.webp" alt="Salame" loading="lazy"><img src="../fotos/catalogo/6118-mortadela-con-pistacho-bocatti.webp" alt="Mortadela" loading="lazy"></div>
-          <div class="tx"><h3>Fiambres</h3><p>Jamón cocido y crudo, salames, mortadela, bondiola y lomo. Por pieza entera, se cobra el peso real.</p></div>
-        </article>
-        <article class="rubro">
-          <div class="fotos"><img src="../fotos/catalogo/96002-queso-cremoso-arroyo-cabral.webp" alt="Queso cremoso" loading="lazy"><img src="../fotos/catalogo/1085-manteca-sancor-500-g.webp" alt="Manteca" loading="lazy"><img src="../fotos/ccp/95070.webp" alt="Queso danbo" loading="lazy"></div>
-          <div class="tx"><h3>Quesos y lácteos</h3><p>Cremoso, danbo, tybo y más, por horma. Manteca, crema y lácteos para la heladera.</p></div>
-        </article>
-        <article class="rubro">
-          <div class="fotos"><img src="../fotos/ccp/70090.webp" alt="Yerba" loading="lazy"><img src="../fotos/catalogo/73702-arroz-largo-fino-marolio-500-g.webp" alt="Arroz" loading="lazy"><img src="../fotos/catalogo/72821-aceite-de-girasol-en-aerosol-molto.webp" alt="Aceite" loading="lazy"></div>
-          <div class="tx"><h3>Almacén</h3><p>Aceites, arroz, yerba, conservas, aderezos, desayuno e higiene. Por caja, para la góndola.</p></div>
-        </article>
-        <article class="rubro dest">
-          <div class="fotos"><img src="../fotos/jl/mani-salado-sin-piel-85.webp" alt="Maní salado" loading="lazy"><img src="../fotos/jl/crocante-queso-65.webp" alt="Maní crocante" loading="lazy"><img src="../fotos/jl/manteca-cremosa-360.webp" alt="Manteca de maní" loading="lazy"></div>
-          <div class="tx"><h3>Maní JL</h3><p>Maní salado y tostado, crocantes horneados y manteca de maní. Toda la línea, en display y por caja.</p><span class="tag">Distribuidores en CABA y Buenos Aires</span></div>
-        </article>
-        <article class="rubro">
-          <div class="fotos"><img src="../fotos/catalogo/1610-dulce-de-leche-repostero-vacalin-10-kg-balde.webp" alt="Dulce de leche repostero" loading="lazy"><img src="../fotos/ccp/65050.webp" alt="Cobertura" loading="lazy"><img src="../fotos/catalogo/60501-dulce-de-leche-milagros-del-sol-10-kg-v2.webp" alt="Dulce de leche en balde" loading="lazy"></div>
-          <div class="tx"><h3>Heladerías y panaderías</h3><p>Dulce de leche repostero y heladero, rellenos, coberturas, cucuruchos y todo para la cuadra.</p></div>
-        </article>
-        <article class="rubro">
-          <div class="fotos"><img src="../fotos/catalogo/cuesta-higos-almibar-450.webp" alt="Higos en almíbar" loading="lazy"><img src="../fotos/catalogo/cuesta-cayote-almibar-450.webp" alt="Cayote en almíbar" loading="lazy"><img src="../fotos/catalogo/cuesta-cayote-fibras-450.webp" alt="Cayote en fibras" loading="lazy"></div>
-          <div class="tx"><h3>Dulces regionales</h3><p>Higos, zapallo, cayote y limas en almíbar, de Catamarca. Frascos de 450 g.</p></div>
-        </article>
-      </div>
-    </div>
-  </section>
-
-  <section class="quien">
-    <div class="w">
-      <span class="k">A quién le vendemos</span>
-      <h2 class="tit">Si tenés un comercio, trabajamos con vos</h2>
-      <p class="sub">Vendemos al por mayor a negocios. Cada rubro tiene su lista de precios.</p>
-      <div class="chips">
-        <span class="chip"><i aria-hidden="true">🏪</i>Almacenes y autoservicios</span>
-        <span class="chip"><i aria-hidden="true">🛒</i>Supermercados</span>
-        <span class="chip"><i aria-hidden="true">🧀</i>Fiambrerías</span>
-        <span class="chip"><i aria-hidden="true">🍽️</i>Restaurantes y hoteles</span>
-        <span class="chip"><i aria-hidden="true">🍦</i>Heladerías</span>
-        <span class="chip"><i aria-hidden="true">🥖</i>Panaderías</span>
-      </div>
-    </div>
-  </section>
-
-  <section>
-    <div class="w">
-      <span class="k">Cómo trabajamos</span>
-      <h2 class="tit">Pedir es simple</h2>
-      <p class="sub">Sin vueltas: hablás con nosotros, elegís y te lo llevamos.</p>
-      <div class="pasos">
-        <div class="paso"><h3>Escribinos por WhatsApp</h3><p>Contanos qué tipo de comercio tenés y te pasamos la lista de precios para tu rubro.</p></div>
-        <div class="paso"><h3>Elegí desde tu link</h3><p>Te damos un link con tu catálogo y tus precios. Armás el pedido cuando quieras, desde el celular.</p></div>
-        <div class="paso"><h3>Te lo llevamos</h3><p>Pedidos hasta las 20 h salen en la próxima entrega, de lunes a sábado.</p></div>
-      </div>
-      <div class="extras">
-        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Pago por transferencia o efectivo</span>
-        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Factura en cada entrega</span>
-        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Seguimiento de tus pedidos y tu cuenta</span>
-      </div>
-    </div>
-  </section>
-
-  <section class="quien">
-    <div class="w">
-      <span class="k">Algunas marcas que trabajamos</span>
-      <h2 class="tit">Marcas que se venden solas</h2>
-      <p class="sub">Y muchas más en la lista completa.</p>
-      <div class="marcas">
-        <span>Maní JL</span><span>BOYA</span><span>Familia Grion</span><span>La Tarantela</span><span>Marolio</span><span>Molto</span><span>Vacalin</span><span>Cuesta del Portezuelo</span>
-      </div>
-    </div>
-  </section>
-
-  <div class="cierre">
-    <div class="w">
-      <h2>¿Querés ver los precios?</h2>
-      <p>Escribinos por WhatsApp, contanos tu rubro y te mandamos la lista hoy mismo.</p>
-      <a class="btn btn-wa js-wa" href="#" data-msg="Hola! Tengo un comercio y quiero recibir la lista de precios de Sabores de mi País.">
+      <img src="../logo.png" alt="Sabores de mi País · Distribuidora" width="170" height="135">
+      <p class="kicker">Distribuidora de alimentos</p>
+      <h1>Fiambres, quesos y almacén <i>para tu comercio</i></h1>
+      <p class="lead">Repartimos en CABA y Gran Buenos Aires, de lunes a sábado. Escribinos y te pasamos la lista de precios para tu rubro.</p>
+      <a class="btn js-wa" href="#" data-msg="Hola! Tengo un comercio y quiero recibir la lista de precios.">
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1-.7-.3-1.4-.7-2-1.3-.5-.5-1-1.1-1.3-1.7-.1-.2 0-.4.1-.5l.4-.5.3-.4v-.5l-.8-1.9c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.7.3-.2.3-.9.9-.9 2.2s.9 2.5 1 2.7c.1.2 1.8 2.8 4.4 3.9 1.6.7 2.3.8 3.1.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg>
-        Pedí tu lista de precios
+        Pedinos la lista de precios
+      </a>
+      <ul class="hechos">
+        <li><b>Lunes a sábado</b></li>
+        <li>Pedidos hasta las <b>20 h</b></li>
+        <li>Envío gratis desde <b>$150.000</b></li>
+      </ul>
+    </div>
+  </header>
+
+  <section class="llevamos">
+    <div class="w">
+      <h2>Lo que llevamos</h2>
+      <p class="h2sub">Marcas conocidas, por caja, por pieza o por kilo.</p>
+      <ul class="lista">
+        <li><span class="num">01</span><div><h3>Fiambres</h3><p>Jamón cocido y crudo, salames, mortadela y bondiola. BOYA, Familia Grion y más.</p></div></li>
+        <li><span class="num">02</span><div><h3>Quesos y lácteos</h3><p>Cremoso, danbo y tybo por horma. Manteca y crema.</p></div></li>
+        <li><span class="num">03</span><div><h3>Almacén</h3><p>Aceites, arroz, yerba, conservas y aderezos. Marolio, Molto y más.</p></div></li>
+        <li><span class="num">04</span><div><h3>Maní JL</h3><p>Maní salado, crocantes y manteca de maní.</p><span class="sello">Distribuidores en CABA y Buenos Aires</span></div></li>
+        <li><span class="num">05</span><div><h3>Heladerías y panaderías</h3><p>Dulce de leche repostero, rellenos, coberturas y cucuruchos.</p></div></li>
+        <li><span class="num">06</span><div><h3>Dulces regionales</h3><p>Higos, zapallo y cayote en almíbar, de Catamarca.</p></div></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="pedir">
+    <div class="w">
+      <h2>Cómo pedir</h2>
+      <p class="h2sub">Almacenes, supermercados, fiambrerías, restaurantes, heladerías y panaderías.</p>
+      <div class="pasos">
+        <div class="paso"><div class="n">1</div><h3>Escribinos</h3><p>Por WhatsApp, contanos qué comercio tenés.</p></div>
+        <div class="paso"><div class="n">2</div><h3>Elegí</h3><p>Te mandamos un link con tus precios para armar el pedido.</p></div>
+        <div class="paso"><div class="n">3</div><h3>Recibí</h3><p>Te lo llevamos en la próxima entrega.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cierre">
+    <div class="w">
+      <h2>¿Hablamos?</h2>
+      <p>Te respondemos por WhatsApp y te pasamos la lista hoy mismo.</p>
+      <a class="btn js-wa" href="#" data-msg="Hola! Tengo un comercio y quiero recibir la lista de precios.">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1-.7-.3-1.4-.7-2-1.3-.5-.5-1-1.1-1.3-1.7-.1-.2 0-.4.1-.5l.4-.5.3-.4v-.5l-.8-1.9c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.7.3-.2.3-.9.9-.9 2.2s.9 2.5 1 2.7c.1.2 1.8 2.8 4.4 3.9 1.6.7 2.3.8 3.1.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg>
+        Escribinos por WhatsApp
       </a>
       <span class="tel">o llamanos al <a href="tel:+5493543658296">3543 65-8296</a></span>
     </div>
-  </div>
+  </section>
 </main>
 
-<footer>
-  <div class="w">
-    <span><b>Sabores de mi País</b> · Distribuidora de alimentos · CABA y Gran Buenos Aires</span>
-    <span>Venta mayorista a comercios · Precios sujetos a cambio</span>
-  </div>
-</footer>
+<footer>Sabores de mi País · Distribuidora de alimentos · Venta mayorista a comercios</footer>
 
-<a class="flota js-wa" href="#" data-msg="Hola! Quiero hacer una consulta a Sabores de mi País." aria-label="Escribinos por WhatsApp">
+<a class="flota js-wa" href="#" data-msg="Hola! Quiero hacer una consulta." aria-label="Escribinos por WhatsApp">
   <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1-.7-.3-1.4-.7-2-1.3-.5-.5-1-1.1-1.3-1.7-.1-.2 0-.4.1-.5l.4-.5.3-.4v-.5l-.8-1.9c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.7.3-.2.3-.9.9-.9 2.2s.9 2.5 1 2.7c.1.2 1.8 2.8 4.4 3.9 1.6.7 2.3.8 3.1.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg>
 </a>
 
 <script>
-// Número de WhatsApp del negocio (sin espacios, con 549 adelante)
-const WA = '5493543658296';
-document.querySelectorAll('.js-wa').forEach(a => {
-  a.href = 'https://wa.me/' + WA + '?text=' + encodeURIComponent(a.dataset.msg || 'Hola!');
-  a.target = '_blank'; a.rel = 'noopener';
-});
+const WA='5493543658296';
+document.querySelectorAll('.js-wa').forEach(a=>{a.href='https://wa.me/'+WA+'?text='+encodeURIComponent(a.dataset.msg||'Hola!');a.target='_blank';a.rel='noopener'});
 </script>
 </body>
 </html>
