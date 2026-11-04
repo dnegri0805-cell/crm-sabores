@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-03.4';
+const VERSION='2026-11-03.5';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -6334,11 +6334,11 @@ const SQL_ENT='<p><small>Para usar esto, corré <b>entregas.sql</b> en Supabase.
 async function gananciaNeta(){const due=S.perfil.rol=='dueno';let G=await cfgJ('gastos_fijos',{items:[{n:'Nafta y mantenimiento',m:0},{n:'Alquiler / depósito',m:0},{n:'Monotributo / impuestos',m:0},{n:'Teléfono e internet',m:0},{n:'Luz',m:0}],caja:false});
   const mes=mesHoy(),[y,mo]=mes.split('-').map(Number),ini=new Date(tsAR(mes+'-01')).toISOString(),hoy=new Date(),dm=new Date(y,mo,0).getDate();
   const habiles=(a,b)=>{let n=0;for(let d=a;d<=b;d++)if(new Date(y,mo-1,d).getDay()!=0)n++;return n},hT=habiles(1,dm),hP=habiles(1,hoy.getDate());
-  const[pe,ga,me]=await Promise.all([todo(()=>sb.from('pedidos').select('total,pedido_items(*)').neq('estado','cancelado').gte('creado_en',ini)),todo(()=>sb.from('gastos').select('importe').gte('fecha',mes+'-01')),sb.from('mermas').select('costo').gte('fecha',ini)]);
+  const[pe,ga,me]=await Promise.all([todo(()=>sb.from('pedidos').select('total,pedido_items(*)').neq('estado','cancelado').gte('creado_en',ini)),todo(()=>sb.from('gastos').select('importe,categoria').gte('fecha',mes+'-01')),sb.from('mermas').select('costo').gte('fecha',ini)]);
   const v=(pe.data||[]).reduce((a,o)=>a+(+o.total||0),0),g=(pe.data||[]).reduce((a,o)=>a+(o.pedido_items||[]).reduce((b,i)=>{const cu=+i.costo_unitario||+(S.productos.find(p=>p.producto_id==i.producto_id)?.costo||0);return b+(+i.cantidad||0)*((+i.precio_unitario||0)-cu)},0),0);
-  const gc=(ga.data||[]).reduce((a,x)=>a+(+x.importe||0),0),mer=(me.data||[]).reduce((a,x)=>a+(+x.costo||0),0);
+  const FIJ_CAT=['Alquiler','Servicios (luz, gas, internet)','Impuestos'],gc=(ga.data||[]).filter(x=>!FIJ_CAT.includes(x.categoria)).reduce((a,x)=>a+(+x.importe||0),0),mer=(me.data||[]).reduce((a,x)=>a+(+x.costo||0),0);
   const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
-  const draw=()=>{const fijos=G.caja?gc:G.items.reduce((a,x)=>a+(+x.m||0),0),mg=v>0?g/v:0,pe_=mg>0?fijos/mg:0,proy=hP?v/hP*hT:0,gproy=proy*mg,neta=g-(G.caja?gc:fijos*hP/hT)-mer,netaP=gproy-fijos-mer/Math.max(hP,1)*hT;
+  const draw=()=>{const fijos=G.items.reduce((a,x)=>a+(+x.m||0),0),gcP=hP?gc/hP*hT:gc,mg=v>0?g/v:0,pe_=mg>0?(fijos+gcP)/mg:0,proy=hP?v/hP*hT:0,gproy=proy*mg,neta=g-fijos*hP/hT-gc-mer,netaP=gproy-fijos-gcP-mer/Math.max(hP,1)*hT;
     m.innerHTML=`<div class="mc"><div class="bh"><h3>📈 Ganancia neta y punto de equilibrio</h3><button class="alt" id="gn_x">Cerrar</button></div>
       <p><small>La <b>ganancia bruta</b> es lo que te deja la mercadería (precio − costo). La <b>neta</b> es lo que te queda después de los gastos fijos del mes y la merma. El <b>punto de equilibrio</b> es lo que tenés que vender en el mes para cubrir los gastos fijos.</small></p>
       <div class="kp"><div class="box"><span class="lab">Vendido en el mes</span><span class="num">${$m0(v)}</span><span class="det">a este ritmo cerrás en ${$m(proy)}</span></div>
@@ -6346,14 +6346,15 @@ async function gananciaNeta(){const due=S.perfil.rol=='dueno';let G=await cfgJ('
         <div class="box ${neta<0?'alerta':'ok'}"><span class="lab">Ganancia neta hasta hoy</span><span class="num">${$m0(neta)}</span><span class="det">proyección del mes: ${$m(netaP)}</span></div>
         <div class="box ${v>=pe_?'ok':'alerta'}"><span class="lab">Punto de equilibrio</span><span class="num">${$m0(pe_)}</span><span class="det">${pe_?(v>=pe_?'✓ ya lo pasaste':'te faltan '+$m(pe_-v)+' · '+$m(Math.max(0,pe_-v)/Math.max(1,hT-hP))+' por día'):'cargá los gastos fijos'}</span></div></div>
       <p>Para cubrir los gastos tenés que vender <b>${$m(pe_/hT)}</b> por día hábil (${hT} días este mes, sin domingos).${mer?' Merma del mes: '+$m(mer)+'.':''}</p>
-      <h4>Gastos fijos del mes</h4><label class="chk"><input type="checkbox" id="gn_cj" ${G.caja?'checked':''} ${due?'':'disabled'}> Usar los gastos que cargo en Caja (este mes: ${$m(gc)}) en vez de esta lista</label>
-      ${G.caja?'':`<div class="tw"><table>${G.items.map((x,k)=>`<tr><td><input data-gnn="${k}" value="${esc(x.n)}" style="margin:0" ${due?'':'disabled'}></td><td class="n"><input type="number" min="0" step="1000" data-gnm="${k}" value="${x.m||''}" placeholder="$ por mes" style="width:130px;margin:0" ${due?'':'disabled'}></td><td>${due?`<a class="lnk" data-gnx="${k}">✕</a>`:''}</td></tr>`).join('')}<tr><td><b>Total</b></td><td class="n"><b>${$m(fijos)}</b></td><td></td></tr></table></div>${due?'<a class="lnk" id="gn_add">+ Agregar gasto</a>':''}`}
+      <h4>Gastos fijos del mes</h4><p><small>Lo que es más o menos igual todos los meses (alquiler, luz, expensas…). Corregilo cuando cambie.</small></p>
+      ${`<div class="tw"><table>${G.items.map((x,k)=>`<tr><td><input data-gnn="${k}" value="${esc(x.n)}" style="margin:0" ${due?'':'disabled'}></td><td class="n"><input type="number" min="0" step="1000" data-gnm="${k}" value="${x.m||''}" placeholder="$ por mes" style="width:130px;margin:0" ${due?'':'disabled'}></td><td>${due?`<a class="lnk" data-gnx="${k}">✕</a>`:''}</td></tr>`).join('')}<tr><td><b>Total</b></td><td class="n"><b>${$m(fijos)}</b></td><td></td></tr></table></div>${due?'<a class="lnk" id="gn_add">+ Agregar gasto</a>':''}`}
+      <h4>Gastos variables del mes</h4><p>Cargados en <b>Caja → Gastos</b> este mes: <b>${$m(gc)}</b>${gc&&hP<hT?' (a este ritmo, '+$m(gcP)+' en el mes)':''}.<br><small>Nafta, arreglos y lo que pagás de a poco: anotalo en Caja cada vez. Los gastos de Alquiler, Servicios o Impuestos que cargues en Caja no se suman acá, porque ya están en la lista de fijos.</small></p>
       ${due?'<div class="fc-acc"><button id="gn_g">Guardar</button></div>':''}</div>`;
     m.querySelector('#gn_x').onclick=()=>m.remove();const q=s=>m.querySelector(s);
-    q('#gn_cj').onchange=e=>{G.caja=e.target.checked;draw()};
+    
     m.querySelectorAll('[data-gnn]').forEach(i=>i.onchange=()=>{G.items[+i.dataset.gnn].n=i.value});m.querySelectorAll('[data-gnm]').forEach(i=>i.onchange=()=>{G.items[+i.dataset.gnm].m=+i.value||0;draw()});
     m.querySelectorAll('[data-gnx]').forEach(a=>a.onclick=()=>{G.items.splice(+a.dataset.gnx,1);draw()});q('#gn_add')&&(q('#gn_add').onclick=()=>{G.items.push({n:'Otro gasto',m:0});draw()});
-    q('#gn_g')&&(q('#gn_g').onclick=async()=>{const{error}=await guardaCfgJ('gastos_fijos',G);error?toast(error.message,1):toast('Gastos fijos guardados.')})};
+    q('#gn_g')&&(q('#gn_g').onclick=async()=>{G.caja=false;const{error}=await guardaCfgJ('gastos_fijos',G);error?toast(error.message,1):toast('Gastos fijos guardados.')})};
   draw()}
 
 /* 2. Estado de cuenta del cliente */

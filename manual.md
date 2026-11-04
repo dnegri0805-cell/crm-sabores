@@ -5,7 +5,7 @@ Las funciones del CRM tal como quedaron, en el orden en que las usás en el día
 ## 1. Antes de empezar
 
 - **Dónde entrar:** https://dnegri0805-cell.github.io/crm-sabores/ con tu correo y contraseña.
-- **La primera vez:** si te dieron una contraseña temporal, el CRM te pide que elijas una propia (mínimo 8 caracteres) antes de entrar.
+- **La primera vez:** si te dieron una contraseña temporal, el CRM te pide que elijas una propia antes de entrar. Tiene que tener **mínimo 8 caracteres**, con al menos **una minúscula, una mayúscula, un número y un símbolo** (por ejemplo - ! . _ #). Si le falta algo, el CRM te dice qué.
 - **Usalo como app:** en Chrome, menú ⋮ → *Agregar a pantalla de inicio*. Ganás pantalla y el celular lo cierra menos cuando cambiás a WhatsApp.
 - **Si salís y volvés:** el CRM retoma la pantalla donde estabas (hasta 3 horas) y el pedido a medio cargar (hasta 24 horas).
 - **Botón + (abajo a la derecha):** desde cualquier pantalla, Nuevo pedido, Nuevo cliente, Registrar cobro, Nota a un cliente o Registrar visita.
@@ -79,7 +79,7 @@ La tarjeta **Maní JL** del Inicio te dice cuántas cajas te faltan para tu meta
 - **Calcular con:** un interruptor que se toca o se desliza con el dedo. **65 y 85 g** calcula con los sobres chicos (unos $ 10.460 de ganancia por caja); **Toda la línea**, con el promedio de todos los productos JL. Cuando haya ventas, la tarjeta usa lo que realmente te deja cada caja.
 - **A quién visitar:** cuando haya ventas, los clientes a los que les toca reponer JL y los que compran mucho pero todavía no lo llevan, con botón **Pedido**.
 
-Los gastos fijos se cargan en *Resumen de hoy → Ganancia neta*. Los pedidos cancelados o marcados como prueba no cuentan.
+Los gastos fijos se cargan en **Más → Cuenta y ajustes → Gastos fijos del mes** (ver sección 9). Los pedidos cancelados o marcados como prueba no cuentan.
 
 **Metas en kilos** (tarjeta debajo de Maní JL): BOYA jamón cocido, Tarantela danbo sándwich y la línea de **Salames Familia Grion**.
 
@@ -305,14 +305,24 @@ Al final, **Configurar avisos y cobros**: tono del mensaje, datos para transferi
 - **Cierre de caja:** contás el efectivo (con **Contar billetes** si querés) y el CRM lo compara con lo que debería haber.
 - **Ganancia del mes:** ventas menos costo de la mercadería y gastos.
 
-**Mercado Pago** (**Más → Cuenta y ajustes → Mercado Pago: cobros por transferencia**). Está en prueba: sirve para ver desde el CRM lo que te entra a la cuenta, y más adelante marcar solos los pedidos cobrados.
+**Gastos fijos y variables** (**Más → Cuenta y ajustes → Gastos fijos del mes**):
 
-1. En la compu, entrá a **mercadopago.com.ar/developers** con tu cuenta → **Crear aplicación** (nombre: CRM Sabores).
-2. Dentro de la aplicación, **Credenciales de producción** → copiá el **Access Token** (empieza con APP_USR-).
-3. Pegalo en la ventana de Mercado Pago del CRM y tocá **Guardar**. Tiene que decir en verde *Conectado a la cuenta de…*.
-4. **Ver lo que entró** muestra los movimientos de los últimos 7, 15 o 30 días, con quién pagó y cuánto.
+Los gastos se separan según si cambian o no cada mes:
 
-La credencial queda guardada en el servidor y nadie la puede volver a ver desde la app; no la mandes por WhatsApp. **Desconectar** corta el acceso. Cuando tengas la cuenta de la SAS, tocás *Cambiar la credencial* y pegás la nueva.
+- **Fijos (la lista):** lo que es más o menos igual todos los meses: alquiler, luz, expensas, internet, monotributo. Va el **total estimado del mes**. Cuando un número cambia (por ejemplo, vino más alta la luz), lo corregís ahí y tocás **Guardar**. Con **+ Agregar gasto** sumás uno nuevo y con la **✕** lo sacás.
+- **Variables (en Caja):** lo que varía y pagás de a poco: nafta, arreglos de la camioneta, cosas sueltas del depósito. Se anotan **cada vez** en **Caja → + Cargar gasto** (la nafta, con la categoría *Combustible*).
+
+La pantalla suma las dos cosas y te muestra la **ganancia neta** (lo que te queda después de los gastos y la merma) y el **punto de equilibrio** (cuánto tenés que vender en el mes, y por día hábil, para cubrir todos los gastos). Para no contar dos veces, si en Caja cargás un gasto de **Alquiler, Servicios o Impuestos**, no se suma, porque ya está en la lista de fijos. La pueden ver y editar los socios/dueños.
+
+**Mercado Pago** (**Más → Cuenta y ajustes → Mercado Pago: cobros por transferencia**). Sirve para ver desde el CRM lo que te entra a la cuenta, y más adelante marcar solos los pedidos cobrados. **Lo ve solo el titular de la cuenta** (el que la conectó): a los demás usuarios, aunque sean socios/dueños, no les aparece. Conviene usar esa cuenta **solo para el negocio** y lo personal por otra (por ejemplo, el banco).
+
+1. Entrá a **mercadopago.com.ar/developers** con tu cuenta → **Crear aplicación** → **Crear en el panel de integración** → elegí **Checkout Pro** → nombre **CRM Sabores** → **Crear aplicación**.
+2. Dentro de la aplicación tocá la pestaña **Producción** (no *Prueba*) y activá las credenciales. Si te pide un sitio web, poné el link del CRM.
+3. En **Credenciales de producción**, copiá el **Access Token** (el de abajo, no la *Public Key*).
+4. Pegalo en la ventana de Mercado Pago del CRM y tocá **Guardar**. Tiene que decir en verde *Conectado a la cuenta de…*.
+5. **Ver lo que entró** muestra los movimientos de los últimos 7, 15 o 30 días, con quién pagó y cuánto.
+
+La credencial queda guardada en el servidor y nadie la puede volver a ver desde la app. Es como una contraseña de tu cuenta: **no la mandes por WhatsApp ni en capturas**. **Desconectar** corta el acceso. Cuando tengas la cuenta de la SAS, tocás *Cambiar la credencial* y pegás la nueva.
 
 ## 10. Stock y Contable
 
@@ -362,7 +372,7 @@ Desde **Más → Cuenta y ajustes → Usuarios y accesos** (solo lo ve el dueño
 2. Completá **nombre y apellido**, **correo** y **qué puede hacer**.
 3. Tocá **Crear acceso**. Aparece una **contraseña temporal**, que se muestra una sola vez.
 4. Tocá **Mandar por WhatsApp** (o **Copiar mensaje**): va el link del CRM, su correo y la contraseña.
-5. La primera vez que entre, el CRM le pide que elija su propia contraseña.
+5. La primera vez que entre, el CRM le pide que elija su propia contraseña: mínimo 8 caracteres, con **minúscula, mayúscula, número y símbolo**. Conviene avisarle antes.
 
 **Qué puede hacer cada uno:**
 
@@ -373,13 +383,14 @@ Desde **Más → Cuenta y ajustes → Usuarios y accesos** (solo lo ve el dueño
 
 **Después:**
 
+- **Corregir el nombre:** tocá **Editar nombre** al lado del nombre, escribí el correcto y aceptá. Sirve también para el tuyo.
 - **Cambiar lo que puede hacer:** elegí otra opción en su recuadro; se guarda sola.
 - **Se olvidó la contraseña:** **Nueva contraseña temporal** y se la mandás de nuevo. La anterior deja de funcionar.
 - **Dar de baja:** no puede entrar más. Con **Volver a dar acceso** lo reactivás cuando quieras.
 - **Asignar clientes a un vendedor:** en su recuadro, **Asignar clientes**. Filtrás por zona o buscás, marcás los que le tocan y guardás. Los que desmarcás vuelven a ser de la casa.
 - **Comisiones** (*Más → Cuenta y ajustes → Comisiones de vendedores*, o desde la tarjeta Vendedores): el % general de cada vendedor, un **% especial por marca** (por ejemplo Maní JL 8 %), si se calcula sobre **lo vendido** o **solo lo cobrado** (pedidos con la factura paga), y un **premio fijo** al llegar a la meta del mes. Todo sin IVA. El vendedor ve en su Inicio cuánto lleva, qué marcas le pagan más y cuánto le falta para el premio.
 - **Quién cambió qué** (*Más → Cuenta y ajustes*, solo el dueño): todos los cambios de pedidos, clientes, productos, cobros, facturas y gastos, día por día, con quién, a qué hora y qué había antes y qué quedó. Se filtra por persona, por tipo y por fecha, o se busca. En el panel de cada pedido (**Ver cambios**) y en la ficha de cada cliente (*Más acciones*) se ven solo los cambios de ese pedido o cliente.
-- **Tu propia contraseña:** **Más → Cuenta y ajustes → Cambiar mi contraseña**.
+- **Tu propia contraseña:** **Más → Cuenta y ajustes → Cambiar mi contraseña**. Te pide la actual y la nueva (con la misma regla de minúscula, mayúscula, número y símbolo).
 
 ### Ficha del cliente (versión nueva)
 - **Arriba:** nombre, rubro y barrio; estado y etiquetas; una frase de **cómo está el cliente** (🟢 al día y cuándo le toca, 🟠 le toca comprar, 🔴 se está enfriando o debe), con un botón directo (Mandarle la lista, Escribirle o Cobrar).
