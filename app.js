@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-03.5';
+const VERSION='2026-11-06.1';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -714,6 +714,33 @@ function cambiarClave(oblig){const m=document.createElement('div');m.className='
     if(error){const t=error.message||'';return toast(/should be different|same/i.test(t)?'Elegí una contraseña distinta a la temporal.':/current password|invalid.*password|incorrect/i.test(t)?(oblig?'La contraseña temporal no es correcta.':'La contraseña actual no es correcta.'):/should contain|at least one character/i.test(t)?'La contraseña tiene que tener minúscula, mayúscula, número y símbolo.':/weak|pwned|leaked|known/i.test(t)?'Esa contraseña es muy común. Elegí otra.':/reauth|recent/i.test(t)?'Por seguridad, salí y volvé a entrar, y cambiala enseguida.':'No se pudo guardar: '+t,1)}
     window.__claveLogin='';toast('Contraseña guardada.');m.remove();if(oblig)init()}}
 
+/* Mercado Pago: para cada cobro que entró, sugiere de qué cliente es y lo registra con un toque */
+async function mpLista(M,modal){
+  const digs=t=>String(t||'').replace(/\D/g,'');
+  const[fe,rc]=await Promise.all([
+    sb.from('facturas_estado').select('cliente_id,pendiente').gt('pendiente',0.005),
+    sb.from('recibos').select('observacion').eq('anulado',false).ilike('observacion','%Mercado Pago op.%').limit(500)]);
+  const pend={};(fe.data||[]).forEach(f=>{(pend[f.cliente_id]=pend[f.cliente_id]||[]).push(+f.pendiente)});
+  const hechos=new Set();(rc.data||[]).forEach(r=>{const x=String(r.observacion||'').match(/Mercado Pago op\. (\d+)/);if(x)hechos.add(x[1])});
+  const cands=S.clientes.filter(c=>c.activo!==false);
+  const sugerir=x=>{const doc=digs(x.doc),pal=norm(x.pagador||'').split(/\s+/).filter(w=>w.length>2);let best=null,bp=0;
+    for(const c of cands){let p=0;const cu=digs(c.cuit);
+      if(doc.length>=7&&cu&&(cu==doc||cu.includes(doc)))p+=10;
+      const txt=norm([c.razon_social,c.nombre_fantasia,c.contacto].filter(Boolean).join(' '));
+      if(pal.length){const n=pal.filter(w=>txt.includes(w)).length;p+=n*3;if(n==pal.length)p+=2}
+      const P=pend[c.id]||[],tot=P.reduce((a,v)=>a+v,0);
+      if(P.some(v=>Math.abs(v-x.monto)<1)||Math.abs(tot-x.monto)<1)p+=p>0?4:2;
+      if(p>bp){bp=p;best=c}}
+    return bp>=3?best:null};
+  const filas=M.map(x=>{const ok=x.estado=='approved'&&+x.monto>0,ya=hechos.has(String(x.id)),sg=ok&&!ya?sugerir(x):null;
+    return`<div class="mpi" data-mpid="${x.id}"><div class="mpi-t"><span><b>${esc(x.pagador||'Sin nombre')}</b><small>${new Date(x.fecha).toLocaleString('es-AR',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'})}${x.doc?' · DNI/CUIT '+esc(x.doc):''}${x.descripcion?' · '+esc(x.descripcion):''}${ok?'':' · '+esc(x.estado)}</small></span><b class="mpi-m">${$m(x.monto)}</b></div>
+      ${!ok?'':ya?'<p class="mpi-ok">✓ Ya registrado como cobro</p>':`<div class="mpi-a"><select class="mp_cli" aria-label="Cliente que pagó"><option value="">¿De qué cliente es?</option>${cands.map(c=>`<option value="${c.id}" ${sg&&sg.id==c.id?'selected':''}>${esc(nomVis(c))}</option>`).join('')}<option value="-">No es de un cliente</option></select><button class="mp_reg" ${sg?'':'disabled'}>Registrar cobro</button></div>${sg?`<small class="mpi-s">Parece de <b>${esc(nomVis(sg))}</b>. Si no es, elegí otro.</small>`:''}`}</div>`}).join('');
+  setTimeout(()=>{modal.querySelectorAll('.mpi').forEach(d=>{const sel=d.querySelector('.mp_cli'),b=d.querySelector('.mp_reg');if(!sel)return;
+    sel.onchange=()=>{b.disabled=!sel.value||sel.value=='-';if(sel.value=='-'){d.querySelector('.mpi-a').outerHTML='<p class="mpi-ok" style="opacity:.7">No es de un cliente · no se registra</p>';const s2=d.querySelector('.mpi-s');if(s2)s2.remove()}};
+    b.onclick=()=>{const x=M.find(y=>String(y.id)==d.dataset.mpid);if(!x||!sel.value)return;
+      S.preCob=sel.value;S.preCobMP={cli:sel.value,importe:(+x.monto).toFixed(2),ref:String(x.id),obs:'Mercado Pago op. '+x.id+(x.pagador?' · '+x.pagador:'')};
+      modal.remove();irA('cobranza')}})},0);
+  return`<p><small>${M.length} movimiento${M.length==1?'':'s'} que te entraron. Elegí de qué cliente es cada uno y tocá <b>Registrar cobro</b>: te lleva al cobro con todo cargado para que lo confirmes. Si una transferencia no aparece acá, Mercado Pago no la informa por esta vía.</small></p><div class="mpl">${filas}</div>`}
 /* ---------- Mercado Pago: conectar la cuenta y ver las transferencias que entran ---------- */
 async function mercadoPago(){if(S.perfil.rol!='dueno'||!S.mpPuede)return toast('Mercado Pago lo ve solo el titular de la cuenta.',1);
   const m=document.createElement('div');m.className='modal';document.body.appendChild(m);const q=i=>m.querySelector(i);
@@ -736,7 +763,7 @@ async function mercadoPago(){if(S.perfil.rol!='dueno'||!S.mpPuede)return toast('
     if(q('#mp_v'))q('#mp_v').onclick=async()=>{const L=q('#mp_l');L.innerHTML='<p><span class="skl" role="status" aria-label="Cargando"></span> Buscando movimientos…</p>';
       try{const d=await llamar({accion:'movimientos',dias:+q('#mp_d').value});const M=d.movimientos||[];
         if(d.error){L.innerHTML=`<p class="err">${esc(d.error)}</p>`;return}
-        L.innerHTML=M.length?`<p><small>${M.length} movimiento${M.length==1?'':'s'} que te entraron. Si una transferencia que recibiste no aparece acá, avisá: Mercado Pago no las informa todas por esta vía.</small></p><table><tr><th>Fecha</th><th>De quién</th><th class="n">Monto</th></tr>${M.map(x=>`<tr><td>${new Date(x.fecha).toLocaleString('es-AR',{day:'numeric',month:'numeric',hour:'2-digit',minute:'2-digit'})}<br><small>${esc([x.tipo,x.medio,x.estado!='approved'?x.estado:''].filter(Boolean).join(' · '))}</small></td><td>${esc(x.pagador||'—')}${x.doc?'<br><small>DNI/CUIT '+esc(x.doc)+'</small>':''}${x.descripcion?'<br><small>'+esc(x.descripcion)+'</small>':''}</td><td class="n"><b>${$m(x.monto)}</b></td></tr>`).join('')}</table>`
+        L.innerHTML=M.length?await mpLista(M,m)
           :'<p><small>No encontré movimientos en esos días. Si recibiste transferencias y no aparecen, Mercado Pago no las informa por esta vía y vamos por el extracto.</small></p>'}catch(e){L.innerHTML=`<p class="err">${esc(e.message)}</p>`}}};
   pinta()}
 
@@ -3044,7 +3071,8 @@ async function formCobroDet(F,id,saldo){const box=$('#k_fd');if(!box)return;
     <details class="op-ret" id="k_rd"><summary>Retenciones que te hizo <small>(empresas grandes: IIBB, Ganancias, IVA, SUSS)</small></summary><div id="k_rt"></div><button type="button" class="alt" id="k_ra">${IC('plus',16)} Agregar retención</button></details>
     <label class="f">Observación<input id="k_obs" placeholder="Ej.: Orden de pago del cliente N° 4455"></label>
     <div class="op-tot" id="k_t"></div><button id="k_g2">Registrar cobro</button>`;
-  const V=$('#k_v'),R=$('#k_rt');V.appendChild(filaValor('cobro',C,[]));
+  const V=$('#k_v'),R=$('#k_rt');const MPp=S.preCobMP&&S.preCobMP.cli==id?S.preCobMP:null;S.preCobMP=null;V.appendChild(filaValor('cobro',C,[],MPp?{medio:'transferencia',importe:MPp.importe}:{}));
+  if(MPp){setTimeout(()=>{const r0=V.children[0],rf=r0&&r0.querySelector('.v_ref');if(rf)rf.value=MPp.ref;const ob=$('#k_obs');if(ob)ob.value=MPp.obs;tot();toast('Cobro de Mercado Pago cargado. Revisá y tocá Registrar cobro.')},0)}
   const sumV=()=>[...V.children].map(leerValor).reduce((a,x)=>a+x.importe,0),sumR=()=>[...R.children].map(leerRet).reduce((a,x)=>a+x.importe,0);
   const elegidas=()=>F.filter(x=>box.querySelector(`[data-kf="${x.factura_id}"]`)?.checked);
   const totF=()=>elegidas().reduce((a,x)=>a+ +x.pendiente,0);
