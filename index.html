@@ -1451,6 +1451,8 @@ html.oscuro .mj .mjh.ok{background:#14281d!important;border-color:#24503a}
 
 #fab{transition:transform .22s ease,opacity .22s ease}#fab.esc{transform:translateY(calc(100% + var(--bnh,72px)));opacity:0;pointer-events:none}
 #fab.fab-oc{transform:translateY(130%) scale(.8);opacity:0;pointer-events:none}
+/* en Inicio, mientras se ven los accesos rápidos el + no hace falta y tapaba Folletos */
+#fab.fab-acc{transform:translateY(130%) scale(.8);opacity:0;pointer-events:none}
 @media(max-width:640px){#v::after{content:'';display:block;height:76px}}
 
 /* Resumen del día */
@@ -2070,6 +2072,6 @@ html:not(.oscuro) body,html:not(.oscuro) #app{background:var(--g)}
 <div id="app"><div class="splash"><img src="logo.png" alt="Sabores de mi País"><i></i></div></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
-<script src="app.js?v=2026-11-07.25"></script>
+<script src="app.js?v=2026-11-07.26"></script>
 </body>
 </html>

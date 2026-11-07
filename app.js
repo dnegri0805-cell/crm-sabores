@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-07.25';
+const VERSION='2026-11-07.26';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -3011,7 +3011,8 @@ addEventListener('resize',()=>fabAltura());
 function fabPintar(){let f=document.getElementById('fab');if(!S.perfil){f&&f.remove();return}
   if(!f){f=document.createElement('div');f.id='fab';f.innerHTML=`<div class="fab-m" id="fab_m" hidden></div><button class="fab-b" id="fab_b" aria-label="Agregar" aria-expanded="false">${IC('plus',26)}</button>`;document.body.appendChild(f);
     f.querySelector('#fab_b').onclick=e=>{e.stopPropagation();fabMenu()};document.addEventListener('click',e=>{if(!f.contains(e.target))fabCerrar()})}
-  f.hidden=!!document.querySelector('.modal:not(.fab-sh)')||(S.tab=='pedidos'&&!!S.pcli)||!!document.getElementById('pr_bulk')||!!document.querySelector('#s_bar:not([hidden])');if(!document.querySelector('.fab-sh')&&$('#fab_m')?.hidden!==false)f.querySelector('#fab_b')?.classList.remove('on')}
+  f.hidden=!!document.querySelector('.modal:not(.fab-sh)')||(S.tab=='pedidos'&&!!S.pcli)||!!document.getElementById('pr_bulk')||!!document.querySelector('#s_bar:not([hidden])');if(!document.querySelector('.fab-sh')&&$('#fab_m')?.hidden!==false)f.querySelector('#fab_b')?.classList.remove('on')
+  try{const a=document.querySelector('#v>.ppal.acc');if(a!==S._fabAcc){S._fabIO&&S._fabIO.disconnect();S._fabAcc=a;f.classList.remove('fab-acc');if(a){S._fabIO=new IntersectionObserver(e=>{const r=e[e.length-1];document.getElementById('fab')?.classList.toggle('fab-acc',r.isIntersecting)},{threshold:.35});S._fabIO.observe(a)}}}catch(e){}}
 function fabCerrar(){const m=document.getElementById('fab_m'),b=document.getElementById('fab_b');if(m)m.hidden=true;if(document.querySelector('.fab-sh'))return;if(b){b.classList.remove('on');b.setAttribute('aria-expanded','false')}}
 function fabMenu(){
   /* en Pedidos (sin cliente elegido), el + va directo a elegir cliente */
