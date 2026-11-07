@@ -303,7 +303,7 @@ function importadorLista(){const box=$('#pr_imp');if(!box)return;
   <div class="g"><label class="f">Proveedor (ayuda a encontrar por nombre)<select id="il_pv"><option value="">Cualquiera</option></select></label>
     <label class="f">Archivo (Excel, PDF o CSV)<input type="file" id="il_f" accept=".xlsx,.xls,.ods,.csv,.txt,.pdf"></label></div>
   <textarea id="il_t" rows="5" placeholder="…o pegá acá las filas copiadas de la planilla"></textarea><button class="alt" id="il_leer">Leer lista</button><div id="il_r"></div>`;
-  sb.from('proveedores').select('id,razon_social').eq('activo',true).order('razon_social').then(({data})=>{$('#il_pv').innerHTML+=(data||[]).map(p=>`<option value="${p.id}">${esc(p.razon_social)}</option>`).join('')});
+  sb.from('proveedores').select('id,razon_social').eq('activo',true).order('razon_social').then(({data})=>{const e=$('#il_pv');if(e)e.innerHTML+=(data||[]).map(p=>`<option value="${p.id}">${esc(p.razon_social)}</option>`).join('')});
   let rows=[];
   $('#il_leer').onclick=async()=>{const f=$('#il_f').files[0],t=$('#il_t').value.trim();if(!f&&!t)return toast('Elegí un archivo o pegá las filas.',1);
     $('#il_r').innerHTML='<p>Leyendo la lista…</p>';try{rows=f?await leerArchivoLista(f):partirTexto(t)}catch(e){$('#il_r').innerHTML='<p class="err">No se pudo leer el archivo: '+esc(e.message||e)+'</p>';return}
@@ -3420,7 +3420,7 @@ async function ctRet(){
   $('#rt_cp').onclick=()=>copiarTabla(['Fecha','Tipo','Impuesto','Jurisdicción','Cliente','CUIT','Certificado','Importe'],r.data.map(x=>[fd(x.fecha),x.tipo,x.impuesto,x.jurisdiccion||'',x.cliente_id?nomCli(x.cliente_id):'',x.cliente_id?cuitCli(x.cliente_id):'',x.comprobante||'',xl(x.importe)]));
 }
 async function ctBancos(){
-  const C=await cargarCuentas();if(!C){$('#ct').innerHTML=SQL_FALTA;return}
+  const C=await cargarCuentas();if(!$('#ct'))return;if(!C){$('#ct').innerHTML=SQL_FALTA;return}
   S.ctaSel=S.ctaSel&&C.some(c=>c.id==S.ctaSel)?S.ctaSel:C[0]?.id;
   const total=C.filter(c=>c.activa).reduce((a,c)=>a+c.saldo,0);
   $('#ct').innerHTML=`<div class="kp">${C.filter(c=>c.activa).map(c=>`<div class="box clic ${S.ctaSel==c.id?'sel':''}" data-cs="${c.id}"><span class="lab">${esc(c.nombre)}</span><span class="num ${c.saldo<0?'mora':''}">${$s(c.saldo)}</span><span class="det">${TIPO_CTA[c.tipo]||c.tipo}</span></div>`).join('')}
@@ -4111,6 +4111,7 @@ function abrirListaPrecios(c){
 async function vPromos(){
   const box=$('#pm');if(!box)return;
   const{data,error}=await sb.from('promociones').select('*').order('creado_en',{ascending:false});
+  if(!box.isConnected)return;
   if(error){box.innerHTML='<h3>Promociones</h3><p class="err"><small>Para usar promociones, corré promociones.sql en Supabase.</small></p>';return}
   const hoy=diaLocal(new Date()),uniq=k=>[...new Set(S.productos.map(p=>p[k]).filter(Boolean))].sort();
   const estado=r=>!r.activa?['Apagada','b-cancelado']:hoy<r.desde?['Empieza '+fd(r.desde),'b-pendiente']:r.hasta&&hoy>r.hasta?['Terminó','b-cancelado']:['Vigente','b-entregado'];

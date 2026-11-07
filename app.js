@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-06.4';
+const VERSION='2026-11-06.5';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -321,7 +321,7 @@ async function escanear(titulo,alLeer){
 }
 
 /* Buscador de productos reutilizable */
-function buscador(inp,res,onPick,extra){
+function buscador(inp,res,onPick,extra){if(!$(inp))return;
   $(inp).oninput=()=>{const q=$(inp).value.toLowerCase().trim();if(q.length<2){$(res).innerHTML='';return}
     const r=S.productos.filter(p=>coincide(txtProd(p),q)).slice(0,15);
     $(res).innerHTML=r.map(p=>`<div class="r rprod" data-id="${p.producto_id}"><span class="rp-n"><span class="rp-d">${esc(p.descripcion)}</span><small>${p.marca?esc(p.marca)+' · ':''}${esc(p.codigo)}</small></span>${extra?`<span class="rp-x">${extra(p)}</span>`:''}</div>`).join('')||'<small>Sin resultados.</small>';
@@ -396,7 +396,7 @@ async function vInicio(){
   <div class="pieini"><div id="bk"></div></div>`:''}`;
   if(dia)iniAplicar();
   $$('#v details.plg').forEach(d=>{const o=new MutationObserver(badgePlg);o.observe(d,{subtree:true,childList:true,attributes:true,attributeFilter:['data-pend']})});
-  const kp=(id,num,det,cls)=>{const b=$('#'+id);b.querySelector('.num').textContent=num;contar(b.querySelector('.num'),num);b.querySelector('.det').textContent=det||'';if(cls)b.classList.add(cls)};
+  const kp=(id,num,det,cls)=>{const b=$('#'+id);if(!b)return;b.querySelector('.num').textContent=num;contar(b.querySelector('.num'),num);b.querySelector('.det').textContent=det||'';if(cls)b.classList.add(cls)};
   const fallo=(id,e)=>kp(id,'—','No se pudo leer: '+e.message);
   $$('[data-iv]').forEach(b=>b.onclick=()=>{S.inicioModo=b.dataset.iv;vInicio();scrollTo(0,0)});
   const irPed=f=>{S.pf=f;S.tab='pedidos';shell()};
@@ -446,7 +446,7 @@ async function vInicio(){
   await cargarStock();
   if(!S.stockOk){kp('k5','—','No se pudo leer el stock');$('#t4').innerHTML='<p class="err">No se pudo leer el stock. Corré stock.sql en Supabase.</p>'}else{
     if(!S.inv){const{data:E}=await sb.from('pedidos').select('total').in('estado',['aprobado','en_preparacion','listo','en_reparto']);const n=(E||[]).length,te=(E||[]).reduce((a,o)=>a+Number(o.total||0),0);
-      const b5=$('#k5');b5.querySelector('.lab').textContent='🚚 Para entregar';b5.style.cursor='pointer';b5.title='Ver los pedidos para entregar';b5.onclick=()=>irPed('abiertos');
+      const b5=$('#k5');if(!b5)return;b5.querySelector('.lab').textContent='🚚 Para entregar';b5.style.cursor='pointer';b5.title='Ver los pedidos para entregar';b5.onclick=()=>irPed('abiertos');
       kp('k5',String(n),n?'Suman '+$m(te):'Nada pendiente');b5.classList.toggle('vacio',!n);kpCeros();$('#t4').innerHTML='<p><small>Todavía no cargaste el inventario. Cuando hagas el conteo, cargalo en la pestaña Stock y acá vas a ver qué reponer.</small></p><p><button class="alt" id="irS">Ir a Stock</button></p>';$('#irS').onclick=()=>{S.tab='stock';shell()};return}
     const B=bajos();
     kp('k5',String(B.length),B.length?(B.filter(x=>x.d<=0).length+' sin stock'):'Todo sobre el mínimo',B.length?'alerta':'ok');
@@ -1116,13 +1116,14 @@ SDMP-01279	8.900</pre>
   const[cl,pv,hi,mfa]=await Promise.all([sb.from('config_listas').select('*'),sb.from('proveedores').select('id,razon_social').eq('activo',true).order('razon_social'),
     sb.from('historial_costos').select('producto_id,costo_anterior,costo_nuevo,fecha').order('fecha',{ascending:false}).limit(3000),
     sb.from('margenes_familia').select('familia,ajuste_pct')]);
+  if(!$('#pr_q'))return; /* se fue de Precios mientras cargaba */
   await cargarStock();
   /* márgenes */
   const L={};for(const r of cl.data||[])L[r.lista]=+r.margen_pct;
   const LIS=['mayorista','minorista','especial'];
   const MF={};for(const r of mfa.data||[])MF[String(r.familia).toUpperCase()]=+r.ajuste_pct;
   const mgEf=(l,f)=>L[l]==null?null:Math.min(89,Math.max(0,L[l]+(MF[String(f||'').toUpperCase()]||0)));
-  const pintarMF=()=>{if(mfa.error){$('#pr_mf').innerHTML='<p class="err">Para usar márgenes por familia corré <b>margen-familia.sql</b> en Supabase.</p>';$('#pr_mfg').hidden=true;return}
+  const pintarMF=()=>{if(!$('#pr_mf'))return;if(mfa.error){$('#pr_mf').innerHTML='<p class="err">Para usar márgenes por familia corré <b>margen-familia.sql</b> en Supabase.</p>';$('#pr_mfg').hidden=true;return}
     const cnt={};for(const p of S.productos){const f=(p.familia||'').trim();if(f)cnt[f]=(cnt[f]||0)+1}
     const G={};for(const f of Object.keys(cnt).sort(famCmp))(G[famGrupo(f)||'Otras familias']=G[famGrupo(f)||'Otras familias']||[]).push(f);
     const ord=[...FAMILIAS.map(x=>x[0]),'Otras familias'].filter(g=>G[g]);
@@ -1477,7 +1478,7 @@ async function fichaCliente(c){
     if('dias_visita' in c)cambios.dias_visita=leerDias('ecd');if($('#e_rf'))cambios.referido_por=$('#e_rf').value||null;if($('#e_ru'))cambios.rubro=$('#e_ru').value.trim()||null;if($('#e_nf'))cambios.nombre_fantasia=$('#e_nf').value.trim()||null;if($('#e_cd'))cambios.cliente_desde=$('#e_cd').value||null;if($('#e_cu'))cambios.cumpleanos=$('#e_cu').value||null;cambios.limite_credito=+$('#e_lc').value||0;
     const{error}=await sb.from('clientes').update(cambios).eq('id',c.id);if(error)return toast(error.message,1);
     Object.assign(c,cambios);toast('Datos guardados.');fichaCliente(c)};
-  const kp=(id,num,det,cls)=>{const b=$('#'+id);b.querySelector('.num').textContent=num;contar(b.querySelector('.num'),num);b.querySelector('.det').textContent=det||'';if(cls)b.classList.add(cls)};
+  const kp=(id,num,det,cls)=>{const b=$('#'+id);if(!b)return;b.querySelector('.num').textContent=num;contar(b.querySelector('.num'),num);b.querySelector('.det').textContent=det||'';if(cls)b.classList.add(cls)};
   const anio=String(new Date().getFullYear());
   oportunidades(c);puntosFicha(c);pactadosFicha(c);proxFicha(c).catch(()=>{});
   cargarEtq().then(()=>{const b=$('#fc_etq');if(b&&S.fc==c.id)b.innerHTML=etqChips(c)+`<button class="etq-add" id="fc_eta">${IC('tag',13)} ${(c.etiquetas||[]).length?'Cambiar':'Etiqueta'}</button>`;$('#fc_eta')&&($('#fc_eta').onclick=()=>etiquetasModal(c,()=>fichaCliente(c)))}).catch(()=>{});comprasMes(c).catch(()=>{});
@@ -2152,6 +2153,7 @@ async function morosos(){
       <label class="f">Si un cliente supera su límite de crédito<select id="mo_cr"><option value="avisar" ${S.creditoModo!='bloquear'?'selected':''}>Avisar y dejar seguir</option><option value="bloquear" ${S.creditoModo=='bloquear'?'selected':''}>Bloquear (solo el dueño puede pasar)</option></select></label>`:''}</div>
     ${S.perfil.rol=='dueno'&&!S.linkMP?'<p><small>¿Cómo saco mi link de Mercado Pago? En la app de Mercado Pago: <b>Cobrar → Link de pago</b>, sin monto fijo. Copialo y pegalo acá.</small></p>':''}</details>${sinAvisos?'<p><small class="err">Para registrar cuándo le avisaste a cada cliente, corré avisos-deuda.sql en Supabase.</small></p>':''}</div>`;
   $$('#mor [data-mf]').forEach(b=>b.onclick=()=>{S.morF=b.dataset.mf;morosos()});
+  if(!box.isConnected)return;
   $('#mo_t').onchange=e=>S.morTono=e.target.value;
   const cfg=(id,k,sk,msg)=>{$(id)&&($(id).onchange=async e=>{let v=e.target.value.trim();if(k=='link_mp'&&v&&!/^https?:\/\//.test(v)&&!aliasMP(v))v='https://'+v;if(k=='link_mp'&&aliasMP(v)){const a=aliasMP(v);
       /* Un alias no es un link: lo guardo en los datos para transferir (queda fijo) y dejo vacío el link */
