@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-07.3';
+const VERSION='2026-11-07.4';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -62,6 +62,10 @@ function sndSet(on){try{localStorage.setItem('snd_guardar',on?'1':'0')}catch(e){
 /* "tic" suave de dos notas al guardar */
 function tic(forzar){try{if(!forzar&&!sndOn())return;const a=ctxAlarma();if(!a)return;const t=a.currentTime+.01;
   [[1046.5,0],[1568,.075]].forEach(([f,d])=>{const o=a.createOscillator(),g=a.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,t+d);g.gain.linearRampToValueAtTime(.07,t+d+.01);g.gain.exponentialRampToValueAtTime(.0005,t+d+.22);o.connect(g);g.connect(a.destination);o.start(t+d);o.stop(t+d+.25)})}catch(e){}}
+/* festejo del primer pedido de un cliente (una sola vez por cliente) */
+async function primerPedido(c,pid){try{if(!c?.id)return;try{if(localStorage.getItem('fiesta_primer_'+c.id))return}catch(e){}
+  const{count,error}=await sb.from('pedidos').select('id',{count:'exact',head:true}).eq('cliente_id',c.id).neq('id',pid).neq('estado','cancelado').or('es_prueba.is.null,es_prueba.eq.false');
+  if(error||count)return;setTimeout(()=>fiesta('¡Primer pedido de '+(nomVis?nomVis(c):c.razon_social)+'!','primer_'+c.id),1700)}catch(e){}}
 function okAnim(t){try{tic();document.querySelector('.okanim')?.remove();const d=document.createElement('div');d.className='okanim';d.innerHTML=`<div class="okc"><svg viewBox="0 0 52 52" width="76" height="76"><circle cx="26" cy="26" r="24" fill="none"/><path fill="none" d="M15 27l7 7 15-16"/></svg><b>${esc(t)}</b></div>`;document.body.appendChild(d);vibrar(25);setTimeout(()=>d.classList.add('fuera'),1300);setTimeout(()=>d.remove(),1650);d.onclick=()=>d.remove()}catch(e){}}
 function vibrar(ms){try{navigator.vibrate&&navigator.vibrate(ms)}catch(e){}}
 function contar(el,txt){try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;const m=String(txt).match(/^(\$\s)?([\d.]+)(,\d+)?$/);if(!m)return;const v=parseFloat(m[2].replace(/\./g,'')+(m[3]?'.'+m[3].slice(1):''));if(!(v>0))return;
@@ -1750,7 +1754,7 @@ async function vPedidos(){
     const{error:e2}=await sb.from('pedido_items').insert(Object.entries(ag).map(([k,a])=>{const x={pedido_id:o.id,producto_id:k,cantidad:a.q,precio_unitario:Math.round(a.t/a.q*fac*100)/100};if(a.l.size)x.promo=[...a.l].join(' + ');if(a.mp)x.precio_manual=true;return x}));
     if(e2){$('#p_g').disabled=false;if(!ED&&esRed(e2))return pedidoOff(c,agOff(),fac,cu,ex,o.id);return toast(sqlX(e2)?'Falta correr pedidos-extra.sql en Supabase (te lo avisa el Inicio).':'El pedido N° '+o.numero+' quedó sin productos: '+e2.message,1)}
     if(cu&&!ED)await sb.from('cupones_usos').insert({codigo:S.pcup.codigo,cliente_id:c.id,pedido_id:o.id});
-    if(!ED)await marcarDebidos(o.numero).catch(()=>{});S.edPed=null;borrarBorr();okAnim('Pedido N° '+o.numero+(ED?' actualizado':' guardado'));
+    if(!ED)await marcarDebidos(o.numero).catch(()=>{});S.edPed=null;borrarBorr();okAnim('Pedido N° '+o.numero+(ED?' actualizado':' guardado'));if(!ED&&!o.es_prueba)primerPedido(c,o.id);
     if(S.perfil.rol=='vendedor'){const{data:ap}=await sb.from('aprobaciones_precio').select('id').eq('pedido_id',o.id).eq('estado','pendiente').then(r=>r,()=>({}));if(ap?.length)setTimeout(()=>toast('El precio especial quedó para que lo apruebe el dueño. Te avisa la campanita.'),1600)}await cargarStock();vPedidos()};
   $('#p_cuo').onclick=async()=>{const k=$('#p_cu').value.trim().toUpperCase();if(!k){S.pcup=null;$('#p_cum').textContent='';return drawI()}
     const c=cli();if(!c)return toast('Elegí primero el cliente.',1);const sub=S.items.reduce((a,i)=>a+pi(i).pu*i.q,0);
