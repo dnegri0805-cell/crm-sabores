@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-07.29';
+const VERSION='2026-11-07.30';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -3582,7 +3582,7 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
   const SEL=conSel?`<div class="mjseg"><span>Calcular con<small>Estimado: ${m0(mbCat)} por caja</small><small><a class="lnk" data-mjdto>${dtoTx}</a></small></span><div role="radiogroup" aria-label="Calcular con" class="mjsw ${foco?'':'der'}" id="mj_sw"><i class="mjpill"></i><button role="radio" aria-checked="${!!foco}" data-mjf="chicos" class="${foco?'on':''}">65 y 85 g</button><button role="radio" aria-checked="${!foco}" data-mjf="todo" class="${foco?'':'on'}">Toda la línea</button></div></div>`:'';
   const esSig=false;
   box.innerHTML=`<div class="box obj mj${esSig?' sig':''}"><div class="mjtop"><div class="mjtl"><img class="mjimg" src="fotos/metas/mani-jl.webp" alt=""><div><div class="ey">Meta de ${esc((esSig?mesSigJ:mes).toLowerCase())}</div><div class="tt">Maní JL</div>${esSig?`<div class="mjcer">${esc(mes)} cierra con ${nf(Math.round(cj))} ${Math.round(cj)==1?'caja':'cajas'}</div>`:''}</div></div><button class="mjmeta" id="mj_e" aria-label="Cambiar meta"><small>Meta limpia</small><b>${m0(meta)}</b><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16H4v-3z"/></svg></button></div>
-    <div id="mj_h" role="button" tabindex="0" aria-expanded="${abierto}" style="cursor:pointer">${hero}</div>
+    <div id="mj_h">${hero}</div>
     <button class="mjver" id="mj_t">${abierto?'Ocultar detalle':'Ver detalle del mes'} <span>${abierto?'▴':'▾'}</span></button>
     <div id="mj_d"${abierto?'':' hidden'}>${aviso}${faltaMg>0?'<p class="mq-msg mq-cmo">El objetivo por día se recalcula todos los días: si un día vendés menos, lo que falta se reparte entre los días que quedan; si vendés más, baja.</p>':''}
     <div class="mjsec"><div class="mjrow"><span class="ey">${esc(mes)}</span><span class="mjg">${m0(mg)} <small>de ${m0(obj)} (meta + gastos)</small></span></div>
@@ -3597,8 +3597,8 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
         :'<p class="mjn">Cuando haya ventas, acá aparecen los clientes a los que les toca reponer JL y los que compran mucho y no lo llevan.</p>'}</div></div></div>`;
   S.metaRes=S.metaRes||{};S.metaRes.mani={key:'mani',n:'Maní JL',f:'fotos/metas/mani-jl.webp',mes,mesSig:mesSigJ,sig:esSig,pc:esSig?0:cjMetaMes?cj/cjMetaMes:0,val:esSig?nf(semSigJ)+' por semana':nf(Math.round(cj))+' / '+nf(cjMetaMes)+' cajas',
     sub:faltaMg<=0?'Meta cumplida':`Hoy: ${nf(cjHoyR)} de ${nf(porDia)} cajas · faltan ${nf(totalCj)}`};metasResumen();
-  const plegar=()=>{const d=$('#mj_d');if(!d)return;const ab=d.hidden;d.hidden=!ab;try{localStorage.setItem('mj_ab2',ab?'1':'0')}catch(e){}$('#mj_h').setAttribute('aria-expanded',ab);$('#mj_t').innerHTML=(ab?'Ocultar detalle':'Ver detalle del mes')+' <span>'+(ab?'▴':'▾')+'</span>'};
-  $('#mj_h').onclick=plegar;$('#mj_t').onclick=plegar;
+  const plegar=()=>{const d=$('#mj_d');if(!d)return;const ab=d.hidden;d.hidden=!ab;try{localStorage.setItem('mj_ab2',ab?'1':'0')}catch(e){}$('#mj_t').setAttribute('aria-expanded',ab);$('#mj_t').innerHTML=(ab?'Ocultar detalle':'Ver detalle del mes')+' <span>'+(ab?'▴':'▾')+'</span>'};
+  /* el detalle se abre solo con su botón: tocar la tarjeta lo abría sin querer */$('#mj_t').onclick=plegar;
   const sw=$('#mj_sw');if(sw){
     /* Interruptor deslizable: la pastilla blanca se mueve con el dedo y queda del lado que elijas */
     const elegir=async v=>{const der=v=='todo';sw.classList.toggle('der',der);sw.querySelectorAll('button').forEach(b=>{const on=b.dataset.mjf==v;b.classList.toggle('on',on);b.setAttribute('aria-checked',on)});
