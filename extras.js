@@ -1,5 +1,5 @@
 /* Sabores de mi País · CRM — pantallas de uso ocasional. Se cargan solas cuando hacen falta (ver EXTRAS en app.js). */
-async function vManual(){const v=$('#v');v.innerHTML='<p>Cargando manual…</p>';
+async function vManual(){const v=$('#v');v.innerHTML='<span class="skl" role="status" aria-label="Cargando manual"></span>';
   if(!S.manual){try{const r=await fetch('manual.md?v='+VERSION,{cache:'no-store'});if(!r.ok)throw 0;S.manual=await r.text()}catch(e){v.innerHTML='<p>No se pudo cargar el manual. Probá de nuevo en un rato.</p>';return}}
   const partes=S.manual.split(/^## /m),cab=partes.shift().replace(/^# .*\n/,'');
   const secs=partes.map(x=>{const i=x.indexOf('\n');return{t:x.slice(0,i).trim(),b:x.slice(i+1)}});
@@ -3426,7 +3426,7 @@ async function ctBancos(){
   const total=C.filter(c=>c.activa).reduce((a,c)=>a+c.saldo,0);
   $('#ct').innerHTML=`<div class="kp">${C.filter(c=>c.activa).map(c=>`<div class="box clic ${S.ctaSel==c.id?'sel':''}" data-cs="${c.id}"><span class="lab">${esc(c.nombre)}</span><span class="num ${c.saldo<0?'mora':''}">${$s(c.saldo)}</span><span class="det">${TIPO_CTA[c.tipo]||c.tipo}</span></div>`).join('')}
     <div class="box ok"><span class="lab">Total en cuentas</span><span class="num">${$s(total)}</span><span class="det">${C.filter(c=>c.activa).length} cuentas</span></div></div>
-  <div class="dos fc2"><div class="box" id="bk_mv">${C.length?'Cargando…':'<p>Todavía no cargaste ninguna cuenta. Agregá tu banco, Mercado Pago, etc. con el saldo que tienen hoy.</p>'}</div>
+  <div class="dos fc2"><div class="box" id="bk_mv">${C.length?'<span class="skl" role="status" aria-label="Cargando"></span>':'<p>Todavía no cargaste ninguna cuenta. Agregá tu banco, Mercado Pago, etc. con el saldo que tienen hoy.</p>'}</div>
   <div class="box"><h3>Agregar cuenta</h3><div class="g"><input id="cn_n" placeholder="Nombre (ej.: Banco Galicia, Mercado Pago)"><select id="cn_t">${Object.entries(TIPO_CTA).filter(x=>x[0]!='efectivo').map(([k,t])=>`<option value="${k}">${t}</option>`).join('')}</select>
     <label class="f">Saldo de hoy<input id="cn_s" type="number" step="0.01" value="0"></label></div><button id="cn_g">Agregar cuenta</button>
     ${C.filter(c=>c.activa).length>1?`<h3 style="margin-top:18px">Pasar plata entre cuentas</h3><div class="g"><label class="f">Desde<select id="tr_a">${optCuentas(C)}</select></label><label class="f">Hacia<select id="tr_b">${optCuentas(C,C.filter(c=>c.activa)[1]?.id)}</select></label><label class="f">Importe<input id="tr_m" type="number" step="0.01" min="0"></label></div><button id="tr_g">Transferir</button>`:''}

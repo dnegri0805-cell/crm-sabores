@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-06.11';
+const VERSION='2026-11-07.1';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -46,6 +46,17 @@ const fd=d=>d?new Date(d+(String(d).length==10?'T12:00':'')).toLocaleDateString(
 const ESTADOS=['pendiente','aprobado','en_preparacion','listo','en_reparto','entregado','cancelado'];
 let S={perfil:null,tab:'inicio',clientes:[],productos:[],items:[],sub:'ordenes',prov:[],oc:[]};
 /* Animaciones: tilde de éxito, números que suben y pantallas vacías */
+const quieto=()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){return false}};
+/* el número pasa del valor anterior al nuevo (total del pedido) */
+function contarDesde(el,de,a,txt){try{if(!el)return;if(quieto()||!(de>=0)||!(a>=0)||de==a){el.textContent=txt;return}clearTimeout(el._ct);cancelAnimationFrame(el._raf);const t0=performance.now(),dur=450;
+  const paso=t=>{const k=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-k,3);el.textContent=k<1?$m(de+(a-de)*e):txt;if(k<1)el._raf=requestAnimationFrame(paso)};el._raf=requestAnimationFrame(paso)}catch(e){el&&(el.textContent=txt)}}
+/* reinicia una animación CSS de un toque (salto de la barra, campanita) */
+function sacudir(el,cls){try{if(!el||quieto())return;el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);setTimeout(()=>el.classList.remove(cls),900)}catch(e){}}
+/* festejo: confeti + cartel, una sola vez por clave (semana o mes) */
+function fiesta(t,clave){try{if(clave){if(localStorage.getItem('fiesta_'+clave))return;localStorage.setItem('fiesta_'+clave,'1')}}catch(e){}
+  okAnim(t);vibrar([30,60,30]);if(quieto())return;const C=['#7b2d3e','#e8a33d','#1d7a46','#17213a','#f2c94c','#e86a7a'],d=document.createElement('div');d.className='confeti';
+  for(let i=0;i<46;i++){const p=document.createElement('i');p.style.left=(Math.random()*100)+'%';p.style.background=C[i%C.length];p.style.animationDelay=(Math.random()*.35)+'s';p.style.animationDuration=(1.4+Math.random()*1.1)+'s';p.style.setProperty('--x',(Math.random()*160-80)+'px');p.style.setProperty('--r',(Math.random()*720-360)+'deg');if(i%3==0)p.style.borderRadius='50%';d.appendChild(p)}
+  document.body.appendChild(d);setTimeout(()=>d.remove(),3200)}
 function okAnim(t){try{document.querySelector('.okanim')?.remove();const d=document.createElement('div');d.className='okanim';d.innerHTML=`<div class="okc"><svg viewBox="0 0 52 52" width="76" height="76"><circle cx="26" cy="26" r="24" fill="none"/><path fill="none" d="M15 27l7 7 15-16"/></svg><b>${esc(t)}</b></div>`;document.body.appendChild(d);vibrar(25);setTimeout(()=>d.classList.add('fuera'),1300);setTimeout(()=>d.remove(),1650);d.onclick=()=>d.remove()}catch(e){}}
 function vibrar(ms){try{navigator.vibrate&&navigator.vibrate(ms)}catch(e){}}
 function contar(el,txt){try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;const m=String(txt).match(/^(\$\s)?([\d.]+)(,\d+)?$/);if(!m)return;const v=parseFloat(m[2].replace(/\./g,'')+(m[3]?'.'+m[3].slice(1):''));if(!(v>0))return;
@@ -1597,7 +1608,7 @@ async function vPedidos(){
   <div id="p_prod" hidden><div class="conscan"><input id="p_q" type="search" placeholder="Buscar producto o código" autocomplete="off">${btnScan('p_sc')}</div><div id="p_r"></div>
   <div class="ptools"><button class="alt" id="p_gf" title="Ver los productos con foto y tocar para sumar">${IC('image',18)}<span>Fotos</span></button><button class="alt" id="p_qk" title="Ver todos los productos por familia y cargar cantidades">${IC('bars',18)}<span>Rápida</span></button><button class="alt" id="p_wa" title="Pegar el pedido que te mandó por WhatsApp">${IC('chat',18)}<span>WhatsApp</span></button><button class="alt" id="p_vo" title="Dictar el pedido">${IC('mic',18)}<span>Dictar</span></button></div></div><table id="p_i"></table><button class="alt p-mas" id="p_mas" hidden>${IC('plus',18)} Seguí cargando productos</button><p id="p_tp" hidden><b id="p_t"></b><br><span id="p_tk"></span></p><div id="p_av"></div><div id="p_sug" class="chips sug"></div><div id="p_fin" hidden><div class="g" id="p_ex" style="margin-top:8px"><label class="f">Fecha de entrega<input type="date" id="p_fe"></label><label class="f" style="grid-column:span 2">Nota del pedido<input id="p_ob" maxlength="300" placeholder="Ej.: entregar después de las 10, cobrar con transferencia"></label></div><div class="cupw"><input id="p_cu" class="cupin" placeholder="Cupón (opcional)" autocomplete="off"><button class="alt" id="p_cuo">Aplicar cupón</button> <small id="p_cum"></small></div><label class="prb-l" id="p_prbw" hidden><input type="checkbox" id="p_prb"><span><b>Pedido de prueba</b><small>Después lo borrás con un toque, con todo lo que generó.</small></span></label><div class="fc-acc"><button id="p_g">Guardar pedido</button><button class="alt" id="p_pre">📝 Mandar como presupuesto</button></div></div></div>
   <div id="p_lst"><div id="p_prbav"></div><div class="bh"><h3>Últimos pedidos</h3><button class="alt ped-herr" onclick="abrirMasHoja('pl_mh','Herramientas de pedidos')">${IC('sliders',16)} Herramientas</button></div><div id="presu" class="presu"></div><div hidden id="pl_mh"><button class="alt" onclick="excelPedidos()">📥 Bajar Excel (lo que estás viendo)</button><button class="alt" onclick="borrarPruebas()">🧪 Borrar pedidos de prueba</button><button class="alt" onclick="hojaArmado()">🧺 Hoja de armado</button><button class="alt" onclick="autoAprobarCfg()">🤖 Aprobación automática</button></div><table id="pl"></table></div><div id="p_bar" class="pbar" hidden><div class="pbar-t"><small id="p_bn"></small><b id="p_bt"></b></div><button class="alt pbar-mas" id="p_bm" aria-label="Agregar otro producto">${IC('plus',20)}</button><button id="p_bg">Guardar pedido</button></div>`;
-  {const sync=()=>{const n=S.items.length,bar=$('#p_bar');if(!bar)return;$('#p_fin').hidden=!n;$('#p_tp').hidden=!n;$('#p_mas').hidden=!n;if(n)$('#p_prod').hidden=false;bar.hidden=!n||!S.pcli;{const l=$('#p_lst');if(l)l.hidden=!!S.pcli}{const g=$('#p_g');if(g)g.hidden=!bar.hidden}const tx=$('#p_t')?.textContent||'',m=tx.match(/Total:\s*(\$\s*[\d.,]+)/);$('#p_bn').innerHTML=esc(n+(n==1?' producto':' productos')+(S.pcli?' · '+nomVis(S.pcli):''))+(S.perfil.rol=='dueno'&&S.pgv&&n?` · <span class="${S.pgv.pg<(S.margenMin??15)?'baja':'sube'}">te deja ${$m0(S.pgv.g)} (${nf(S.pgv.pg)} %)</span>`:'');$('#p_bt').textContent=m?m[1]:''};
+  {const sync=()=>{const n=S.items.length,bar=$('#p_bar');if(!bar)return;$('#p_fin').hidden=!n;$('#p_tp').hidden=!n;$('#p_mas').hidden=!n;if(n)$('#p_prod').hidden=false;bar.hidden=!n||!S.pcli;{const l=$('#p_lst');if(l)l.hidden=!!S.pcli}{const g=$('#p_g');if(g)g.hidden=!bar.hidden}const tx=$('#p_t')?.textContent||'',m=tx.match(/Total:\s*(\$\s*[\d.,]+)/);$('#p_bn').innerHTML=esc(n+(n==1?' producto':' productos')+(S.pcli?' · '+nomVis(S.pcli):''))+(S.perfil.rol=='dueno'&&S.pgv&&n?` · <span class="${S.pgv.pg<(S.margenMin??15)?'baja':'sube'}">te deja ${$m0(S.pgv.g)} (${nf(S.pgv.pg)} %)</span>`:'');{const bt=$('#p_bt'),nv=m?m[1]:'',ant=bar._tot,nn=m?numAR(m[1]):null;if(nv!=bt.textContent){if(ant!=null&&nn!=null&&!bar.hidden){contarDesde(bt,ant,nn,nv);if(nn>ant)sacudir(bar,'salta')}else bt.textContent=nv}bar._tot=nn}};
    new MutationObserver(sync).observe($('#p_t'),{childList:true,subtree:true,characterData:true});$('#p_bg').onclick=()=>$('#p_g').click();
    {const seguir=()=>{const q=$('#p_q');if(!q)return;$('#p_prod').hidden=false;q.value='';q.dispatchEvent(new Event('input'));q.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>q.focus(),350)};$('#p_mas').onclick=seguir;$('#p_bm').onclick=seguir}sync()}
   const cli=()=>S.pcli;
@@ -2130,7 +2141,7 @@ async function cobEstadosMasivo(){const{data:F}=await todo(()=>sb.from('facturas
     m.querySelector('#ce_ok').onclick=()=>{window.open('https://wa.me/'+telWA(x.c.telefono)+'?text='+encodeURIComponent(m.querySelector('#ce_t').value),'_blank');sb.from('avisos_deuda').insert({cliente_id:x.c.id,medio:'whatsapp',monto:+x.t.toFixed(2)}).then(()=>{},()=>{});n++;k++;paso()}};
   paso()}
 async function morosos(){
-  const box=$('#mor');if(!box)return;box.innerHTML='<div class="box">Cargando deudas…</div>';await cargarRecargo();await cargarPromesas().catch(()=>null);promesasBox();comprobantesBox().catch(()=>{});
+  const box=$('#mor');if(!box)return;box.innerHTML='<div class="box"><span class="skl" role="status" aria-label="Cargando deudas"></span></div>';await cargarRecargo();await cargarPromesas().catch(()=>null);promesasBox();comprobantesBox().catch(()=>{});
   const[fe,av,cf]=await Promise.all([todo(()=>sb.from('facturas_estado').select('*').gt('pendiente',0.005).order('vencimiento')),
     todo(()=>sb.from('avisos_deuda').select('cliente_id,fecha').order('fecha',{ascending:false})),
     sb.from('config_app').select('valor').eq('clave','datos_pago').maybeSingle()]);
@@ -3011,7 +3022,7 @@ async function panelPedido(o,alCambiar){if(!o)return;document.getElementById('pd
    Lo que pasó en los últimos 7 días: pedidos online o de vendedores, entregas, comprobantes, reclamos y pedidos del catálogo. */
 
 const actVisto=()=>{try{return localStorage.getItem('act_visto_'+S.perfil.id)||''}catch(e){return ''}};
-async function actContar(){if(!S.perfil)return;const A=await actDatos().catch(()=>[]),v=actVisto(),n=A.filter(x=>String(x.f)>v).length,b=document.getElementById('hb_n');if(b){b.hidden=!n;b.textContent=n>9?'9+':n}}
+async function actContar(){if(!S.perfil)return;const A=await actDatos().catch(()=>[]),v=actVisto(),n=A.filter(x=>String(x.f)>v).length,b=document.getElementById('hb_n');if(b){b.hidden=!n;b.textContent=n>9?'9+':n}if(S._actN!=null&&n>S._actN)sacudir(document.querySelector('.hbell'),'suena');S._actN=n}
 async function actividad(){const m=document.createElement('div');m.className='modal act-m';document.body.appendChild(m);
   m.innerHTML=`<div class="mc act"><div class="bh"><h3>Actividad</h3><button class="alt" id="ac_x">Cerrar</button></div><div id="ac_l"><span class="skl" role="status" aria-label="Cargando"></span></div></div>`;
   m.onclick=e=>{if(e.target==m)m.remove()};m.querySelector('#ac_x').onclick=()=>m.remove();
@@ -3318,7 +3329,7 @@ async function tuDiaInicio(){const box=$('#tudia');if(!box)return;const hoy=diaL
       ${g.R.map(r=>`<div class="td-r"><span class="td-i" style="background:${colAv(r.b)};color:#fff">${r.i}</span><div class="td-t"><b>${esc(r.b)}</b><small${r.v?' class="td-venc"':''}>${esc(r.s)}</small></div><span class="td-a">${r.a}</span></div>`).join('')}</div>`).join('')
       :`<p class="td-ok">${IC('check',16)} Nada para entregar, cobrar ni seguir hoy. Buen momento para salir a vender.</p>`}</div>`;
   box.querySelectorAll('[data-tdp]').forEach(b=>b.onclick=()=>{S.preCli=cl(b.dataset.tdp);irA('pedidos')});
-  box.querySelectorAll('[data-tdh]').forEach(b=>b.onclick=async()=>{b.disabled=true;const{error}=await sb.from('tareas').update({hecha:true,hecha_en:new Date().toISOString()}).eq('id',b.dataset.tdh);if(error){b.disabled=false;return toast(error.message,1)}toast('Tarea hecha.');tuDiaInicio()})}
+  box.querySelectorAll('[data-tdh]').forEach(b=>b.onclick=async()=>{b.disabled=true;const{error}=await sb.from('tareas').update({hecha:true,hecha_en:new Date().toISOString()}).eq('id',b.dataset.tdh);if(error){b.disabled=false;return toast(error.message,1)}toast('Tarea hecha.');const fila=b.closest('.td-r');if(fila&&!quieto()){fila.style.height=fila.offsetHeight+'px';fila.classList.add('sale');setTimeout(()=>tuDiaInicio(),380)}else tuDiaInicio()})}
 /* kilos por caja de cada meta en kilos (se cambia con el lápiz; si no está cargado, uno aproximado según el producto) */
 const kgCaja=x=>+x?.kc==-1?0:+x?.kc>0?+x.kc:/boya/i.test(x?.n||'')?25:/tarant/i.test(x?.n||'')?16:/salam/i.test(x?.n||'')?10:0;
 const enCajas=(kg,kc)=>{if(!(kc>0))return'';const n=Math.max(1,Math.round(kg/kc));return'≈ '+nf(n)+(n==1?' caja':' cajas')};
@@ -3541,6 +3552,9 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
   $$('#manijl [data-mjp]').forEach(bt=>bt.onclick=()=>{const x=VIS.find(y=>y.c.id==bt.dataset.mjp);S.preCli=x.c;S.preItems=x.it&&x.it.length?x.it:null;S.tab='pedidos';shell()});
   $$('#manijl [data-mjdto]').forEach(a=>a.onclick=async e=>{e.stopPropagation();const x=prompt('Descuento promedio que pensás dar a los clientes (en %). La meta se calcula con ese precio:',String(dto));if(x===null)return;const n=numAR(x);if(!(n>=0&&n<=50))return toast('Escribí un porcentaje entre 0 y 50.',1);
     const{error}=await guardaCfgJ('mani_jl',{...C,dto:n});error?toast(error.message,1):(toast('Meta calculada '+(n>0?'con '+nf(n)+' % de descuento':'sin descuento')+'.'),maniJLInicio())});
+  /* festejo una sola vez por semana y por mes */
+  if(faltaMg<=0&&meta>0)fiesta('¡Meta de '+mes.toLowerCase()+' cumplida!','mj_mes_'+m);
+  else if(semIni&&objSem>0&&faltaSem<=0&&cjS>0)fiesta('¡Semana cumplida!','mj_sem_'+sA);
   $('#mj_e').onclick=pedirMeta}
 
 /* ======================= METAS EN KILOS POR PRODUCTO (Inicio) =======================
@@ -4203,7 +4217,7 @@ function tonoElegido(){let k;try{if(!localStorage.getItem('crm_tono_nuevo1')){lo
 function timbre(k){const a=ctxAlarma();if(!a)return;(TONOS[k]||TONOS[tonoElegido()]).f(a,a.currentTime+.02);if(!k)vibrar([300,120,300])}
 function elegirTono(k){try{localStorage.setItem('crm_tono',k)}catch(e){}timbre(k);document.querySelectorAll('#tonos button').forEach(b=>{b.classList.toggle('alt',b.dataset.k!=k);b.textContent=(b.dataset.k==k?'✓ ':'')+'▶ '+TONOS[b.dataset.k].n})}
 function pararAlarma(){clearInterval(S.alIv);S.alIv=null;$('#alarma')?.remove();try{navigator.serviceWorker?.getRegistration().then(r=>r&&r.getNotifications({tag:'crm-pedido'}).then(L=>L.forEach(n=>n.close())))}catch(e){}}
-function alarmaPedido(L){S.alarmaL=[...(S.alarmaL&&$('#alarma')?S.alarmaL:[]),...L];const T=S.alarmaL;
+function alarmaPedido(L){sacudir(document.querySelector('.hbell'),'suena');S.alarmaL=[...(S.alarmaL&&$('#alarma')?S.alarmaL:[]),...L];const T=S.alarmaL;
   let d=$('#alarma');if(!d){d=document.createElement('div');d.id='alarma';document.body.appendChild(d)}
   d.innerHTML=`<div class="alc"><div class="alr">🔔</div><h2>${T.length==1?'¡Pedido nuevo!':'¡'+T.length+' pedidos nuevos!'}</h2>
     ${T.slice(0,4).map(x=>`<div class="ali"><b>${esc(x.t)}</b></div>`).join('')}${T.length>4?`<small>…y ${T.length-4} más</small>`:''}

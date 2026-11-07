@@ -502,6 +502,9 @@ button:active:not(:disabled),.btn:active,.bnav a:active,.hbt:active{transform:sc
 .splash i{width:34px;height:34px;border-radius:50%;border:3px solid rgba(255,255,255,.2);border-top-color:#fff;animation:gira .8s linear infinite}
 @keyframes gira{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){#v>*,.modal,.modal>.mc,.okc,.splash img{animation:none!important}}
+.confeti{position:fixed;inset:0;pointer-events:none;z-index:10000;overflow:hidden}
+.confeti i{position:absolute;top:-14px;width:9px;height:14px;border-radius:2px;opacity:.95;animation:cae 2s cubic-bezier(.25,.5,.5,1) forwards}
+@keyframes cae{to{transform:translate(var(--x),105vh) rotate(var(--r));opacity:.9}}
 .cl-av{position:relative;padding-left:62px!important}
 .cl-ini{position:absolute;left:12px;top:11px;width:38px;height:38px;border-radius:50%;color:#fff;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;letter-spacing:.02em}
 .cl-cond{background:#f1eef0;color:#5b4650;border-radius:999px;padding:2px 8px;font-size:13px!important}
@@ -1967,6 +1970,17 @@ html.oscuro p.vac .vac-i{background:radial-gradient(circle at 30% 30%,#3a1d26,#2
   .pr-tabs button{transition:color .15s,border-color .2s}
   details[open]>:not(summary){animation:dz .2s ease-out}
   @keyframes dz{from{opacity:0;transform:translateY(-4px)}}
+  /* barra del pedido: salto al sumar un producto */
+  .pbar.salta{animation:salta .42s cubic-bezier(.3,1.6,.5,1)}
+  @keyframes salta{0%{transform:translateY(0)}35%{transform:translateY(-7px) scale(1.015)}100%{transform:none}}
+  /* anillo de la meta: se llena al abrir Inicio */
+  .mjr .fl{animation:mjfill .9s .15s cubic-bezier(.2,.8,.2,1) both}
+  @keyframes mjfill{from{stroke-dasharray:0 189}}
+  /* Tu día: la fila hecha sale deslizando */
+  .td-r.sale{transition:transform .3s ease-in,opacity .3s ease-in,height .25s .12s ease,margin .25s .12s,padding .25s .12s;transform:translateX(110%);opacity:0;height:0!important;margin-top:0;margin-bottom:0;padding-top:0;padding-bottom:0;overflow:hidden}
+  /* campanita */
+  .hbell.suena svg{animation:alRing .9s ease-in-out;transform-origin:50% 10%}
+  .hbell.suena #hb_n{animation:pop .3s .1s ease-out}
   .rp-b i,.rp-bar i,.m1-b i,.rk-bar i,.pgb i,.barra i{transition:width .5s cubic-bezier(.2,.8,.2,1)}
   #t{animation:tin .22s cubic-bezier(.2,.8,.2,1)}
   @keyframes tin{from{opacity:0;transform:translate(-50%,8px)}}
@@ -2025,6 +2039,6 @@ html:not(.oscuro) body,html:not(.oscuro) #app{background:var(--g)}
 <div id="app"><div class="splash"><img src="logo.png" alt="Sabores de mi País"><i></i></div></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
-<script src="app.js?v=2026-11-06.11"></script>
+<script src="app.js?v=2026-11-07.1"></script>
 </body>
 </html>
