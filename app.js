@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-07.37';
+const VERSION='2026-11-07.38';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -362,9 +362,11 @@ async function escanear(titulo,alLeer){
 }
 
 /* Buscador de productos reutilizable */
+/* foco en Maní JL: sus productos van primero en búsquedas, catálogo y precios */
+const JL_ID='ff2b3481-6cef-408e-a1d0-f08ee5b8082e',esJL=id=>S.min?.[id]?.pv==(S._jlId||JL_ID),jlPrimero=L=>L.slice().sort((a,b)=>esJL(b.producto_id)-esJL(a.producto_id));
 function buscador(inp,res,onPick,extra){if(!$(inp))return;
   $(inp).oninput=()=>{const q=$(inp).value.toLowerCase().trim();if(q.length<2){$(res).innerHTML='';return}
-    const r=S.productos.filter(p=>coincide(txtProd(p),q)).slice(0,15);
+    const r=jlPrimero(S.productos.filter(p=>coincide(txtProd(p),q))).slice(0,15);
     $(res).innerHTML=r.map(p=>`<div class="r rprod" data-id="${p.producto_id}"><span class="rp-n"><span class="rp-d">${esc(p.descripcion)}</span><small>${p.marca?esc(p.marca)+' · ':''}${esc(p.codigo)}</small></span>${extra?`<span class="rp-x">${extra(p)}</span>`:''}</div>`).join('')||'<small>Sin resultados.</small>';
     $$(res+' .r').forEach(d=>d.onclick=()=>{$(inp).value='';$(res).innerHTML='';onPick(S.productos.find(x=>x.producto_id==d.dataset.id))})};
 }
@@ -1120,6 +1122,7 @@ function precioRapido(p,fin){if(!p)return;const id=p.producto_id,z=ppz(id)||1,fj
   q('#qp_g').onclick=()=>{const n=numAR(q('#qp_v').value);if(!(n>0))return toast('Escribí el precio.',1);guardar(Math.round(n*z*100)/100)};
   q('#qp_au')&&(q('#qp_au').onclick=()=>guardar(null))}
 async function vPrecios(){
+  if(S.prG===undefined)S.prG='__jl';
   $('#v').innerHTML=`<div class="bh"><h2>Precios y márgenes</h2><div class="fc-acc"><button class="alt" onclick="window.open('catalogo.html','_blank')" title="Catálogo con precios">📒 Catálogo</button><button class="alt" onclick="aumentosProg()" title="Aumentos programados">📅 Aumentos</button><button class="alt" onclick="pesablesModal()" title="Productos por peso">⚖️ Por peso</button><button class="alt" id="pr_masb">Más</button></div></div>
   <div class="pr-tabs" role="tablist">${[['prod','Productos'],...(verCostos()?[['mar','Márgenes'],['aum','Aumentos y promos'],['imp','Importar lista']]:[])].map(([k,t])=>`<button role="tab" data-pt="${k}">${t}</button>`).join('')}</div>
   <div class="box prbox" data-pp="prod"><div hidden id="pr_masc"><div class="masc"><button class="alt" onclick="excelPrecios()">📥 Bajar Excel (lo que estás viendo)</button><button class="alt" id="pr_ofam">🗂️ Ordenar por familias</button><button class="alt" id="pr_fcat">🖼️ Fotos del catálogo</button><button class="alt" id="pr_fjl">🥜 Fotos Maní JL</button><button class="alt" id="pr_fot">🔎 Fotos automáticas</button><button class="alt" id="pr_et">🏷️ Imprimir etiquetas del filtro</button><button class="alt" onclick="const d=document.getElementById('pr_ad');d.hidden=false;d.open=true;d.scrollIntoView({behavior:'smooth',block:'center'})">📈 Aumento por porcentaje</button></div></div>
@@ -1203,14 +1206,14 @@ SDMP-01279	8.900</pre>
   const nuevo={};let sel=[];S.prLim=S.prLim||30;S.prSel=null;
   const semana=Date.now()-7*864e5,cambio=p=>{const u=ult[p.producto_id];return u&&new Date(u.fecha).getTime()>=semana};
   const filtrar=()=>{const q=$('#pr_q').value.toLowerCase().trim(),v=$('#pr_pv').value,m=$('#pr_ma').value,f=$('#pr_fa').value;
-    const sf=$('#pr_sf').checked,mb=$('#pr_mb').checked,fjo=$('#pr_fj').checked;return S.productos.filter(p=>(!S.prCam||cambio(p))&&(!mb||mgMay(p)!=null&&mgMay(p)<(S.margenMin??15)-0.5)&&(!fjo||+p.precio_fijo>0)&&(!S.prG||(famGrupo(p.familia)||'Otras familias')==S.prG)&&(!q||coincide(txtProd(p),q))&&(!v||S.min[p.producto_id]?.pv==v)&&(!m||p.marca==m)&&(!f||p.familia==f)&&(!sf||!S.min[p.producto_id]?.foto))};
+    const sf=$('#pr_sf').checked,mb=$('#pr_mb').checked,fjo=$('#pr_fj').checked;return S.productos.filter(p=>(!S.prCam||cambio(p))&&(!mb||mgMay(p)!=null&&mgMay(p)<(S.margenMin??15)-0.5)&&(!fjo||+p.precio_fijo>0)&&(!S.prG||(S.prG=='__jl'?esJL(p.producto_id):(famGrupo(p.familia)||'Otras familias')==S.prG))&&(!q||coincide(txtProd(p),q))&&(!v||S.min[p.producto_id]?.pv==v)&&(!m||p.marca==m)&&(!f||p.familia==f)&&(!sf||!S.min[p.producto_id]?.foto))};
   const mgMay=p=>{const v=+p.precio_mayorista,c=+p.costo;return v>0&&c>0?(v-c)/v*100:null};
   const precio=(c,l,f)=>{const m=mgEf(l,f);return m!=null&&c>0?Math.round(c/(1-m/100)*100)/100:null};
   const upd=()=>{const n=Object.keys(nuevo).length;$('#pr_n').textContent=n?n+(n==1?' costo cambiado sin guardar':' costos cambiados sin guardar'):''};
-  const draw=()=>{sel=filtrar();S._prV=sel;$('#pr_cnt').textContent=sel.length+(sel.length==1?' producto':' productos');
+  const draw=()=>{sel=jlPrimero(filtrar());S._prV=sel;$('#pr_cnt').textContent=sel.length+(sel.length==1?' producto':' productos');
     {const nf_=[$('#pr_pv').value,$('#pr_ma').value,$('#pr_fa').value].filter(Boolean).length+($('#pr_sf').checked?1:0)+($('#pr_mb').checked?1:0)+($('#pr_fj').checked?1:0);$('#pr_fn').textContent=nf_?'· '+nf_+(nf_==1?' activo':' activos'):'';$('#pr_fbn').textContent=nf_||'';$('#pr_fb').classList.toggle('on',!!nf_)}
     {const cnt={};S.productos.forEach(p=>{const g=famGrupo(p.familia)||'Otras familias';cnt[g]=(cnt[g]||0)+1});const ord=[...FAMILIAS.map(x=>x[0]),'Otras familias'].filter(g=>cnt[g]);
-     $('#pr_gr').innerHTML=`<button class="${S.prG?'alt':''}" data-prg="">Todas</button>`+ord.map(g=>`<button class="${S.prG==g?'':'alt'}" data-prg="${esc(g)}">${esc(g)}</button>`).join('');
+     $('#pr_gr').innerHTML=`<button class="${S.prG=='__jl'?'':'alt'}" data-prg="__jl">🥜 Maní JL</button><button class="${S.prG?'alt':''}" data-prg="">Todas</button>`+ord.map(g=>`<button class="${S.prG==g?'':'alt'}" data-prg="${esc(g)}">${esc(g)}</button>`).join('');
      $$('#pr_gr [data-prg]').forEach(b=>b.onclick=()=>{S.prG=b.dataset.prg;S.prLim=30;draw()})}
     {const T=S.productos.filter(act),A=[...(verCostos()?[['mb','⚠️',T.filter(p=>mgMay(p)!=null&&mgMay(p)<(S.margenMin??15)-0.5).length,'te dejan menos del '+(S.margenMin??15)+' %']]:[]),...(verCostos()?[['cam','📈',T.filter(cambio).length,'cambiaron de costo esta semana']]:[]),['fj','📌',T.filter(p=>+p.precio_fijo>0).length,'con precio fijo'],['sf','📷',T.filter(p=>!S.min[p.producto_id]?.foto).length,'sin foto']].filter(x=>x[2]>0);
      const on=k=>k=='cam'?!!S.prCam:$('#pr_'+k).checked;
@@ -1594,7 +1597,7 @@ async function fichaCliente(c){
 function cargaRapida(lista,items,setQ,fin){
   const Q={};for(const it of items)if(!it.cb)Q[it.p.producto_id]=it.q;
   const pre=p=>Number(p['precio_'+lista])||0,nCod=v=>{const n=parseInt(String(v||'').replace(/\D/g,''),10);return isNaN(n)?Infinity:n};
-  const P=S.productos.filter(p=>S.min[p.producto_id]?.a!==false&&pre(p)>0);
+  const P=jlPrimero(S.productos.filter(p=>S.min[p.producto_id]?.a!==false&&pre(p)>0));
   const fam=p=>(p.familia||'').trim()||'Otros';
   const FAM=[...new Set(P.map(fam))].sort(famCmp);
   const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
@@ -3165,7 +3168,7 @@ function grillaFotosPedido(o){const m=document.createElement('div');m.className=
   m.innerHTML=`<div class="mc cf"><div class="cf-h"><div class="bh"><h3>Productos con foto</h3><button id="cf_x">Listo</button></div><input id="cf_q" type="search" placeholder="Buscar producto" autocomplete="off"><div class="sub cf-g" id="cf_g"></div></div><div class="cf-l" id="cf_l"></div></div>`;
   const pinta=()=>{$('#cf_g').innerHTML=`<button class="${g?'alt':''}" data-cg="">Todas</button>`+G.map(k=>`<button class="${g==k?'':'alt'}" data-cg="${esc(k)}">${esc(k)}</button>`).join('');
     $$('#cf_g [data-cg]').forEach(b=>b.onclick=()=>{g=b.dataset.cg;n=60;pinta()});
-    const L=act.filter(p=>(!g||(famGrupo(p.familia)||'Otras familias')==g)&&(!q||coincide(txtProd(p),q))).sort((a,b)=>(!!S.min[b.producto_id]?.foto-!!S.min[a.producto_id]?.foto)||a.descripcion.localeCompare(b.descripcion,'es'));
+    const L=act.filter(p=>(!g||(famGrupo(p.familia)||'Otras familias')==g)&&(!q||coincide(txtProd(p),q))).sort((a,b)=>(esJL(b.producto_id)-esJL(a.producto_id))||(!!S.min[b.producto_id]?.foto-!!S.min[a.producto_id]?.foto)||a.descripcion.localeCompare(b.descripcion,'es'));
     $('#cf_l').innerHTML=L.length?`<div class="cf-gr">${L.slice(0,n).map(p=>{const id=p.producto_id,f=S.min[id]?.foto,c=o.cant(id),b=bul(id);return`<button class="cf-c${c?' en':''}" data-cf="${id}">
       <span class="cf-f">${f?`<img src="${esc(f)}" alt="" loading="lazy">`:`<span class="cf-in" style="background:${colAv(p.marca||p.descripcion)}">${esc((p.descripcion||'?').trim().charAt(0).toUpperCase())}</span>`}${c?`<b class="cf-n">${nf(c)}</b>`:''}</span>
       <span class="cf-d">${esc(p.descripcion)}</span><span class="cf-p">${$m0(o.pr(p))}${esKg(id)?'<small>/kg</small>':''}</span>${b&&b.n>1&&!b.kg?`<small class="cf-b">${esc(b.t)} × ${b.n}</small>`:''}<span class="cf-mas">${IC('plus',16)}</span></button>`}).join('')}</div>${L.length>n?`<button class="alt cf-vm" id="cf_vm">Ver más (${L.length-n})</button>`:''}`:vacioHTML('No encontré productos con eso.','search');
@@ -3339,7 +3342,7 @@ async function tareaModal(fecha,alGuardar){await equipo();const m=document.creat
     m.remove();toast(para==S.perfil.id?'Tarea guardada.':'Tarea para '+nomU(para)+': le llega a su campanita.');alGuardar&&alGuardar()}}
 
 /* ======================= INICIO: Tu día, accesos, metas en una tarjeta y actividad ======================= */
-const accesosHTML=()=>{const V=S.perfil?.rol=='vendedor';const A=[['cart','Pedido',"irA('pedidos')"],['user','Cliente',"irA('clientes',{cs:'lista',abrirNuevo:1})"],['cash','Cobrar',"irA('cobranza')"],
+const accesosHTML=()=>{const V=S.perfil?.rol=='vendedor';const A=[['cart','Pedido',"maniPedidoRapido()"],['user','Cliente',"irA('clientes',{cs:'lista',abrirNuevo:1})"],['cash','Cobrar',"irA('cobranza')"],
     ...(V?[['users','Mis clientes',"irA('clientes',{cs:'lista'})",'cli'],['map','Ruta',"irA('clientes',{cs:'ruta'})",'ruta'],['chart','Ventas',"irA('ventas',{vs:'rapido'})"]]:[]),
     ['folder','Folletos','folletosListos()'],...(V?[['target','Pronóstico','pronosticoSemana()']]:[])];
   return`<div class="ppal acc" role="navigation" aria-label="Accesos rápidos">${A.map(([i,t,f,g],k)=>`<button class="${k?'':'pri'}" onclick="${f}"${g?` data-g="${g}"`:''}><span>${IC(i,22)}</span>${t}</button>`).join('')}</div>`};
@@ -3672,8 +3675,9 @@ function maniPedidoRapido(cli,pre){
       <div class="mpr-l">${L.map(p=>{const id=p.producto_id,n=cant(id),b=B(id),ud=D(id),f=S.min[id]?.foto,pu=precioLista(id,'mayorista'),pd=modo=='d'&&ud;
         return`<div class="mpr-r${n?' on':''}" data-r="${id}">${f?`<img src="${esc(f)}" alt="" loading="lazy">`:'<span class="mpr-i"></span>'}<div class="mpr-t"><b>${esc(String(p.descripcion).replace(/^Crocante Horneado sabor /i,'Crocante '))}</b><small>${pd?`${ud} bolsitas · ${$m0(ud*pu)} el display`:`${ud?(b/ud)+' displays':b+' u.'} · ${$m0(b*pu)} la caja`}</small></div>
           <div class="mpr-q"><button class="alt" data-q="${id}" data-d="-1" aria-label="Menos"${n?'':' disabled'}>−</button><b>${nf(n)}</b><button class="alt" data-q="${id}" data-d="1" aria-label="Más">+</button></div></div>`}).join('')}</div>
-      ${ord.some(p=>!chico(p))?`<button class="lnk mpr-m" id="mpr_t">${todos?'Mostrar solo 65 y 85 g':'Ver también 500 g y manteca'}</button>`:''}
+      ${ord.some(p=>!chico(p))?`<button class="lnk mpr-m" id="mpr_t">${todos?'Mostrar solo 65 y 85 g':'Ver también 500 g y manteca'}</button>`:''}<button class="lnk mpr-m mpr-o" id="mpr_o">Pedido de otros productos ›</button>
       <div class="mpr-f"><div>${pieH()}</div><button id="mpr_ok"${tots().cj?'':' disabled'}>Armar pedido</button></div></div>`;
+    $('#mpr_o').onclick=()=>{cerrar();S.preCli=cli;S.preItems=null;S.tab='pedidos';shell()};
     $('#mpr_x').onclick=cerrar;$('#mpr_t')&&($('#mpr_t').onclick=()=>{todos=!todos;pinta()});
     const re=()=>{try{tic()}catch(e){}const y=m.querySelector('.mpr-l').scrollTop;pinta();m.querySelector('.mpr-l').scrollTop=y};
     $('#mpr_rep')&&($('#mpr_rep').onclick=()=>{for(const k in U)delete U[k];for(const[id,u]of Object.entries(ult.it))U[id]=u;if(ord.some(p=>!chico(p)&&U[p.producto_id]))todos=true;re()});
