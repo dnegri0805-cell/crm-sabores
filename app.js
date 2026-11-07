@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-07.26';
+const VERSION='2026-11-07.27';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -461,27 +461,27 @@ async function vInicio(){
   // 1 facturado hoy y en el mes
   if(fv.error)fallo('k1',fv.error);else{
     let h=0,nh=0,m=0;for(const f of fv.data){if(f.anulada)continue;const d=fechaDe(f);if(!d)continue;const k=diaLocal(d);const t=Number(f.total||0);if(k==hoy){h+=t;nh++}if(k.slice(0,7)==mes)m+=t}
-    {const pe=n=>'$ '+Math.round(+n||0).toLocaleString('es-AR');kp('k1',pe(h),h>0?nh+(nh==1?' factura':' facturas')+' · en el mes '+pe(m):'$ 0 · en el mes '+pe(m));$('#k1').classList.toggle('vacio',!(h>0))
+    {const pe=n=>'$ '+Math.round(+n||0).toLocaleString('es-AR');kp('k1',pe(h),h>0?nh+(nh==1?' factura':' facturas')+' · en el mes '+pe(m):'$ 0 · en el mes '+pe(m));$('#k1')?.classList.toggle('vacio',!(h>0))
     {const ok=f=>!f.anulada,F=fv.data.filter(ok),val=f=>Number(f.total||0);const[x,y]=compMes(F,fechaDe,val);tendencia('k1',serieDias(F,fechaDe,val),x,y,'vs mes pasado')}}}
   // 2 pedidos pendientes
   if(pe.error){fallo('k2',pe.error);$('#t1').innerHTML='<p class="err">'+esc(pe.error.message)+'</p>'}else{
     const P=pe.data,tot=P.reduce((a,o)=>a+Number(o.total||0),0);
     kp('k2',String(P.length),P.length?'Suman '+$m(tot):'Nada pendiente',P.length?'alerta':'ok');
     {const d0=new Date();d0.setMonth(d0.getMonth()-1,1);d0.setHours(0,0,0,0);const d30=new Date(Date.now()-31*864e5),desde=d0<d30?d0:d30;
-     sb.from('pedidos').select('creado_en').neq('estado','cancelado').gte('creado_en',desde.toISOString()).limit(3000).then(({data})=>{if(!data)return;const c=()=>1;const[x,y]=compMes(data,o=>o.creado_en,c);tendencia('k2',serieDias(data,o=>o.creado_en,c),x,y,'pedidos vs mes pasado')},()=>{})}$('#k2').classList.toggle('vacio',!P.length);kpCeros();
+     sb.from('pedidos').select('creado_en').neq('estado','cancelado').gte('creado_en',desde.toISOString()).limit(3000).then(({data})=>{if(!data)return;const c=()=>1;const[x,y]=compMes(data,o=>o.creado_en,c);tendencia('k2',serieDias(data,o=>o.creado_en,c),x,y,'pedidos vs mes pasado')},()=>{})}$('#k2')?.classList.toggle('vacio',!P.length);kpCeros();
     $('#t1').innerHTML=P.length?'<table><tr><th>N°</th><th>Cliente</th><th class="n">Total</th></tr>'+P.slice(0,8).map(o=>`<tr><td>${o.numero}</td><td>${esc(o.clientes?.razon_social)}${o.origen=='online'?' <span class="badge b-online">Online</span>':''}</td><td class="n">${$m(o.total)}</td></tr>`).join('')+'</table>'+(P.length>8?`<small>Y ${P.length-8} más.</small>`:'')+'<p><button class="alt" id="irP">Ir a Pedidos</button></p>':'<p><small>No hay pedidos esperando aprobación.</small></p>';
     $('#irP')&&($('#irP').onclick=()=>{S.tab='pedidos';shell()})}
   // 3 deuda clientes
   if(fe.error){fallo('k3',fe.error);$('#t2').innerHTML='<p class="err">'+esc(fe.error.message)+'</p>'}else{
     const F=fe.data,tot=F.reduce((a,x)=>a+Number(x.pendiente||0),0),V=F.filter(x=>x.dias_mora>0),tv=V.reduce((a,x)=>a+Number(x.pendiente||0),0);
-    kp('k3',$m0(tot),V.length?'Vencido: '+$m(tv)+' en '+V.length+(V.length==1?' factura':' facturas'):tot>0?'Nada vencido':'Nadie te debe',V.length?'alerta':'');$('#k3').classList.toggle('vacio',!(tot>0));kpCeros();
+    kp('k3',$m0(tot),V.length?'Vencido: '+$m(tv)+' en '+V.length+(V.length==1?' factura':' facturas'):tot>0?'Nada vencido':'Nadie te debe',V.length?'alerta':'');$('#k3')?.classList.toggle('vacio',!(tot>0));kpCeros();
     V.sort((a,b)=>b.dias_mora-a.dias_mora);
     $('#t2').dataset.pend=V.length;$('#t2').innerHTML=V.length?'<table><tr><th>Cliente</th><th>Factura</th><th>Mora</th><th class="n">Debe</th></tr>'+V.slice(0,8).map(x=>`<tr><td>${cli(x.cliente_id)}</td><td>${x.tipo} ${x.numero}</td><td class="mora">${x.dias_mora} días</td><td class="n">${$m(x.pendiente)}</td></tr>`).join('')+'</table>'+(V.length>8?`<small>Y ${V.length-8} más.</small>`:'')+'<p><button class="alt" id="irC">Ir a Cobranza</button></p>':'<p><small>Ningún cliente tiene facturas vencidas.</small></p>';
     $('#irC')&&($('#irC').onclick=()=>{S.tab='cobranza';shell()})}
   // 4 proveedores
   if(sp.error)fallo('k4',sp.error);else{
     const D=sp.data.filter(x=>Number(x.saldo)>0.005),tot=D.reduce((a,x)=>a+Number(x.saldo),0);
-    if(!$('#k4'))return;kp('k4',$m0(tot),D.length?D.length+(D.length==1?' proveedor':' proveedores'):'Sin deudas');$('#k4').classList.toggle('vacio',!(tot>0));kpCeros()}
+    if(!$('#k4'))return;kp('k4',$m0(tot),D.length?D.length+(D.length==1?' proveedor':' proveedores'):'Sin deudas');$('#k4')?.classList.toggle('vacio',!(tot>0));kpCeros()}
   if(fp.error)$('#t3').innerHTML='<p class="err">'+esc(fp.error.message)+'</p>';else{
     const sal=id=>Number(sp.data?.find(x=>x.proveedor_id==id)?.saldo||0);
     const L=fp.data.filter(f=>f.tipo!='NC'&&sal(f.proveedor_id)>0.005);
@@ -1183,7 +1183,7 @@ SDMP-01279	8.900</pre>
       e.closest('tr').querySelectorAll('[data-mfl]').forEach(td=>{const l=td.dataset.mfl;td.textContent=L[l]==null?'—':pctf(Math.min(89,Math.max(0,L[l]+a)))});
       const ej=e.closest('tr').querySelector('.mf-ej'),ec=+ej?.dataset.ejc,ant=+ej?.dataset.ejp;if(ec>0&&L.mayorista!=null){const nv=Math.round(ec/(1-Math.min(89,Math.max(0,L.mayorista+a))/100));const b=ej.querySelector('b');if(b)b.innerHTML=(ant&&nv!=ant?`<s>${$m0(ant)}</s> → `:'')+$m0(nv)}})};
   pintarMF();
-  $('#pr_mfg').onclick=async()=>{const ch=[...$$('[data-mf]')].filter(e=>(+e.value||0)!==(MF[e.dataset.mf.toUpperCase()]||0));if(!ch.length)return toast('No cambiaste ningún margen por familia.',1);
+  ($('#pr_mfg')||{}).onclick=async()=>{const ch=[...$$('[data-mf]')].filter(e=>(+e.value||0)!==(MF[e.dataset.mf.toUpperCase()]||0));if(!ch.length)return toast('No cambiaste ningún margen por familia.',1);
     for(const e of ch){const v=+e.value||0;if(v<-50||v>50)return toast('El ajuste tiene que estar entre -50 y +50 puntos.',1)}
     $('#pr_mfg').disabled=true;
     for(const e of ch){const v=+e.value||0;const{error}=await sb.rpc('fijar_margen_familia',{p_familia:e.dataset.mf,p_ajuste:v});if(error){$('#pr_mfg').disabled=false;return toast(error.message,1)}
@@ -1873,12 +1873,12 @@ async function listaPedidos(){
       $('#plcat_v')&&($('#plcat_v').onclick=()=>{S.tab='ventas';S.vg=null;S.vs='presupuestos';shell()})},()=>{});
     let q=sb.from('pedidos').select('*,clientes(razon_social,nombre_fantasia)').order('numero',{ascending:false}).limit(30);
     if(S.pf=='abiertos')q=q.not('estado','in','(entregado,cancelado)');else if(S.pf!='todos')q=q.eq('estado',S.pf);
-    const{data,error}=await q;if(error){$('#pl').innerHTML='<p class="err">'+esc(error.message)+'</p>';return}S._pedV=data;
+    const{data,error}=await q;if(error){($('#pl')||{}).innerHTML='<p class="err">'+esc(error.message)+'</p>';return}S._pedV=data;
     /* Clientes nuevos (por ejemplo, dados de alta solos desde el catálogo) que todavía no están en la lista del celular */
     {const fal=[...new Set(data.map(o=>o.cliente_id).filter(id=>id&&!S.clientes.some(c=>c.id==id)))];if(fal.length){const{data:NC}=await sb.from('clientes').select('*').in('id',fal);for(const c of NC||[])S.clientes.push(c);if(NC?.length){S.clientes.sort((a,b)=>String(a.razon_social).localeCompare(String(b.razon_social)));try{guardarCache()}catch(e){}}}}
     const ids=data.map(o=>o.id),fac={};
     if(ids.length){const{data:F}=await sb.from('facturas_venta').select('id,pedido_id,tipo,numero,punto_venta,cae,cae_vto,total,fecha,cliente_id,doc_tipo,doc_nro,cbte_tipo').eq('anulada',false).in('pedido_id',ids);for(const f of F||[])fac[f.pedido_id]=f}
-    $('#pl').innerHTML=data.length?data.map(o=>{const f=fac[o.id],sig=SIG[o.estado],cerr=o.estado=='cancelado';
+    ($('#pl')||{}).innerHTML=data.length?data.map(o=>{const f=fac[o.id],sig=SIG[o.estado],cerr=o.estado=='cancelado';
       const prin=o.estado=='pendiente'&&o.requiere_aprobacion?(S.perfil.rol=='dueno'?`<button data-rap="${o.id}">${IC('tag',16)} Revisar precio especial</button>`:'')
         :o.estado=='pendiente'
         ?(f?`<button data-ap="${o.id}">Aprobar</button>`:`<button data-apf="${o.id}">Aprobar y facturar</button>`)
@@ -3597,7 +3597,7 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
         :'<p class="mjn">Cuando haya ventas, acá aparecen los clientes a los que les toca reponer JL y los que compran mucho y no lo llevan.</p>'}</div></div></div>`;
   S.metaRes=S.metaRes||{};S.metaRes.mani={key:'mani',n:'Maní JL',f:'fotos/metas/mani-jl.webp',mes,mesSig:mesSigJ,sig:esSig,pc:esSig?0:cjMetaMes?cj/cjMetaMes:0,val:esSig?nf(semSigJ)+' por semana':nf(Math.round(cj))+' / '+nf(cjMetaMes)+' cajas',
     sub:faltaMg<=0?'Meta cumplida':`Hoy: ${nf(cjHoyR)} de ${nf(porDia)} cajas · faltan ${nf(totalCj)}`};metasResumen();
-  const plegar=()=>{const d=$('#mj_d'),ab=d.hidden;d.hidden=!ab;try{localStorage.setItem('mj_ab2',ab?'1':'0')}catch(e){}$('#mj_h').setAttribute('aria-expanded',ab);$('#mj_t').innerHTML=(ab?'Ocultar detalle':'Ver detalle del mes')+' <span>'+(ab?'▴':'▾')+'</span>'};
+  const plegar=()=>{const d=$('#mj_d');if(!d)return;const ab=d.hidden;d.hidden=!ab;try{localStorage.setItem('mj_ab2',ab?'1':'0')}catch(e){}$('#mj_h').setAttribute('aria-expanded',ab);$('#mj_t').innerHTML=(ab?'Ocultar detalle':'Ver detalle del mes')+' <span>'+(ab?'▴':'▾')+'</span>'};
   $('#mj_h').onclick=plegar;$('#mj_t').onclick=plegar;
   const sw=$('#mj_sw');if(sw){
     /* Interruptor deslizable: la pastilla blanca se mueve con el dedo y queda del lado que elijas */
@@ -3702,7 +3702,7 @@ async function metasKgInicio(){const box=$('#metaskg');if(!box||S.perfil.rol!='d
       ${VIS.length?VIS.map(x=>{const nm=String(nomVis(x.c)||x.c.razon_social||'Cliente');return`<div class="mjc"><span class="av">${esc(nm.trim()[0]||'?').toUpperCase()}</span><div><b>${esc(nm)}</b><small>${esc(x.why)}</small></div><button class="alt" data-mkp="${x.c.id}">Pedido</button></div>`}).join('')
         :'<p class="mjn">Cuando haya ventas, acá aparecen los clientes a los que les toca reponer y los que compran mucho y no lo llevan.</p>'}</div></div></div>`;
   {const fs=finMes,L2=IT.map((x,k)=>{const mk=+x.meta||0,v=kgT[k],sg=fs&&mk>0&&v<mk,kc=kgCaja(x),ws=Math.ceil(mk/(habSig/6)),cx=n=>{const t=enCajas(n,kc);return t?' '+t:''};return{key:'kg'+k,n:x.n||'Producto',f:fotoDe(x),kc,mes,mesSig,sig:sg,pc:sg?0:mk?v/mk:0,val:sg?nf(ws)+' kg por semana':nf(Math.round(v))+(mk?' / '+nf(mk):'')+' kg',val2:sg?enCajas(ws,kc):kc&&mk?'≈ '+nf(Math.round(v/kc))+' / '+nf(Math.round(mk/kc))+' cajas':'',sub:!mk?'Sin meta: tocá para ponerla':sg?`${mesSig}: ${nf(mk)} kg${cx(mk)}`:v>=mk?'Meta cumplida':`Faltan ${nf(Math.ceil(mk-v))} kg${cx(mk-v)}`}});S.metaRes=S.metaRes||{};S.metaRes.kg=L2;S.metaRes.kgSel=sel;metasResumen()}
-  const plegar=()=>{const d=$('#mk_d'),ab=d.hidden;d.hidden=!ab;try{localStorage.setItem('mk_ab2',ab?'1':'0')}catch(e){}$('#mk_h').setAttribute('aria-expanded',ab);$('#mk_t').innerHTML=(ab?'Ocultar detalle':'Ver detalle del mes')+' <span>'+(ab?'▴':'▾')+'</span>'};
+  const plegar=()=>{const d=$('#mk_d');if(!d)return;const ab=d.hidden;d.hidden=!ab;try{localStorage.setItem('mk_ab2',ab?'1':'0')}catch(e){}$('#mk_h').setAttribute('aria-expanded',ab);$('#mk_t').innerHTML=(ab?'Ocultar detalle':'Ver detalle del mes')+' <span>'+(ab?'▴':'▾')+'</span>'};
   $('#mk_h').onclick=plegar;$('#mk_t').onclick=plegar;
   $$('#metaskg [data-mk]').forEach(bt=>bt.onclick=async()=>{const k=+bt.dataset.mk;if(k==sel)return;$$('#metaskg [data-mk]').forEach(b=>{const on=+b.dataset.mk==k;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});
     const{error}=await guardaCfgJ('metas_kg',{...C,sel:k});error?toast(error.message,1):metasKgInicio().catch(()=>{})});
