@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-07.32';
+const VERSION='2026-11-07.33';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -3649,27 +3649,37 @@ function maniPedidoRapido(cli,pre){
   if(!cli)return fabCliente('Pedido de Maní JL · ¿para quién?',c=>c&&maniPedidoRapido(c));
   const jl=S.productos.filter(p=>S.min[p.producto_id]?.pv==(S._jlId||'ff2b3481-6cef-408e-a1d0-f08ee5b8082e')&&p.activo!==false);
   if(!jl.length)return toast('No encontré los productos de Maní JL.',1);
-  const chico=p=>/\b(65|85)\s*g\b/i.test(p.descripcion||''),Q={};for(const id of pre||[])Q[id]=1;
+  /* U = unidades (bolsitas) por producto; se puede cargar por caja o por display y se mezcla sin problema */
+  const B=id=>S.min[id]?.b||1,D=id=>S.min[id]?.ud||0,chico=p=>/\b(65|85)\s*g\b/i.test(p.descripcion||''),U={};
+  let modo='c';try{modo=localStorage.getItem('mpr_modo')=='d'?'d':'c'}catch(e){}
+  for(const id of pre||[])U[id]=modo=='d'&&D(id)?D(id):B(id);
+  const paso=id=>modo=='d'&&D(id)?D(id):B(id),cant=id=>{const x=(U[id]||0)/paso(id);return Math.round(x*100)/100};
   const ord=[...jl].sort((a,b)=>(chico(b)-chico(a))||String(a.descripcion).localeCompare(String(b.descripcion)));
-  let todos=ord.some(p=>!chico(p)&&Q[p.producto_id]);
+  let todos=ord.some(p=>!chico(p)&&U[p.producto_id]);
   const m=document.createElement('div');m.className='modal mpr';document.body.appendChild(m);fabPintar();
   const cerrar=()=>{m.remove();fabPintar()};
-  const pinta=()=>{const L=ord.filter(p=>todos||chico(p)||Q[p.producto_id]);let cj=0,tot=0,dsp=0;
-    for(const p of ord){const n=Q[p.producto_id]||0;if(!n)continue;const b=S.min[p.producto_id]?.b||1,ud=S.min[p.producto_id]?.ud||0;cj+=n;tot+=n*b*precioLista(p.producto_id,'mayorista');if(ud)dsp+=n*b/ud}
+  const tots=()=>{let cj=0,ds=0,sd=0,tot=0;for(const p of ord){const id=p.producto_id,u=U[id]||0;if(!u)continue;cj+=u/B(id);tot+=u*precioLista(id,'mayorista');if(D(id))ds+=u/D(id);else sd+=u/B(id)}return{cj,ds,sd,tot}};
+  const r1=x=>nf(Math.round(x*10)/10);
+  const pieH=()=>{const t=tots();if(!t.cj)return`<b>Nada cargado</b><small>Tocá + en lo que lleva</small>`;
+    const ppal=modo=='d'&&t.ds?`${r1(t.ds)} ${Math.round(t.ds*10)/10==1?'display':'displays'}`:`${r1(t.cj)} ${Math.round(t.cj*10)/10==1?'caja':'cajas'}`;
+    const otro=modo=='d'&&t.ds?`= ${r1(t.cj)} ${Math.round(t.cj*10)/10==1?'caja':'cajas'}`:t.ds?`${r1(t.ds)} displays`:'';
+    return`<b>${ppal}</b><small>${otro?otro+' · ':''}${$m0(t.tot)} de lista</small>`};
+  const pinta=()=>{const L=ord.filter(p=>todos||chico(p)||U[p.producto_id]),hayD=ord.some(p=>D(p.producto_id));
     m.innerHTML=`<div class="mc"><div class="bh"><h3>Maní JL · ${esc(nomVis(cli))}</h3><button class="alt" id="mpr_x">Cerrar</button></div>
-      <p class="mpr-s">Poné cuántas <b>cajas</b> de cada uno. Después revisás y guardás el pedido como siempre.</p>
-      <div class="mpr-l">${L.map(p=>{const id=p.producto_id,n=Q[id]||0,b=S.min[id]?.b||1,ud=S.min[id]?.ud||0,f=S.min[id]?.foto;
-        return`<div class="mpr-r${n?' on':''}">${f?`<img src="${esc(f)}" alt="" loading="lazy">`:'<span class="mpr-i"></span>'}<div class="mpr-t"><b>${esc(String(p.descripcion).replace(/^Crocante Horneado sabor /i,'Crocante '))}</b><small>${ud?(b/ud)+' displays':b+' u.'} · ${$m0(b*precioLista(id,'mayorista'))} la caja</small></div>
-          <div class="mpr-q"><button class="alt" data-q="${id}" data-d="-1" aria-label="Menos"${n?'':' disabled'}>−</button><b>${n}</b><button class="alt" data-q="${id}" data-d="1" aria-label="Más">+</button></div></div>`}).join('')}</div>
+      ${hayD?`<div class="mpr-mo" role="group" aria-label="Cargar por"><span>Cargar por</span><button data-mo="c" class="${modo=='c'?'on':''}">Caja</button><button data-mo="d" class="${modo=='d'?'on':''}">Display</button></div>`:''}
+      <div class="mpr-l">${L.map(p=>{const id=p.producto_id,n=cant(id),b=B(id),ud=D(id),f=S.min[id]?.foto,pu=precioLista(id,'mayorista'),pd=modo=='d'&&ud;
+        return`<div class="mpr-r${n?' on':''}" data-r="${id}">${f?`<img src="${esc(f)}" alt="" loading="lazy">`:'<span class="mpr-i"></span>'}<div class="mpr-t"><b>${esc(String(p.descripcion).replace(/^Crocante Horneado sabor /i,'Crocante '))}</b><small>${pd?`${ud} bolsitas · ${$m0(ud*pu)} el display`:`${ud?(b/ud)+' displays':b+' u.'} · ${$m0(b*pu)} la caja`}</small></div>
+          <div class="mpr-q"><button class="alt" data-q="${id}" data-d="-1" aria-label="Menos"${n?'':' disabled'}>−</button><b>${nf(n)}</b><button class="alt" data-q="${id}" data-d="1" aria-label="Más">+</button></div></div>`}).join('')}</div>
       ${ord.some(p=>!chico(p))?`<button class="lnk mpr-m" id="mpr_t">${todos?'Mostrar solo 65 y 85 g':'Ver también 500 g y manteca'}</button>`:''}
-      <div class="mpr-f"><div><b>${nf(cj)} ${cj==1?'caja':'cajas'}</b><small>${dsp?nf(Math.round(dsp))+' displays · ':''}${$m0(tot)} de lista</small></div><button id="mpr_ok"${cj?'':' disabled'}>Armar pedido</button></div></div>`;
+      <div class="mpr-f"><div>${pieH()}</div><button id="mpr_ok"${tots().cj?'':' disabled'}>Armar pedido</button></div></div>`;
     $('#mpr_x').onclick=cerrar;$('#mpr_t')&&($('#mpr_t').onclick=()=>{todos=!todos;pinta()});
+    m.querySelectorAll('[data-mo]').forEach(b=>b.onclick=()=>{if(modo==b.dataset.mo)return;modo=b.dataset.mo;try{localStorage.setItem('mpr_modo',modo)}catch(e){}try{tic()}catch(e){}const y=m.querySelector('.mpr-l').scrollTop;pinta();m.querySelector('.mpr-l').scrollTop=y});
     /* al tocar − o + solo se actualiza esa fila y el total: redibujar todo hacía parpadear la pantalla */
-    const pie=()=>{let cj=0,tot=0,dsp=0;for(const p of ord){const n=Q[p.producto_id]||0;if(!n)continue;const b=S.min[p.producto_id]?.b||1,ud=S.min[p.producto_id]?.ud||0;cj+=n;tot+=n*b*precioLista(p.producto_id,'mayorista');if(ud)dsp+=n*b/ud}
-      const f=m.querySelector('.mpr-f>div');f.innerHTML=`<b>${nf(cj)} ${cj==1?'caja':'cajas'}</b><small>${dsp?nf(Math.round(dsp))+' displays · ':''}${$m0(tot)} de lista</small>`;$('#mpr_ok').disabled=!cj};
-    m.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{const id=b.dataset.q;Q[id]=Math.max(0,(Q[id]||0)+ +b.dataset.d);try{tic()}catch(e){}
-      const r=b.closest('.mpr-r'),n=Q[id];r.classList.toggle('on',n>0);r.querySelector('.mpr-q b').textContent=n;r.querySelector('[data-d="-1"]').disabled=!n;pie()});
-    $('#mpr_ok').onclick=()=>{const it=ord.filter(p=>Q[p.producto_id]>0).map(p=>[p.producto_id,Q[p.producto_id]*(S.min[p.producto_id]?.b||1)]);cerrar();S.preCli=cli;S.preItems=it;S.tab='pedidos';shell()}};
+    m.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{const id=b.dataset.q,st=paso(id),u=U[id]||0;
+      U[id]=+b.dataset.d>0?(Math.floor(u/st+1e-9)+1)*st:Math.max(0,(Math.ceil(u/st-1e-9)-1)*st);try{tic()}catch(e){}
+      const r=b.closest('.mpr-r'),n=cant(id);r.classList.toggle('on',n>0);r.querySelector('.mpr-q b').textContent=nf(n);r.querySelector('[data-d="-1"]').disabled=!n;
+      m.querySelector('.mpr-f>div').innerHTML=pieH();$('#mpr_ok').disabled=!tots().cj});
+    $('#mpr_ok').onclick=()=>{const it=ord.filter(p=>U[p.producto_id]>0).map(p=>[p.producto_id,U[p.producto_id]]);cerrar();S.preCli=cli;S.preItems=it;S.tab='pedidos';shell()}};
   m.onclick=e=>{if(e.target==m)cerrar()};pinta();setTimeout(()=>m.classList.add('ya'),400)}
 
 /* ======================= METAS EN KILOS POR PRODUCTO (Inicio) =======================

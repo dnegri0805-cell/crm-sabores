@@ -2080,6 +2080,11 @@ html:not(.oscuro) body,html:not(.oscuro) #app{background:var(--g)}
 #manijl .mjll .mjc.px{opacity:.75}
 #manijl .mjll .mjc>.mjll-b{display:flex!important;flex-direction:row!important;align-items:center;gap:6px;flex:none!important}
 .mpr-q button:disabled{opacity:.35}
+.mpr-mo{display:flex;align-items:center;gap:6px;margin:2px 0 10px}.mpr-mo span{font-size:14px;color:var(--mu);margin-right:4px}
+.mpr-mo button{flex:1;padding:9px 0!important;border-radius:999px!important;border:1px solid #e3e6ee!important;background:#fff!important;color:var(--tx,#1b2230)!important;font-weight:700;font-size:15px;min-height:0}
+.mpr-mo button.on{background:var(--m)!important;border-color:var(--m)!important;color:#fff!important}
+:root[data-theme="dark"] .mpr-mo button:not(.on){background:#1b2230!important;border-color:#2c3446!important;color:#e8eaf0!important}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .mpr-mo button:not(.on){background:#1b2230!important;border-color:#2c3446!important;color:#e8eaf0!important}}
 .mpr.ya,.mpr.ya .mc,.mpr.ya .mpr-r{animation:none!important}
 #manijl .mjwa{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:#e7f6ec;color:#1d7a46}#manijl .mjwa svg{stroke:#1d7a46}
 #manijl .mjll .mjc button{padding:7px 12px}
@@ -2119,6 +2124,6 @@ html:not(.oscuro) body,html:not(.oscuro) #app{background:var(--g)}
 <div id="app"><div class="splash"><img src="logo.png" alt="Sabores de mi País"><i></i></div></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
-<script src="app.js?v=2026-11-07.32"></script>
+<script src="app.js?v=2026-11-07.33"></script>
 </body>
 </html>
