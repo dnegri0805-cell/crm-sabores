@@ -1214,7 +1214,7 @@ html.oscuro .st-p img,html.oscuro .st-ph{background:#1c2333;border-color:#273246
 .htit{display:none}
 @media(max-width:640px){header .htit{display:block;position:absolute;left:16px;right:238px;top:50%;transform:translateY(-50%);font-size:16.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transition:opacity .18s;pointer-events:none}
   header{position:sticky;top:0;z-index:19}
-header::after{content:"";position:absolute;left:0;right:0;bottom:-3px;height:3px;background:linear-gradient(180deg,#74acdf 0 33.3%,#fff 33.3% 66.6%,#74acdf 66.6%);box-shadow:0 1px 2px rgba(23,33,58,.12);pointer-events:none}
+header::after{content:"";position:absolute;left:0;right:0;bottom:-3px;height:3px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.98) 45%,#e9f5ff 50%,rgba(255,255,255,.98) 55%,transparent) -60% 0/30% 100% no-repeat,linear-gradient(180deg,#74acdf 0 33.3%,#fff 33.3% 66.6%,#74acdf 66.6%);box-shadow:0 1px 2px rgba(23,33,58,.12);pointer-events:none}
 .cl-pega,.pr-pega{top:var(--hh,52px)!important}
   body.tit-on header .htit{opacity:1}body.tit-on header .mjhn,body.tit-on header .hlogo{opacity:0}header .mjhn,header .hlogo{transition:opacity .18s}header:has(#hback:not([hidden])) .htit{left:64px}}
 /* Avatares con anillo de estado */
@@ -1444,7 +1444,7 @@ html.oscuro .rhoy .rh{background:#1c2333;border-color:#273246}html.oscuro .rhoy 
 .prc-l.prc-x{display:flex!important;grid-template-columns:none!important;overflow-x:auto;gap:8px;scroll-snap-type:x proximity;padding-bottom:4px;margin:0 -4px;padding-left:4px;padding-right:4px;scrollbar-width:none}
 .prc-l.prc-x::-webkit-scrollbar{display:none}
 .prc-x .prc{flex:0 0 auto;width:min(66vw,240px)!important;scroll-snap-align:start;display:flex!important;align-items:center;gap:10px;text-align:left;padding:8px 10px!important;min-height:60px}
-.prc-t{display:flex;flex-direction:column;min-width:0;gap:1px}.prc-t b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700}
+.prc-t{display:flex;flex-direction:column;min-width:0;gap:1px}.prc>span.prc-t{display:flex;-webkit-line-clamp:unset;overflow:hidden}.prc-t b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700}
 .prc-t small{font-size:12.5px;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
 .prc-x .prc-toca .prc-t small{color:#9a6700}.prc-x .prc-debe .prc-t small{color:var(--er)}
 
@@ -1974,6 +1974,11 @@ html.oscuro p.vac .vac-i{background:radial-gradient(circle at 30% 30%,#3a1d26,#2
   @keyframes dz{from{opacity:0;transform:translateY(-4px)}}
   /* barra del pedido: salto al sumar un producto */
   .pbar.salta{animation:salta .42s cubic-bezier(.3,1.6,.5,1)}
+  /* luz LED de la línea del encabezado: destello al abrir y latido cuando entra un pedido */
+  header.luz::after{animation:luzBarre 1.7s .3s cubic-bezier(.4,0,.2,1) both}
+  header.late::after{animation:luzBarre 1.2s cubic-bezier(.4,0,.2,1),luzLate 2.1s ease-in-out}
+  @keyframes luzBarre{from{background-position:-60% 0,0 0}to{background-position:160% 0,0 0}}
+  @keyframes luzLate{0%,40%,80%{box-shadow:0 1px 2px rgba(23,33,58,.12)}20%,60%{box-shadow:0 0 12px 2px rgba(116,172,223,.95),0 0 4px rgba(255,255,255,.9)}}
   @keyframes salta{0%{transform:translateY(0)}35%{transform:translateY(-7px) scale(1.015)}100%{transform:none}}
   /* anillo de la meta: se llena al abrir Inicio */
   .mjr .fl{animation:mjfill .9s .15s cubic-bezier(.2,.8,.2,1) both}
@@ -2041,6 +2046,6 @@ html:not(.oscuro) body,html:not(.oscuro) #app{background:var(--g)}
 <div id="app"><div class="splash"><img src="logo.png" alt="Sabores de mi País"><i></i></div></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
-<script src="app.js?v=2026-11-07.6"></script>
+<script src="app.js?v=2026-11-07.7"></script>
 </body>
 </html>

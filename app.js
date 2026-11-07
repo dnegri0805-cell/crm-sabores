@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-07.6';
+const VERSION='2026-11-07.7';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -51,7 +51,7 @@ const quieto=()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matc
 function contarDesde(el,de,a,txt){try{if(!el)return;if(quieto()||!(de>=0)||!(a>=0)||de==a){el.textContent=txt;return}clearTimeout(el._ct);cancelAnimationFrame(el._raf);const t0=performance.now(),dur=450;
   const paso=t=>{const k=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-k,3);el.textContent=k<1?$m(de+(a-de)*e):txt;if(k<1)el._raf=requestAnimationFrame(paso)};el._raf=requestAnimationFrame(paso)}catch(e){el&&(el.textContent=txt)}}
 /* reinicia una animación CSS de un toque (salto de la barra, campanita) */
-function sacudir(el,cls){try{if(!el||quieto())return;el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);setTimeout(()=>el.classList.remove(cls),900)}catch(e){}}
+function sacudir(el,cls,ms){try{if(!el||quieto())return;el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);setTimeout(()=>el.classList.remove(cls),ms||900)}catch(e){}}
 /* festejo: confeti + cartel, una sola vez por clave (semana o mes) */
 function fiesta(t,clave){try{if(clave){if(localStorage.getItem('fiesta_'+clave))return;localStorage.setItem('fiesta_'+clave,'1')}}catch(e){}
   okAnim(t);vibrar([30,60,30]);if(quieto())return;const C=['#7b2d3e','#e8a33d','#1d7a46','#17213a','#f2c94c','#e86a7a'],d=document.createElement('div');d.className='confeti';
@@ -194,7 +194,7 @@ function shell(){
   $$('nav a[data-t]').forEach(a=>a.onclick=()=>{S.tab=a.dataset.t;shell()});$$('nav a[data-mas]').forEach(a=>a.onclick=menuMas);
   {const B=bottomTabs(),dentro=B.includes(S.tab),bn=document.createElement('nav');bn.className='bnav';
    bn.innerHTML=B.map(t=>`<a data-bt="${t}" class="${S.tab==t?'on':''}">${IC(BN_IC[t],23)}${t=='precios'?'Precios':nomTab(t)}</a>`).join('')+`<a data-bm="1" class="${dentro?'':'on'}">${IC('menu',23)}${dentro?'Más':esc(nomTab(S.tab).replace(/^📖 /,''))}</a>`;
-   app.appendChild(bn);fabAltura();bn.querySelectorAll('[data-bt]').forEach(a=>a.onclick=()=>{S.tab=a.dataset.bt;shell();window.scrollTo(0,0)});bn.querySelector('[data-bm]').onclick=()=>menuMas(1)}
+   app.appendChild(bn);fabAltura();if(!S._luz){S._luz=1;sacudir(document.querySelector('header'),'luz',2200)}bn.querySelectorAll('[data-bt]').forEach(a=>a.onclick=()=>{S.tab=a.dataset.bt;shell();window.scrollTo(0,0)});bn.querySelector('[data-bm]').onclick=()=>menuMas(1)}
   if(S.menuT===undefined){S.menuT=null;cfgJ('menu_tabs',{oc:[]}).then(v=>{S.menuT=v;if((v.oc||[]).length)$$('nav a').forEach(a=>{if(a.dataset.t!='inicio'&&a.dataset.t!=S.tab&&v.oc.includes(a.dataset.t))a.remove()})})}
   if(S.dep===undefined){S.dep=null;cfgJ('impresora_deposito',{}).then(v=>S.dep=v)}
   marcarUso(S.tab);
@@ -3056,7 +3056,7 @@ async function panelPedido(o,alCambiar){if(!o)return;document.getElementById('pd
    Lo que pasó en los últimos 7 días: pedidos online o de vendedores, entregas, comprobantes, reclamos y pedidos del catálogo. */
 
 const actVisto=()=>{try{return localStorage.getItem('act_visto_'+S.perfil.id)||''}catch(e){return ''}};
-async function actContar(){if(!S.perfil)return;const A=await actDatos().catch(()=>[]),v=actVisto(),n=A.filter(x=>String(x.f)>v).length,b=document.getElementById('hb_n');if(b){b.hidden=!n;b.textContent=n>9?'9+':n}if(S._actN!=null&&n>S._actN)sacudir(document.querySelector('.hbell'),'suena');S._actN=n}
+async function actContar(){if(!S.perfil)return;const A=await actDatos().catch(()=>[]),v=actVisto(),n=A.filter(x=>String(x.f)>v).length,b=document.getElementById('hb_n');if(b){b.hidden=!n;b.textContent=n>9?'9+':n}if(S._actN!=null&&n>S._actN){sacudir(document.querySelector('.hbell'),'suena');sacudir(document.querySelector('header'),'late',2300)}S._actN=n}
 async function actividad(){const m=document.createElement('div');m.className='modal act-m';document.body.appendChild(m);
   m.innerHTML=`<div class="mc act"><div class="bh"><h3>Actividad</h3><button class="alt" id="ac_x">Cerrar</button></div><div id="ac_l"><span class="skl" role="status" aria-label="Cargando"></span></div></div>`;
   m.onclick=e=>{if(e.target==m)m.remove()};m.querySelector('#ac_x').onclick=()=>m.remove();
@@ -4251,7 +4251,7 @@ function tonoElegido(){let k;try{if(!localStorage.getItem('crm_tono_nuevo1')){lo
 function timbre(k){const a=ctxAlarma();if(!a)return;(TONOS[k]||TONOS[tonoElegido()]).f(a,a.currentTime+.02);if(!k)vibrar([300,120,300])}
 function elegirTono(k){try{localStorage.setItem('crm_tono',k)}catch(e){}timbre(k);document.querySelectorAll('#tonos button').forEach(b=>{b.classList.toggle('alt',b.dataset.k!=k);b.textContent=(b.dataset.k==k?'✓ ':'')+'▶ '+TONOS[b.dataset.k].n})}
 function pararAlarma(){clearInterval(S.alIv);S.alIv=null;$('#alarma')?.remove();try{navigator.serviceWorker?.getRegistration().then(r=>r&&r.getNotifications({tag:'crm-pedido'}).then(L=>L.forEach(n=>n.close())))}catch(e){}}
-function alarmaPedido(L){sacudir(document.querySelector('.hbell'),'suena');S.alarmaL=[...(S.alarmaL&&$('#alarma')?S.alarmaL:[]),...L];const T=S.alarmaL;
+function alarmaPedido(L){sacudir(document.querySelector('.hbell'),'suena');sacudir(document.querySelector('header'),'late',2300);S.alarmaL=[...(S.alarmaL&&$('#alarma')?S.alarmaL:[]),...L];const T=S.alarmaL;
   let d=$('#alarma');if(!d){d=document.createElement('div');d.id='alarma';document.body.appendChild(d)}
   d.innerHTML=`<div class="alc"><div class="alr">🔔</div><h2>${T.length==1?'¡Pedido nuevo!':'¡'+T.length+' pedidos nuevos!'}</h2>
     ${T.slice(0,4).map(x=>`<div class="ali"><b>${esc(x.t)}</b></div>`).join('')}${T.length>4?`<small>…y ${T.length-4} más</small>`:''}
