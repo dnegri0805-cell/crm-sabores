@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-07.30';
+const VERSION='2026-11-07.31';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -3583,7 +3583,7 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
   const esSig=false;
   box.innerHTML=`<div class="box obj mj${esSig?' sig':''}"><div class="mjtop"><div class="mjtl"><img class="mjimg" src="fotos/metas/mani-jl.webp" alt=""><div><div class="ey">Meta de ${esc((esSig?mesSigJ:mes).toLowerCase())}</div><div class="tt">Maní JL</div>${esSig?`<div class="mjcer">${esc(mes)} cierra con ${nf(Math.round(cj))} ${Math.round(cj)==1?'caja':'cajas'}</div>`:''}</div></div><button class="mjmeta" id="mj_e" aria-label="Cambiar meta"><small>Meta limpia</small><b>${m0(meta)}</b><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16H4v-3z"/></svg></button></div>
     <div id="mj_h">${hero}</div>
-    <button class="mjver" id="mj_t">${abierto?'Ocultar detalle':'Ver detalle del mes'} <span>${abierto?'▴':'▾'}</span></button>
+    <div class="mjacc" id="mj_acc"><button class="mjver" id="mj_t" aria-expanded="${abierto}">Detalle <span>${abierto?'▴':'▾'}</span></button></div>
     <div id="mj_d"${abierto?'':' hidden'}>${aviso}${faltaMg>0?'<p class="mq-msg mq-cmo">El objetivo por día se recalcula todos los días: si un día vendés menos, lo que falta se reparte entre los días que quedan; si vendés más, baja.</p>':''}
     <div class="mjsec"><div class="mjrow"><span class="ey">${esc(mes)}</span><span class="mjg">${m0(mg)} <small>de ${m0(obj)} (meta + gastos)</small></span></div>
     <div class="obar mjb">${pcF>0&&pcF<1?`<span class="gz" style="width:${(pcF*100).toFixed(1)}%"></span>`:''}${pcG>0?`<i style="width:${(pcG*100).toFixed(1)}%" class="${pcG>=1?'lleno':''}"></i>`:''}${pcF>0&&pcF<1?`<span class="gf" style="left:${(pcF*100).toFixed(1)}%"></span>`:''}</div>
@@ -3597,7 +3597,7 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
         :'<p class="mjn">Cuando haya ventas, acá aparecen los clientes a los que les toca reponer JL y los que compran mucho y no lo llevan.</p>'}</div></div></div>`;
   S.metaRes=S.metaRes||{};S.metaRes.mani={key:'mani',n:'Maní JL',f:'fotos/metas/mani-jl.webp',mes,mesSig:mesSigJ,sig:esSig,pc:esSig?0:cjMetaMes?cj/cjMetaMes:0,val:esSig?nf(semSigJ)+' por semana':nf(Math.round(cj))+' / '+nf(cjMetaMes)+' cajas',
     sub:faltaMg<=0?'Meta cumplida':`Hoy: ${nf(cjHoyR)} de ${nf(porDia)} cajas · faltan ${nf(totalCj)}`};metasResumen();
-  const plegar=()=>{const d=$('#mj_d');if(!d)return;const ab=d.hidden;d.hidden=!ab;try{localStorage.setItem('mj_ab2',ab?'1':'0')}catch(e){}$('#mj_t').setAttribute('aria-expanded',ab);$('#mj_t').innerHTML=(ab?'Ocultar detalle':'Ver detalle del mes')+' <span>'+(ab?'▴':'▾')+'</span>'};
+  const plegar=()=>{const d=$('#mj_d');if(!d)return;const ab=d.hidden;d.hidden=!ab;try{localStorage.setItem('mj_ab2',ab?'1':'0')}catch(e){}$('#mj_t').setAttribute('aria-expanded',ab);$('#mj_t').innerHTML='Detalle <span>'+(ab?'▴':'▾')+'</span>'};
   /* el detalle se abre solo con su botón: tocar la tarjeta lo abría sin querer */$('#mj_t').onclick=plegar;
   const sw=$('#mj_sw');if(sw){
     /* Interruptor deslizable: la pastilla blanca se mueve con el dedo y queda del lado que elijas */
@@ -3615,7 +3615,7 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
     const{error}=await guardaCfgJ('mani_jl',{...C,dto:n});error?toast(error.message,1):(toast('Meta calculada '+(n>0?'con '+nf(n)+' % de descuento':'sin descuento')+'.'),maniJLInicio())});
   /* a quién llamar hoy por Maní JL: prospectos que tocan (o atrasados), clientes que tienen que reponer o no llevan JL, y los próximos días */
   const pedR=$('#mj_ped');if(pedR)pedR.onclick=e=>{e.stopPropagation();maniPedidoRapido()};
-  sb.from('prospectos').select('id,nombre,contacto,telefono,proximo_seguimiento,proximo_paso,campania').not('estado','in','(cliente,no_interesado)').not('proximo_seguimiento','is',null).lte('proximo_seguimiento',diaLocal(new Date(Y,M,dh+3))).order('proximo_seguimiento').limit(60).then(({data})=>{const h=$('#mj_h');if(!h||$('#mj_vis'))return;
+  sb.from('prospectos').select('id,nombre,contacto,telefono,proximo_seguimiento,proximo_paso,campania').not('estado','in','(cliente,no_interesado)').not('proximo_seguimiento','is',null).lte('proximo_seguimiento',diaLocal(new Date(Y,M,dh+3))).order('proximo_seguimiento').limit(60).then(({data})=>{const h=$('#mj_acc');if(!h||$('#mj_vis'))return;
     const P=(data||[]).filter(p=>!p.campania||p.campania=='Maní JL'),venc=P.filter(p=>p.proximo_seguimiento<=hoyS),prox=P.filter(p=>p.proximo_seguimiento>hoyS);
     const dN=x=>{const d=new Date(x+'T12:00');return['dom','lun','mar','mié','jue','vie','sáb'][d.getDay()]+' '+d.getDate()},paso=p=>p.proximo_paso?' · '+String(p.proximo_paso).replace(/^Visita Maní JL:\s*/i,''):'';
     const nP=p=>tituloCaso(p.nombre||p.contacto||'Prospecto');
@@ -3626,7 +3626,7 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
     const txt=x=>x.k=='c'?`Hola ${x.n}! ¿Cómo andás? Te escribo por el Maní JL: ¿te preparo unas cajas para esta semana?`:`Hola! ¿Cómo estás? Soy Diego, de Sabores de mi País, distribuidor de Maní JL. ¿Te puedo pasar los precios de los packs de 65 y 85 g?`;
     const fila=(x,k)=>{const wa=telWA(x.t||'');return`<div class="mjc${x.px?' px':''}"><span class="av">${esc((x.n.trim()[0]||'?').toUpperCase())}</span><div><b>${esc(x.n)}</b><small>${esc(x.w)}</small></div><div class="mjll-b">${wa?`<a class="mjwa" href="https://wa.me/${wa}?text=${encodeURIComponent(txt(x))}" target="_blank" rel="noopener" aria-label="WhatsApp a ${esc(x.n)}">${IC('chat',18)}</a>`:''}<button class="alt" data-mjl="${k}">${x.k=='c'?'Pedido':'Ver'}</button></div></div>`};
     const lbl=nHoy?`<b>Para llamar hoy: ${nf(nHoy)}</b>`:nProx?`Hoy no hay pendientes · <b>${nf(nProx)} ${nProx==1?'próximo':'próximos'}</b>`:'Hoy no tenés visitas de Maní JL';
-    h.insertAdjacentHTML('afterend',`<button class="mjvis${nHoy?'':' cero'}" id="mj_vis" aria-expanded="${ab&&L.length?'true':'false'}">${IC('phone',16)} <span class="mjvt">${lbl}</span><span class="mjvc">${L.length?(ab?'▴':'▾'):'›'}</span></button>${L.length?`<div class="mjll" id="mj_ll"${ab?'':' hidden'}>${L.slice(0,8).map(fila).join('')}${L.length>8?`<p class="mjn">Y ${L.length-8} más.</p>`:''}<button class="lnk mjll-e" id="mj_lle">Ver todos en el embudo ›</button></div>`:''}`);
+    h.insertAdjacentHTML('afterbegin',`<button class="mjvis${nHoy?'':' cero'}" id="mj_vis" aria-expanded="${ab&&L.length?'true':'false'}">${IC('phone',16)} <span class="mjvt">${lbl}</span><span class="mjvc">${L.length?(ab?'▴':'▾'):'›'}</span></button>`);h.insertAdjacentHTML('afterend',`${L.length?`<div class="mjll" id="mj_ll"${ab?'':' hidden'}>${L.slice(0,8).map(fila).join('')}${L.length>8?`<p class="mjn">Y ${L.length-8} más.</p>`:''}<button class="lnk mjll-e" id="mj_lle">Ver todos en el embudo ›</button></div>`:''}`);
     const vb=$('#mj_vis'),ll=$('#mj_ll');
     vb.onclick=()=>{if(!ll)return irA('ventas',{vs:'embudo'});const a=ll.hidden;ll.hidden=!a;vb.setAttribute('aria-expanded',a);vb.querySelector('.mjvc').textContent=a?'▴':'▾';try{localStorage.setItem('mj_ll',a?'1':'0')}catch(e){}};
     if(ll){$('#mj_lle').onclick=()=>irA('ventas',{vs:'embudo'});
