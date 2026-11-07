@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-07.36';
+const VERSION='2026-11-07.37';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -1759,7 +1759,7 @@ async function vPedidos(){
     const{error:e2}=await sb.from('pedido_items').insert(Object.entries(ag).map(([k,a])=>{const x={pedido_id:o.id,producto_id:k,cantidad:a.q,precio_unitario:Math.round(a.t/a.q*fac*100)/100};if(a.l.size)x.promo=[...a.l].join(' + ');if(a.mp)x.precio_manual=true;return x}));
     if(e2){$('#p_g').disabled=false;if(!ED&&esRed(e2))return pedidoOff(c,agOff(),fac,cu,ex,o.id);return toast(sqlX(e2)?'Falta correr pedidos-extra.sql en Supabase (te lo avisa el Inicio).':'El pedido N° '+o.numero+' quedó sin productos: '+e2.message,1)}
     if(cu&&!ED)await sb.from('cupones_usos').insert({codigo:S.pcup.codigo,cliente_id:c.id,pedido_id:o.id});
-    if(!ED)await marcarDebidos(o.numero).catch(()=>{});S.edPed=null;borrarBorr();okAnim('Pedido N° '+o.numero+(ED?' actualizado':' guardado'));if(!ED&&!o.es_prueba){primerPedido(c,o.id);maniAvisoPedido(ag)}
+    if(!ED)await marcarDebidos(o.numero).catch(()=>{});S.edPed=null;borrarBorr();okAnim('Pedido N° '+o.numero+(ED?' actualizado':' guardado'));if(!ED&&!o.es_prueba){primerPedido(c,o.id);maniAvisoPedido(ag);prospectoACliente(c)}
     if(S.perfil.rol=='vendedor'){const{data:ap}=await sb.from('aprobaciones_precio').select('id').eq('pedido_id',o.id).eq('estado','pendiente').then(r=>r,()=>({}));if(ap?.length)setTimeout(()=>toast('El precio especial quedó para que lo apruebe el dueño. Te avisa la campanita.'),1600)}await cargarStock();vPedidos()};
   $('#p_cuo').onclick=async()=>{const k=$('#p_cu').value.trim().toUpperCase();if(!k){S.pcup=null;$('#p_cum').textContent='';return drawI()}
     const c=cli();if(!c)return toast('Elegí primero el cliente.',1);const sub=S.items.reduce((a,i)=>a+pi(i).pu*i.q,0);
@@ -3615,7 +3615,7 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
     const{error}=await guardaCfgJ('mani_jl',{...C,dto:n});error?toast(error.message,1):(toast('Meta calculada '+(n>0?'con '+nf(n)+' % de descuento':'sin descuento')+'.'),maniJLInicio())});
   /* a quién llamar hoy por Maní JL: prospectos que tocan (o atrasados), clientes que tienen que reponer o no llevan JL, y los próximos días */
   const pedR=$('#mj_ped');if(pedR)pedR.onclick=e=>{e.stopPropagation();maniPedidoRapido()};
-  sb.from('prospectos').select('id,nombre,contacto,telefono,proximo_seguimiento,proximo_paso,campania').not('estado','in','(cliente,no_interesado)').not('proximo_seguimiento','is',null).lte('proximo_seguimiento',diaLocal(new Date(Y,M,dh+3))).order('proximo_seguimiento').limit(60).then(({data})=>{const h=$('#mj_acc');if(!h||$('#mj_vis'))return;
+  sb.from('prospectos').select('*').not('estado','in','(cliente,no_interesado)').not('proximo_seguimiento','is',null).lte('proximo_seguimiento',diaLocal(new Date(Y,M,dh+3))).order('proximo_seguimiento').limit(60).then(({data})=>{const h=$('#mj_acc');if(!h||$('#mj_vis'))return;
     const P=(data||[]).filter(p=>!p.campania||p.campania=='Maní JL'),venc=P.filter(p=>p.proximo_seguimiento<=hoyS),prox=P.filter(p=>p.proximo_seguimiento>hoyS);
     const dN=x=>{const d=new Date(x+'T12:00');return['dom','lun','mar','mié','jue','vie','sáb'][d.getDay()]+' '+d.getDate()},paso=p=>p.proximo_paso?' · '+String(p.proximo_paso).replace(/^Visita Maní JL:\s*/i,''):'';
     const nP=p=>tituloCaso(p.nombre||p.contacto||'Prospecto');
@@ -3624,13 +3624,13 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
       ...prox.map(p=>({k:'p',p,n:nP(p),t:p.telefono,w:'Toca el '+dN(p.proximo_seguimiento)+paso(p),px:1}))];
     const nHoy=L.filter(x=>!x.px).length,nProx=L.length-nHoy;let ab=false;try{ab=localStorage.getItem('mj_ll')=='1'}catch(e){}
     const txt=x=>x.k=='c'?`Hola ${x.n}! ¿Cómo andás? Te escribo por el Maní JL: ¿te preparo unas cajas para esta semana?`:`Hola! ¿Cómo estás? Soy Diego, de Sabores de mi País, distribuidor de Maní JL. ¿Te puedo pasar los precios de los packs de 65 y 85 g?`;
-    const fila=(x,k)=>{const wa=telWA(x.t||'');return`<div class="mjc${x.px?' px':''}"><span class="av">${esc((x.n.trim()[0]||'?').toUpperCase())}</span><div><b>${esc(x.n)}</b><small>${esc(x.w)}</small></div><div class="mjll-b">${wa?`<a class="mjwa" href="https://wa.me/${wa}?text=${encodeURIComponent(txt(x))}" target="_blank" rel="noopener" aria-label="WhatsApp a ${esc(x.n)}">${IC('chat',18)}</a>`:''}<button class="alt" data-mjl="${k}">${x.k=='c'?'Pedido':'Ver'}</button></div></div>`};
+    const fila=(x,k)=>{const wa=telWA(x.t||'');return`<div class="mjc${x.px?' px':''}"><span class="av">${esc((x.n.trim()[0]||'?').toUpperCase())}</span><div><b>${esc(x.n)}</b><small>${esc(x.w)}</small></div><div class="mjll-b">${wa?`<a class="mjwa" href="https://wa.me/${wa}?text=${encodeURIComponent(txt(x))}" target="_blank" rel="noopener" aria-label="WhatsApp a ${esc(x.n)}">${IC('chat',18)}</a>`:''}<button class="alt" data-mjl="${k}">Pedido</button></div></div>`};
     const lbl=nHoy?`<b>Para llamar hoy: ${nf(nHoy)}</b>`:nProx?`Hoy no hay pendientes · <b>${nf(nProx)} ${nProx==1?'próximo':'próximos'}</b>`:'Hoy no tenés visitas de Maní JL';
     h.insertAdjacentHTML('afterbegin',`<button class="mjvis${nHoy?'':' cero'}" id="mj_vis" aria-expanded="${ab&&L.length?'true':'false'}">${IC('phone',16)} <span class="mjvt">${lbl}</span><span class="mjvc">${L.length?(ab?'▴':'▾'):'›'}</span></button>`);h.insertAdjacentHTML('afterend',`${L.length?`<div class="mjll" id="mj_ll"${ab?'':' hidden'}>${L.slice(0,8).map(fila).join('')}${L.length>8?`<p class="mjn">Y ${L.length-8} más.</p>`:''}<button class="lnk mjll-e" id="mj_lle">Ver todos en el embudo ›</button></div>`:''}`);
     const vb=$('#mj_vis'),ll=$('#mj_ll');
     vb.onclick=()=>{if(!ll)return irA('ventas',{vs:'embudo'});const a=ll.hidden;ll.hidden=!a;vb.setAttribute('aria-expanded',a);vb.querySelector('.mjvc').textContent=a?'▴':'▾';try{localStorage.setItem('mj_ll',a?'1':'0')}catch(e){}};
     if(ll){$('#mj_lle').onclick=()=>irA('ventas',{vs:'embudo'});
-      ll.querySelectorAll('[data-mjl]').forEach(b=>b.onclick=()=>{const x=L[+b.dataset.mjl];if(x.k=='c'){const v=VIS.find(y=>y.c.id==x.c.id);maniPedidoRapido(x.c,v?.it)}else irA('ventas',{vs:'embudo'})});
+      ll.querySelectorAll('[data-mjl]').forEach(b=>b.onclick=()=>{const x=L[+b.dataset.mjl];if(x.k=='c'){const v=VIS.find(y=>y.c.id==x.c.id);maniPedidoRapido(x.c,v?.it)}else{b.disabled=true;altaExpres(x.p).then(c=>{b.disabled=false;if(c){toast('🎉 '+x.n+' ahora es cliente');maniPedidoRapido(c)}})}});
       ll.querySelectorAll('.mjwa').forEach(a=>a.onclick=e=>e.stopPropagation())}},()=>{});
   /* festejo una sola vez por semana y por mes */
   if(faltaMg<=0&&meta>0)fiesta('¡Meta de '+mes.toLowerCase()+' cumplida!','mj_mes_'+m);
@@ -4620,8 +4620,17 @@ async function colaInicio(){const box=$('#colai');if(!box)return;const R=await d
   $('#ci_go')&&($('#ci_go').onclick=()=>{S.tab='ventas';S.vs='cola';shell()})}
 
 /* ---------- Alta exprés ---------- */
-async function insertCliente(row){if(await yaEsCliente(row.cuit,row.telefono))return{error:{message:MSJ_YA_CLIENTE}};let r=row;for(let k=0;k<6;k++){const{data,error}=await sb.from('clientes').insert(r).select().single();if(!error)return{data};
+async function insertCliente(row){if(await yaEsCliente(row.cuit,row.telefono))return{error:{message:MSJ_YA_CLIENTE}};let r=row;for(let k=0;k<6;k++){const{data,error}=await sb.from('clientes').insert(r).select().single();if(!error){if(!['prospecto','qr','referido'].includes(row.origen))setTimeout(()=>prospectoACliente(data),300);return{data}}
   const col=Object.keys(r).find(c=>new RegExp("'"+c+"'|\\b"+c+"\\b").test(error.message)&&!['razon_social','telefono'].includes(c));if(!col)return{error};const{[col]:_,...rest}=r;r=rest}return{error:{message:'No se pudo dar de alta.'}}}
+/* Si un cliente (nuevo o que acaba de comprar) ya estaba como prospecto, lo pasa a cliente solo:
+   lo busca por teléfono (últimos 8 números) o por el mismo nombre, y lo saca del embudo y de "Para llamar". */
+async function prospectoACliente(c){try{if(!c?.id||S.perfil?.rol=='repartidor')return;
+  const t8=x=>String(x||'').replace(/\D/g,'').slice(-8),n=x=>norm(String(x||'')).replace(/[^a-z0-9]/g,''),tc=t8(c.telefono),nc=[n(c.razon_social),n(c.nombre_fantasia)].filter(x=>x.length>=4);
+  if(!(tc.length==8||nc.length))return;
+  const{data}=await sb.from('prospectos').select('id,nombre,telefono,cliente_id,estado').not('estado','in','(cliente,no_interesado)').limit(3000);
+  const P=(data||[]).filter(p=>!p.cliente_id&&((tc.length==8&&t8(p.telefono)==tc)||nc.includes(n(p.nombre))));if(!P.length)return;
+  const{error}=await sb.from('prospectos').update({estado:'cliente',cliente_id:c.id,actualizado_en:new Date().toISOString()}).in('id',P.map(p=>p.id));if(error)return;
+  toast('🎉 '+tituloCaso(P[0].nombre||nomVis(c))+' pasó de prospecto a cliente')}catch(e){}}
 async function altaExpres(x,w){if(x.cliente_id){const c=S.clientes.find(c=>c.id==x.cliente_id);if(c)return c}
   const cod=(String(x.observaciones||'').match(/código ([A-Z0-9]{4,12})/)||[])[1],ref=cod?S.clientes.find(c=>c.codigo_ref==cod):null;
   const{data:c,error}=await insertCliente({razon_social:x.nombre,telefono:x.telefono,domicilio:x.domicilio,condicion_iva:'consumidor_final',lista:'mayorista',condicion_pago_dias:0,vendedor_id:S.perfil.id,observaciones:x.observaciones,
