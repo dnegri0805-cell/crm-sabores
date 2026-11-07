@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-07.7';
+const VERSION='2026-11-07.8';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -3369,11 +3369,18 @@ const kgCaja=x=>+x?.kc==-1?0:+x?.kc>0?+x.kc:/boya/i.test(x?.n||'')?25:/tarant/i.
 const enCajas=(kg,kc)=>{if(!(kc>0))return'';const n=Math.max(1,Math.round(kg/kc));return'≈ '+nf(n)+(n==1?' caja':' cajas')};
 /* metas: un renglón por meta (Maní JL y las de kilos); tocás uno y se abre su tarjeta completa abajo */
 function metasResumen(){const box=$('#m1l');if(!box)return;const R=S.metaRes||{},L=[...(R.mani?[R.mani]:[]),...(R.kg||[])];if(!L.length){box.innerHTML='';return}
+  if(S.metaAb===undefined)S.metaAb=R.mani?'mani':'';
   const ab=S.metaAb||'',sig=L.find(x=>x.sig),mes=(sig?sig.mesSig:L[0].mes)||'';
   const hy=new Date(),fal=new Date(hy.getFullYear(),hy.getMonth()+1,0).getDate()-hy.getDate()+1,arr=fal<=1?'Arrancan mañana':'Arrancan en '+fal+' días';
   box.innerHTML=`<div class="box m1${sig?' m1-sig':''}"><div class="m1-h"><h3>${IC('target',18)} Metas de ${esc(mes.toLowerCase())}</h3>${sig?`<span class="m1-arr">${IC('calendar',13)} ${arr}</span>`:'<small>Tocá una para ver el detalle</small>'}</div>${sig?`<p class="m1-nota">${esc(L[0].mes||'Este mes')} ya cierra: te mostramos lo que hay que vender por semana desde el 1°. Tocá una para ver el detalle.</p>`:''}
-    ${L.map(x=>`<button class="m1-r${ab==x.key?' on':''}" data-m1="${x.key}" aria-expanded="${ab==x.key}"><span class="m1-f">${x.f?`<img src="${esc(x.f)}" alt="" loading="lazy">`:esc((x.n||'?')[0])}</span><span class="m1-t"><b>${esc(x.n)}</b><span class="m1-b"${x.sig?' hidden':''}><i style="width:${Math.round(Math.min(1,x.pc||0)*100)}%" class="${(x.pc||0)>=1?'ok':''}"></i></span><small>${esc(x.sub||'')}</small></span><span class="m1-v">${esc(x.val||'')}${x.val2?`<small>${esc(x.val2)}</small>`:''}</span><span class="m1-c">${IC('down',16)}</span></button>`).join('')}${(R.kg||[]).some(x=>x.kc)?`<p class="m1-eq">${(R.kg||[]).filter(x=>x.kc).map(x=>`1 caja de ${esc(x.n)} ≈ ${nf(x.kc)} kg`).join(' · ')} (aprox.). Se cambia con el lápiz de cada meta.</p>`:''}</div>`;
+    ${(()=>{const fila=x=>`<button class="m1-r${ab==x.key?' on':''}" data-m1="${x.key}" aria-expanded="${ab==x.key}"><span class="m1-f">${x.f?`<img src="${esc(x.f)}" alt="" loading="lazy">`:esc((x.n||'?')[0])}</span><span class="m1-t"><b>${esc(x.n)}</b><span class="m1-b"${x.sig?' hidden':''}><i style="width:${Math.round(Math.min(1,x.pc||0)*100)}%" class="${(x.pc||0)>=1?'ok':''}"></i></span><small>${esc(x.sub||'')}</small></span><span class="m1-v">${esc(x.val||'')}${x.val2?`<small>${esc(x.val2)}</small>`:''}</span><span class="m1-c">${IC('down',16)}</span></button>`;
+      const K=R.kg||[],eq=K.some(x=>x.kc)?`<p class="m1-eq">${K.filter(x=>x.kc).map(x=>`1 caja de ${esc(x.n)} ≈ ${nf(x.kc)} kg`).join(' · ')} (aprox.). Se cambia con el lápiz de cada meta.</p>`:'';
+      /* Maní JL es la meta principal; las demás quedan en una línea plegada */
+      if(!R.mani)return K.map(fila).join('')+eq;
+      const otAb=S.metaOt||ab.startsWith('kg');
+      return fila(R.mani)+(K.length?`<button class="m1-ob${otAb?' on':''}" id="m1_ob" aria-expanded="${!!otAb}"><span>Otras metas</span><small>${K.map(x=>`${esc(x.n)} ${Math.round(Math.min(1,x.pc||0)*100)} %`).join(' · ')}</small><span class="m1-c">${IC('down',16)}</span></button><div class="m1-ot" id="m1_ot"${otAb?'':' hidden'}>${K.map(fila).join('')}${eq}</div>`:'')})()}</div>`;
   const mostrar=()=>{const k=S.metaAb||'',mj=$('#manijl'),mk=$('#metaskg');if(mj)mj.hidden=k!='mani';if(mk)mk.hidden=!k.startsWith('kg')};mostrar();
+  {const ob=$('#m1_ob');if(ob)ob.onclick=()=>{const ot=$('#m1_ot'),ab2=ot.hidden;ot.hidden=!ab2;S.metaOt=ab2;ob.classList.toggle('on',ab2);ob.setAttribute('aria-expanded',ab2);if(!ab2&&(S.metaAb||'').startsWith('kg')){S.metaAb='';mostrar();box.querySelectorAll('[data-m1]').forEach(z=>{z.classList.remove('on');z.setAttribute('aria-expanded',false)})}}}
   box.querySelectorAll('[data-m1]').forEach(b=>b.onclick=()=>{const k=b.dataset.m1;S.metaAb=S.metaAb==k?'':k;box.querySelectorAll('[data-m1]').forEach(z=>{const on=z.dataset.m1==S.metaAb;z.classList.toggle('on',on);z.setAttribute('aria-expanded',on)});mostrar();
     if(S.metaAb.startsWith('kg')){const i=+S.metaAb.slice(2);if(i!=R.kgSel){const t=$(`#metaskg [data-mk="${i}"]`);t&&t.click()}setTimeout(()=>$('#metaskg')?.scrollIntoView({behavior:'smooth',block:'nearest'}),60)}
     else if(S.metaAb=='mani')setTimeout(()=>$('#manijl')?.scrollIntoView({behavior:'smooth',block:'nearest'}),60)})}
