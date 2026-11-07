@@ -4,6 +4,8 @@
 -- en precios_productos, agrega la columna con_costo para los filtros internos
 -- (las funciones que filtraban "pp.costo > 0" ahora usan "pp.con_costo") y deja de
 -- permitir leer precios_base y precios_lista directo desde la app.
+-- El costo solo lo ven usuarios activos que no sean vendedores (un usuario dado de baja
+-- deja de verlo aunque haya sido dueño).
 -- Se puede correr más de una vez.
 -- =========================================================
 
@@ -29,7 +31,7 @@ create or replace view public.precios_productos as
     descripcion,
     familia,
     marca,
-    (CASE WHEN es_vendedor() THEN NULL ELSE costo END)::numeric(14,4) AS costo,
+    (CASE WHEN es_usuario_activo() AND NOT es_vendedor() THEN costo END)::numeric(14,4) AS costo,
         CASE
             WHEN precio_fijo > 0::numeric THEN precio_fijo
             ELSE may
