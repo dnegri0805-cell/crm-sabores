@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-07.16';
+const VERSION='2026-11-07.17';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -3529,12 +3529,12 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
   const dow=hoy.getDay(),prox=dow==0||(dow==6&&hoy.getHours()>=14),lun=new Date(Y,M,dh+(dow==0?1:prox?2:1-dow)),sab=new Date(lun.getFullYear(),lun.getMonth(),lun.getDate()+5);
   const semIni=lun.getMonth()==M?lun.getDate():lun<hoy&&sab.getMonth()==M?1:null,semFin=semIni?(sab.getMonth()==M?sab.getDate():dm):null;
   const dS=d=>diaLocal(new Date(Y,M,d)),sA=semIni?dS(semIni):null,sB=semIni?dS(semFin):null;
-  let cj=0,mg=0,vta=0,cjS=0,cjAntesS=0;const cl=new Set(),U={},T={},jlProd={};
+  const dHoy=diaLocal(hoy);let cj=0,mg=0,vta=0,cjS=0,cjAntesS=0,cjHoy=0,mgHoy=0;const cl=new Set(),U={},T={},jlProd={};
   for(const o of pe||[]){const dia=diaLocal(o.creado_en),enMes=dia>=a;let tJL=0;
     if(dia>=diaLocal(new Date(Y,M,dh-90)))T[o.cliente_id]=(T[o.cliente_id]||0)+(+o.total||0);
     for(const i of o.pedido_items||[]){if(!ids.has(i.producto_id))continue;const q=+i.cantidad||0,pr=S.productos.find(p=>p.producto_id==i.producto_id),cu=+i.costo_unitario||+(pr?.costo||0),pu=+i.precio_unitario||0,bu=S.min[i.producto_id]?.b||1;
       tJL+=q;(jlProd[o.cliente_id]=jlProd[o.cliente_id]||new Set()).add(i.producto_id);
-      if(enMes){cj+=q/bu;mg+=q*(pu-cu);vta+=q*pu;cl.add(o.cliente_id);if(sA&&dia>=sA&&dia<=sB)cjS+=q/bu;else if(sA&&dia<sA)cjAntesS+=q/bu}}
+      if(enMes){cj+=q/bu;mg+=q*(pu-cu);vta+=q*pu;cl.add(o.cliente_id);if(dia==dHoy){cjHoy+=q/bu;mgHoy+=q*(pu-cu)}if(sA&&dia>=sA&&dia<=sB)cjS+=q/bu;else if(sA&&dia<sA)cjAntesS+=q/bu}}
     if(tJL>0)(U[o.cliente_id]=U[o.cliente_id]||[]).push(dia)}
   const fijos=G.items.reduce((s,x)=>s+(+x.m||0),0)*((+C.pct||100)/100),limpio=mg-fijos,meta=+C.meta;
   const dto=Math.max(0,Math.min(50,C.dto??7)),dtoTx=dto>0?`con ${nf(dto)} % de descuento`:'sin descuento';
@@ -3561,17 +3561,27 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
   let abierto=false;try{abierto=localStorage.getItem('mj_ab2')=='1'}catch(e){}
   const habSig=(()=>{let n=0;const y=M==11?Y+1:Y,mm=(M+1)%12,d=new Date(y,mm+1,0).getDate();for(let k=1;k<=d;k++)if(new Date(y,mm,k).getDay()!=0)n++;return n})(),pvV=Math.ceil(faltaSem/visSem),R=30,CI=2*Math.PI*R,ring=(f,t)=>`<svg class="mjr" viewBox="0 0 76 76" aria-hidden="true"><circle cx="38" cy="38" r="${R}" class="tr"/>${f>0?'':`<circle cx="38" cy="8" r="4" class="dot"/>`}${f>0?`<circle cx="38" cy="38" r="${R}" class="fl" stroke-dasharray="${(CI*f).toFixed(1)} ${CI.toFixed(1)}"/>`:''}<text x="38" y="43" text-anchor="middle">${t}</text></svg>`;
   const mesSigJ=mesNom(diaLocal(new Date(Y,M+1,1)).slice(0,7)).split(' ')[0],semSigJ=Math.ceil(cjMetaMes/(habSig/6));
-  const hero=faltaMg<=0?`<div class="mjh ok"><div><div class="ey">Objetivo de ${esc(mes.toLowerCase())}</div><div class="mjhn">Cumplido</div><div class="hs">Vas ${m0(limpio-meta)} arriba de la meta. Lo que sumes ya es extra.</div></div></div>`
-    :semIni&&pvV>LIMV&&faltaSem>0&&hab(dh,dm)<=6?`<div class="mjh sig">${ring(0,esc(mesSigJ.slice(0,3).toLowerCase()))}<div><div class="ey">${esc(mesSigJ)} arranca</div><div class="mjhn">${nf(semSigJ)}<span> cajas por semana</span></div><div class="hs">Meta del mes: ${nf(cjMetaMes)} cajas</div></div></div>`
-    :semIni?`<div class="mjh">${ring(pcS,Math.round(pcS*100)+'%')}<div><div class="ey">${pvV>LIMV&&faltaSem>0?esc(mes)+' no llega':semTit}</div><div class="mjhn">${pvV>LIMV&&faltaSem>0?`${nf(Math.round(cj))}<span> / ${nf(cjMetaMes)} cajas</span>`:`${nf(Math.round(cjS))}<span> / ${nf(objSem)} cajas</span>`}</div>${dxc?`<div class="mjd">= ${dsp(pvV>LIMV&&faltaSem>0?cjMetaMes:objSem)} de 12 bolsitas</div>`:''}
-      <div class="hs">${faltaSem>0?(pvV>LIMV?`Desde el 1/${(M+1)%12+1}: <b>${nf(Math.ceil(cjMetaMes/(habSig/6)))} cajas por semana</b>`:`${nf(pvV)} cajas por visita · ${visSem} visita${visSem==1?'':'s'}`):'Semana cumplida. Lo que sumes adelanta el mes.'}</div>${realista?'':`<span class="pill">${fijos>0&&cj<cjGasMes?`${nf(Math.max(0,cjGasMes-Math.round(cj)))} cajas para cubrir gastos`:'Foco: sumar cajas'}</span>`}</div></div>`
-    :`<div class="mjh"><div><div class="ey">${esc(mes)}</div><div class="mjhn">${nf(faltaCj)}<span> cajas por vender</span></div></div></div>`;
-  const faltGas=Math.max(0,cjGasMes-Math.round(cj)),aviso=realista?'':`<div class="mja"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5"/><path d="M10 9v5M10 6.2v.1"/></svg><span><b>${esc(mes)}:</b> ${fijos<=0?'sumá todas las cajas que puedas.':cj>=cjGasMes?'gastos cubiertos, lo que vendas es limpio.':`con ${nf(faltGas)} ${faltGas==1?'caja':'cajas'}${dxc?' ('+dsp(faltGas)+')':''} cubrís los gastos (${m0(fijos)}).`} <b>Desde ${esc(mesSigJ.toLowerCase())}</b>, para tu meta de ${m0(meta)} necesitás unas ${nf(semSigJ)} cajas${dxc?' ('+dsp(semSigJ)+')':''} por semana.</span></div>`;
+  /* Tablero del mes: la meta se persigue en el mes en curso y se recalcula todos los días con los días hábiles que quedan (lunes a sábado). */
+  const hoyCuenta=hoy.getDay()!=0&&hoy.getHours()<19,diasRest=Math.max(1,hab(hoyCuenta?dh:dh+1,dm)),totalCj=Math.ceil(faltaMg/mb);
+  const faltaIniHoy=Math.max(0,meta+fijos-(hoyCuenta?mg-mgHoy:mg)),porDia=faltaMg<=0?0:Math.max(1,Math.ceil(faltaIniHoy/mb/diasRest)),porSem=Math.min(totalCj,porDia*Math.min(6,diasRest));
+  const cjHoyR=Math.round(cjHoy),pcHoy=porDia?Math.min(1,cjHoy/porDia):0,pcMeta=Math.max(0,Math.min(1,mg/(meta+fijos))),hoyOk=porDia>0&&cjHoy>=porDia;
+  const hero=faltaMg<=0?`<div class="mq ok"><div class="mq-top"><span>Llevás limpio</span><span class="mq-chip ok">Meta cumplida</span></div><div class="mq-big">${m0(limpio)}<span> de ${m0(meta)}</span></div><div class="mq-bar"><i style="width:100%"></i></div><p class="mq-msg">Vas ${m0(limpio-meta)} arriba de la meta. Lo que sumes ya es extra.</p></div>`
+    :`<div class="mq"><div class="mq-top"><span>Llevás limpio</span><span class="mq-chip">Quedan ${diasRest} ${diasRest==1?'día':'días'}</span></div>
+      <div class="mq-big">${m0(Math.max(0,limpio))}<span> de ${m0(meta)}</span></div>
+      <div class="mq-bar"><i style="width:${(pcMeta*100).toFixed(1)}%"></i></div>
+      <div class="mq-lg"><span>${fijos>0?(cubre?'Gastos cubiertos':`Gastos del mes ${m0(fijos)} (se descuentan)`):''}</span><span>Faltan ${m0(faltaMg)}</span></div>
+      <div class="mq-need"><div class="mq-h4">Para llegar necesitás</div><div class="mq-g3">
+        <div class="hoy"><small>Por día</small><b>${nf(porDia)}</b><span>${porDia==1?'caja':'cajas'}${dxc?' · '+dsp(porDia):''}</span></div>
+        <div><small>Por semana</small><b>${nf(porSem)}</b><span>cajas</span></div>
+        <div><small>En total</small><b>${nf(totalCj)}</b><span>cajas</span></div></div>
+        <div class="mq-hoy${hoyOk?' ok':''}"><b>${hoyCuenta?'Hoy':'Mañana'}: ${hoyCuenta?nf(cjHoyR)+' de '+nf(porDia):nf(porDia)} ${porDia==1&&!hoyCuenta?'caja':'cajas'}${hoyOk?' ✓':''}</b>${hoyCuenta?`<div class="mq-mb"><i style="width:${(pcHoy*100).toFixed(1)}%"></i></div>`:''}</div></div>
+      <p class="mq-msg">Se recalcula todos los días: si un día vendés menos, lo que falta se reparte entre los días que quedan; si vendés más, baja.</p></div>`;
+  const faltGas=Math.max(0,cjGasMes-Math.round(cj)),aviso=true?'':`<div class="mja"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5"/><path d="M10 9v5M10 6.2v.1"/></svg><span><b>${esc(mes)}:</b> ${fijos<=0?'sumá todas las cajas que puedas.':cj>=cjGasMes?'gastos cubiertos, lo que vendas es limpio.':`con ${nf(faltGas)} ${faltGas==1?'caja':'cajas'}${dxc?' ('+dsp(faltGas)+')':''} cubrís los gastos (${m0(fijos)}).`} <b>Desde ${esc(mesSigJ.toLowerCase())}</b>, para tu meta de ${m0(meta)} necesitás unas ${nf(semSigJ)} cajas${dxc?' ('+dsp(semSigJ)+')':''} por semana.</span></div>`;
   const bps=[...ids].filter(id=>!foco||chico(id)).map(id=>S.min[id]?.bp||0).filter(x=>x>0),bpP=bps.length?bps.reduce((a,x)=>a+x,0)/bps.length:0,palMes=bpP?cjMetaMes/bpP:0;
   const conSel=pocas&&faltaMg>0&&[...ids].some(chico),nota=faltaMg<=0||conSel?'':pocas?`Estimado con ${m0(mbCat)} de ganancia por caja${foco?' (65 y 85 g)':' (promedio de toda la línea)'}, <a class="lnk" data-mjdto>${dtoTx}</a>.${!cubre&&realista?` Con ${nf(Math.ceil((fijos-mg)/mb))} cajas cubrís los gastos.`:''}`
       :`Cada caja te deja ${m0(mb)}. A este ritmo cerrás ${esc(mes.toLowerCase())} con <b class="${ok?'sube':'baja'}">${m0(proyLimpio)}</b> limpios.`;
   const SEL=conSel?`<div class="mjseg"><span>Calcular con<small>Estimado: ${m0(mbCat)} por caja</small><small><a class="lnk" data-mjdto>${dtoTx}</a></small></span><div role="radiogroup" aria-label="Calcular con" class="mjsw ${foco?'':'der'}" id="mj_sw"><i class="mjpill"></i><button role="radio" aria-checked="${!!foco}" data-mjf="chicos" class="${foco?'on':''}">65 y 85 g</button><button role="radio" aria-checked="${!foco}" data-mjf="todo" class="${foco?'':'on'}">Toda la línea</button></div></div>`:'';
-  const esSig=faltaMg>0&&semIni&&pvV>LIMV&&faltaSem>0&&hab(dh,dm)<=6;
+  const esSig=false;
   box.innerHTML=`<div class="box obj mj${esSig?' sig':''}"><div class="mjtop"><div class="mjtl"><img class="mjimg" src="fotos/metas/mani-jl.webp" alt=""><div><div class="ey">Meta de ${esc((esSig?mesSigJ:mes).toLowerCase())}</div><div class="tt">Maní JL</div>${esSig?`<div class="mjcer">${esc(mes)} cierra con ${nf(Math.round(cj))} ${Math.round(cj)==1?'caja':'cajas'}</div>`:''}</div></div><button class="mjmeta" id="mj_e" aria-label="Cambiar meta"><small>Meta limpia</small><b>${m0(meta)}</b><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16H4v-3z"/></svg></button></div>
     <div id="mj_h" role="button" tabindex="0" aria-expanded="${abierto}" style="cursor:pointer">${hero}</div>
     <button class="mjver" id="mj_t">${abierto?'Ocultar detalle':'Ver detalle del mes'} <span>${abierto?'▴':'▾'}</span></button>
@@ -3582,12 +3592,12 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
     <div class="mjk"><div><small>Vendiste</small><b>${nf(Math.round(cj))}</b><small>cajas · ${cl.size} cliente${cl.size==1?'':'s'}</small></div>
       <div><small>Ganancia</small><b>${m0(mg)}</b><small>facturado ${m0(vta)}</small></div>
       <div><small>Limpio</small>${limpio<0&&!(cj>0)?`<b style="color:var(--mu)">${m0(0)}</b><small>faltan ${mM(fijos)} para cubrir gastos</small>`:`<b class="${limpio<0?'baja':limpio>=meta?'sube':''}">${m0(limpio)}</b><small>${limpio<0?'faltan '+mM(-limpio)+' para cubrir gastos':Math.round(limpio/meta*100)+' % de la meta'}</small>`}</div></div>
-    ${palMes?`<div class="mjpal"><div><small>${realista?'Para la meta':'Desde el mes que viene'}</small><b>${palMes.toLocaleString('es-AR',{maximumFractionDigits:1})} pallets por mes</b><small>${nf(cjMetaMes)} cajas${dxc?' ('+dsp(cjMetaMes)+')':''} · ${nf(Math.round(bpP))} por pallet</small></div><div><small>Cada pallet te deja</small><b>${mM(mb*bpP)}</b><small>de ganancia</small></div>${SEL}</div>`:SEL}${nota?`<p class="mjn">${nota}</p>`:''}</div>
+    ${palMes?`<div class="mjpal"><div><small>Para la meta</small><b>${palMes.toLocaleString('es-AR',{maximumFractionDigits:1})} pallets por mes</b><small>${nf(cjMetaMes)} cajas${dxc?' ('+dsp(cjMetaMes)+')':''} · ${nf(Math.round(bpP))} por pallet</small></div><div><small>Cada pallet te deja</small><b>${mM(mb*bpP)}</b><small>de ganancia</small></div>${SEL}</div>`:SEL}${nota?`<p class="mjn">${nota}</p>`:''}</div>
     <div class="mjsec mjv"${VIS.length?'':' hidden'}><div class="mjrow"><span class="ey">A quién visitar</span>${VIS.length?`<small>${VIS.length} sugerido${VIS.length==1?'':'s'}</small>`:''}</div>
       ${VIS.length?VIS.map(x=>{const nm=String(nomVis(x.c)||x.c.razon_social||'Cliente');return`<div class="mjc"><span class="av">${esc(nm.trim()[0]||'?').toUpperCase()}</span><div><b>${esc(nm)}</b><small>${esc(x.why)}</small></div><button class="alt" data-mjp="${x.c.id}">Pedido</button></div>`}).join('')
         :'<p class="mjn">Cuando haya ventas, acá aparecen los clientes a los que les toca reponer JL y los que compran mucho y no lo llevan.</p>'}</div></div></div>`;
   S.metaRes=S.metaRes||{};S.metaRes.mani={key:'mani',n:'Maní JL',f:'fotos/metas/mani-jl.webp',mes,mesSig:mesSigJ,sig:esSig,pc:esSig?0:cjMetaMes?cj/cjMetaMes:0,val:esSig?nf(semSigJ)+' por semana':nf(Math.round(cj))+' / '+nf(cjMetaMes)+' cajas',
-    sub:esSig?`${mesSigJ}: ${nf(cjMetaMes)} cajas (${nf(semSigJ)} por semana)`:faltaMg<=0?'Meta cumplida':semIni&&objSem?`Esta semana: ${nf(Math.round(cjS))} de ${nf(objSem)} cajas`:`Faltan ${nf(faltaCj)} cajas`};metasResumen();
+    sub:faltaMg<=0?'Meta cumplida':`Hoy: ${nf(cjHoyR)} de ${nf(porDia)} cajas · faltan ${nf(totalCj)}`};metasResumen();
   const plegar=()=>{const d=$('#mj_d'),ab=d.hidden;d.hidden=!ab;try{localStorage.setItem('mj_ab2',ab?'1':'0')}catch(e){}$('#mj_h').setAttribute('aria-expanded',ab);$('#mj_t').innerHTML=(ab?'Ocultar detalle':'Ver detalle del mes')+' <span>'+(ab?'▴':'▾')+'</span>'};
   $('#mj_h').onclick=plegar;$('#mj_t').onclick=plegar;
   const sw=$('#mj_sw');if(sw){
@@ -3605,11 +3615,11 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
   $$('#manijl [data-mjdto]').forEach(a=>a.onclick=async e=>{e.stopPropagation();const x=prompt('Descuento promedio que pensás dar a los clientes (en %). La meta se calcula con ese precio:',String(dto));if(x===null)return;const n=numAR(x);if(!(n>=0&&n<=50))return toast('Escribí un porcentaje entre 0 y 50.',1);
     const{error}=await guardaCfgJ('mani_jl',{...C,dto:n});error?toast(error.message,1):(toast('Meta calculada '+(n>0?'con '+nf(n)+' % de descuento':'sin descuento')+'.'),maniJLInicio())});
   /* visitas de Maní JL que tocan hoy (o vencidas) */
-  sb.from('prospectos').select('id',{count:'exact',head:true}).eq('campania','Maní JL').lte('proximo_seguimiento',diaLocal(new Date())).not('estado','in','(cliente,no_interesado)').then(({count})=>{const h=$('#manijl .mjh');if(!h||$('#mj_vis'))return;
+  sb.from('prospectos').select('id',{count:'exact',head:true}).eq('campania','Maní JL').lte('proximo_seguimiento',diaLocal(new Date())).not('estado','in','(cliente,no_interesado)').then(({count})=>{const h=$('#mj_h');if(!h||$('#mj_vis'))return;
     h.insertAdjacentHTML('afterend',`<button class="mjvis${count?'':' cero'}" id="mj_vis" onclick="irA('ventas',{vs:'embudo'})">${IC('target',16)} ${count?`<b>Hoy: ${nf(count)} ${count==1?'visita':'visitas'} de Maní JL</b>`:'Hoy no tenés visitas de Maní JL'}<span style="font-size:20px;line-height:1">›</span></button>`)},()=>{});
   /* festejo una sola vez por semana y por mes */
   if(faltaMg<=0&&meta>0)fiesta('¡Meta de '+mes.toLowerCase()+' cumplida!','mj_mes_'+m);
-  else if(semIni&&objSem>0&&faltaSem<=0&&cjS>0)fiesta('¡Semana cumplida!','mj_sem_'+sA);
+  else if(hoyOk&&hoyCuenta)fiesta('¡Objetivo de hoy cumplido!','mj_dia_'+dHoy);
   $('#mj_e').onclick=pedirMeta}
 
 /* ======================= METAS EN KILOS POR PRODUCTO (Inicio) =======================
