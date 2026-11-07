@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-07.17';
+const VERSION='2026-11-07.18';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -3569,7 +3569,7 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
     :`<div class="mq"><div class="mq-top"><span>Llevás limpio</span><span class="mq-chip">Quedan ${diasRest} ${diasRest==1?'día':'días'}</span></div>
       <div class="mq-big">${m0(Math.max(0,limpio))}<span> de ${m0(meta)}</span></div>
       <div class="mq-bar"><i style="width:${(pcMeta*100).toFixed(1)}%"></i></div>
-      <div class="mq-lg"><span>${fijos>0?(cubre?'Gastos cubiertos':`Gastos del mes ${m0(fijos)} (se descuentan)`):''}</span><span>Faltan ${m0(faltaMg)}</span></div>
+      <div class="mq-lg"><span>${fijos>0?(cubre?'Gastos cubiertos':`Incluye ${m0(fijos)} de gastos`):''}</span><span>Faltan ${m0(faltaMg)}</span></div>
       <div class="mq-need"><div class="mq-h4">Para llegar necesitás</div><div class="mq-g3">
         <div class="hoy"><small>Por día</small><b>${nf(porDia)}</b><span>${porDia==1?'caja':'cajas'}${dxc?' · '+dsp(porDia):''}</span></div>
         <div><small>Por semana</small><b>${nf(porSem)}</b><span>cajas</span></div>
