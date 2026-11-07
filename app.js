@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-07.34';
+const VERSION='2026-11-07.35';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -1013,7 +1013,7 @@ const dirLeer=p=>({barrio:$('#'+p+'_ba').value.trim()||null,ciudad:$('#'+p+'_ci'
 const dirFalta=e=>/barrio|codigo_postal|provincia|ciudad/.test(e?.message||'')?'Falta correr clientes-direccion.sql en Supabase (te lo avisa el Inicio).':e?.message;
 
 /* ---------- Clientes ---------- */
-const FCOL={'🥖 Panaderías':'#c58a1c','🍦 Heladerías':'#3c8fc4','🧀 Fiambrerías':'#7b2d3e','🛒 Supermercados':'#c0392b','🏪 Almacenes y comercios':'#2f8a57','🍝 Gastronomía':'#d0672a','🚚 Distribuidores':'#5b4fa8','❔ Sin rubro':'#9aa0ad'};
+const FCOL={'🥖 Panaderías':'#c58a1c','🍦 Heladerías':'#3c8fc4','🧀 Fiambrerías':'#7b2d3e','🛒 Supermercados':'#c0392b','🏮 Super chinos':'#b8326b','🏪 Almacenes y comercios':'#2f8a57','🍝 Gastronomía':'#d0672a','🚚 Distribuidores':'#5b4fa8','❔ Sin rubro':'#9aa0ad'};
 const famCol=f=>FCOL[f]||'#6a7184';
 const inicCli=c=>{const w=nomVis(c).replace(/\b(SRL|SA|SAS|SH)\b/gi,'').trim().split(/\s+/).filter(x=>/^[\p{L}\d]/u.test(x));return ((w[0]||'?')[0]+(w.length>1&&!/^\d/.test(w[1])?w[1][0]:(w[0]||'')[1]||'')).toUpperCase()};
 const avatar=(c,cls='')=>`<span class="cl-ini ${cls}${S.estCli?.[c?.id]?' an-'+S.estCli[c.id].k:''}" style="background:${famCol(famCli(c))}">${esc(inicCli(c))}</span>`;
@@ -1024,7 +1024,7 @@ function vClientes(){
     marcarUso('clientes:'+S.cs);
     return ({ruta:vRutaHoy,semana:vAgendaSemana,recorridos:vRecorridos,agenda:vAgenda,prospectos:vProspectos,fijos:vFijos,dormidos:vDormidos,mapa:vMapa})[S.cs]()}
   $('#v').innerHTML=`${cabClientes()}${subs}<div class="cl-pega"><input id="q" type="search" placeholder="Buscar cliente o CUIT"><div class="clis" id="clis"></div><div class="cfil"><div class="sub cest" id="cest"></div><div class="sub cest" id="cetq"></div><div class="sub" id="cfam"></div><div class="sub cest" id="cord"></div></div></div><div id="cdq"></div><div id="ct"></div>`;
-  const ORD=[...FAM_CLI.map(x=>x[0]),'❔ Sin rubro'],FAM_FIJAS=['🥖 Panaderías','🍦 Heladerías','🧀 Fiambrerías','🛒 Supermercados'];S.cfam=S.cfam||'';
+  const ORD=[...FAM_CLI.map(x=>x[0]),'❔ Sin rubro'],FAM_FIJAS=['🥖 Panaderías','🍦 Heladerías','🧀 Fiambrerías','🛒 Supermercados','🏮 Super chinos'];S.cfam=S.cfam||'';
   const fCol=famCol,fTxt=f=>String(f).replace(/^\S+\s+/,''),inic=inicCli;
   const condTag=c=>{const t=[];if(c.lista&&c.lista!='mayorista')t.push(c.lista=='especial'?'gastronomía':c.lista);if(+c.condicion_pago_dias)t.push(c.condicion_pago_dias+' días');return t.length?`<small class="cl-cond">${esc(t.join(' · '))}</small>`:''};
   const rsSimil=c=>{const f=x=>norm(x||'').replace(/\b(s\.?r\.?l|s\.?a|s\.?a\.?s|s\.?h|y cia)\b\.?/g,'').replace(/[^a-z0-9]/g,'');const a=f(c.nombre_fantasia),b=f(c.razon_social);return !a||!b||a==b||b.includes(a)||a.includes(b)};
@@ -4154,10 +4154,13 @@ const REL='⚡ Oferta relámpago';
 /* ---------- 9. Catálogo por tipo de negocio ---------- */
 const RUBROS=['Kiosco','Almacén','Autoservicio','Supermercado','Supermercado chino','Dietética','Verdulería','Fiambrería','Bar / Café','Panadería','Confitería','Rotisería','Maxikiosco','Distribuidor','Restaurante','Pizzería','Parrilla','Heladería','Hotel'];
 /* Familias de clientes: agrupan los rubros para ver la lista de clientes ordenada */
-const FAM_CLI=[['🥖 Panaderías',['Panadería','Confitería']],['🍦 Heladerías',['Heladería']],['🧀 Fiambrerías',['Fiambrería']],['🛒 Supermercados',['Supermercado','Supermercado chino','Autoservicio']],
+const FAM_CLI=[['🥖 Panaderías',['Panadería','Confitería']],['🍦 Heladerías',['Heladería']],['🧀 Fiambrerías',['Fiambrería']],['🛒 Supermercados',['Supermercado','Autoservicio']],['🏮 Super chinos',['Supermercado chino']],
   ['🏪 Almacenes y comercios',['Almacén','Kiosco','Maxikiosco','Dietética','Verdulería']],['🍝 Gastronomía',['Restaurante','Pizzería','Parrilla','Bar / Café','Rotisería','Hotel']],['🚚 Distribuidores',['Distribuidor']]];
-const famCli=c=>{const r=norm((c?.rubro||'').trim());if(!r)return '❔ Sin rubro';for(const[f,L]of FAM_CLI)if(L.some(x=>norm(x)==r))return f;
-  if(/chin|supermerc|autoserv/.test(r))return '🛒 Supermercados';if(/panad|confit/.test(r))return '🥖 Panaderías';if(/helad/.test(r))return '🍦 Heladerías';if(/fiambr/.test(r))return '🧀 Fiambrerías';
+const famCli=c=>{const r=norm((c?.rubro||'').trim());
+  /* los super chinos van aparte: por el rubro o porque el nombre dice "chino" (aunque el rubro diga supermercado o esté vacío) */
+  if(/chin/.test(r)||(/\bchin[oa]s?\b/.test(norm((c?.razon_social||'')+' '+(c?.nombre_fantasia||'')+' '+(c?.nombre||'')))&&(!r||/supermerc|autoserv|almac|maxik/.test(r))))return '🏮 Super chinos';
+  if(!r)return '❔ Sin rubro';for(const[f,L]of FAM_CLI)if(L.some(x=>norm(x)==r))return f;
+  if(/supermerc|autoserv/.test(r))return '🛒 Supermercados';if(/panad|confit/.test(r))return '🥖 Panaderías';if(/helad/.test(r))return '🍦 Heladerías';if(/fiambr/.test(r))return '🧀 Fiambrerías';
   if(/resto|restaur|pizz|parri|bar|cafe|rotis|hotel|gastro/.test(r))return '🍝 Gastronomía';if(/distrib/.test(r))return '🚚 Distribuidores';return '🏪 Almacenes y comercios'};
 const selRubro=(id,val)=>`<select id="${id}"><option value="">Elegí el tipo de negocio</option>${FAM_CLI.map(([f,L])=>`<optgroup label="${esc(f)}">${L.map(r=>`<option ${val==r?'selected':''}>${esc(r)}</option>`).join('')}</optgroup>`).join('')}</select>`;
 const rubroDL=()=>`<datalist id="dl_rub">${[...new Set([...RUBROS,...S.clientes.map(c=>(c.rubro||'').trim()).filter(Boolean)])].map(r=>`<option value="${esc(r)}">`).join('')}</datalist>`;
