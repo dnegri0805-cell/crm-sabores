@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-07.39';
+const VERSION='2026-11-07.40';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -3564,7 +3564,7 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
   const hoyS=diaLocal(hoy),dd=(x,y)=>Math.round((new Date(y+'T12:00')-new Date(x+'T12:00'))/864e5),act=S.clientes.filter(c=>c.activo!==false);
   const V=[];for(const c of act){const L=[...new Set(U[c.id]||[])].sort();
     if(L.length){const ult=L[L.length-1],hace=dd(ult,hoyS);if(sA&&ult>=sA)continue;const gaps=L.slice(1).map((x,k)=>dd(L[k],x)).filter(g=>g>0),cada=gaps.length?Math.round(gaps.reduce((s,g)=>s+g,0)/gaps.length):21;
-      if(hace>=Math.max(7,cada*.85))V.push({c,pri:hace/cada+1,why:`Le toca reponer: compró JL hace ${hace} días${gaps.length?` (suele cada ${cada})`:''}`,it:[...(jlProd[c.id]||[])]})}
+      if(hace>=Math.max(7,cada*.85))V.push({c,pri:hace/cada+1,rep:hace,why:`🔁 Le toca reponer: compró JL hace ${hace} días${gaps.length?` (suele cada ${cada})`:''}`,it:[...(jlProd[c.id]||[])]})}
     else if((T[c.id]||0)>0)V.push({c,pri:(T[c.id]||0)/1e9,why:`Te compra ${m0(T[c.id]/3)} por mes y todavía no lleva JL`,it:null})}
   V.sort((x,y)=>y.pri-x.pri);const VIS=V.slice(0,6);
   let abierto=false;try{abierto=localStorage.getItem('mj_ab2')=='1'}catch(e){}
@@ -3592,7 +3592,7 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
   box.innerHTML=`<div class="box obj mj${esSig?' sig':''}"><div class="mjtop"><div class="mjtl"><img class="mjimg" src="fotos/metas/mani-jl.webp" alt=""><div><div class="ey">Meta de ${esc((esSig?mesSigJ:mes).toLowerCase())}</div><div class="tt">Maní JL</div>${esSig?`<div class="mjcer">${esc(mes)} cierra con ${nf(Math.round(cj))} ${Math.round(cj)==1?'caja':'cajas'}</div>`:''}</div></div><button class="mjmeta" id="mj_e" aria-label="Cajas vendidas este mes. Tocá para cambiar la meta"><small>Este mes</small><b>${nf(Math.round(cj))} ${Math.round(cj)==1?'caja':'cajas'}</b><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16H4v-3z"/></svg></button></div>
     <div id="mj_h">${hero}</div>
     <div class="mjacc" id="mj_acc"><button class="mjver" id="mj_t" aria-expanded="${abierto}">Detalle <span>${abierto?'▴':'▾'}</span></button></div>
-    <div id="mj_d"${abierto?'':' hidden'}>${aviso}${faltaMg>0?'<p class="mq-msg mq-cmo">El objetivo por día se recalcula todos los días: si un día vendés menos, lo que falta se reparte entre los días que quedan; si vendés más, baja.</p>':''}
+    <div id="mj_d"${abierto?'':' hidden'}>${aviso}<button class="alt mjpj" id="mj_pj" type="button">🚚 Armar pedido a JL</button>${faltaMg>0?'<p class="mq-msg mq-cmo">El objetivo por día se recalcula todos los días: si un día vendés menos, lo que falta se reparte entre los días que quedan; si vendés más, baja.</p>':''}
     <div class="mjsec"><div class="mjrow"><span class="ey">${esc(mes)}</span><span class="mjg">${m0(mg)} <small>de ${m0(obj)} (meta + gastos)</small></span></div>
     <div class="obar mjb">${pcF>0&&pcF<1?`<span class="gz" style="width:${(pcF*100).toFixed(1)}%"></span>`:''}${pcG>0?`<i style="width:${(pcG*100).toFixed(1)}%" class="${pcG>=1?'lleno':''}"></i>`:''}${pcF>0&&pcF<1?`<span class="gf" style="left:${(pcF*100).toFixed(1)}%"></span>`:''}</div>
     ${pcF>0&&pcF<1?`<div class="mjl"><span style="left:${(pcF*100).toFixed(1)}%${pcF<.18?';transform:translateX(-6px)':pcF>.82?';transform:translateX(-100%)':''}">${cubre?'Gastos cubiertos':'Gastos '+m0(fijos)}</span></div>`:''}
@@ -3623,23 +3623,30 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
     const{error}=await guardaCfgJ('mani_jl',{...C,dto:n});error?toast(error.message,1):(toast('Meta calculada '+(n>0?'con '+nf(n)+' % de descuento':'sin descuento')+'.'),maniJLInicio())});
   /* a quién llamar hoy por Maní JL: prospectos que tocan (o atrasados), clientes que tienen que reponer o no llevan JL, y los próximos días */
   const pedR=$('#mj_ped');if(pedR)pedR.onclick=e=>{e.stopPropagation();maniPedidoRapido()};
+  $('#mj_pj')&&($('#mj_pj').onclick=()=>pedidoAJL(porDia));
+  /* stock de Maní: si llevás el stock y no te alcanza para la semana, aviso con botón para pedirle a JL */
+  if(S.perfil?.rol!='vendedor')(async()=>{try{await cargarStock();const CH=S.productos.filter(p=>esJL(p.producto_id)&&/\b(65|85)\s*g\b/i.test(p.descripcion||''));if(!CH.length||!porDia)return;
+    const usa=CH.some(p=>stk(p.producto_id).f>0||stk(p.producto_id).r>0)||await sb.from('ordenes_compra').select('id',{count:'exact',head:true}).eq('proveedor_id',S._jlId||JL_ID).neq('estado','anulada').then(r=>(r.count||0)>0,()=>false);if(!usa)return;
+    const cjS=CH.reduce((a,p)=>a+Math.max(0,stk(p.producto_id).d)/(S.min[p.producto_id]?.b||1),0),dias=Math.floor(cjS/porDia);if(dias>=6||$('#mj_stk'))return;
+    const h=$('#mj_acc');if(!h)return;h.insertAdjacentHTML('beforebegin',`<button class="mjstk" id="mj_stk" type="button"><span>⚠️ ${dias<1?(cjS<1?'No tenés stock de Maní JL':'Stock para menos de un día'):'Stock para '+dias+(dias==1?' día':' días')}</span><b>Pedir a JL ›</b></button>`);
+    $('#mj_stk').onclick=()=>pedidoAJL(porDia)}catch(e){}})();
   sb.from('prospectos').select('*').not('estado','in','(cliente,no_interesado)').not('proximo_seguimiento','is',null).lte('proximo_seguimiento',diaLocal(new Date(Y,M,dh+3))).order('proximo_seguimiento').limit(60).then(({data})=>{const h=$('#mj_acc');if(!h||$('#mj_vis'))return;
     const P=(data||[]).filter(p=>!p.campania||p.campania=='Maní JL'),venc=P.filter(p=>p.proximo_seguimiento<=hoyS),prox=P.filter(p=>p.proximo_seguimiento>hoyS);
     const dN=x=>{const d=new Date(x+'T12:00');return['dom','lun','mar','mié','jue','vie','sáb'][d.getDay()]+' '+d.getDate()},paso=p=>p.proximo_paso?' · '+String(p.proximo_paso).replace(/^Visita Maní JL:\s*/i,''):'';
     const nP=p=>tituloCaso(p.nombre||p.contacto||'Prospecto');
     const L=[...venc.map(p=>({k:'p',p,n:nP(p),t:p.telefono,w:(p.proximo_seguimiento<hoyS?`Atrasado ${dd(p.proximo_seguimiento,hoyS)} ${dd(p.proximo_seguimiento,hoyS)==1?'día':'días'}`:'Le toca hoy')+paso(p)})),
-      ...VIS.map(x=>({k:'c',c:x.c,n:String(nomVis(x.c)||x.c.razon_social||'Cliente'),t:x.c.telefono,w:x.why})),
+      ...VIS.map(x=>({k:'c',c:x.c,n:String(nomVis(x.c)||x.c.razon_social||'Cliente'),t:x.c.telefono,w:x.why,rep:x.rep})),
       ...prox.map(p=>({k:'p',p,n:nP(p),t:p.telefono,w:'Toca el '+dN(p.proximo_seguimiento)+paso(p),px:1}))];
     const nHoy=L.filter(x=>!x.px).length,nProx=L.length-nHoy;let ab=false;try{ab=localStorage.getItem('mj_ll')=='1'}catch(e){}
-    const txt=x=>x.k=='c'?`Hola ${x.n}! ¿Cómo andás? Te escribo por el Maní JL: ¿te preparo unas cajas para esta semana?`:`Hola! ¿Cómo estás? Soy Diego, de Sabores de mi País, distribuidor de Maní JL. ¿Te puedo pasar los precios de los packs de 65 y 85 g?`;
-    const fila=(x,k)=>{const wa=telWA(x.t||'');return`<div class="mjc${x.px?' px':''}"><span class="av">${esc((x.n.trim()[0]||'?').toUpperCase())}</span><div><b>${esc(x.n)}</b><small>${esc(x.w)}</small></div><div class="mjll-b">${wa?`<a class="mjwa" href="https://wa.me/${wa}?text=${encodeURIComponent(txt(x))}" target="_blank" rel="noopener" aria-label="WhatsApp a ${esc(x.n)}">${IC('chat',18)}</a>`:''}<button class="alt" data-mjl="${k}">Pedido</button></div></div>`};
+    const txt=x=>x.k=='c'?(x.rep!=null?`Hola ${x.n}! ¿Cómo andás? Ya pasaron ${x.rep} días desde tu último pedido de Maní JL. ¿Te repongo los displays esta semana?`:`Hola ${x.n}! ¿Cómo andás? Te escribo por el Maní JL: ¿te preparo unas cajas para esta semana?`):`Hola! ¿Cómo estás? Soy Diego, de Sabores de mi País, distribuidor de Maní JL. ¿Te puedo pasar los precios de los packs de 65 y 85 g?`;
+    const fila=(x,k)=>{const wa=telWA(x.t||'');return`<div class="mjc${x.px?' px':''}"><span class="av">${esc((x.n.trim()[0]||'?').toUpperCase())}</span><div><b>${esc(x.n)}</b><small>${esc(x.w)}</small></div><div class="mjll-b">${wa?`<a class="mjwa" data-mjw="${k}" href="https://wa.me/${wa}?text=${encodeURIComponent(txt(x))}" target="_blank" rel="noopener" aria-label="WhatsApp a ${esc(x.n)}">${IC('chat',18)}</a>`:''}<button class="alt" data-mjl="${k}">Pedido</button></div></div>`};
     const lbl=nHoy?`<b>Para llamar hoy: ${nf(nHoy)}</b>`:nProx?`Hoy no hay pendientes · <b>${nf(nProx)} ${nProx==1?'próximo':'próximos'}</b>`:'Hoy no tenés visitas de Maní JL';
     h.insertAdjacentHTML('afterbegin',`<button class="mjvis${nHoy?'':' cero'}" id="mj_vis" aria-expanded="${ab&&L.length?'true':'false'}">${IC('phone',16)} <span class="mjvt">${lbl}</span><span class="mjvc">${L.length?(ab?'▴':'▾'):'›'}</span></button>`);h.insertAdjacentHTML('afterend',`${L.length?`<div class="mjll" id="mj_ll"${ab?'':' hidden'}>${L.slice(0,8).map(fila).join('')}${L.length>8?`<p class="mjn">Y ${L.length-8} más.</p>`:''}<button class="lnk mjll-e" id="mj_lle">Ver todos en el embudo ›</button></div>`:''}`);
     const vb=$('#mj_vis'),ll=$('#mj_ll');
     vb.onclick=()=>{if(!ll)return irA('ventas',{vs:'embudo'});const a=ll.hidden;ll.hidden=!a;vb.setAttribute('aria-expanded',a);vb.querySelector('.mjvc').textContent=a?'▴':'▾';try{localStorage.setItem('mj_ll',a?'1':'0')}catch(e){}};
     if(ll){$('#mj_lle').onclick=()=>irA('ventas',{vs:'embudo'});
       ll.querySelectorAll('[data-mjl]').forEach(b=>b.onclick=()=>{const x=L[+b.dataset.mjl];if(x.k=='c'){const v=VIS.find(y=>y.c.id==x.c.id);maniPedidoRapido(x.c,v?.it)}else{b.disabled=true;altaExpres(x.p).then(c=>{b.disabled=false;if(c){toast('🎉 '+x.n+' ahora es cliente');maniPedidoRapido(c)}})}});
-      ll.querySelectorAll('.mjwa').forEach(a=>a.onclick=e=>e.stopPropagation())}},()=>{});
+      ll.querySelectorAll('.mjwa').forEach(a=>a.onclick=e=>{e.stopPropagation();const x=L[+a.dataset.mjw];if(x?.k=='c')registrarContacto(x.c,{tipo:'whatsapp',detalle:x.rep!=null?'Recordatorio de recompra de Maní JL':'Oferta de Maní JL'}).catch(()=>{})})}},()=>{});
   /* festejo una sola vez por semana y por mes */
   if(faltaMg<=0&&meta>0)fiesta('¡Meta de '+mes.toLowerCase()+' cumplida!','mj_mes_'+m);
   else if(hoyOk&&hoyCuenta)fiesta('¡Objetivo de hoy cumplido!','mj_dia_'+dHoy);
@@ -3652,6 +3659,43 @@ function maniAvisoPedido(ag){try{const jl=S._jlId;if(!jl)return;let n=0;for(cons
   const r=x=>Math.round(x*10)/10,H=S.mjHoy,hoy=diaLocal(new Date());let tx='🥜 +'+nf(r(n))+' '+(r(n)==1?'caja':'cajas')+' de Maní JL';
   if(H&&H.dia==hoy&&H.cuenta&&H.porDia>0){H.cj+=n;const ll=Math.round(H.cj);tx+=' · Hoy llevás '+nf(ll)+' de '+nf(H.porDia)+(ll>=H.porDia?' ✓':'')}
   setTimeout(()=>toast(tx),1700)}catch(e){}}
+/* Pedido a JL: sugiere cuántas cajas pedir de cada producto para cubrir N días de venta al ritmo de la meta,
+   repartidas según lo que más se vendió (o parejo si todavía no hay ventas) y descontando el stock. Crea la orden de compra y la manda por WhatsApp. */
+async function pedidoAJL(porDia){const jlId=S._jlId||JL_ID,pv=(S.prov||[]).find(p=>p.id==jlId)||(await sb.from('proveedores').select('id,razon_social,telefono').eq('id',jlId).maybeSingle().then(r=>r.data,()=>null))||{id:jlId,razon_social:'JL'};
+  await cargarStock().catch(()=>{});const B=id=>S.min[id]?.b||1,chico=p=>/\b(65|85)\s*g\b/i.test(p.descripcion||'');
+  const ord=S.productos.filter(p=>esJL(p.producto_id)&&S.min[p.producto_id]?.a!==false).sort((a,b)=>(chico(b)-chico(a))||String(a.descripcion).localeCompare(String(b.descripcion)));
+  const d60=new Date(Date.now()-60*864e5).toISOString(),ids=ord.map(p=>p.producto_id);
+  const{data:V}=await sb.from('pedidos').select('estado,pedido_items!inner(producto_id,cantidad)').gte('creado_en',d60).neq('estado','cancelado').in('pedido_items.producto_id',ids).limit(2000).then(r=>r,()=>({}));
+  const vend={};for(const o of V||[])for(const i of o.pedido_items||[])vend[i.producto_id]=(vend[i.producto_id]||0)+(+i.cantidad||0)/B(i.producto_id);
+  const totV=Object.values(vend).reduce((a,x)=>a+x,0),CH=ord.filter(chico);let dias=6,todos=false;const Q={};
+  const sugerir=()=>{const nec=(porDia||0)*dias;for(const p of ord){const id=p.producto_id,ev=chico(p)?1/CH.length:0,w=Math.min(.8,totV/(totV+40)),sh=totV>0?w*(vend[id]||0)/totV+(1-w)*ev:ev,st=Math.max(0,stk(id).d)/B(id);Q[id]=Math.max(0,Math.ceil(nec*sh-st))}};sugerir();
+  const m=document.createElement('div');m.className='modal mpr';document.body.appendChild(m);fabPintar();const cerrar=()=>{m.remove();fabPintar()};
+  const nom=p=>String(p.descripcion).replace(/^Crocante Horneado sabor /i,'Crocante ');
+  const pie=()=>{let cj=0,t=0;for(const p of ord){const n=Q[p.producto_id]||0;cj+=n;t+=n*B(p.producto_id)*(+p.costo||0)}return`<b>${nf(cj)} ${cj==1?'caja':'cajas'}</b><small>${t>0?$m0(t)+' de costo':'Sin costo cargado'}</small>`};
+  const pinta=()=>{const L=ord.filter(p=>todos||chico(p)||Q[p.producto_id]);
+    m.innerHTML=`<div class="mc"><div class="bh"><h3>🚚 Pedido a ${esc(pv.razon_social||'JL')}</h3><button class="alt" id="pj_x">Cerrar</button></div>
+      <p class="mpr-s">Para vender <b>${nf(porDia||0)} cajas por día</b> durante <span class="pj-d"><button class="alt" data-dd="-1" aria-label="Menos días">−</button><b>${dias}</b><button class="alt" data-dd="1" aria-label="Más días">+</button></span> días hábiles${totV>0?', según lo que más vendiste':''}. Ya descuenta tu stock.</p>
+      <div class="mpr-l">${L.map(p=>{const id=p.producto_id,n=Q[id]||0,st=Math.max(0,stk(id).d)/B(id),f=S.min[id]?.foto;
+        return`<div class="mpr-r${n?' on':''}">${f?`<img src="${esc(f)}" alt="" loading="lazy">`:'<span class="mpr-i"></span>'}<div class="mpr-t"><b>${esc(nom(p))}</b><small>Stock: ${st>0?nf(Math.round(st*10)/10)+(Math.round(st*10)/10==1?' caja':' cajas'):'nada'}${vend[id]?' · vendiste '+nf(Math.round(vend[id]))+' en 60 días':''}</small></div>
+          <div class="mpr-q"><button class="alt" data-q="${id}" data-d="-1" aria-label="Menos"${n?'':' disabled'}>−</button><b>${n}</b><button class="alt" data-q="${id}" data-d="1" aria-label="Más">+</button></div></div>`}).join('')}</div>
+      ${ord.some(p=>!chico(p))?`<button class="lnk mpr-m" id="pj_t">${todos?'Mostrar solo 65 y 85 g':'Ver también 500 g y manteca'}</button>`:''}
+      <div class="mpr-f"><div>${pie()}</div><button id="pj_ok">Crear orden y mandar</button></div></div>`;
+    $('#pj_x').onclick=cerrar;$('#pj_t')&&($('#pj_t').onclick=()=>{todos=!todos;re()});
+    m.querySelectorAll('[data-dd]').forEach(b=>b.onclick=()=>{dias=Math.max(1,Math.min(30,dias+ +b.dataset.dd));sugerir();re()});
+    m.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{const id=b.dataset.q;Q[id]=Math.max(0,(Q[id]||0)+ +b.dataset.d);try{tic()}catch(e){}const r=b.closest('.mpr-r');r.classList.toggle('on',Q[id]>0);r.querySelector('.mpr-q b').textContent=Q[id];r.querySelector('[data-d="-1"]').disabled=!Q[id];m.querySelector('.mpr-f>div').innerHTML=pie()});
+    $('#pj_ok').onclick=async()=>{const it=ord.filter(p=>Q[p.producto_id]>0);if(!it.length)return toast('Poné al menos una caja.',1);const b=$('#pj_ok');b.disabled=true;
+      const{data:o,error}=await sb.from('ordenes_compra').insert({proveedor_id:pv.id,observaciones:'Pedido de Maní JL armado desde Inicio'}).select().single();
+      if(error){b.disabled=false;return toast(error.message,1)}
+      const{error:e2}=await sb.from('ordenes_compra_items').insert(it.map(p=>({orden_id:o.id,producto_id:p.producto_id,cantidad:Q[p.producto_id]*B(p.producto_id),costo_unitario:+p.costo||0})));
+      if(e2){await sb.from('ordenes_compra').delete().eq('id',o.id);b.disabled=false;return toast('No se pudo guardar la orden: '+e2.message,1)}
+      const tx='Hola! Te paso el pedido de Sabores de mi País:\n'+it.map(p=>'• '+Q[p.producto_id]+(Q[p.producto_id]==1?' caja ':' cajas ')+p.descripcion).join('\n')+'\n\nTotal: '+nf(it.reduce((a,p)=>a+Q[p.producto_id],0))+' cajas. ¡Gracias!',wa=telWA(pv.telefono||'');
+      try{tic()}catch(e){}
+      m.querySelector('.mc').innerHTML=`<div class="bh"><h3>✅ Orden ${o.numero?'N° '+o.numero+' ':''}creada</h3><button class="alt" id="pj_x2">Listo</button></div>
+        <p class="mpr-s">Quedó en Compras › Órdenes. Ahora mandásela a JL:</p><pre class="pj-tx">${esc(tx)}</pre>
+        <div class="mpr-f">${wa?`<a class="btn pj-wa" href="https://wa.me/${wa}?text=${encodeURIComponent(tx)}" target="_blank" rel="noopener">${IC('chat',18)} Mandar por WhatsApp</a>`:'<small>JL no tiene teléfono cargado en Proveedores.</small>'}<button class="alt" id="pj_cp">Copiar</button></div>`;
+      $('#pj_x2').onclick=cerrar;$('#pj_cp').onclick=()=>{try{navigator.clipboard.writeText(tx);toast('Pedido copiado.')}catch(e){}}}};
+  const re=()=>{const y=m.querySelector('.mpr-l')?.scrollTop||0;pinta();const l=m.querySelector('.mpr-l');if(l)l.scrollTop=y};
+  m.onclick=e=>{if(e.target==m)cerrar()};pinta();setTimeout(()=>m.classList.add('ya'),400)}
 /* Pedido rápido de Maní JL: elegís el cliente, ponés cuántas cajas de cada producto y se arma el pedido normal (con precios del cliente) para revisar y guardar. */
 function maniPedidoRapido(cli,pre){
   if(!cli)return fabCliente('Pedido de Maní JL · ¿para quién?',c=>c&&maniPedidoRapido(c));
