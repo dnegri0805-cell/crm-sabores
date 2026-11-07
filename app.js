@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-07.13';
+const VERSION='2026-11-07.14';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -3403,13 +3403,13 @@ async function actividadInicio(){const box=$('#acti');if(!box)return;await equip
   const cuando=t=>{const d=new Date(t),m=(Date.now()-d)/6e4;if(m<1)return'recién';if(m<60)return'hace '+Math.round(m)+' min';const h=d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});if(diaLocal(d)==diaLocal(new Date()))return h;const ay=new Date();ay.setDate(ay.getDate()-1);return diaLocal(d)==diaLocal(ay)?'ayer':d.toLocaleDateString('es-AR',{day:'numeric',month:'numeric'})};
   box.innerHTML=`<details class="plg act-plg"><summary>🕓 Actividad reciente</summary><div class="box act"><div class="act-l">${A.map(x=>`<div class="act-r${x.x?' act-x':''}"><span class="act-i ${x.c}">${IC(x.ic,14)}</span><div><b>${x.h}</b><small>${x.s}</small></div><time>${cuando(x.t)}</time></div>`).join('')}</div></div></details>`}
 /* ======================= INICIO A MEDIDA ======================= */
-const INI_B=[['dia','Tu día','#tudia'],['metas1','Metas del mes','#metas1',['dueno']],['bot','Accesos rápidos','#v>.ppal'],['num','Números del día','#v>.kp'],['mesv','Vendido en el mes','#mesv',['dueno']],['aprb','Precios para aprobar','#aprb',['dueno']],
+const INI_B=[['metas1','Metas del mes','#metas1',['dueno']],['dia','Tu día','#tudia'],['bot','Accesos rápidos','#v>.ppal'],['num','Números del día','#v>.kp'],['mesv','Vendido en el mes','#mesv',['dueno']],['aprb','Precios para aprobar','#aprb',['dueno']],
   ['comv','Tu comisión','#comv',['vendedor']],['logr','Racha y logros','#logr',['vendedor']],['venc','Vencidas y para reponer','#v>details.plg.ib-venc'],['tar','Tareas y avisos del día','#v>details.plg.ib-tar'],['rank','Vendedores','#rank',['dueno']],['act','Actividad reciente','#acti']];
 /* orden guardado + los bloques nuevos en su lugar por defecto (no al final) */
 const iniOrden=(C,B)=>{const def=B.map(b=>b[0]),ord=(C.orden||[]).filter(k=>def.includes(k));for(const k of def)if(!ord.includes(k)){const i=def.indexOf(k),sig=def.slice(i+1).find(x=>ord.includes(x));sig?ord.splice(ord.indexOf(sig),0,k):ord.push(k)}return ord};
 const iniCfg=()=>{try{const C=JSON.parse(localStorage.getItem('ini_cfg_'+S.perfil.id)||'{}');
   /* una sola vez: Maní JL (metas) arriba, después de Tu día, y Vendedores al final */
-  if(C.v!=2){if(C.orden){const o=C.orden.filter(k=>k!='metas1'&&k!='rank'),i=o.indexOf('dia');o.splice(i<0?0:i+1,0,'metas1');const j=o.indexOf('act');o.splice(j<0?o.length:j,0,'rank');C.orden=o}C.v=2;localStorage.setItem('ini_cfg_'+S.perfil.id,JSON.stringify(C))}return C}catch(e){return{}}};
+  if(C.v!=3){if(C.orden){const o=C.orden.filter(k=>k!='metas1'&&k!='rank');o.unshift('metas1');const j=o.indexOf('act');o.splice(j<0?o.length:j,0,'rank');C.orden=o}C.v=3;localStorage.setItem('ini_cfg_'+S.perfil.id,JSON.stringify(C))}return C}catch(e){return{}}};
 const iniBloques=()=>INI_B.filter(b=>!b[3]||b[3].includes(S.perfil.rol));
 function iniAplicar(){const v=$('#v'),pie=v&&v.querySelector('.pieini');if(!v||!pie)return;const C=iniCfg(),B=iniBloques(),ord=iniOrden(C,B);
   for(const k of ord){const b=B.find(x=>x[0]==k),el=v.querySelector(b[2]);if(!el)continue;pie.before(el);el.dataset.ib=k;el.classList.toggle('ib-oc',(C.ocultas||[]).includes(k))}
