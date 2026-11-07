@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-07.38';
+const VERSION='2026-11-07.39';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -364,6 +364,9 @@ async function escanear(titulo,alLeer){
 /* Buscador de productos reutilizable */
 /* foco en Maní JL: sus productos van primero en búsquedas, catálogo y precios */
 const JL_ID='ff2b3481-6cef-408e-a1d0-f08ee5b8082e',esJL=id=>S.min?.[id]?.pv==(S._jlId||JL_ID),jlPrimero=L=>L.slice().sort((a,b)=>esJL(b.producto_id)-esJL(a.producto_id));
+/* clientes que compraron Maní JL alguna vez (para la marca 🥜 y el filtro "Todavía sin JL") */
+async function cargarCliJL(){if(S._cjlP)return S._cjlP;const ids=S.productos.filter(p=>esJL(p.producto_id)).map(p=>p.producto_id);if(!ids.length){S.cliJL=new Set();return}
+  S._cjlP=sb.from('pedidos').select('cliente_id,estado,pedido_items!inner(producto_id)').in('pedido_items.producto_id',ids).neq('estado','cancelado').limit(5000).then(({data,error})=>{S.cliJL=new Set(error?[]:(data||[]).map(o=>o.cliente_id));setTimeout(()=>{S._cjlP=null},120000)},()=>{S.cliJL=new Set();S._cjlP=null});return S._cjlP}
 function buscador(inp,res,onPick,extra){if(!$(inp))return;
   $(inp).oninput=()=>{const q=$(inp).value.toLowerCase().trim();if(q.length<2){$(res).innerHTML='';return}
     const r=jlPrimero(S.productos.filter(p=>coincide(txtProd(p),q))).slice(0,15);
@@ -1039,7 +1042,7 @@ function vClientes(){
     const bz=c.barrio||c.ciudad;if(bz)p.push(bz);return p.join(' · ')};
   const chipImp=c=>{const k=S.estCli?.[c.id]?.k;return['toca','debe','dormido'].includes(k)?estChip(c.id):''};
   const fila=c=>{const tel=telWA(c.telefono||'');return `<div class="cl-swp" data-sw="${c.id}"><div class="cl-sw">${tel?`<a class="sw-wa" data-wa="${esc(tel)}">${IC('chat',20)}<span>WhatsApp</span></a><a class="sw-tel" href="tel:${esc(c.telefono)}" data-no="1">${IC('phone',20)}<span>Llamar</span></a>`:''}<a class="sw-lp" data-lp="${c.id}">${IC('tag',20)}<span>Lista</span></a></div><div class="sw-ped">${IC('cart',22)}<span>Nuevo pedido</span></div><div class="cl-card clic cl-av cl-row" data-fc="${c.id}"><span class="cl-ini" style="background:${fCol(famCli(c))}">${esc(inic(c))}</span>
-    <div class="cl-mid"><div class="cl-top"><b>${esc(nomVis(c))}</b>${chipImp(c)}</div><div class="cl-sub">${esc(datoUtil(c))}</div>${etqChips(c)}${proxLinea(c.id)}</div>
+    <div class="cl-mid"><div class="cl-top"><b>${esc(nomVis(c))}</b>${S.cliJL?.has(c.id)?'<span class="cl-jl" title="Lleva Maní JL">🥜</span>':''}${chipImp(c)}</div><div class="cl-sub">${esc(datoUtil(c))}</div>${etqChips(c)}${proxLinea(c.id)}</div>
     <span class="cl-bts">${tel?`<a class="cl-bt wa" data-wa="${esc(tel)}" aria-label="WhatsApp" title="WhatsApp">${IC('chat',18)}</a>`:''}<a class="cl-bt pd" data-ped="${c.id}" aria-label="Nuevo pedido" title="Nuevo pedido">${IC('cart',18)}</a></span></div></div>`};
   const draw=()=>{if(S.cord===true)S.cord='sc';const q=$('#q').value.toLowerCase(),A=S.clientes.filter(c=>c.activo!==false),cnt={};A.forEach(c=>{const f=famCli(c);cnt[f]=(cnt[f]||0)+1});
     $('#cfam').innerHTML=ORD.filter(f=>cnt[f]||S.cfam==f).map(f=>`<button class="${S.cfam==f?'':'alt'}" data-cf="${esc(f)}"><i class="cl-dot" style="background:${fCol(f)}"></i>${esc(fTxt(f))} <b>${cnt[f]||0}</b></button>`).join('');
@@ -1047,6 +1050,7 @@ function vClientes(){
     if(S.cest&&!ec[S.cest])S.cest='';
     const ORDN={'':'Por nombre',sc:'Por puntaje',ult:'Por última compra'};S.cgrp=S.cgrp||(()=>{try{return localStorage.getItem('cli_grp')||'rubro'}catch(e){return'rubro'}})();
     $('#cest').innerHTML=(S.cliIds?`<button class="ecb on li-act" data-lix="1" title="Quitar la lista">${IC('list',14)} ${esc(S.cliIdsN||'Lista')} <b>${S.cliIds.size}</b> ✕</button>`:'')+`<button class="ecb ${S.cest||S.cfam||S.cetq?'':'on'}" data-ce="">Todos <b>${A.length}</b></button>`+(S.estCli?EK.filter(([k])=>ec[k]&&ec[k]<A.length).map(([k,t])=>`<button class="ecb ${S.cest==k?'on':''}" data-ce="${k}"><i class="cl-est e-${k}"></i>${t} <b>${ec[k]}</b></button>`).join(''):'');
+    if(S.cliJL){const nj=A.filter(c=>S.cliJL.has(c.id)).length;$('#cest').insertAdjacentHTML('beforeend',`<button class="ecb jl-f ${S.cjl=='no'?'on':''}" data-cj="no">🥜 Todavía sin JL <b>${A.length-nj}</b></button>${nj?`<button class="ecb jl-f ${S.cjl=='si'?'on':''}" data-cj="si">🥜 Llevan JL <b>${nj}</b></button>`:''}`)}else cargarCliJL().then(()=>{if($('#cest')&&S.tab=='clientes'){draw();bind()}});
     $('#cord').innerHTML=`<button class="ecb ic-b" id="c_ord" title="Cambiar el orden">${IC('bars',14)} ${ORDN[S.cord||'']}</button><button class="ecb ic-b" id="c_grp" title="Cómo agrupar">${IC(S.cgrp=='az'?'list':'folder',14)} ${S.cgrp=='az'?'A–Z':'Por rubro'}</button>`;
     $('#c_ord').onclick=()=>{const o=['','sc','ult'];S.cord=o[(o.indexOf(S.cord||'')+1)%3];if(S.cord=='sc'&&!S.estCli)S.cord='ult';draw();bind()};
     $('#c_grp').onclick=()=>{S.cgrp=S.cgrp=='az'?'rubro':'az';try{localStorage.setItem('cli_grp',S.cgrp)}catch(e){}draw();bind()};
@@ -1054,10 +1058,11 @@ function vClientes(){
      $('#cetq').innerHTML=ks.map(n=>`<button class="ecb etq-f${S.cetq==n?' on':''}" data-cq="${esc(n)}"><i style="background:${etqCol(n)}"></i>${esc(n)} <b>${cnt[n]}</b></button>`).join('');
      $$('#cetq [data-cq]').forEach(b=>b.onclick=()=>{S.cetq=S.cetq==b.dataset.cq?'':b.dataset.cq;draw();bind()})}
     $$('#cest [data-lix]').forEach(b=>b.onclick=()=>{S.cliIds=null;draw();bind()});
-    $$('#cest [data-ce]').forEach(b=>b.onclick=()=>{if(!b.dataset.ce){S.cest='';S.cfam='';S.cetq=''}else S.cest=S.cest!=b.dataset.ce?b.dataset.ce:'';draw();bind()});
-    const L=S.clientes.filter(c=>coincide(c.razon_social+' '+(c.nombre_fantasia||'')+' '+(c.cuit||'')+' '+(c.rubro||''),q)&&(!S.cfam||famCli(c)==S.cfam)&&(!S.cest||S.estCli?.[c.id]?.k==S.cest)&&(!S.cetq||(c.etiquetas||[]).includes(S.cetq))&&(!S.cliIds||S.cliIds.has(c.id))),G={};L.forEach(c=>(G[famCli(c)]=G[famCli(c)]||[]).push(c));
+    $$('#cest [data-cj]').forEach(b=>b.onclick=()=>{S.cjl=S.cjl==b.dataset.cj?'':b.dataset.cj;draw();bind()});
+    $$('#cest [data-ce]').forEach(b=>b.onclick=()=>{if(!b.dataset.ce){S.cest='';S.cfam='';S.cetq='';S.cjl=''}else S.cest=S.cest!=b.dataset.ce?b.dataset.ce:'';draw();bind()});
+    const L=S.clientes.filter(c=>coincide(c.razon_social+' '+(c.nombre_fantasia||'')+' '+(c.cuit||'')+' '+(c.rubro||''),q)&&(!S.cfam||famCli(c)==S.cfam)&&(!S.cest||S.estCli?.[c.id]?.k==S.cest)&&(!S.cetq||(c.etiquetas||[]).includes(S.cetq))&&(!S.cliIds||S.cliIds.has(c.id))&&(!S.cjl||!S.cliJL||(S.cjl=='si')==S.cliJL.has(c.id))),G={};L.forEach(c=>(G[famCli(c)]=G[famCli(c)]||[]).push(c));
     Object.values(G).forEach(x=>x.sort((a,b)=>nomVis(a).localeCompare(nomVis(b))));
-    S._cliV=L;{const LS=listasCli(),act=!!(q||S.cest||S.cetq||S.cfam||S.cord);
+    S._cliV=L;{const LS=listasCli(),act=!!(q||S.cest||S.cetq||S.cfam||S.cord||S.cjl);
       $('#clis').innerHTML=(LS.length||act)?`${LS.map((x,i)=>`<span class="lg-ch"><button class="ecb" data-lsi="${i}">${IC('star',13)} ${esc(x.n)}</button><button class="lg-x" data-lsx="${i}" aria-label="Borrar lista">${IC('x',12)}</button></span>`).join('')}${act?`<button class="ecb lg-new" id="ls_g">${IC('plus',13)} Guardar esta vista</button>`:''}`:'';
       $$('#clis [data-lsi]').forEach(b=>b.onclick=()=>{const f=LS[+b.dataset.lsi].f;$('#q').value=f.q||'';S.cest=f.cest||'';S.cetq=f.cetq||'';S.cfam=f.cfam||'';S.cord=!!f.cord;draw();bind()});
       $$('#clis [data-lsx]').forEach(b=>b.onclick=()=>{const k=+b.dataset.lsx,x=LS[k];LS.splice(k,1);guardaListas(LS);draw();bind();
@@ -1762,7 +1767,7 @@ async function vPedidos(){
     const{error:e2}=await sb.from('pedido_items').insert(Object.entries(ag).map(([k,a])=>{const x={pedido_id:o.id,producto_id:k,cantidad:a.q,precio_unitario:Math.round(a.t/a.q*fac*100)/100};if(a.l.size)x.promo=[...a.l].join(' + ');if(a.mp)x.precio_manual=true;return x}));
     if(e2){$('#p_g').disabled=false;if(!ED&&esRed(e2))return pedidoOff(c,agOff(),fac,cu,ex,o.id);return toast(sqlX(e2)?'Falta correr pedidos-extra.sql en Supabase (te lo avisa el Inicio).':'El pedido N° '+o.numero+' quedó sin productos: '+e2.message,1)}
     if(cu&&!ED)await sb.from('cupones_usos').insert({codigo:S.pcup.codigo,cliente_id:c.id,pedido_id:o.id});
-    if(!ED)await marcarDebidos(o.numero).catch(()=>{});S.edPed=null;borrarBorr();okAnim('Pedido N° '+o.numero+(ED?' actualizado':' guardado'));if(!ED&&!o.es_prueba){primerPedido(c,o.id);maniAvisoPedido(ag);prospectoACliente(c)}
+    if(!ED)await marcarDebidos(o.numero).catch(()=>{});S.edPed=null;borrarBorr();okAnim('Pedido N° '+o.numero+(ED?' actualizado':' guardado'));S.cliJL=null;S._cjlP=null;if(!ED&&!o.es_prueba){primerPedido(c,o.id);maniAvisoPedido(ag);prospectoACliente(c)}
     if(S.perfil.rol=='vendedor'){const{data:ap}=await sb.from('aprobaciones_precio').select('id').eq('pedido_id',o.id).eq('estado','pendiente').then(r=>r,()=>({}));if(ap?.length)setTimeout(()=>toast('El precio especial quedó para que lo apruebe el dueño. Te avisa la campanita.'),1600)}await cargarStock();vPedidos()};
   $('#p_cuo').onclick=async()=>{const k=$('#p_cu').value.trim().toUpperCase();if(!k){S.pcup=null;$('#p_cum').textContent='';return drawI()}
     const c=cli();if(!c)return toast('Elegí primero el cliente.',1);const sub=S.items.reduce((a,i)=>a+pi(i).pu*i.q,0);
