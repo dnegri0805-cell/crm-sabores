@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-07.18';
+const VERSION='2026-11-07.19';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -3574,8 +3574,7 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
         <div class="hoy"><small>Por día</small><b>${nf(porDia)}</b><span>${porDia==1?'caja':'cajas'}${dxc?' · '+dsp(porDia):''}</span></div>
         <div><small>Por semana</small><b>${nf(porSem)}</b><span>cajas</span></div>
         <div><small>En total</small><b>${nf(totalCj)}</b><span>cajas</span></div></div>
-        <div class="mq-hoy${hoyOk?' ok':''}"><b>${hoyCuenta?'Hoy':'Mañana'}: ${hoyCuenta?nf(cjHoyR)+' de '+nf(porDia):nf(porDia)} ${porDia==1&&!hoyCuenta?'caja':'cajas'}${hoyOk?' ✓':''}</b>${hoyCuenta?`<div class="mq-mb"><i style="width:${(pcHoy*100).toFixed(1)}%"></i></div>`:''}</div></div>
-      <p class="mq-msg">Se recalcula todos los días: si un día vendés menos, lo que falta se reparte entre los días que quedan; si vendés más, baja.</p></div>`;
+        <div class="mq-hoy${hoyOk?' ok':''}"><b>${hoyCuenta?'Hoy':'Mañana'}: ${hoyCuenta?nf(cjHoyR)+' de '+nf(porDia):nf(porDia)} ${porDia==1&&!hoyCuenta?'caja':'cajas'}${hoyOk?' ✓':''}</b>${hoyCuenta?`<div class="mq-mb"><i style="width:${(pcHoy*100).toFixed(1)}%"></i></div>`:''}</div></div></div>`;
   const faltGas=Math.max(0,cjGasMes-Math.round(cj)),aviso=true?'':`<div class="mja"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5"/><path d="M10 9v5M10 6.2v.1"/></svg><span><b>${esc(mes)}:</b> ${fijos<=0?'sumá todas las cajas que puedas.':cj>=cjGasMes?'gastos cubiertos, lo que vendas es limpio.':`con ${nf(faltGas)} ${faltGas==1?'caja':'cajas'}${dxc?' ('+dsp(faltGas)+')':''} cubrís los gastos (${m0(fijos)}).`} <b>Desde ${esc(mesSigJ.toLowerCase())}</b>, para tu meta de ${m0(meta)} necesitás unas ${nf(semSigJ)} cajas${dxc?' ('+dsp(semSigJ)+')':''} por semana.</span></div>`;
   const bps=[...ids].filter(id=>!foco||chico(id)).map(id=>S.min[id]?.bp||0).filter(x=>x>0),bpP=bps.length?bps.reduce((a,x)=>a+x,0)/bps.length:0,palMes=bpP?cjMetaMes/bpP:0;
   const conSel=pocas&&faltaMg>0&&[...ids].some(chico),nota=faltaMg<=0||conSel?'':pocas?`Estimado con ${m0(mbCat)} de ganancia por caja${foco?' (65 y 85 g)':' (promedio de toda la línea)'}, <a class="lnk" data-mjdto>${dtoTx}</a>.${!cubre&&realista?` Con ${nf(Math.ceil((fijos-mg)/mb))} cajas cubrís los gastos.`:''}`
@@ -3585,7 +3584,7 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
   box.innerHTML=`<div class="box obj mj${esSig?' sig':''}"><div class="mjtop"><div class="mjtl"><img class="mjimg" src="fotos/metas/mani-jl.webp" alt=""><div><div class="ey">Meta de ${esc((esSig?mesSigJ:mes).toLowerCase())}</div><div class="tt">Maní JL</div>${esSig?`<div class="mjcer">${esc(mes)} cierra con ${nf(Math.round(cj))} ${Math.round(cj)==1?'caja':'cajas'}</div>`:''}</div></div><button class="mjmeta" id="mj_e" aria-label="Cambiar meta"><small>Meta limpia</small><b>${m0(meta)}</b><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16H4v-3z"/></svg></button></div>
     <div id="mj_h" role="button" tabindex="0" aria-expanded="${abierto}" style="cursor:pointer">${hero}</div>
     <button class="mjver" id="mj_t">${abierto?'Ocultar detalle':'Ver detalle del mes'} <span>${abierto?'▴':'▾'}</span></button>
-    <div id="mj_d"${abierto?'':' hidden'}>${aviso}
+    <div id="mj_d"${abierto?'':' hidden'}>${aviso}${faltaMg>0?'<p class="mq-msg mq-cmo">El objetivo por día se recalcula todos los días: si un día vendés menos, lo que falta se reparte entre los días que quedan; si vendés más, baja.</p>':''}
     <div class="mjsec"><div class="mjrow"><span class="ey">${esc(mes)}</span><span class="mjg">${m0(mg)} <small>de ${m0(obj)} (meta + gastos)</small></span></div>
     <div class="obar mjb">${pcF>0&&pcF<1?`<span class="gz" style="width:${(pcF*100).toFixed(1)}%"></span>`:''}${pcG>0?`<i style="width:${(pcG*100).toFixed(1)}%" class="${pcG>=1?'lleno':''}"></i>`:''}${pcF>0&&pcF<1?`<span class="gf" style="left:${(pcF*100).toFixed(1)}%"></span>`:''}</div>
     ${pcF>0&&pcF<1?`<div class="mjl"><span style="left:${(pcF*100).toFixed(1)}%${pcF<.18?';transform:translateX(-6px)':pcF>.82?';transform:translateX(-100%)':''}">${cubre?'Gastos cubiertos':'Gastos '+m0(fijos)}</span></div>`:''}
