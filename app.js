@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-07.1';
+const VERSION='2026-11-07.2';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -57,7 +57,12 @@ function fiesta(t,clave){try{if(clave){if(localStorage.getItem('fiesta_'+clave))
   okAnim(t);vibrar([30,60,30]);if(quieto())return;const C=['#7b2d3e','#e8a33d','#1d7a46','#17213a','#f2c94c','#e86a7a'],d=document.createElement('div');d.className='confeti';
   for(let i=0;i<46;i++){const p=document.createElement('i');p.style.left=(Math.random()*100)+'%';p.style.background=C[i%C.length];p.style.animationDelay=(Math.random()*.35)+'s';p.style.animationDuration=(1.4+Math.random()*1.1)+'s';p.style.setProperty('--x',(Math.random()*160-80)+'px');p.style.setProperty('--r',(Math.random()*720-360)+'deg');if(i%3==0)p.style.borderRadius='50%';d.appendChild(p)}
   document.body.appendChild(d);setTimeout(()=>d.remove(),3200)}
-function okAnim(t){try{document.querySelector('.okanim')?.remove();const d=document.createElement('div');d.className='okanim';d.innerHTML=`<div class="okc"><svg viewBox="0 0 52 52" width="76" height="76"><circle cx="26" cy="26" r="24" fill="none"/><path fill="none" d="M15 27l7 7 15-16"/></svg><b>${esc(t)}</b></div>`;document.body.appendChild(d);vibrar(25);setTimeout(()=>d.classList.add('fuera'),1300);setTimeout(()=>d.remove(),1650);d.onclick=()=>d.remove()}catch(e){}}
+const sndOn=()=>{try{return localStorage.getItem('snd_guardar')!=='0'}catch(e){return true}};
+function sndSet(on){try{localStorage.setItem('snd_guardar',on?'1':'0')}catch(e){}const b=document.getElementById('vc_snd');if(b)b.querySelectorAll('button').forEach(x=>x.className=(x.dataset.s=='1')==!!on?'':'alt');if(on)tic(true)}
+/* "tic" suave de dos notas al guardar */
+function tic(forzar){try{if(!forzar&&!sndOn())return;const a=ctxAlarma();if(!a)return;const t=a.currentTime+.01;
+  [[1046.5,0],[1568,.075]].forEach(([f,d])=>{const o=a.createOscillator(),g=a.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,t+d);g.gain.linearRampToValueAtTime(.07,t+d+.01);g.gain.exponentialRampToValueAtTime(.0005,t+d+.22);o.connect(g);g.connect(a.destination);o.start(t+d);o.stop(t+d+.25)})}catch(e){}}
+function okAnim(t){try{tic();document.querySelector('.okanim')?.remove();const d=document.createElement('div');d.className='okanim';d.innerHTML=`<div class="okc"><svg viewBox="0 0 52 52" width="76" height="76"><circle cx="26" cy="26" r="24" fill="none"/><path fill="none" d="M15 27l7 7 15-16"/></svg><b>${esc(t)}</b></div>`;document.body.appendChild(d);vibrar(25);setTimeout(()=>d.classList.add('fuera'),1300);setTimeout(()=>d.remove(),1650);d.onclick=()=>d.remove()}catch(e){}}
 function vibrar(ms){try{navigator.vibrate&&navigator.vibrate(ms)}catch(e){}}
 function contar(el,txt){try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;const m=String(txt).match(/^(\$\s)?([\d.]+)(,\d+)?$/);if(!m)return;const v=parseFloat(m[2].replace(/\./g,'')+(m[3]?'.'+m[3].slice(1):''));if(!(v>0))return;
   const t0=performance.now(),dur=700,f=x=>m[1]?(m[3]?$m(x):$m0(x)):Math.round(x).toLocaleString('es-AR');const paso=t=>{const k=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-k,3);el.textContent=k<1?f(v*e):txt;if(k<1)requestAnimationFrame(paso)};requestAnimationFrame(paso)}catch(e){}}
@@ -66,7 +71,10 @@ const vacioHTML=(t,ic='box',btn,chico)=>`<div class="vacio${chico?' chico':''}">
 /* errores de la app: se guardan para poder ver qué falló (solo el dueño los lee) */
 const _errV={};function reportarError(e,donde){try{const msg=String(e&&e.message||e||'').slice(0,300);if(!msg||/ResizeObserver|Script error|AbortError|Load failed|Failed to fetch|NetworkError/i.test(msg))return;const k=msg+'|'+(donde||'');if(_errV[k]||Object.keys(_errV).length>20)return;_errV[k]=1;
   if(!S.perfil||typeof sb=='undefined')return;sb.from('errores_app').insert({pantalla:String(donde||[S.tab,S.sub,S.vs,S.cs].filter(Boolean).join(':')).slice(0,120),mensaje:msg,detalle:String(e&&e.stack||'').slice(0,1500),version:typeof VERSION!='undefined'?VERSION:'',navegador:navigator.userAgent.slice(0,200)}).then(()=>{},()=>{})}catch(x){}}
-addEventListener('error',ev=>reportarError(ev.error||ev.message));addEventListener('unhandledrejection',ev=>reportarError(ev.reason));
+addEventListener('error',ev=>reportarError(ev.error||ev.message));
+new MutationObserver(L=>{if(!S.perfil||esDueno())return;for(const r of L)for(const n of r.addedNodes){if(n.nodeType!=1||!/\.sql\b/i.test(n.textContent||''))continue;
+  const w=document.createTreeWalker(n,NodeFilter.SHOW_TEXT);const T=[];while(w.nextNode())if(/\.sql\b|Falta correr|corré/i.test(w.currentNode.nodeValue))T.push(w.currentNode);
+  for(const tn of T){const el=tn.parentElement?.closest('p,li,td,small,.aviso,.err,span')||tn.parentElement;if(!el||el.dataset.sqlOk||!/\.sql\b|Falta correr/i.test(el.textContent))continue;el.dataset.sqlOk=1;el.innerHTML=NO_ACTIVA}}}).observe(document.documentElement,{childList:true,subtree:true});addEventListener('unhandledrejection',ev=>reportarError(ev.reason));
 const _uso={};function marcarUso(p){try{if(!S.perfil||!p||/undefined|null/.test(p))return;const t=Date.now();if(_uso[p]>t-20000)return;_uso[p]=t;sb.rpc('uso_marcar',{p:String(p)}).then(()=>{},()=>{})}catch(e){}}
 /* Festejos (como Monday/Asana): confeti breve al llegar a la meta, lograr una racha o cobrar una deuda vieja. Con "clave", una sola vez. */
 function festejo(clave,texto){if(clave){const k='fest_'+(S.perfil?.id||'')+'_'+clave;try{if(localStorage.getItem(k))return;localStorage.setItem(k,'1')}catch(e){}}
@@ -88,7 +96,25 @@ function conDeshacer(txt,hacer,alDeshacer,ms=5000){_undoBarra(txt,ms,()=>{alDesh
 function avisoDeshacer(txt,revertir,ms=6000){_undoBarra(txt,ms,async()=>{try{await revertir()}catch(e){toast((e&&e.message)||String(e),1)}})}
 /* Si se cierra o se oculta la app, lo pendiente se aplica enseguida */
 addEventListener('pagehide',()=>[..._undoPend].forEach(f=>f()));document.addEventListener('visibilitychange',()=>{if(document.visibilityState=='hidden')[..._undoPend].forEach(f=>f())});
-function toast(t,er){const e=$('#t');e.textContent=t;e.style.background=er?'var(--er)':'var(--ok)';e.style.display='block';setTimeout(()=>e.style.display='none',er?6000:3000)}
+/* errores técnicos de la base -> frases simples. El original queda en el registro de errores. */
+const esDueno=()=>S.perfil?.rol=='dueno';
+const NO_ACTIVA='Esta función todavía no está activada. Avisale al dueño.';
+function msgClaro(t){const s=String(t||'');let m=null;
+  if(/Falta correr|corr[eé] [^ ]*\.sql|\.sql en Supabase/i.test(s))m=esDueno()?null:NO_ACTIVA;
+  else if(/JWT expired|invalid JWT|refresh[ _]token|Auth session missing|session (expired|not found)|not logged in/i.test(s))m='Tu sesión venció. Cerrá la app y volvé a entrar.';
+  else if(/Failed to fetch|NetworkError|Load failed|fetch failed|network request failed|ERR_INTERNET|ERR_NETWORK/i.test(s))m='Sin conexión. Revisá internet y probá de nuevo.';
+  else if(/row-level security|permission denied|insufficient_privilege|not authorized|\b42501\b/i.test(s))m='No tenés permiso para hacer esto.';
+  else if(/duplicate key|already exists|\b23505\b/i.test(s))m='Eso ya está cargado (hay un dato repetido).';
+  else if(/foreign key|\b23503\b/i.test(s))m='No se puede: ese dato se usa en otro lado (pedidos, facturas, etc.).';
+  else if(/null value in column|not-null constraint|\b23502\b/i.test(s))m='Falta completar un dato obligatorio.';
+  else if(/check constraint|\b23514\b/i.test(s))m='Hay un dato que no es válido. Revisalo.';
+  else if(/invalid input syntax|out of range|\b22P02\b|\b22003\b/i.test(s))m='Hay un número o una fecha con formato incorrecto.';
+  else if(/statement timeout|canceling statement|timed? ?out|\b57014\b/i.test(s))m='Tardó demasiado. Probá de nuevo en un momento.';
+  else if(/Could not find the (function|table)|does not exist|schema cache|PGRST2\d\d/i.test(s))m=esDueno()?'A la base le falta una actualización para esto. Avisá a soporte.':NO_ACTIVA;
+  else if(/\b(the|violates|column|relation|function|failed|invalid|unexpected|cannot|could not|undefined|null)\b/i.test(s)&&!/[áéíóúñ¿¡]/i.test(s))m='Algo salió mal. Probá de nuevo; si sigue, avisale al dueño.';
+  if(m&&m!=s){if(esDueno())m=m.replace('avisale al dueño','avisá a soporte');const pre=s.match(/^(.{6,120}?):\s/);if(pre&&m!=NO_ACTIVA&&/[áéíóúñ°]|\b(el|la|los|las|de|que|no|se|quedó)\b/i.test(pre[1]))m=pre[1]+'. '+m;
+    try{reportarError(new Error(s),'aviso:'+[S.tab,S.sub].filter(Boolean).join(':'))}catch(e){}return m}return s}
+function toast(t,er){if(er)t=msgClaro(t);const e=$('#t');e.textContent=t;e.style.background=er?'var(--er)':'var(--ok)';e.style.display='block';setTimeout(()=>e.style.display='none',er?6000:3000)}
 async function out(){try{localStorage.removeItem('crm_cache_v1');Object.keys(localStorage).filter(k=>k.startsWith('perfil_')).forEach(k=>localStorage.removeItem(k))}catch(e){}await sb.auth.signOut();loginView()}
 
 function loginView(){
@@ -3006,7 +3032,7 @@ async function panelPedido(o,alCambiar){if(!o)return;document.getElementById('pd
     ${pasosPedido(o,'pasos-g')}
     <div class="pd-tot"><b>${$m0(o.total)}</b>${+o.costo_envio>0?`<small>incluye envío ${$m0(o.costo_envio)}</small>`:''}</div>
     ${o.fecha_entrega||o.observaciones?`<div class="pd-nota">${o.fecha_entrega?`<span>${IC('calendar',15)} Entregar el ${fd(o.fecha_entrega)}</span>`:''}${o.observaciones?`<span>${IC('note',15)} ${esc(o.observaciones)}</span>`:''}</div>`:''}
-    <div class="pd-items">${it.map(i=>`<div class="pd-i">${S.min[i.id]?.foto?`<img src="${esc(S.min[i.id].foto)}" alt="" loading="lazy">`:'<span class="pd-ph"></span>'}<div><b>${esc(i.d)}</b><small>${esc(i.qt)}${i.puT?' · '+esc(i.puT):''}</small></div><span>${$m0(i.st)}</span></div>`).join('')}</div>
+    <div class="pd-items">${it.map(i=>`<div class="pd-i">${S.min[i.id]?.foto?`<img src="${esc(S.min[i.id].foto)}" alt="" loading="lazy">`:`<span class="pd-ph pd-in" style="background:${colAv(S.productos.find(x=>x.producto_id==i.id)?.marca||i.d)}">${esc((i.d||'?').trim().charAt(0).toUpperCase())}</span>`}<div><b>${esc(i.d)}</b><small>${esc(i.qt)}${i.puT?' · '+esc(i.puT):''}</small></div><span>${$m0(i.st)}</span></div>`).join('')}</div>
     <div class="pd-acc">${o.estado=='pendiente'&&o.requiere_aprobacion?(S.perfil.rol=='dueno'?`<button data-pa="rap">${IC('tag',17)} Revisar precio especial</button>`:'<p class="aviso" style="grid-column:1/-1">⏳ Esperando que el dueño apruebe el precio especial.</p>'):o.estado=='pendiente'?`<button data-pa="ap">${IC('check',17)} Aprobar</button>`:sig?`<button data-pa="sig">${esc(sig[1])}</button>`:''}${!f&&!['pendiente','cancelado'].includes(o.estado)?`<button class="alt" data-pa="fa">${IC('receipt',17)} Facturar</button>`:''}
       <button class="alt" data-pa="pdf">${IC('print',17)} Imprimir</button><button class="alt wa" data-pa="wa">${IC('chat',17)} WhatsApp</button>${c?`<button class="alt" data-pa="fc">${IC('user',17)} Ficha</button>`:''}${S.perfil.rol=='dueno'?`<button class="alt pd-cb" data-pa="cb">${IC('clock',16)} Ver cambios</button>`:''}</div>`;
   const listo=()=>{cerrar();alCambiar&&alCambiar()};
@@ -3127,7 +3153,7 @@ function grillaFotosPedido(o){const m=document.createElement('div');m.className=
     $$('#cf_g [data-cg]').forEach(b=>b.onclick=()=>{g=b.dataset.cg;n=60;pinta()});
     const L=act.filter(p=>(!g||(famGrupo(p.familia)||'Otras familias')==g)&&(!q||coincide(txtProd(p),q))).sort((a,b)=>(!!S.min[b.producto_id]?.foto-!!S.min[a.producto_id]?.foto)||a.descripcion.localeCompare(b.descripcion,'es'));
     $('#cf_l').innerHTML=L.length?`<div class="cf-gr">${L.slice(0,n).map(p=>{const id=p.producto_id,f=S.min[id]?.foto,c=o.cant(id),b=bul(id);return`<button class="cf-c${c?' en':''}" data-cf="${id}">
-      <span class="cf-f">${f?`<img src="${esc(f)}" alt="" loading="lazy">`:`<span class="cf-in">${esc((p.descripcion||'?')[0])}</span>`}${c?`<b class="cf-n">${nf(c)}</b>`:''}</span>
+      <span class="cf-f">${f?`<img src="${esc(f)}" alt="" loading="lazy">`:`<span class="cf-in" style="background:${colAv(p.marca||p.descripcion)}">${esc((p.descripcion||'?').trim().charAt(0).toUpperCase())}</span>`}${c?`<b class="cf-n">${nf(c)}</b>`:''}</span>
       <span class="cf-d">${esc(p.descripcion)}</span><span class="cf-p">${$m0(o.pr(p))}${esKg(id)?'<small>/kg</small>':''}</span>${b&&b.n>1&&!b.kg?`<small class="cf-b">${esc(b.t)} × ${b.n}</small>`:''}<span class="cf-mas">${IC('plus',16)}</span></button>`}).join('')}</div>${L.length>n?`<button class="alt cf-vm" id="cf_vm">Ver más (${L.length-n})</button>`:''}`:vacioHTML('No encontré productos con eso.','search');
     $$('#cf_l [data-cf]').forEach(b=>b.onclick=()=>{const p=S.productos.find(x=>x.producto_id==b.dataset.cf);o.add(p);vibrar(15);const c=o.cant(p.producto_id);b.classList.add('en','pop');setTimeout(()=>b.classList.remove('pop'),250);
       let nb=b.querySelector('.cf-n');if(!nb){nb=document.createElement('b');nb.className='cf-n';b.querySelector('.cf-f').appendChild(nb)}nb.textContent=nf(c);$('#cf_x').textContent='Listo · '+o.total()});
