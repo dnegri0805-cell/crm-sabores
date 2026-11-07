@@ -2067,11 +2067,46 @@ html.oscuro .li-c{background:#1c2333}html.oscuro .ar-i .ni-x{background:rgba(0,0
 html.oscuro{--g2:#1c2333}
 html:not(.oscuro) body,html:not(.oscuro) #app{background:var(--g)}
 </style>
+
+<style id="mani-llamar">
+/* Maní JL: fila de hoy con botón para cargar cajas */
+#manijl .mq-ped{flex:none;display:inline-flex;align-items:center;gap:4px;padding:6px 11px!important;border-radius:999px!important;font-size:13px!important;font-weight:700;background:var(--m)!important;color:#fff!important;border:0!important;min-height:0!important;box-shadow:none!important}
+#manijl .mq-ped svg{stroke:#fff}
+/* a quién llamar hoy */
+#manijl .mjvis .mjvt{margin-left:0!important;display:block!important;flex:1;min-width:0}
+#manijl .mjvis .mjvc{margin-left:auto;font-size:14px}
+#manijl .mjll{margin-top:6px;border:1px solid #eadde0;border-radius:14px;padding:2px 12px 8px;background:#fff}
+#manijl .mjll .mjc{padding:9px 0}#manijl .mjll .mjc>div:nth-child(2){flex:1;min-width:0;display:flex;flex-direction:column}
+#manijl .mjll .mjc.px{opacity:.75}
+#manijl .mjll .mjc>.mjll-b{display:flex!important;flex-direction:row!important;align-items:center;gap:6px;flex:none!important}
+.mpr-q button:disabled{opacity:.35}
+#manijl .mjwa{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:#e7f6ec;color:#1d7a46}#manijl .mjwa svg{stroke:#1d7a46}
+#manijl .mjll .mjc button{padding:7px 12px}
+#manijl .mjll-e{display:block;margin:8px auto 0;font-size:14px;background:none;border:0;color:var(--m);font-weight:700}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #manijl .mjll{background:#1b2230;border-color:#2c3446}}
+:root[data-theme="dark"] #manijl .mjll{background:#1b2230;border-color:#2c3446}
+/* pedido rápido de Maní JL */
+.mpr .mc{display:flex;flex-direction:column;max-height:92vh}
+.mpr-s{margin:4px 0 8px;font-size:14px;color:var(--mu)}
+.mpr-l{overflow:auto;flex:1;display:grid;gap:6px;padding-right:2px}
+.mpr-r{display:flex;align-items:center;gap:10px;padding:8px;border:1px solid #eceef3;border-radius:14px}
+.mpr-r.on{border-color:var(--m);background:#fbf3f5}
+.mpr-r img,.mpr-i{width:46px;height:46px;border-radius:10px;object-fit:cover;flex:none;background:#f3f4f7}
+.mpr-t{flex:1;min-width:0;display:flex;flex-direction:column}.mpr-t b{font-size:14.5px;line-height:1.25}.mpr-t small{font-size:12.5px;color:var(--mu)}
+.mpr-q{display:flex;align-items:center;gap:6px;flex:none}.mpr-q b{min-width:24px;text-align:center;font-size:18px}
+.mpr-q button{width:38px;height:38px;padding:0!important;border-radius:50%!important;font-size:20px;line-height:1}
+.mpr-m{display:block;margin:8px auto 0;background:none;border:0;color:var(--m);font-weight:700;font-size:14px}
+.mpr-f{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid #eceef3}
+.mpr-f>div{display:flex;flex-direction:column}.mpr-f b{font-size:17px}.mpr-f small{color:var(--mu);font-size:13px}
+.mpr-f button{padding:11px 18px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .mpr-r{border-color:#2c3446}:root:not([data-theme="light"]) .mpr-r.on{background:#2a1c22}}
+:root[data-theme="dark"] .mpr-r{border-color:#2c3446}:root[data-theme="dark"] .mpr-r.on{background:#2a1c22}
+</style>
 </head>
 <body>
 <div id="app"><div class="splash"><img src="logo.png" alt="Sabores de mi País"><i></i></div></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
-<script src="app.js?v=2026-11-07.27"></script>
+<script src="app.js?v=2026-11-07.28"></script>
 </body>
 </html>
