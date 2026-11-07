@@ -1413,11 +1413,11 @@ body:has(.undo) #offb{display:none}
 #manijl .mq-lg{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--tx2)}#manijl .mq-lg span:last-child{font-weight:700;color:var(--tx,#17213a);white-space:nowrap}
 #manijl .mq-need{margin-top:14px;border-radius:14px;background:#f7f1f2;border:1px solid #f0dfe3;padding:12px}
 #manijl .mq-h4{font-size:12.5px;color:var(--m);font-weight:800;text-transform:uppercase;letter-spacing:.06em}
-#manijl .mq-g3{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:8px;margin-top:9px}#manijl .mq-g3>div{background:#fff;border-radius:12px;padding:9px 10px;border:1px solid #f0dfe3;min-width:0}
+#manijl .mq-g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:9px}#manijl .mq-g3>div{background:#fff;border-radius:12px;padding:9px 10px;border:1px solid #f0dfe3;min-width:0}
 #manijl .mq-g3 small{display:block;font-size:12px;color:var(--tx2);font-weight:600}#manijl .mq-g3 b{display:block;font-size:26px;font-weight:800;color:var(--tx,#17213a);line-height:1.15}#manijl .mq-g3 span{font-size:12px;color:var(--m);font-weight:700;line-height:1.25;display:block}
 #manijl .mq-g3 .hoy{background:var(--m);border-color:var(--m)}#manijl .mq-g3 .hoy small,#manijl .mq-g3 .hoy span{color:#f6d9df}#manijl .mq-g3 .hoy b{color:#fff}
 #manijl .mq-hoy{margin-top:11px;display:flex;align-items:center;gap:10px;font-size:14.5px}#manijl .mq-hoy b{white-space:nowrap}#manijl .mq-mb{flex:1;height:8px;background:#efe7e9;border-radius:999px;overflow:hidden}#manijl .mq-mb i{display:block;height:100%;background:#1d7a46;border-radius:999px;transition:width .9s}#manijl .mq-hoy.ok b{color:#1d7a46}
-#manijl .mq-msg{margin-top:10px;font-size:12.5px;color:var(--tx2);line-height:1.4}#manijl .mq-cmo{margin:10px 0 12px}#manijl .mq-g3 .mq-dp{font-weight:600;opacity:.85;white-space:nowrap;margin-top:1px}
+#manijl .mq-msg{margin-top:10px;font-size:12.5px;color:var(--tx2);line-height:1.4}#manijl .mq-cmo{margin:10px 0 12px}#manijl .mq-g3 .mq-dp{font-weight:600;opacity:.85;margin-top:1px;font-size:11.5px;overflow-wrap:anywhere}
 html.oscuro #manijl .mq-need{background:#2a1f25;border-color:#3a2a33}html.oscuro #manijl .mq-g3>div{background:#1b2230;border-color:#3a2a33}html.oscuro #manijl .mq-g3 .hoy{background:var(--m)}html.oscuro #manijl .mq-bar,html.oscuro #manijl .mq-mb{background:#2f3646}html.oscuro #manijl .mq-chip{background:#2a3446;color:#eef0f5}
 #manijl .mjvis{display:flex!important;align-items:center;gap:8px;width:100%;margin:8px 0 0!important;padding:11px 12px!important;border-radius:14px!important;background:#fff!important;border:1px solid #e3c9cf!important;color:var(--m)!important;font-size:15px!important;text-align:left;box-shadow:none!important}#manijl .mjvis span{margin-left:auto;display:grid}#manijl .mjvis.cero{color:var(--tx2)!important;border-color:#e3e6ee!important}html.oscuro #manijl .mjvis{background:#1b2230!important;border-color:#3a2a33!important;color:#f0b3c2!important}#manijl .mjh .mjd{font-size:15px;font-weight:700;color:var(--m);margin:0 0 4px}#manijl .mjh .pill{white-space:normal;line-height:1.3}#manijl .mjh{gap:18px!important;padding:18px 16px!important}#manijl .mjh .mjhn{font-size:42px!important}#manijl .mjh .mjhn span{font-size:17px!important}#manijl .mjh .hs{font-size:15px!important}#manijl .mjh .ey{font-size:14px!important}
 .mj .mjr{width:96px!important;height:96px!important}
@@ -2060,6 +2060,6 @@ html:not(.oscuro) body,html:not(.oscuro) #app{background:var(--g)}
 <div id="app"><div class="splash"><img src="logo.png" alt="Sabores de mi País"><i></i></div></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
-<script src="app.js?v=2026-11-07.21"></script>
+<script src="app.js?v=2026-11-07.22"></script>
 </body>
 </html>
