@@ -3543,8 +3543,11 @@ async function ctFlujo(){
 function ctContador(){
   $('#ct').innerHTML=selMes()+`<div class="box"><h3>Paquete mensual para el contador</h3><p>Arma <b>un solo Excel</b> de ${mesNom(S.ctMes)} con una hoja para cada cosa:</p>
   <ul class="lista-ok"><li>Resumen del mes (IVA, IIBB, resultado)</li><li>Libro IVA Ventas y Libro IVA Compras</li><li>Retenciones y percepciones</li><li>Gastos</li><li>Cobros (recibos) y pagos a proveedores</li><li>Cheques y movimientos de bancos</li></ul>
-  <button id="cx_g">Descargar Excel de ${mesNom(S.ctMes)}</button><p id="cx_e"></p><p><small>Después mandáselo por mail o WhatsApp a tu contador.</small></p></div>`;
+  <button id="cx_g">Descargar Excel de ${mesNom(S.ctMes)}</button><p id="cx_e"></p><p><small>Después mandáselo por mail o WhatsApp a tu contador.</small></p></div><div id="cx_docs"></div>`;
   onMes(ctContador);
+  /* documentos para el contador (análisis, consultas): lista guardada en config_app 'docs_contador' */
+  cfgJ('docs_contador',{items:[]}).then(D=>{const b=$('#cx_docs'),L=(D&&D.items)||[];if(!b||!L.length)return;
+    b.innerHTML=`<div class="box"><h3>Documentos para el contador</h3>${L.map(x=>`<p><a class="lnk" href="${esc(x.url)}" target="_blank" rel="noopener">📄 ${esc(x.t)}</a>${x.d?`<br><small>${esc(x.d)}</small>`:''}</p>`).join('')}</div>`}).catch(()=>{});
   $('#cx_g').onclick=async()=>{const b=$('#cx_g'),est=t=>$('#cx_e').textContent=t;b.disabled=true;
     try{est('Cargando el generador de Excel…');if(!window.XLSX)await cargarScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
       const m=S.ctMes,[a,z]=mesRango(m);est('Juntando los datos del mes…');
