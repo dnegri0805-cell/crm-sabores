@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-07.31';
+const VERSION='2026-11-07.32';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -401,7 +401,7 @@ async function resumenHoy(){const box=document.getElementById('rhoy');if(!box)re
   const cmp=(x,y,f,vacio)=>{if(!x&&!y)return`<span>${vacio}</span>`;const fl=x>y?'<i class="rh-up">▲</i>':x<y?'<i class="rh-dn">▼</i>':'';return`<span title="El ${esc(dn)} pasado a esta hora">${fl}${f(y)} el ${esc(dn)}</span>`};
   box.innerHTML=`<button class="rh" onclick="irA('pedidos')"><small>Vendido hoy</small><b>${$k(vt)}</b>${cmp(vt,vt2,$k,'Sin pedidos aún')}</button>
     <button class="rh" onclick="irA('cobranza')"><small>Cobrado hoy</small><b>${$k(cb)}</b>${cmp(cb,cb2,$k,'Sin cobros aún')}</button>
-    <button class="rh" onclick="irA('clientes',{cs:'agenda'})"><small>Visitas hoy</small><b>${nv}</b>${cmp(nv,nv2,String,'Ninguna aún')}</button>`;
+    <button class="rh" onclick="visitasHoy()"><small>Visitas hoy</small><b>${nv}</b>${cmp(nv,nv2,String,'Ninguna aún')}</button>`;
   VP.then(([pc,pp])=>{const hechas=nv+(pc.count||0),pend=pp.count||0,b=box.querySelector('.rh:last-child');if(!b||!document.body.contains(b)||!(pend||pc.count))return;
     b.onclick=()=>irA('ventas',{vs:'embudo'});b.querySelector('b').innerHTML=`${hechas}<small class="rh-de"> de ${hechas+pend}</small>`;const s=b.querySelector('span');if(s)s.textContent=pend?`${pend} por hacer`:'¡Todas hechas!'});
   SP.then(([a,b,c])=>{if(!document.body.contains(box))return;const D=[...Array(14)].map((_,i)=>diaLocal(new Date(ahora.getTime()-(13-i)*864e5)));
@@ -1759,7 +1759,7 @@ async function vPedidos(){
     const{error:e2}=await sb.from('pedido_items').insert(Object.entries(ag).map(([k,a])=>{const x={pedido_id:o.id,producto_id:k,cantidad:a.q,precio_unitario:Math.round(a.t/a.q*fac*100)/100};if(a.l.size)x.promo=[...a.l].join(' + ');if(a.mp)x.precio_manual=true;return x}));
     if(e2){$('#p_g').disabled=false;if(!ED&&esRed(e2))return pedidoOff(c,agOff(),fac,cu,ex,o.id);return toast(sqlX(e2)?'Falta correr pedidos-extra.sql en Supabase (te lo avisa el Inicio).':'El pedido N° '+o.numero+' quedó sin productos: '+e2.message,1)}
     if(cu&&!ED)await sb.from('cupones_usos').insert({codigo:S.pcup.codigo,cliente_id:c.id,pedido_id:o.id});
-    if(!ED)await marcarDebidos(o.numero).catch(()=>{});S.edPed=null;borrarBorr();okAnim('Pedido N° '+o.numero+(ED?' actualizado':' guardado'));if(!ED&&!o.es_prueba)primerPedido(c,o.id);
+    if(!ED)await marcarDebidos(o.numero).catch(()=>{});S.edPed=null;borrarBorr();okAnim('Pedido N° '+o.numero+(ED?' actualizado':' guardado'));if(!ED&&!o.es_prueba){primerPedido(c,o.id);maniAvisoPedido(ag)}
     if(S.perfil.rol=='vendedor'){const{data:ap}=await sb.from('aprobaciones_precio').select('id').eq('pedido_id',o.id).eq('estado','pendiente').then(r=>r,()=>({}));if(ap?.length)setTimeout(()=>toast('El precio especial quedó para que lo apruebe el dueño. Te avisa la campanita.'),1600)}await cargarStock();vPedidos()};
   $('#p_cuo').onclick=async()=>{const k=$('#p_cu').value.trim().toUpperCase();if(!k){S.pcup=null;$('#p_cum').textContent='';return drawI()}
     const c=cli();if(!c)return toast('Elegí primero el cliente.',1);const sub=S.items.reduce((a,i)=>a+pi(i).pu*i.q,0);
@@ -3580,8 +3580,8 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
   const conSel=pocas&&faltaMg>0&&[...ids].some(chico),nota=faltaMg<=0||conSel?'':pocas?`Estimado con ${m0(mbCat)} de ganancia por caja${foco?' (65 y 85 g)':' (promedio de toda la línea)'}, <a class="lnk" data-mjdto>${dtoTx}</a>.${!cubre&&realista?` Con ${nf(Math.ceil((fijos-mg)/mb))} cajas cubrís los gastos.`:''}`
       :`Cada caja te deja ${m0(mb)}. A este ritmo cerrás ${esc(mes.toLowerCase())} con <b class="${ok?'sube':'baja'}">${m0(proyLimpio)}</b> limpios.`;
   const SEL=conSel?`<div class="mjseg"><span>Calcular con<small>Estimado: ${m0(mbCat)} por caja</small><small><a class="lnk" data-mjdto>${dtoTx}</a></small></span><div role="radiogroup" aria-label="Calcular con" class="mjsw ${foco?'':'der'}" id="mj_sw"><i class="mjpill"></i><button role="radio" aria-checked="${!!foco}" data-mjf="chicos" class="${foco?'on':''}">65 y 85 g</button><button role="radio" aria-checked="${!foco}" data-mjf="todo" class="${foco?'':'on'}">Toda la línea</button></div></div>`:'';
-  const esSig=false;
-  box.innerHTML=`<div class="box obj mj${esSig?' sig':''}"><div class="mjtop"><div class="mjtl"><img class="mjimg" src="fotos/metas/mani-jl.webp" alt=""><div><div class="ey">Meta de ${esc((esSig?mesSigJ:mes).toLowerCase())}</div><div class="tt">Maní JL</div>${esSig?`<div class="mjcer">${esc(mes)} cierra con ${nf(Math.round(cj))} ${Math.round(cj)==1?'caja':'cajas'}</div>`:''}</div></div><button class="mjmeta" id="mj_e" aria-label="Cambiar meta"><small>Meta limpia</small><b>${m0(meta)}</b><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16H4v-3z"/></svg></button></div>
+  const esSig=false;S.mjHoy={dia:dHoy,cj:cjHoy,porDia,cuenta:hoyCuenta};
+  box.innerHTML=`<div class="box obj mj${esSig?' sig':''}"><div class="mjtop"><div class="mjtl"><img class="mjimg" src="fotos/metas/mani-jl.webp" alt=""><div><div class="ey">Meta de ${esc((esSig?mesSigJ:mes).toLowerCase())}</div><div class="tt">Maní JL</div>${esSig?`<div class="mjcer">${esc(mes)} cierra con ${nf(Math.round(cj))} ${Math.round(cj)==1?'caja':'cajas'}</div>`:''}</div></div><button class="mjmeta" id="mj_e" aria-label="Cajas vendidas este mes. Tocá para cambiar la meta"><small>Este mes</small><b>${nf(Math.round(cj))} ${Math.round(cj)==1?'caja':'cajas'}</b><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16H4v-3z"/></svg></button></div>
     <div id="mj_h">${hero}</div>
     <div class="mjacc" id="mj_acc"><button class="mjver" id="mj_t" aria-expanded="${abierto}">Detalle <span>${abierto?'▴':'▾'}</span></button></div>
     <div id="mj_d"${abierto?'':' hidden'}>${aviso}${faltaMg>0?'<p class="mq-msg mq-cmo">El objetivo por día se recalcula todos los días: si un día vendés menos, lo que falta se reparte entre los días que quedan; si vendés más, baja.</p>':''}
@@ -3637,6 +3637,13 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
   else if(hoyOk&&hoyCuenta)fiesta('¡Objetivo de hoy cumplido!','mj_dia_'+dHoy);
   $('#mj_e').onclick=pedirMeta}
 
+/* "Visitas hoy" lleva a la lista de a quién llamar por Maní JL (si está en Inicio); si no, a la agenda */
+function visitasHoy(){const v=$('#mj_vis'),l=$('#mj_ll');if(v&&l){if(l.hidden)v.click();setTimeout(()=>v.scrollIntoView({behavior:'smooth',block:'center'}),60);return}irA('clientes',{cs:'agenda'})}
+/* al guardar un pedido con Maní JL: aviso con las cajas sumadas y cómo va el día */
+function maniAvisoPedido(ag){try{const jl=S._jlId;if(!jl)return;let n=0;for(const[k,a]of Object.entries(ag||{}))if(S.min[k]?.pv==jl)n+=(+a.q||0)/(S.min[k]?.b||1);if(!(n>0))return;
+  const r=x=>Math.round(x*10)/10,H=S.mjHoy,hoy=diaLocal(new Date());let tx='🥜 +'+nf(r(n))+' '+(r(n)==1?'caja':'cajas')+' de Maní JL';
+  if(H&&H.dia==hoy&&H.cuenta&&H.porDia>0){H.cj+=n;const ll=Math.round(H.cj);tx+=' · Hoy llevás '+nf(ll)+' de '+nf(H.porDia)+(ll>=H.porDia?' ✓':'')}
+  setTimeout(()=>toast(tx),1700)}catch(e){}}
 /* Pedido rápido de Maní JL: elegís el cliente, ponés cuántas cajas de cada producto y se arma el pedido normal (con precios del cliente) para revisar y guardar. */
 function maniPedidoRapido(cli,pre){
   if(!cli)return fabCliente('Pedido de Maní JL · ¿para quién?',c=>c&&maniPedidoRapido(c));
