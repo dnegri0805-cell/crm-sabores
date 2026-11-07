@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-07.15';
+const VERSION='2026-11-07.16';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -393,12 +393,17 @@ async function resumenHoy(){const box=document.getElementById('rhoy');if(!box)re
   const d14=diaLocal(new Date(ahora.getTime()-13*864e5));let qs=sb.from('pedidos').select('total,creado_en').neq('estado','cancelado').or('es_prueba.is.null,es_prueba.eq.false').gte('creado_en',tsAR(d14)).limit(3000);if(yo)qs=qs.eq('vendedor_id',S.perfil.id);
   let qvs=sb.from('contactos_clientes').select('fecha').gte('fecha',tsAR(d14)).limit(3000);if(yo)qvs=qvs.eq('usuario_id',S.perfil.id);
   const SP=Promise.all([qs,sb.from('recibos').select('importe,fecha').eq('anulado',false).gte('fecha',d14).limit(3000),qvs].map(q=>q.then(x=>x,()=>({}))));
+  const hoyS=diaLocal(ahora);let qpc=sb.from('prospectos').select('id',{count:'exact',head:true}).eq('ultimo_contacto',hoyS);if(yo)qpc=qpc.eq('vendedor_id',S.perfil.id);
+  let qpp=sb.from('prospectos').select('id',{count:'exact',head:true}).lte('proximo_seguimiento',hoyS).not('estado','in','(cliente,no_interesado)').or('ultimo_contacto.is.null,ultimo_contacto.lt.'+hoyS);if(yo)qpp=qpp.eq('vendedor_id',S.perfil.id);
+  const VP=Promise.all([qpc,qpp].map(q=>q.then(x=>x,()=>({}))));
   const[p,r,v,p2,r2,v2]=await Promise.all([qp,sb.from('recibos').select('importe').eq('anulado',false).gte('fecha',diaLocal(ahora)),qv,qp2,sb.from('recibos').select('importe').eq('anulado',false).eq('fecha',diaLocal(ant)),qv2].map(q=>q.then(x=>x,()=>({}))));
   if(!document.body.contains(box))return;const sum=(L,k)=>(L||[]).reduce((a,o)=>a+(+o[k]||0),0),P=p.data||[],vt=sum(P,'total'),cb=sum(r.data,'importe'),nv=v.count||0,vt2=sum(p2.data,'total'),cb2=sum(r2.data,'importe'),nv2=v2.count||0;
   const cmp=(x,y,f,vacio)=>{if(!x&&!y)return`<span>${vacio}</span>`;const fl=x>y?'<i class="rh-up">▲</i>':x<y?'<i class="rh-dn">▼</i>':'';return`<span title="El ${esc(dn)} pasado a esta hora">${fl}${f(y)} el ${esc(dn)}</span>`};
   box.innerHTML=`<button class="rh" onclick="irA('pedidos')"><small>Vendido hoy</small><b>${$k(vt)}</b>${cmp(vt,vt2,$k,'Sin pedidos aún')}</button>
     <button class="rh" onclick="irA('cobranza')"><small>Cobrado hoy</small><b>${$k(cb)}</b>${cmp(cb,cb2,$k,'Sin cobros aún')}</button>
     <button class="rh" onclick="irA('clientes',{cs:'agenda'})"><small>Visitas hoy</small><b>${nv}</b>${cmp(nv,nv2,String,'Ninguna aún')}</button>`;
+  VP.then(([pc,pp])=>{const hechas=nv+(pc.count||0),pend=pp.count||0,b=box.querySelector('.rh:last-child');if(!b||!document.body.contains(b)||!(pend||pc.count))return;
+    b.onclick=()=>irA('ventas',{vs:'embudo'});b.querySelector('b').innerHTML=`${hechas}<small class="rh-de"> de ${hechas+pend}</small>`;const s=b.querySelector('span');if(s)s.textContent=pend?`${pend} por hacer`:'¡Todas hechas!'});
   SP.then(([a,b,c])=>{if(!document.body.contains(box))return;const D=[...Array(14)].map((_,i)=>diaLocal(new Date(ahora.getTime()-(13-i)*864e5)));
     const ser=(L,kf,kv)=>D.map(d=>(L||[]).filter(x=>diaLocal(x[kf])==d||String(x[kf]).slice(0,10)==d&&kf=='fecha'&&!String(x[kf]).includes('T')).reduce((s,x)=>s+(kv?+x[kv]||0:1),0));
     const R3=[ser(a.data,'creado_en','total'),ser(b.data,'fecha','importe'),ser(c.data,'fecha',null)];
@@ -418,7 +423,7 @@ async function vInicio(){
     <div class="box" id="k5"><span class="lab">Stock bajo</span><span class="num">…</span><span class="det"></span></div>
   </div>`;
   $('#v').innerHTML=`<div class="bh ini-h" style="flex-wrap:wrap;gap:8px"><div><h2 style="margin:0">${hr<5?'Buenas noches':hr<13?'Buen día':hr<20?'Buenas tardes':'Buenas noches'}${S.perfil.nombre?', '+esc(String(S.perfil.nombre).trim().split(/\s+/)[0]):''}</h2><small class="ini-f">${hoyD.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}</small></div>
-    ${dia?`<button class="alt ini-ed" onclick="iniPersonalizar()">${IC('sliders',16)} Editar inicio</button>`:'<button class="alt" data-iv="dia">← Volver al inicio simple</button>'}</div><div id="rhoy" class="rhoy"></div>
+    ${dia?'':'<button class="alt" data-iv="dia">← Volver al inicio simple</button>'}</div><div id="rhoy" class="rhoy"></div>
   ${dia?`<div id="tudia"></div>${accesosHTML()}<div id="mesv"></div><div id="aprb"></div>${kpH}<div id="rank"></div><div id="comv"></div><div id="logr"></div>${S.perfil.rol=='dueno'?'<div id="metas1"><div id="m1l"></div><div id="manijl" hidden></div><div id="metaskg" hidden></div></div>':''}<div id="acti"></div>`:`
   ${principalesHTML()}<div id="bk"></div><div id="cmpi"></div><div id="cami"></div><div id="equi"></div><div id="doci"></div><div id="midia"></div><div id="mani"></div><div id="resd"></div><div id="tari"></div>
   <div class="herr" id="herr"></div>
@@ -3559,7 +3564,7 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
   const hero=faltaMg<=0?`<div class="mjh ok"><div><div class="ey">Objetivo de ${esc(mes.toLowerCase())}</div><div class="mjhn">Cumplido</div><div class="hs">Vas ${m0(limpio-meta)} arriba de la meta. Lo que sumes ya es extra.</div></div></div>`
     :semIni&&pvV>LIMV&&faltaSem>0&&hab(dh,dm)<=6?`<div class="mjh sig">${ring(0,esc(mesSigJ.slice(0,3).toLowerCase()))}<div><div class="ey">${esc(mesSigJ)} arranca</div><div class="mjhn">${nf(semSigJ)}<span> cajas por semana</span></div><div class="hs">Meta del mes: ${nf(cjMetaMes)} cajas</div></div></div>`
     :semIni?`<div class="mjh">${ring(pcS,Math.round(pcS*100)+'%')}<div><div class="ey">${pvV>LIMV&&faltaSem>0?esc(mes)+' no llega':semTit}</div><div class="mjhn">${pvV>LIMV&&faltaSem>0?`${nf(Math.round(cj))}<span> / ${nf(cjMetaMes)} cajas</span>`:`${nf(Math.round(cjS))}<span> / ${nf(objSem)} cajas</span>`}</div>${dxc?`<div class="mjd">= ${dsp(pvV>LIMV&&faltaSem>0?cjMetaMes:objSem)} de 12 bolsitas</div>`:''}
-      <div class="hs">${faltaSem>0?(pvV>LIMV?`Desde el 1/${(M+1)%12+1}: <b>${nf(Math.ceil(cjMetaMes/(habSig/6)))} cajas por semana</b>`:`${nf(pvV)} cajas por visita · ${visSem} visita${visSem==1?'':'s'}`):'Semana cumplida. Lo que sumes adelanta el mes.'}</div>${realista?'':`<span class="pill">${fijos>0&&cj<cjGasMes?`Foco: cubrir gastos · ${nf(Math.max(0,cjGasMes-Math.round(cj)))} cajas`:'Foco: sumar cajas'}</span>`}</div></div>`
+      <div class="hs">${faltaSem>0?(pvV>LIMV?`Desde el 1/${(M+1)%12+1}: <b>${nf(Math.ceil(cjMetaMes/(habSig/6)))} cajas por semana</b>`:`${nf(pvV)} cajas por visita · ${visSem} visita${visSem==1?'':'s'}`):'Semana cumplida. Lo que sumes adelanta el mes.'}</div>${realista?'':`<span class="pill">${fijos>0&&cj<cjGasMes?`${nf(Math.max(0,cjGasMes-Math.round(cj)))} cajas para cubrir gastos`:'Foco: sumar cajas'}</span>`}</div></div>`
     :`<div class="mjh"><div><div class="ey">${esc(mes)}</div><div class="mjhn">${nf(faltaCj)}<span> cajas por vender</span></div></div></div>`;
   const faltGas=Math.max(0,cjGasMes-Math.round(cj)),aviso=realista?'':`<div class="mja"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5"/><path d="M10 9v5M10 6.2v.1"/></svg><span><b>${esc(mes)}:</b> ${fijos<=0?'sumá todas las cajas que puedas.':cj>=cjGasMes?'gastos cubiertos, lo que vendas es limpio.':`con ${nf(faltGas)} ${faltGas==1?'caja':'cajas'}${dxc?' ('+dsp(faltGas)+')':''} cubrís los gastos (${m0(fijos)}).`} <b>Desde ${esc(mesSigJ.toLowerCase())}</b>, para tu meta de ${m0(meta)} necesitás unas ${nf(semSigJ)} cajas${dxc?' ('+dsp(semSigJ)+')':''} por semana.</span></div>`;
   const bps=[...ids].filter(id=>!foco||chico(id)).map(id=>S.min[id]?.bp||0).filter(x=>x>0),bpP=bps.length?bps.reduce((a,x)=>a+x,0)/bps.length:0,palMes=bpP?cjMetaMes/bpP:0;
