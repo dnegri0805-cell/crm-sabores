@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-06.3';
+const VERSION='2026-11-06.4';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -3474,8 +3474,9 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
       if(enMes){cj+=q/bu;mg+=q*(pu-cu);vta+=q*pu;cl.add(o.cliente_id);if(sA&&dia>=sA&&dia<=sB)cjS+=q/bu;else if(sA&&dia<sA)cjAntesS+=q/bu}}
     if(tJL>0)(U[o.cliente_id]=U[o.cliente_id]||[]).push(dia)}
   const fijos=G.items.reduce((s,x)=>s+(+x.m||0),0)*((+C.pct||100)/100),limpio=mg-fijos,meta=+C.meta;
+  const dto=Math.max(0,Math.min(50,C.dto??7)),dtoTx=dto>0?`con ${nf(dto)} % de descuento`:'sin descuento';
   const chico=id=>/\b(65|85)\s*g\b/i.test(S.productos.find(x=>x.producto_id==id)?.descripcion||''),foco=C.foco=='chicos'&&[...ids].some(chico);
-  const cat=[...ids].filter(id=>!foco||chico(id)).map(id=>{const p=S.productos.find(x=>x.producto_id==id);return(precioLista(id,'mayorista')-(+p?.costo||0))*(S.min[id]?.b||1)}).filter(x=>x>0),mbCat=cat.length?cat.reduce((s,x)=>s+x,0)/cat.length:8000;
+  const cat=[...ids].filter(id=>!foco||chico(id)).map(id=>{const p=S.productos.find(x=>x.producto_id==id);return(precioLista(id,'mayorista')*(1-dto/100)-(+p?.costo||0))*(S.min[id]?.b||1)}).filter(x=>x>0),mbCat=cat.length?cat.reduce((s,x)=>s+x,0)/cat.length:8000;
   const mb=cj>=3&&mg>0?mg/cj:mbCat,faltaMg=Math.max(0,meta+fijos-mg),faltaCj=Math.ceil(faltaMg/mb);
   const hab=(d1,d2)=>{let n=0;for(let d=d1;d<=d2;d++)if(new Date(Y,M,d).getDay()!=0)n++;return n};
   const habTot=hab(1,dm),habPas=Math.max(1,hab(1,dh-1)+(hoy.getHours()>=14?1:0)),habRest=Math.max(1,hab(dh,dm)),visitas=Math.max(1,Math.round(habRest/2)),proyLimpio=mg/habPas*habTot-fijos,ok=proyLimpio>=meta;
@@ -3502,9 +3503,9 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
     :`<div class="mjh"><div><div class="ey">${esc(mes)}</div><div class="mjhn">${nf(faltaCj)}<span> cajas por vender</span></div></div></div>`;
   const aviso=realista?'':`<div class="mja"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5"/><path d="M10 9v5M10 6.2v.1"/></svg><span>La meta de ${m0(meta)} no llega en ${esc(mes.toLowerCase())}. ${cj>=cjGasMes?'Gastos ya cubiertos: lo que vendas es limpio.':'Este mes cubrí los gastos y la meta arranca el mes que viene.'}</span></div>`;
   const bps=[...ids].filter(id=>!foco||chico(id)).map(id=>S.min[id]?.bp||0).filter(x=>x>0),bpP=bps.length?bps.reduce((a,x)=>a+x,0)/bps.length:0,palMes=bpP?cjMetaMes/bpP:0;
-  const conSel=pocas&&faltaMg>0&&[...ids].some(chico),nota=faltaMg<=0||conSel?'':pocas?`Estimado con ${m0(mbCat)} de ganancia por caja${foco?' (65 y 85 g)':' (promedio de toda la línea)'}.${!cubre&&realista?` Con ${nf(Math.ceil((fijos-mg)/mb))} cajas cubrís los gastos.`:''}`
+  const conSel=pocas&&faltaMg>0&&[...ids].some(chico),nota=faltaMg<=0||conSel?'':pocas?`Estimado con ${m0(mbCat)} de ganancia por caja${foco?' (65 y 85 g)':' (promedio de toda la línea)'}, <a class="lnk" data-mjdto>${dtoTx}</a>.${!cubre&&realista?` Con ${nf(Math.ceil((fijos-mg)/mb))} cajas cubrís los gastos.`:''}`
       :`Cada caja te deja ${m0(mb)}. A este ritmo cerrás ${esc(mes.toLowerCase())} con <b class="${ok?'sube':'baja'}">${m0(proyLimpio)}</b> limpios.`;
-  const SEL=conSel?`<div class="mjseg"><span>Calcular con<small>Estimado: ${m0(mbCat)} por caja</small></span><div role="radiogroup" aria-label="Calcular con" class="mjsw ${foco?'':'der'}" id="mj_sw"><i class="mjpill"></i><button role="radio" aria-checked="${!!foco}" data-mjf="chicos" class="${foco?'on':''}">65 y 85 g</button><button role="radio" aria-checked="${!foco}" data-mjf="todo" class="${foco?'':'on'}">Toda la línea</button></div></div>`:'';
+  const SEL=conSel?`<div class="mjseg"><span>Calcular con<small>Estimado: ${m0(mbCat)} por caja</small><small><a class="lnk" data-mjdto>${dtoTx}</a></small></span><div role="radiogroup" aria-label="Calcular con" class="mjsw ${foco?'':'der'}" id="mj_sw"><i class="mjpill"></i><button role="radio" aria-checked="${!!foco}" data-mjf="chicos" class="${foco?'on':''}">65 y 85 g</button><button role="radio" aria-checked="${!foco}" data-mjf="todo" class="${foco?'':'on'}">Toda la línea</button></div></div>`:'';
   const esSig=faltaMg>0&&semIni&&pvV>LIMV&&faltaSem>0&&hab(dh,dm)<=6;
   box.innerHTML=`<div class="box obj mj${esSig?' sig':''}"><div class="mjtop"><div class="mjtl"><img class="mjimg" src="fotos/metas/mani-jl.webp" alt=""><div><div class="ey">Meta de ${esc((esSig?mesSigJ:mes).toLowerCase())}</div><div class="tt">Maní JL</div>${esSig?`<div class="mjcer">${esc(mes)} cierra con ${nf(Math.round(cj))} ${Math.round(cj)==1?'caja':'cajas'}</div>`:''}</div></div><button class="mjmeta" id="mj_e" aria-label="Cambiar meta"><small>Meta limpia</small><b>${m0(meta)}</b><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16H4v-3z"/></svg></button></div>
     <div id="mj_h" role="button" tabindex="0" aria-expanded="${abierto}" style="cursor:pointer">${hero}</div>
@@ -3536,6 +3537,8 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
     sw.addEventListener('touchend',()=>{if(x0==null)return;pill.style.transition='';pill.style.transform='';const der=sw.classList.contains('der');x0=null;
       if(sw._mov){if(dx>25&&!der)elegir('todo');else if(dx<-25&&der)elegir('chicos')}setTimeout(()=>sw._mov=false,50)});}
   $$('#manijl [data-mjp]').forEach(bt=>bt.onclick=()=>{const x=VIS.find(y=>y.c.id==bt.dataset.mjp);S.preCli=x.c;S.preItems=x.it&&x.it.length?x.it:null;S.tab='pedidos';shell()});
+  $$('#manijl [data-mjdto]').forEach(a=>a.onclick=async e=>{e.stopPropagation();const x=prompt('Descuento promedio que pensás dar a los clientes (en %). La meta se calcula con ese precio:',String(dto));if(x===null)return;const n=numAR(x);if(!(n>=0&&n<=50))return toast('Escribí un porcentaje entre 0 y 50.',1);
+    const{error}=await guardaCfgJ('mani_jl',{...C,dto:n});error?toast(error.message,1):(toast('Meta calculada '+(n>0?'con '+nf(n)+' % de descuento':'sin descuento')+'.'),maniJLInicio())});
   $('#mj_e').onclick=pedirMeta}
 
 /* ======================= METAS EN KILOS POR PRODUCTO (Inicio) =======================
