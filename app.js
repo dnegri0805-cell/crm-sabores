@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-07.35';
+const VERSION='2026-11-07.36';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -407,7 +407,7 @@ async function resumenHoy(){const box=document.getElementById('rhoy');if(!box)re
   SP.then(([a,b,c])=>{if(!document.body.contains(box))return;const D=[...Array(14)].map((_,i)=>diaLocal(new Date(ahora.getTime()-(13-i)*864e5)));
     const ser=(L,kf,kv)=>D.map(d=>(L||[]).filter(x=>diaLocal(x[kf])==d||String(x[kf]).slice(0,10)==d&&kf=='fecha'&&!String(x[kf]).includes('T')).reduce((s,x)=>s+(kv?+x[kv]||0:1),0));
     const R3=[ser(a.data,'creado_en','total'),ser(b.data,'fecha','importe'),ser(c.data,'fecha',null)];
-    box.querySelectorAll('.rh').forEach((el,i)=>{const h=spark(R3[i],'c'+(i+1));if(h){el.classList.add('con-spk');el.insertAdjacentHTML('beforeend',h);el.title='Últimos 14 días'}})})}
+    if(!box.closest('#v')||S.tab!='inicio')box.querySelectorAll('.rh').forEach((el,i)=>{const h=spark(R3[i],'c'+(i+1));if(h){el.classList.add('con-spk');el.insertAdjacentHTML('beforeend',h);el.title='Últimos 14 días'}})})}
 async function vInicio(){
   if(esEstacion()&&!S.estVista){S.estVista=1;return irA('impresora')}S.estVista=1;
   const hoyD=new Date(),hoy=diaLocal(hoyD),mes=hoy.slice(0,7);
@@ -3574,7 +3574,7 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
         <div class="hoy"><small>Por día</small><b>${nf(porDia)}</b><span>${porDia==1?'caja':'cajas'}</span>${dxc?`<span class="mq-dp">${dsp(porDia).replace(' ','<br>')}</span>`:''}</div>
         <div><small>Por semana</small><b>${nf(porSem)}</b><span>cajas</span>${dxc?`<span class="mq-dp">${dsp(porSem).replace(' ','<br>')}</span>`:''}</div>
         <div><small>En total</small><b>${nf(totalCj)}</b><span>cajas</span>${dxc?`<span class="mq-dp">${dsp(totalCj).replace(' ','<br>')}</span>`:''}</div></div>
-        <div class="mq-hoy${hoyOk?' ok':''}"><b>${hoyCuenta?'Hoy':'Mañana'}: ${hoyCuenta?nf(cjHoyR)+' de '+nf(porDia):nf(porDia)} ${porDia==1&&!hoyCuenta?'caja':'cajas'}${hoyOk?' ✓':''}</b>${hoyCuenta?`<div class="mq-mb"><i style="width:${(pcHoy*100).toFixed(1)}%"></i></div>`:''}<button class="mq-ped" id="mj_ped" type="button">${IC('plus',15)} Cargar cajas</button></div></div></div>`;
+        <div class="mq-hoy${hoyOk?' ok':''}"><b>${hoyCuenta?'Hoy':(()=>{const d=new Date(hoy);d.setDate(d.getDate()+1);if(d.getDay()==0)d.setDate(d.getDate()+1);return d.getDay()==1&&hoy.getDay()!=0?'El lunes':'Mañana'})()}: ${hoyCuenta?nf(cjHoyR)+' de '+nf(porDia):nf(porDia)} ${porDia==1&&!hoyCuenta?'caja':'cajas'}${hoyOk?' ✓':''}</b>${hoyCuenta?`<div class="mq-mb"><i style="width:${(pcHoy*100).toFixed(1)}%"></i></div>`:''}<button class="mq-ped" id="mj_ped" type="button">${IC('plus',15)} Cargar cajas</button></div></div></div>`;
   const faltGas=Math.max(0,cjGasMes-Math.round(cj)),aviso=true?'':`<div class="mja"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5"/><path d="M10 9v5M10 6.2v.1"/></svg><span><b>${esc(mes)}:</b> ${fijos<=0?'sumá todas las cajas que puedas.':cj>=cjGasMes?'gastos cubiertos, lo que vendas es limpio.':`con ${nf(faltGas)} ${faltGas==1?'caja':'cajas'}${dxc?' ('+dsp(faltGas)+')':''} cubrís los gastos (${m0(fijos)}).`} <b>Desde ${esc(mesSigJ.toLowerCase())}</b>, para tu meta de ${m0(meta)} necesitás unas ${nf(semSigJ)} cajas${dxc?' ('+dsp(semSigJ)+')':''} por semana.</span></div>`;
   const bps=[...ids].filter(id=>!foco||chico(id)).map(id=>S.min[id]?.bp||0).filter(x=>x>0),bpP=bps.length?bps.reduce((a,x)=>a+x,0)/bps.length:0,palMes=bpP?cjMetaMes/bpP:0;
   const conSel=pocas&&faltaMg>0&&[...ids].some(chico),nota=faltaMg<=0||conSel?'':pocas?`Estimado con ${m0(mbCat)} de ganancia por caja${foco?' (65 y 85 g)':' (promedio de toda la línea)'}, <a class="lnk" data-mjdto>${dtoTx}</a>.${!cubre&&realista?` Con ${nf(Math.ceil((fijos-mg)/mb))} cajas cubrís los gastos.`:''}`
