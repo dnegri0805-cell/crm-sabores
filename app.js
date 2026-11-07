@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-07.19';
+const VERSION='2026-11-07.20';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -3572,8 +3572,8 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
       <div class="mq-lg"><span>${fijos>0?(cubre?'Gastos cubiertos':`Incluye ${m0(fijos)} de gastos`):''}</span><span>Faltan ${m0(faltaMg)}</span></div>
       <div class="mq-need"><div class="mq-h4">Para llegar necesitás</div><div class="mq-g3">
         <div class="hoy"><small>Por día</small><b>${nf(porDia)}</b><span>${porDia==1?'caja':'cajas'}${dxc?' · '+dsp(porDia):''}</span></div>
-        <div><small>Por semana</small><b>${nf(porSem)}</b><span>cajas</span></div>
-        <div><small>En total</small><b>${nf(totalCj)}</b><span>cajas</span></div></div>
+        <div><small>Por semana</small><b>${nf(porSem)}</b><span>cajas${dxc?' · '+dsp(porSem):''}</span></div>
+        <div><small>En total</small><b>${nf(totalCj)}</b><span>cajas${dxc?' · '+dsp(totalCj):''}</span></div></div>
         <div class="mq-hoy${hoyOk?' ok':''}"><b>${hoyCuenta?'Hoy':'Mañana'}: ${hoyCuenta?nf(cjHoyR)+' de '+nf(porDia):nf(porDia)} ${porDia==1&&!hoyCuenta?'caja':'cajas'}${hoyOk?' ✓':''}</b>${hoyCuenta?`<div class="mq-mb"><i style="width:${(pcHoy*100).toFixed(1)}%"></i></div>`:''}</div></div></div>`;
   const faltGas=Math.max(0,cjGasMes-Math.round(cj)),aviso=true?'':`<div class="mja"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5"/><path d="M10 9v5M10 6.2v.1"/></svg><span><b>${esc(mes)}:</b> ${fijos<=0?'sumá todas las cajas que puedas.':cj>=cjGasMes?'gastos cubiertos, lo que vendas es limpio.':`con ${nf(faltGas)} ${faltGas==1?'caja':'cajas'}${dxc?' ('+dsp(faltGas)+')':''} cubrís los gastos (${m0(fijos)}).`} <b>Desde ${esc(mesSigJ.toLowerCase())}</b>, para tu meta de ${m0(meta)} necesitás unas ${nf(semSigJ)} cajas${dxc?' ('+dsp(semSigJ)+')':''} por semana.</span></div>`;
   const bps=[...ids].filter(id=>!foco||chico(id)).map(id=>S.min[id]?.bp||0).filter(x=>x>0),bpP=bps.length?bps.reduce((a,x)=>a+x,0)/bps.length:0,palMes=bpP?cjMetaMes/bpP:0;
