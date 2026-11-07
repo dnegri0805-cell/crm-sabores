@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-07.28';
+const VERSION='2026-11-07.29';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -3657,9 +3657,13 @@ function maniPedidoRapido(cli,pre){
       ${ord.some(p=>!chico(p))?`<button class="lnk mpr-m" id="mpr_t">${todos?'Mostrar solo 65 y 85 g':'Ver también 500 g y manteca'}</button>`:''}
       <div class="mpr-f"><div><b>${nf(cj)} ${cj==1?'caja':'cajas'}</b><small>${dsp?nf(Math.round(dsp))+' displays · ':''}${$m0(tot)} de lista</small></div><button id="mpr_ok"${cj?'':' disabled'}>Armar pedido</button></div></div>`;
     $('#mpr_x').onclick=cerrar;$('#mpr_t')&&($('#mpr_t').onclick=()=>{todos=!todos;pinta()});
-    m.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{const id=b.dataset.q;Q[id]=Math.max(0,(Q[id]||0)+ +b.dataset.d);try{tic()}catch(e){}const y=m.querySelector('.mpr-l').scrollTop;pinta();m.querySelector('.mpr-l').scrollTop=y});
+    /* al tocar − o + solo se actualiza esa fila y el total: redibujar todo hacía parpadear la pantalla */
+    const pie=()=>{let cj=0,tot=0,dsp=0;for(const p of ord){const n=Q[p.producto_id]||0;if(!n)continue;const b=S.min[p.producto_id]?.b||1,ud=S.min[p.producto_id]?.ud||0;cj+=n;tot+=n*b*precioLista(p.producto_id,'mayorista');if(ud)dsp+=n*b/ud}
+      const f=m.querySelector('.mpr-f>div');f.innerHTML=`<b>${nf(cj)} ${cj==1?'caja':'cajas'}</b><small>${dsp?nf(Math.round(dsp))+' displays · ':''}${$m0(tot)} de lista</small>`;$('#mpr_ok').disabled=!cj};
+    m.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{const id=b.dataset.q;Q[id]=Math.max(0,(Q[id]||0)+ +b.dataset.d);try{tic()}catch(e){}
+      const r=b.closest('.mpr-r'),n=Q[id];r.classList.toggle('on',n>0);r.querySelector('.mpr-q b').textContent=n;r.querySelector('[data-d="-1"]').disabled=!n;pie()});
     $('#mpr_ok').onclick=()=>{const it=ord.filter(p=>Q[p.producto_id]>0).map(p=>[p.producto_id,Q[p.producto_id]*(S.min[p.producto_id]?.b||1)]);cerrar();S.preCli=cli;S.preItems=it;S.tab='pedidos';shell()}};
-  m.onclick=e=>{if(e.target==m)cerrar()};pinta()}
+  m.onclick=e=>{if(e.target==m)cerrar()};pinta();setTimeout(()=>m.classList.add('ya'),400)}
 
 /* ======================= METAS EN KILOS POR PRODUCTO (Inicio) =======================
    Un solo reloj para los productos que se quieren empujar (config_app 'metas_kg': {items:[{p:producto_id,n:nombre corto,meta:kg por mes}],sel}).
