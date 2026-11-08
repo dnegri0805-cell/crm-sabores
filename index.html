@@ -2134,12 +2134,21 @@ html:not(.oscuro) body,html:not(.oscuro) #app{background:var(--g)}
 :root[data-theme="dark"] .pj-tx{background:#1b2230}
 .pj-wa{display:inline-flex;align-items:center;gap:6px;background:#1d7a46;color:#fff;border-radius:12px;padding:11px 16px;font-weight:700;text-decoration:none}.pj-wa svg{stroke:#fff}
 .pj-d{display:inline-flex;align-items:center;gap:4px;vertical-align:middle}.pj-d button{width:28px;height:28px;padding:0!important;border-radius:50%!important;min-height:0;line-height:1}.pj-d b{min-width:18px;text-align:center}
+/* otras metas: solo la cantidad */
+.m1-ob small.m1-cnt{flex:none!important;margin-left:auto;background:#eef0f4;border-radius:999px;padding:1px 9px;font-weight:700;color:var(--mu)}
+:root[data-theme="dark"] .m1-ob small.m1-cnt{background:#2c3446}
+/* deslizar para actualizar */
+.ptr{position:fixed;top:70px;left:50%;z-index:60;width:40px;height:40px;border-radius:50%;background:#fff;color:var(--m);display:grid;place-items:center;font-size:22px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.18);transform:translate(-50%,-40px);opacity:0;pointer-events:none}
+.ptr.ok{background:var(--m);color:#fff}
+.ptr.gira{background:var(--m);color:#fff;transform:translate(-50%,30px);animation:ptrg .7s linear infinite}
+@keyframes ptrg{to{transform:translate(-50%,30px) rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.ptr.gira{animation:none}}
 </style>
 </head>
 <body>
 <div id="app"><div class="splash"><img src="logo.png" alt="Sabores de mi País"><i></i></div></div><div id="t"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="familias.js"></script>
-<script src="app.js?v=2026-11-07.40"></script>
+<script src="app.js?v=2026-11-07.41"></script>
 </body>
 </html>

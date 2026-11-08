@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-07.40';
+const VERSION='2026-11-07.41';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -189,6 +189,15 @@ async function init(){
     if(P&&Date.now()-P.t<3*3600e3&&P.n&&P.n.tab){['tab','vs','sub','cs','ct'].forEach(k=>{if(P.n[k]!=null)S[k]=P.n[k]});if(P.n.fc)S._fcVolver=P.n.fc}}catch(e){}}
   datosEmisor().catch(()=>{});shell();if(S._fcVolver){const cl=S.clientes.find(x=>x.id==S._fcVolver);S._fcVolver=null;if(cl&&S.tab=='clientes')try{fichaCliente(cl)}catch(e){}}huellaArranque();programarManana();llegueArranque();
 }
+/* Inicio: deslizar hacia abajo desde arriba de todo para actualizar (como en WhatsApp) */
+(()=>{let y0=null,dy=0,ind=null;const lim=80;
+  const fin=()=>{if(ind){ind.style.transition='transform .2s,opacity .2s';ind.style.transform='translate(-50%,-60px)';ind.style.opacity='0';const i=ind;setTimeout(()=>i.remove(),250);ind=null}y0=null;dy=0};
+  addEventListener('touchstart',e=>{if(S.tab!='inicio'||scrollY>0||document.querySelector('.modal')||e.touches.length!=1){y0=null;return}y0=e.touches[0].clientY;dy=0},{passive:true});
+  addEventListener('touchmove',e=>{if(y0==null)return;dy=e.touches[0].clientY-y0;if(dy<=0||scrollY>0){if(ind)fin();return}
+    if(!ind){ind=document.createElement('div');ind.className='ptr';ind.innerHTML='↻';document.body.appendChild(ind)}
+    const d=Math.min(dy,130);ind.style.transform=`translate(-50%,${d*.6-40}px) rotate(${d*3}deg)`;ind.style.opacity=Math.min(1,d/lim);ind.classList.toggle('ok',dy>=lim)},{passive:true});
+  addEventListener('touchend',()=>{if(y0==null)return;const ok=dy>=lim&&ind;if(ok){ind.classList.add('gira');try{navigator.vibrate&&navigator.vibrate(15)}catch(e){}const i=ind;ind=null;y0=null;dy=0;
+      Promise.resolve(shell()).finally(()=>setTimeout(()=>{i.style.transition='opacity .25s';i.style.opacity='0';setTimeout(()=>i.remove(),260)},500))}else fin()},{passive:true})})();
 function shell(){
   app.innerHTML=`<header><b><a id="hback" class="hback" onclick="volver()" title="Volver a la pantalla anterior" aria-label="Volver" hidden>${IC('back',22)}</a>${MARCA.logo?`<img class="hlogo" src="${MARCA.logo}" alt="Sabores de mi País"><span class="mjhn">Sabores<span class="hn2"> de mi País</span></span>`:'Sabores de mi País'}<span class="htit" id="htit"></span></b><nav>${tabsMenu().pri.map(t=>`<a data-t="${t}" class="${S.tab==t?'on':''}">${nomTab(t)}</a>`).join('')}${tabsMenu().sec.length?`<a data-mas="1" class="${tabsMenu().sec.includes(S.tab)?'on':''}">${tabsMenu().sec.includes(S.tab)?nomTab(S.tab)+' ▾':'Más ▾'}</a>`:''}</nav><span><a class="hbt" onclick="buscarTodo()" title="Buscar (Ctrl+K)" aria-label="Buscar">${IC('search',22)}</a><a class="hbt hbell" onclick="actividad()" title="Actividad" aria-label="Actividad">${IC('bell',22)}<i id="hb_n" hidden></i></a>${modoSimple()?'':`<a class="hbt" onclick="ayuda()" title="Ayuda de esta pantalla (?)" aria-label="Ayuda">${IC('help',22)}</a><a class="hbt" onclick="vistaCfg()" title="Letra, colores y avisos">Aa</a>`}<details class="umenu"><summary title="${esc(S.perfil.nombre)}" aria-label="Mi usuario">${esc((S.perfil.nombre||'?').trim().charAt(0).toUpperCase())}</summary><div class="umc"><b>${esc(S.perfil.nombre)}</b><small>${S.perfil.rol=='dueno'?'Dueño':esc(S.perfil.rol)} · versión ${VERSION}</small><button class="alt" onclick="ayuda()">${IC('help',16)} Ayuda de esta pantalla</button><button class="alt" onclick="vistaCfg()">Aa · Letra, colores y avisos</button><button class="alt" onclick="out()">Salir</button></div></details></span></header><main id="v"></main>`;
   $$('nav a[data-t]').forEach(a=>a.onclick=()=>{S.tab=a.dataset.t;shell()});$$('nav a[data-mas]').forEach(a=>a.onclick=menuMas);
@@ -3394,7 +3403,7 @@ function metasResumen(){const box=$('#m1l');if(!box)return;const R=S.metaRes||{}
       /* Maní JL es la meta principal; las demás quedan en una línea plegada */
       if(!R.mani)return K.map(fila).join('')+eq;
       const otAb=S.metaOt||ab.startsWith('kg');
-      return (K.length?`<button class="m1-ob${otAb?' on':''}" id="m1_ob" aria-expanded="${!!otAb}"><span>Otras metas</span><small>${K.map(x=>`${esc(x.n)} ${Math.round(Math.min(1,x.pc||0)*100)} %`).join(' · ')}</small><span class="m1-c">${IC('down',16)}</span></button><div class="m1-ot" id="m1_ot"${otAb?'':' hidden'}>${K.map(fila).join('')}${eq}</div>`:'')})()}</div>`;
+      return (K.length?`<button class="m1-ob${otAb?' on':''}" id="m1_ob" aria-expanded="${!!otAb}"><span>Otras metas</span><small class="m1-cnt">${K.length}</small><span class="m1-c">${IC('down',16)}</span></button><div class="m1-ot" id="m1_ot"${otAb?'':' hidden'}>${K.map(fila).join('')}${eq}</div>`:'')})()}</div>`;
   const mostrar=()=>{const k=S.metaAb||'',mj=$('#manijl'),mk=$('#metaskg');if(mj)mj.hidden=solo?false:k!='mani';if(mk)mk.hidden=!k.startsWith('kg')};mostrar();
   {const ob=$('#m1_ob');if(ob)ob.onclick=()=>{const ot=$('#m1_ot'),ab2=ot.hidden;ot.hidden=!ab2;S.metaOt=ab2;ob.classList.toggle('on',ab2);ob.setAttribute('aria-expanded',ab2);if(!ab2&&(S.metaAb||'').startsWith('kg')){S.metaAb='';mostrar();box.querySelectorAll('[data-m1]').forEach(z=>{z.classList.remove('on');z.setAttribute('aria-expanded',false)})}}}
   box.querySelectorAll('[data-m1]').forEach(b=>b.onclick=()=>{const k=b.dataset.m1;S.metaAb=S.metaAb==k?'':k;box.querySelectorAll('[data-m1]').forEach(z=>{const on=z.dataset.m1==S.metaAb;z.classList.toggle('on',on);z.setAttribute('aria-expanded',on)});mostrar();
@@ -3631,16 +3640,18 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
     const h=$('#mj_acc');if(!h)return;h.insertAdjacentHTML('beforebegin',`<button class="mjstk" id="mj_stk" type="button"><span>⚠️ ${dias<1?(cjS<1?'No tenés stock de Maní JL':'Stock para menos de un día'):'Stock para '+dias+(dias==1?' día':' días')}</span><b>Pedir a JL ›</b></button>`);
     $('#mj_stk').onclick=()=>pedidoAJL(porDia)}catch(e){}})();
   sb.from('prospectos').select('*').not('estado','in','(cliente,no_interesado)').not('proximo_seguimiento','is',null).lte('proximo_seguimiento',diaLocal(new Date(Y,M,dh+3))).order('proximo_seguimiento').limit(60).then(({data})=>{const h=$('#mj_acc');if(!h||$('#mj_vis'))return;
-    const P=(data||[]).filter(p=>!p.campania||p.campania=='Maní JL'),venc=P.filter(p=>p.proximo_seguimiento<=hoyS),prox=P.filter(p=>p.proximo_seguimiento>hoyS);
+    /* de noche (después de las 19) o en domingo, la lista mira el próximo día de trabajo */
+    const dT=new Date(hoy);if(!hoyCuenta){dT.setDate(dT.getDate()+1);if(dT.getDay()==0)dT.setDate(dT.getDate()+1)}const refS=diaLocal(dT),cuando=hoyCuenta?'hoy':dT.getDay()==1&&hoy.getDay()!=0?'el lunes':'mañana';
+    const P=(data||[]).filter(p=>!p.campania||p.campania=='Maní JL'),venc=P.filter(p=>p.proximo_seguimiento<=refS),prox=P.filter(p=>p.proximo_seguimiento>refS);
     const dN=x=>{const d=new Date(x+'T12:00');return['dom','lun','mar','mié','jue','vie','sáb'][d.getDay()]+' '+d.getDate()},paso=p=>p.proximo_paso?' · '+String(p.proximo_paso).replace(/^Visita Maní JL:\s*/i,''):'';
     const nP=p=>tituloCaso(p.nombre||p.contacto||'Prospecto');
-    const L=[...venc.map(p=>({k:'p',p,n:nP(p),t:p.telefono,w:(p.proximo_seguimiento<hoyS?`Atrasado ${dd(p.proximo_seguimiento,hoyS)} ${dd(p.proximo_seguimiento,hoyS)==1?'día':'días'}`:'Le toca hoy')+paso(p)})),
+    const L=[...venc.map(p=>({k:'p',p,n:nP(p),t:p.telefono,w:(p.proximo_seguimiento<hoyS?`Atrasado ${dd(p.proximo_seguimiento,hoyS)} ${dd(p.proximo_seguimiento,hoyS)==1?'día':'días'}`:p.proximo_seguimiento==hoyS?'Le toca hoy':'Le toca '+cuando)+paso(p)})),
       ...VIS.map(x=>({k:'c',c:x.c,n:String(nomVis(x.c)||x.c.razon_social||'Cliente'),t:x.c.telefono,w:x.why,rep:x.rep})),
       ...prox.map(p=>({k:'p',p,n:nP(p),t:p.telefono,w:'Toca el '+dN(p.proximo_seguimiento)+paso(p),px:1}))];
     const nHoy=L.filter(x=>!x.px).length,nProx=L.length-nHoy;let ab=false;try{ab=localStorage.getItem('mj_ll')=='1'}catch(e){}
     const txt=x=>x.k=='c'?(x.rep!=null?`Hola ${x.n}! ¿Cómo andás? Ya pasaron ${x.rep} días desde tu último pedido de Maní JL. ¿Te repongo los displays esta semana?`:`Hola ${x.n}! ¿Cómo andás? Te escribo por el Maní JL: ¿te preparo unas cajas para esta semana?`):`Hola! ¿Cómo estás? Soy Diego, de Sabores de mi País, distribuidor de Maní JL. ¿Te puedo pasar los precios de los packs de 65 y 85 g?`;
     const fila=(x,k)=>{const wa=telWA(x.t||'');return`<div class="mjc${x.px?' px':''}"><span class="av">${esc((x.n.trim()[0]||'?').toUpperCase())}</span><div><b>${esc(x.n)}</b><small>${esc(x.w)}</small></div><div class="mjll-b">${wa?`<a class="mjwa" data-mjw="${k}" href="https://wa.me/${wa}?text=${encodeURIComponent(txt(x))}" target="_blank" rel="noopener" aria-label="WhatsApp a ${esc(x.n)}">${IC('chat',18)}</a>`:''}<button class="alt" data-mjl="${k}">Pedido</button></div></div>`};
-    const lbl=nHoy?`<b>Para llamar hoy: ${nf(nHoy)}</b>`:nProx?`Hoy no hay pendientes · <b>${nf(nProx)} ${nProx==1?'próximo':'próximos'}</b>`:'Hoy no tenés visitas de Maní JL';
+    const lbl=nHoy?`<b>Para llamar ${cuando}: ${nf(nHoy)}</b>`:nProx?`${cuando=='hoy'?'Hoy':cuando[0].toUpperCase()+cuando.slice(1)} no hay pendientes · <b>${nf(nProx)} ${nProx==1?'próximo':'próximos'}</b>`:`${cuando=='hoy'?'Hoy':cuando[0].toUpperCase()+cuando.slice(1)} no tenés visitas de Maní JL`;
     h.insertAdjacentHTML('afterbegin',`<button class="mjvis${nHoy?'':' cero'}" id="mj_vis" aria-expanded="${ab&&L.length?'true':'false'}">${IC('phone',16)} <span class="mjvt">${lbl}</span><span class="mjvc">${L.length?(ab?'▴':'▾'):'›'}</span></button>`);h.insertAdjacentHTML('afterend',`${L.length?`<div class="mjll" id="mj_ll"${ab?'':' hidden'}>${L.slice(0,8).map(fila).join('')}${L.length>8?`<p class="mjn">Y ${L.length-8} más.</p>`:''}<button class="lnk mjll-e" id="mj_lle">Ver todos en el embudo ›</button></div>`:''}`);
     const vb=$('#mj_vis'),ll=$('#mj_ll');
     vb.onclick=()=>{if(!ll)return irA('ventas',{vs:'embudo'});const a=ll.hidden;ll.hidden=!a;vb.setAttribute('aria-expanded',a);vb.querySelector('.mjvc').textContent=a?'▴':'▾';try{localStorage.setItem('mj_ll',a?'1':'0')}catch(e){}};
@@ -3682,7 +3693,7 @@ async function pedidoAJL(porDia){const jlId=S._jlId||JL_ID,pv=(S.prov||[]).find(
       <div class="mpr-f"><div>${pie()}</div><button id="pj_ok">Crear orden y mandar</button></div></div>`;
     $('#pj_x').onclick=cerrar;$('#pj_t')&&($('#pj_t').onclick=()=>{todos=!todos;re()});
     m.querySelectorAll('[data-dd]').forEach(b=>b.onclick=()=>{dias=Math.max(1,Math.min(30,dias+ +b.dataset.dd));sugerir();re()});
-    m.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{const id=b.dataset.q;Q[id]=Math.max(0,(Q[id]||0)+ +b.dataset.d);try{tic()}catch(e){}const r=b.closest('.mpr-r');r.classList.toggle('on',Q[id]>0);r.querySelector('.mpr-q b').textContent=Q[id];r.querySelector('[data-d="-1"]').disabled=!Q[id];m.querySelector('.mpr-f>div').innerHTML=pie()});
+    m.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{const id=b.dataset.q;Q[id]=Math.max(0,(Q[id]||0)+ +b.dataset.d);vib();try{tic()}catch(e){}const r=b.closest('.mpr-r');r.classList.toggle('on',Q[id]>0);r.querySelector('.mpr-q b').textContent=Q[id];r.querySelector('[data-d="-1"]').disabled=!Q[id];m.querySelector('.mpr-f>div').innerHTML=pie()});
     $('#pj_ok').onclick=async()=>{const it=ord.filter(p=>Q[p.producto_id]>0);if(!it.length)return toast('Poné al menos una caja.',1);const b=$('#pj_ok');b.disabled=true;
       const{data:o,error}=await sb.from('ordenes_compra').insert({proveedor_id:pv.id,observaciones:'Pedido de Maní JL armado desde Inicio'}).select().single();
       if(error){b.disabled=false;return toast(error.message,1)}
@@ -3697,6 +3708,7 @@ async function pedidoAJL(porDia){const jlId=S._jlId||JL_ID,pv=(S.prov||[]).find(
   const re=()=>{const y=m.querySelector('.mpr-l')?.scrollTop||0;pinta();const l=m.querySelector('.mpr-l');if(l)l.scrollTop=y};
   m.onclick=e=>{if(e.target==m)cerrar()};pinta();setTimeout(()=>m.classList.add('ya'),400)}
 /* Pedido rápido de Maní JL: elegís el cliente, ponés cuántas cajas de cada producto y se arma el pedido normal (con precios del cliente) para revisar y guardar. */
+const vib=()=>{try{navigator.vibrate&&navigator.vibrate(12)}catch(e){}};
 function maniPedidoRapido(cli,pre){
   if(!cli)return fabCliente('Pedido de Maní JL · ¿para quién?',c=>c&&maniPedidoRapido(c));
   const jl=S.productos.filter(p=>S.min[p.producto_id]?.pv==(S._jlId||'ff2b3481-6cef-408e-a1d0-f08ee5b8082e')&&p.activo!==false);
@@ -3734,7 +3746,7 @@ function maniPedidoRapido(cli,pre){
     m.querySelectorAll('[data-mo]').forEach(b=>b.onclick=()=>{if(modo==b.dataset.mo)return;modo=b.dataset.mo;try{localStorage.setItem('mpr_modo',modo)}catch(e){}try{tic()}catch(e){}const y=m.querySelector('.mpr-l').scrollTop;pinta();m.querySelector('.mpr-l').scrollTop=y});
     /* al tocar − o + solo se actualiza esa fila y el total: redibujar todo hacía parpadear la pantalla */
     m.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{const id=b.dataset.q,st=paso(id),u=U[id]||0;
-      U[id]=+b.dataset.d>0?(Math.floor(u/st+1e-9)+1)*st:Math.max(0,(Math.ceil(u/st-1e-9)-1)*st);try{tic()}catch(e){}
+      U[id]=+b.dataset.d>0?(Math.floor(u/st+1e-9)+1)*st:Math.max(0,(Math.ceil(u/st-1e-9)-1)*st);vib();try{tic()}catch(e){}
       const r=b.closest('.mpr-r'),n=cant(id);r.classList.toggle('on',n>0);r.querySelector('.mpr-q b').textContent=nf(n);r.querySelector('[data-d="-1"]').disabled=!n;
       m.querySelector('.mpr-f>div').innerHTML=pieH();$('#mpr_ok').disabled=!tots().cj});
     $('#mpr_ok').onclick=()=>{const it=ord.filter(p=>U[p.producto_id]>0).map(p=>[p.producto_id,U[p.producto_id]]);cerrar();S.preCli=cli;S.preItems=it;S.tab='pedidos';shell()}};
