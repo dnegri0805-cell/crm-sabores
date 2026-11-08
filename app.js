@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-07.41';
+const VERSION='2026-11-07.42';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -1776,7 +1776,7 @@ async function vPedidos(){
     const{error:e2}=await sb.from('pedido_items').insert(Object.entries(ag).map(([k,a])=>{const x={pedido_id:o.id,producto_id:k,cantidad:a.q,precio_unitario:Math.round(a.t/a.q*fac*100)/100};if(a.l.size)x.promo=[...a.l].join(' + ');if(a.mp)x.precio_manual=true;return x}));
     if(e2){$('#p_g').disabled=false;if(!ED&&esRed(e2))return pedidoOff(c,agOff(),fac,cu,ex,o.id);return toast(sqlX(e2)?'Falta correr pedidos-extra.sql en Supabase (te lo avisa el Inicio).':'El pedido N° '+o.numero+' quedó sin productos: '+e2.message,1)}
     if(cu&&!ED)await sb.from('cupones_usos').insert({codigo:S.pcup.codigo,cliente_id:c.id,pedido_id:o.id});
-    if(!ED)await marcarDebidos(o.numero).catch(()=>{});S.edPed=null;borrarBorr();okAnim('Pedido N° '+o.numero+(ED?' actualizado':' guardado'));S.cliJL=null;S._cjlP=null;if(!ED&&!o.es_prueba){primerPedido(c,o.id);maniAvisoPedido(ag);prospectoACliente(c)}
+    if(!ED)await marcarDebidos(o.numero).catch(()=>{});S.edPed=null;borrarBorr();okAnim('Pedido N° '+o.numero+(ED?' actualizado':' guardado'));S.cliJL=null;S._cjlP=null;cliRec(c?.id);if(!ED&&!o.es_prueba){primerPedido(c,o.id);maniAvisoPedido(ag);prospectoACliente(c)}
     if(S.perfil.rol=='vendedor'){const{data:ap}=await sb.from('aprobaciones_precio').select('id').eq('pedido_id',o.id).eq('estado','pendiente').then(r=>r,()=>({}));if(ap?.length)setTimeout(()=>toast('El precio especial quedó para que lo apruebe el dueño. Te avisa la campanita.'),1600)}await cargarStock();vPedidos()};
   $('#p_cuo').onclick=async()=>{const k=$('#p_cu').value.trim().toUpperCase();if(!k){S.pcup=null;$('#p_cum').textContent='';return drawI()}
     const c=cli();if(!c)return toast('Elegí primero el cliente.',1);const sub=S.items.reduce((a,i)=>a+pi(i).pu*i.q,0);
@@ -3042,11 +3042,18 @@ function fabMenu(){
   m.innerHTML=`<div class="mc"><div class="bh"><h3 style="margin:0">¿Qué querés hacer?</h3><button class="alt" id="fs_x">Cerrar</button></div><div class="fab-g">${L.map(({o})=>`<button data-fs="${o[0]}"><i>${IC(o[1],24)}</i><span>${o[2]}</span></button>`).join('')}</div></div>`;
   const cerrar=()=>{m.remove();$('#fab_b')?.classList.remove('on')};m.onclick=e=>{if(e.target===m)cerrar()};m.querySelector('#fs_x').onclick=cerrar;
   m.querySelectorAll('[data-fs]').forEach(x=>x.onclick=()=>{const o=O.find(z=>z[0]==x.dataset.fs);U[o[0]]=(U[o[0]]||0)+1;try{localStorage.setItem(K,JSON.stringify(U))}catch(e){}cerrar();o[3]()})}
+/* clientes con los que trabajaste hace poco: aparecen primero al elegir cliente */
+const cliRec=id=>{try{if(!id)return JSON.parse(localStorage.getItem('cli_rec')||'[]');const L=[id,...cliRec().filter(x=>x!=id)].slice(0,8);localStorage.setItem('cli_rec',JSON.stringify(L))}catch(e){return[]}};
+/* campos de números: teclado numérico y, al tocarlos, se selecciona lo escrito para reemplazarlo directo */
+(()=>{const fix=r=>r.querySelectorAll&&r.querySelectorAll('input[type=number]:not([inputmode])').forEach(i=>i.setAttribute('inputmode',i.step&&String(i.step).includes('.')||i.step=='any'?'decimal':'decimal'));
+  new MutationObserver(ms=>{for(const m of ms)for(const n of m.addedNodes)if(n.nodeType==1){if(n.matches?.('input[type=number]:not([inputmode])'))n.setAttribute('inputmode','decimal');fix(n)}}).observe(document.documentElement,{childList:true,subtree:true});
+  addEventListener('focusin',e=>{const i=e.target;if(i?.tagName=='INPUT'&&(i.type=='number'||i.inputMode=='decimal'||i.inputMode=='numeric')&&i.value)setTimeout(()=>{try{i.select()}catch(x){}},0)})})();
 function fabCliente(tit,fn){const m=document.createElement('div');m.className='modal';document.body.appendChild(m);fabPintar();
   m.innerHTML=`<div class="mc"><div class="bh"><h3>${esc(tit)}</h3><button class="alt" id="fa_x">Cerrar</button></div><input id="fa_q" type="search" placeholder="Buscar cliente" autocomplete="off"><div id="fa_r" class="fa-r"></div></div>`;
-  const pinta=()=>{const q=$('#fa_q').value,L=S.clientes.filter(c=>c.activo!==false&&coincide(c.razon_social+' '+(c.nombre_fantasia||''),q)).sort((a,b)=>nomVis(a).localeCompare(nomVis(b))).slice(0,12);
-    $('#fa_r').innerHTML=L.map(c=>`<button class="alt" data-fa="${c.id}">${avatar(c)}<span>${esc(nomVis(c))}<small>${esc(c.barrio||c.ciudad||'')}</small></span></button>`).join('')||'<p><small>No encontré ese cliente.</small></p>';
-    m.querySelectorAll('[data-fa]').forEach(x=>x.onclick=()=>{m.remove();fabPintar();fn(S.clientes.find(c=>c.id==x.dataset.fa))})};
+  const pinta=()=>{const q=$('#fa_q').value,A=S.clientes.filter(c=>c.activo!==false&&coincide(c.razon_social+' '+(c.nombre_fantasia||''),q)).sort((a,b)=>nomVis(a).localeCompare(nomVis(b)));
+    const RC=q?[]:(cliRec()||[]).map(id=>A.find(c=>c.id==id)).filter(Boolean).slice(0,3),rs=new Set(RC.map(c=>c.id)),L=[...RC,...A.filter(c=>!rs.has(c.id))].slice(0,12);
+    $('#fa_r').innerHTML=L.map(c=>`<button class="alt" data-fa="${c.id}">${avatar(c)}<span>${esc(nomVis(c))}<small>${rs.has(c.id)?'🕘 Reciente · ':''}${esc(c.barrio||c.ciudad||'')}</small></span></button>`).join('')||'<p><small>No encontré ese cliente.</small></p>';
+    m.querySelectorAll('[data-fa]').forEach(x=>x.onclick=()=>{m.remove();fabPintar();cliRec(x.dataset.fa);fn(S.clientes.find(c=>c.id==x.dataset.fa))})};
   m.onclick=e=>{if(e.target==m){m.remove();fabPintar()}};$('#fa_x').onclick=()=>{m.remove();fabPintar()};$('#fa_q').oninput=pinta;pinta();setTimeout(()=>$('#fa_q').focus(),50)}
 setInterval(()=>{try{fabPintar();if(S.tab!='precios')document.getElementById('pr_bulk')?.remove()}catch(e){}},700);
 
@@ -3547,11 +3554,11 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
   const dow=hoy.getDay(),prox=dow==0||(dow==6&&hoy.getHours()>=14),lun=new Date(Y,M,dh+(dow==0?1:prox?2:1-dow)),sab=new Date(lun.getFullYear(),lun.getMonth(),lun.getDate()+5);
   const semIni=lun.getMonth()==M?lun.getDate():lun<hoy&&sab.getMonth()==M?1:null,semFin=semIni?(sab.getMonth()==M?sab.getDate():dm):null;
   const dS=d=>diaLocal(new Date(Y,M,d)),sA=semIni?dS(semIni):null,sB=semIni?dS(semFin):null;
-  const dHoy=diaLocal(hoy);let cj=0,mg=0,vta=0,cjS=0,cjAntesS=0,cjHoy=0,mgHoy=0;const cl=new Set(),U={},T={},jlProd={};
+  const dHoy=diaLocal(hoy),dAy=(()=>{const d=new Date(hoy);d.setDate(d.getDate()-1);if(d.getDay()==0)d.setDate(d.getDate()-1);return d})(),sAy=diaLocal(dAy);let cj=0,mg=0,vta=0,cjS=0,cjAntesS=0,cjHoy=0,mgHoy=0,cjAy=0;const cl=new Set(),U={},T={},jlProd={};
   for(const o of pe||[]){const dia=diaLocal(o.creado_en),enMes=dia>=a;let tJL=0;
     if(dia>=diaLocal(new Date(Y,M,dh-90)))T[o.cliente_id]=(T[o.cliente_id]||0)+(+o.total||0);
     for(const i of o.pedido_items||[]){if(!ids.has(i.producto_id))continue;const q=+i.cantidad||0,pr=S.productos.find(p=>p.producto_id==i.producto_id),cu=+i.costo_unitario||+(pr?.costo||0),pu=+i.precio_unitario||0,bu=S.min[i.producto_id]?.b||1;
-      tJL+=q;(jlProd[o.cliente_id]=jlProd[o.cliente_id]||new Set()).add(i.producto_id);
+      tJL+=q;if(dia==sAy)cjAy+=q/bu;(jlProd[o.cliente_id]=jlProd[o.cliente_id]||new Set()).add(i.producto_id);
       if(enMes){cj+=q/bu;mg+=q*(pu-cu);vta+=q*pu;cl.add(o.cliente_id);if(dia==dHoy){cjHoy+=q/bu;mgHoy+=q*(pu-cu)}if(sA&&dia>=sA&&dia<=sB)cjS+=q/bu;else if(sA&&dia<sA)cjAntesS+=q/bu}}
     if(tJL>0)(U[o.cliente_id]=U[o.cliente_id]||[]).push(dia)}
   const fijos=G.items.reduce((s,x)=>s+(+x.m||0),0)*((+C.pct||100)/100),limpio=mg-fijos,meta=+C.meta;
@@ -3597,6 +3604,10 @@ async function maniJLInicio(){const box=$('#manijl');if(!box||S.perfil.rol!='due
   const conSel=pocas&&faltaMg>0&&[...ids].some(chico),nota=faltaMg<=0||conSel?'':pocas?`Estimado con ${m0(mbCat)} de ganancia por caja${foco?' (65 y 85 g)':' (promedio de toda la línea)'}, <a class="lnk" data-mjdto>${dtoTx}</a>.${!cubre&&realista?` Con ${nf(Math.ceil((fijos-mg)/mb))} cajas cubrís los gastos.`:''}`
       :`Cada caja te deja ${m0(mb)}. A este ritmo cerrás ${esc(mes.toLowerCase())} con <b class="${ok?'sube':'baja'}">${m0(proyLimpio)}</b> limpios.`;
   const SEL=conSel?`<div class="mjseg"><span>Calcular con<small>Estimado: ${m0(mbCat)} por caja</small><small><a class="lnk" data-mjdto>${dtoTx}</a></small></span><div role="radiogroup" aria-label="Calcular con" class="mjsw ${foco?'':'der'}" id="mj_sw"><i class="mjpill"></i><button role="radio" aria-checked="${!!foco}" data-mjf="chicos" class="${foco?'on':''}">65 y 85 g</button><button role="radio" aria-checked="${!foco}" data-mjf="todo" class="${foco?'':'on'}">Toda la línea</button></div></div>`:'';
+  /* frase debajo del saludo según cómo vas */
+  try{const f=$('.ini-f');if(f){const r=x=>nf(Math.round(x*10)/10),ay=hoy.getDay()==1?'El sábado':'Ayer',fal=Math.max(0,Math.ceil(porDia-cjHoy));
+    const fr=faltaMg<=0?'¡Meta del mes cumplida! 🎉':hoyCuenta&&cjHoy>=porDia&&porDia>0?'Objetivo de hoy cumplido ✓':hoyCuenta&&cjHoy>0?`Te ${fal==1?'falta 1 caja':'faltan '+nf(fal)+' cajas'} para el objetivo de hoy`:cjAy>0?`${ay} vendiste ${r(cjAy)} ${Math.round(cjAy*10)/10==1?'caja':'cajas'} de Maní 💪`:'';
+    if(fr)f.innerHTML=esc(hoy.toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'numeric'}).replace(/^./,x=>x.toUpperCase()).replace(',',''))+' · <b class="ini-mot">'+esc(fr)+'</b>'}}catch(e){}
   const esSig=false;S.mjMeta=meta;S.mjHoy={dia:dHoy,cj:cjHoy,porDia,cuenta:hoyCuenta};
   box.innerHTML=`<div class="box obj mj${esSig?' sig':''}"><div class="mjtop"><div class="mjtl"><img class="mjimg" src="fotos/metas/mani-jl.webp" alt=""><div><div class="ey">Meta de ${esc((esSig?mesSigJ:mes).toLowerCase())}</div><div class="tt">Maní JL</div>${esSig?`<div class="mjcer">${esc(mes)} cierra con ${nf(Math.round(cj))} ${Math.round(cj)==1?'caja':'cajas'}</div>`:''}</div></div><button class="mjmeta" id="mj_e" aria-label="Cajas vendidas este mes. Tocá para cambiar la meta"><small>Este mes</small><b>${nf(Math.round(cj))} ${Math.round(cj)==1?'caja':'cajas'}</b><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16H4v-3z"/></svg></button></div>
     <div id="mj_h">${hero}</div>
@@ -5719,9 +5730,10 @@ async function ayuda(){if(!S.manualMD){try{S.manualMD=await(await fetch('manual.
   m.querySelector('#ay_x').onclick=()=>m.remove();m.querySelector('#ay_m').onclick=()=>{m.remove();irA('manual')}}
 
 /* 5. Letra grande y modo oscuro · 8. avisos en el celular */
-const prefV=()=>{try{return JSON.parse(localStorage.getItem('pref_vista')||'{}')}catch(e){return{}}};
-function aplicarVista(){const p=prefV(),h=document.documentElement,osc=p.t=='oscuro'||(p.t=='auto'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);h.classList.toggle('oscuro',!!osc);h.classList.toggle('compacto',p.d=='compacto');h.style.setProperty('--z',p.z||1)}
-aplicarVista();try{S.vivoBg=localStorage.getItem('notif_on')=='1'}catch(e){}
+const prefV=()=>{let p={};try{p=JSON.parse(localStorage.getItem('pref_vista')||'{}')}catch(e){}if(!p.t)p.t='noche';return p};
+const esNoche=()=>{const h=new Date().getHours();return h>=20||h<7};
+function aplicarVista(){const p=prefV(),h=document.documentElement,osc=p.t=='oscuro'||(p.t=='noche'&&esNoche())||(p.t=='auto'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);h.classList.toggle('oscuro',!!osc);h.classList.toggle('compacto',p.d=='compacto');h.style.setProperty('--z',p.z||1)}
+aplicarVista();setInterval(()=>{try{if(prefV().t=='noche')aplicarVista()}catch(e){}},60000);try{S.vivoBg=localStorage.getItem('notif_on')=='1'}catch(e){}
 async function notificar(t,b){try{if(!window.Notification||Notification.permission!='granted')return;const r=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration();if(r)r.showNotification(t,{body:b,icon:'icon-192.png',badge:'icon-192.png',vibrate:[500,200,500,200,500],tag:'crm-pedido',renotify:true,requireInteraction:true});else new Notification(t,{body:b,icon:'icon-192.png'})}catch(e){}}
 
 
