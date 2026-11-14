@@ -693,7 +693,7 @@ async function folletosListos(){
   const esNuevo=f=>f.nuevo||(f.fecha&&(Date.now()-new Date(f.fecha+'T12:00:00'))<10*864e5);
   const preciosHoy=f=>{for(const id of idsDe(f))if(HOY.has(id))return true;return false};
   const RUB=[...new Set(L.map(f=>f.rubro).filter(Boolean))],hayTemp=L.some(f=>f.temporada);
-  const plural=r=>/[aeiouáéíóú]$/i.test(r)?r+'s':r+'es';
+  const plural=r=>/s$/i.test(r)?r:/[aeiouáéíóú]$/i.test(r)?r+'s':r+'es';
   const pasa=f=>!filtro||(filtro=='_temp'?!!f.temporada:f.rubro==filtro);
   const fmtSel=()=>`<div class="fl-fmt" role="radiogroup" aria-label="Formato">${Object.entries(FLF).map(([k,v])=>`<button class="${k==fmt?'on':''}" data-fmt="${k}" role="radio" aria-checked="${k==fmt}"><b>${v.t}</b><small>${v.d}</small></button>`).join('')}</div>`;
   const ponFmt=r=>m.querySelectorAll('[data-fmt]').forEach(b=>b.onclick=e=>{e.stopPropagation();fmt=b.dataset.fmt;LS('fl_fmt',fmt);r()});
@@ -4034,7 +4034,7 @@ async function usuarios(){if(S.perfil.rol!='dueno')return toast('Solo el dueño 
   pinta()}
 async function cargarMarca(){const{data,error}=await sb.from('config_app').select('clave,valor').in('clave',['marca_color','marca_oscuro','marca_logo','link_mp','telefono_empresa','datos_pago','margen_minimo','credito_modo']);
   if(error||!data)return;const g=k=>data.find(x=>x.clave==k)?.valor;
-  S.linkMP=g('link_mp')||'';S.telEmp=g('telefono_empresa')||'';S.datosPago=g('datos_pago')??S.datosPago??'';{const a=aliasMP(S.linkMP);if(a){S.linkMP='';if(!String(S.datosPago||'').toLowerCase().includes(a))S.datosPago=((S.datosPago||'')+'\nAlias: '+a).trim();
+  S.linkMP=g('link_mp')||'';S.telEmp=g('telefono_empresa')||'';telPropio();S.datosPago=g('datos_pago')??S.datosPago??'';{const a=aliasMP(S.linkMP);if(a){S.linkMP='';if(!String(S.datosPago||'').toLowerCase().includes(a))S.datosPago=((S.datosPago||'')+'\nAlias: '+a).trim();
     /* lo dejo guardado así, para que no se pierda ni aparezca como link roto en el catálogo */
     sb.from('config_app').upsert([{clave:'datos_pago',valor:S.datosPago},{clave:'link_mp',valor:''}]).then(()=>{},()=>{})}};S.margenMin=g('margen_minimo')!=null?+g('margen_minimo'):15;S.creditoModo=g('credito_modo')||'avisar';
   const lg=data.find(x=>x.clave=='marca_logo');

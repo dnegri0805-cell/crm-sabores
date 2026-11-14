@@ -1,5 +1,5 @@
 
-const VERSION='2026-11-07.44';
+const VERSION='2026-11-13.1';
 /* Siempre la última versión: si hay una más nueva publicada, recarga sola (sin Ctrl+F5) */
 /* Se fija en version.json (unos pocos bytes) en vez de volver a bajar toda la página */
 (function(){try{const u=new URL(location.href);fetch('version.json?nc='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{const v=j&&j.crm;
@@ -163,7 +163,7 @@ async function init(){
   const PK='perfil_'+session.user.id;let p0=null;try{p0=JSON.parse(localStorage.getItem(PK)||'null')}catch(e){}
   const pq=sb.from('perfiles').select('*').eq('id',session.user.id).maybeSingle();let p,pe;
   if(p0&&p0.activo&&p0.id==session.user.id){p=p0;pq.then(({data,error,status})=>{if(status==401){sesionVencida();return}if(error)return;if(!data||!data.activo||data.rol!=p0.rol){try{localStorage.removeItem(PK)}catch(e){}location.reload();return}
-    try{localStorage.setItem(PK,JSON.stringify(data))}catch(e){}Object.assign(S.perfil,data)},()=>{})}
+    try{localStorage.setItem(PK,JSON.stringify(data))}catch(e){}const aj0=+S.perfil.ajuste_precio_pct||0;Object.assign(S.perfil,data);telPropio();if((+S.perfil.ajuste_precio_pct||0)!=aj0)recargarProductos().catch(()=>{})},()=>{})}
   else{const r=await pq;if(r.status==401)return sesionVencida();p=r.data;pe=r.error;if(p&&p.activo)try{localStorage.setItem(PK,JSON.stringify(p))}catch(e){}}
   if(pe){app.innerHTML='<div class="box login"><p class="err">No se pudo leer tu perfil: '+esc(pe.message)+'</p><button onclick="out()">Salir</button></div>';return}
   if(!p||!p.activo){app.innerHTML='<div class="box login"><p>Tu usuario todavía no está activado. Pedile al dueño que lo active.</p><button onclick="out()">Salir</button></div>';return}
@@ -173,10 +173,10 @@ async function init(){
     todo(()=>sb.from('clientes').select('*').eq('activo',true).order('razon_social').order('id')),
     todo(()=>sb.from('precios_productos').select(PROD_COLS).order('descripcion').order('producto_id'),2)]);
   const C0=leerCache(p.id);
-  if(C0){S.clientes=C0.c;S.productos=C0.p;traer().then(([c,pr])=>{if(c.status==401||pr.status==401)return sesionVencida();if(c.error||pr.error)return;S.clientes.splice(0,S.clientes.length,...c.data);S.productos.splice(0,S.productos.length,...pr.data);guardarCache()}).catch(()=>{})}
+  if(C0){S.clientes=C0.c;S.productos=C0.p;traer().then(([c,pr])=>{if(c.status==401||pr.status==401)return sesionVencida();if(c.error||pr.error)return;S.clientes.splice(0,S.clientes.length,...c.data);S.productos.splice(0,S.productos.length,...ajustaPrecios(pr.data));guardarCache()}).catch(()=>{})}
   else{const[c,pr]=await traer();if(c.status==401||pr.status==401)return sesionVencida();
   if(c.error||pr.error){app.innerHTML='<div class="box login"><p class="err">No se pudieron cargar los datos: '+esc((c.error||pr.error).message)+'</p><button onclick="out()">Salir</button></div>';return}
-  S.clientes=c.data;S.productos=pr.data;guardarCache()}
+  S.clientes=c.data;S.productos=ajustaPrecios(pr.data);guardarCache()}
   /* Arranque rápido: si hay datos guardados en el celular, se muestra enseguida y lo demás (stock, promos, marca) se completa en segundo plano */
   const cargas=Promise.all([cargarStock(),cargarPromos(),cargarMarca(),cargarVentasCfg()]).catch(()=>{});
   if(!C0)await cargas;else{S.stock=S.stock||{};S.min=S.min||{};S.promos=S.promos||[];
@@ -438,12 +438,12 @@ async function vInicio(){
   </div>`;
   $('#v').innerHTML=`<div class="bh ini-h" style="flex-wrap:wrap;gap:8px"><div><h2 style="margin:0">${hr<5?'Buenas noches':hr<13?'Buen día':hr<20?'Buenas tardes':'Buenas noches'}${S.perfil.nombre?', '+esc(String(S.perfil.nombre).trim().split(/\s+/)[0]):''}</h2><small class="ini-f">${hoyD.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}</small></div>
     ${dia?'':'<button class="alt" data-iv="dia">← Volver al inicio simple</button>'}</div><div id="rhoy" class="rhoy"></div>
-  ${dia?`<div id="tudia"></div>${accesosHTML()}<div id="mesv"></div><div id="aprb"></div>${kpH}<div id="rank"></div><div id="comv"></div><div id="logr"></div>${S.perfil.rol=='dueno'?'<div id="metas1"><div id="m1l"></div><div id="manijl" hidden></div><div id="metaskg" hidden></div></div>':''}<div id="acti"></div>`:`
+  ${dia?`<div id="tudia"></div>${accesosHTML()}<div id="mesv"></div><div id="aprb"></div>${kpH}<div id="rank"></div><div id="relo"></div><div id="comv"></div><div id="logr"></div>${S.perfil.rol=='dueno'?'<div id="metas1"><div id="m1l"></div><div id="manijl" hidden></div><div id="metaskg" hidden></div></div>':''}<div id="acti"></div>`:`
   ${principalesHTML()}<div id="bk"></div><div id="cmpi"></div><div id="cami"></div><div id="equi"></div><div id="doci"></div><div id="midia"></div><div id="mani"></div><div id="resd"></div><div id="tari"></div>
   <div class="herr" id="herr"></div>
   <div id="alm"></div>
   <div id="empi"></div><div id="metai"></div><div id="colai"></div><div id="plani"></div><div id="toca"></div><div id="fidel"></div><div id="masi"></div><div id="creci"></div><div id="servi"></div><div id="fieli"></div><div id="fechas"></div>
-  <div id="manijl"></div><div id="metaskg"></div><div id="obj"></div>`}
+  <div id="relo"></div><div id="manijl"></div><div id="metaskg"></div><div id="obj"></div>`}
   ${dia?'':kpH}
   <div id="t1" hidden></div>
   <div class="box" id="b3" hidden><h3>Pagos a proveedores (próximos 7 días)</h3><div id="t3"></div></div>
@@ -464,7 +464,7 @@ async function vInicio(){
   $('#k6')&&($('#k6').onclick=()=>irA('clientes',{cs:'agenda',agD:Math.min(dvHoy,6)}));
   if(S.perfil.rol=='dueno'){cajaBackup();cajaDolar().catch(()=>{})}
   /* Primero los números del día; los avisos y tareas de abajo se cargan un instante después para que Inicio aparezca más rápido */
-  resumenHoy().catch(()=>{});if(dia){tuDiaInicio().catch(()=>{});setTimeout(()=>actividadInicio().catch(()=>{}),900)}  avisosEnVivo();setTimeout(()=>actContar().catch(()=>{}),1500);setTimeout(()=>{herramientas();generarFijos();alertasMargen();objetivoMes();mesVendidoInicio().catch(()=>{});aprobInicio().catch(()=>{});rankingInicio().catch(()=>{});if(S.perfil.rol=='vendedor')setTimeout(()=>{try{guiaVendedor()}catch(e){}},1800);maniJLInicio().catch(()=>{});metasKgInicio().catch(()=>{});comisionInicio().catch(()=>{});logrosInicio().catch(()=>{});tocaInicio();fidelInicio().catch(()=>{});masInicio().catch(()=>{});crecerInicio().catch(()=>{});fielesInicio().catch(()=>{});servInicio().catch(()=>{});planInicio().catch(()=>{});colaInicio().catch(()=>{});resumenDia().catch(()=>{});tareasInicio().catch(()=>{});chequeoInicio().catch(()=>{});camionetaInicio().catch(()=>{});cuentasInicio().catch(()=>{});equiposInicio().catch(()=>{});comprobantesInicio().catch(()=>{});mananaInicio().catch(()=>{});miDia().catch(()=>{});ocSemanal().catch(()=>{});aplicarAumentosProg().catch(()=>{});sincronizarOff().catch(()=>{});metasInicio().catch(()=>{});empujonBox($('#empi')).catch(()=>{});fechasInicio();},700);
+  resumenHoy().catch(()=>{});if(dia){tuDiaInicio().catch(()=>{});setTimeout(()=>actividadInicio().catch(()=>{}),900)}  avisosEnVivo();setTimeout(()=>actContar().catch(()=>{}),1500);setTimeout(()=>{herramientas();generarFijos();alertasMargen();objetivoMes();mesVendidoInicio().catch(()=>{});aprobInicio().catch(()=>{});rankingInicio().catch(()=>{});if(S.perfil.rol=='vendedor')setTimeout(()=>{try{guiaVendedor()}catch(e){}},1800);maniJLInicio().catch(()=>{});metasKgInicio().catch(()=>{});relojVendedor().catch(()=>{});comisionInicio().catch(()=>{});logrosInicio().catch(()=>{});tocaInicio();fidelInicio().catch(()=>{});masInicio().catch(()=>{});crecerInicio().catch(()=>{});fielesInicio().catch(()=>{});servInicio().catch(()=>{});planInicio().catch(()=>{});colaInicio().catch(()=>{});resumenDia().catch(()=>{});tareasInicio().catch(()=>{});chequeoInicio().catch(()=>{});camionetaInicio().catch(()=>{});cuentasInicio().catch(()=>{});equiposInicio().catch(()=>{});comprobantesInicio().catch(()=>{});mananaInicio().catch(()=>{});miDia().catch(()=>{});ocSemanal().catch(()=>{});aplicarAumentosProg().catch(()=>{});sincronizarOff().catch(()=>{});metasInicio().catch(()=>{});empujonBox($('#empi')).catch(()=>{});fechasInicio();},700);
   const cli=id=>esc(S.clientes.find(c=>c.id==id)?.razon_social||'Cliente');
   const [fv,pe,fe,sp,fp]=await Promise.all([
     sb.from('facturas_venta').select('*').order('id',{ascending:false}).limit(500),
@@ -1027,7 +1027,7 @@ const dirLeer=p=>({barrio:$('#'+p+'_ba').value.trim()||null,ciudad:$('#'+p+'_ci'
 const dirFalta=e=>/barrio|codigo_postal|provincia|ciudad/.test(e?.message||'')?'Falta correr clientes-direccion.sql en Supabase (te lo avisa el Inicio).':e?.message;
 
 /* ---------- Clientes ---------- */
-const FCOL={'🥖 Panaderías':'#c58a1c','🍦 Heladerías':'#3c8fc4','🧀 Fiambrerías':'#7b2d3e','🛒 Supermercados':'#c0392b','🏮 Super chinos':'#b8326b','🏪 Almacenes y comercios':'#2f8a57','🍝 Gastronomía':'#d0672a','🚚 Distribuidores':'#5b4fa8','❔ Sin rubro':'#9aa0ad'};
+const FCOL={'🥖 Panaderías':'#c58a1c','🍦 Heladerías':'#3c8fc4','🧀 Fiambrerías':'#7b2d3e','🍺 Birrerías y Cervecerías':'#b7791f','🛒 Supermercados':'#c0392b','🏮 Super chinos':'#b8326b','🏪 Almacenes y comercios':'#2f8a57','🍝 Gastronomía':'#d0672a','🚚 Distribuidores':'#5b4fa8','❔ Sin rubro':'#9aa0ad'};
 const famCol=f=>FCOL[f]||'#6a7184';
 const inicCli=c=>{const w=nomVis(c).replace(/\b(SRL|SA|SAS|SH)\b/gi,'').trim().split(/\s+/).filter(x=>/^[\p{L}\d]/u.test(x));return ((w[0]||'?')[0]+(w.length>1&&!/^\d/.test(w[1])?w[1][0]:(w[0]||'')[1]||'')).toUpperCase()};
 const avatar=(c,cls='')=>`<span class="cl-ini ${cls}${S.estCli?.[c?.id]?' an-'+S.estCli[c.id].k:''}" style="background:${famCol(famCli(c))}">${esc(inicCli(c))}</span>`;
@@ -1119,7 +1119,13 @@ function nuevoCliente(){const m=document.createElement('div');m.className='modal
     m.remove();S.clientes.push(data);S.clientes.sort((a,b)=>a.razon_social.localeCompare(b.razon_social));toast('Cliente guardado.');S.cs='lista';vClientes()}}
 
 /* ---------- Precios y márgenes ---------- */
-async function recargarProductos(){const{data,error}=await todo(()=>sb.from('precios_productos').select(PROD_COLS).order('descripcion').order('producto_id'),2);if(!error)S.productos=data}
+/* Vendedoras con ajuste de precio (perfiles.ajuste_precio_pct): ven y cargan sus pedidos con los precios de lista + ese porcentaje */
+function ajustaPrecios(d){const k=S.perfil&&S.perfil.rol=='vendedor'?1+(+S.perfil.ajuste_precio_pct||0)/100:1;if(!(k>1)||!Array.isArray(d))return d;
+  const r=x=>x==null||x===''?x:Math.round(+x*k*100)/100;
+  return d.map(p=>({...p,precio_mayorista:r(p.precio_mayorista),precio_minorista:r(p.precio_minorista),precio_especial:r(p.precio_especial),precio_fijo:+p.precio_fijo>0?r(p.precio_fijo):p.precio_fijo}))}
+/* WhatsApp que sale en folletos y comprobantes: el de la vendedora que los comparte (si lo tiene cargado); si no, el de la empresa */
+function telPropio(){const t=S.perfil&&S.perfil.rol=='vendedor'?String(S.perfil.celular||'').trim():'';if(t)S.telEmp=t}
+async function recargarProductos(){const{data,error}=await todo(()=>sb.from('precios_productos').select(PROD_COLS).order('descripcion').order('producto_id'),2);if(!error)S.productos=ajustaPrecios(data)}
 const pctf=n=>Number(n).toLocaleString('es-AR',{maximumFractionDigits:2})+' %';
 const numAR=x=>{x=String(x??'').trim().replace(/\$|\s/g,'');if(!x)return null;if(x.includes(','))x=x.replace(/\./g,'').replace(',','.');else if(/^\d{1,3}(\.\d{3})+$/.test(x))x=x.replace(/\./g,'');const n=Number(x);return isFinite(n)?n:NaN};
 /* Cambiar el precio de venta tocándolo: queda como precio fijo (o vuelve al automático) */
@@ -3434,7 +3440,7 @@ async function actividadInicio(){const box=$('#acti');if(!box)return;await equip
   box.innerHTML=`<details class="plg act-plg"><summary>🕓 Actividad reciente</summary><div class="box act"><div class="act-l">${A.map(x=>`<div class="act-r${x.x?' act-x':''}"><span class="act-i ${x.c}">${IC(x.ic,14)}</span><div><b>${x.h}</b><small>${x.s}</small></div><time>${cuando(x.t)}</time></div>`).join('')}</div></div></details>`}
 /* ======================= INICIO A MEDIDA ======================= */
 const INI_B=[['metas1','Metas del mes','#metas1',['dueno']],['bot','Accesos rápidos','#v>.ppal'],['dia','Tu día','#tudia'],['num','Números del día','#v>.kp'],['mesv','Vendido en el mes','#mesv',['dueno']],['aprb','Precios para aprobar','#aprb',['dueno']],
-  ['comv','Tu comisión','#comv',['vendedor']],['logr','Racha y logros','#logr',['vendedor']],['venc','Vencidas y para reponer','#v>details.plg.ib-venc'],['tar','Tareas y avisos del día','#v>details.plg.ib-tar'],['rank','Vendedores','#rank',['dueno']],['act','Actividad reciente','#acti']];
+  ['relo','Meta del mes','#relo',['vendedor']],['comv','Tu comisión','#comv',['vendedor']],['logr','Racha y logros','#logr',['vendedor']],['venc','Vencidas y para reponer','#v>details.plg.ib-venc'],['tar','Tareas y avisos del día','#v>details.plg.ib-tar'],['rank','Vendedores','#rank',['dueno']],['act','Actividad reciente','#acti']];
 /* orden guardado + los bloques nuevos en su lugar por defecto (no al final) */
 const iniOrden=(C,B)=>{const def=B.map(b=>b[0]),ord=(C.orden||[]).filter(k=>def.includes(k));for(const k of def)if(!ord.includes(k)){const i=def.indexOf(k),sig=def.slice(i+1).find(x=>ord.includes(x));sig?ord.splice(ord.indexOf(sig),0,k):ord.push(k)}return ord};
 const iniCfg=()=>{try{const C=JSON.parse(localStorage.getItem('ini_cfg_'+S.perfil.id)||'{}');
@@ -3874,6 +3880,35 @@ async function comisionInicio(){const box=$('#comv');if(!box||S.perfil.rol!='ven
     ${r.meta&&+CC.premio>0?`<div class="cm-pb"><div class="rk-bar"><i style="width:${Math.min(100,v/r.meta*100).toFixed(1)}%" class="${v>=r.meta?'ok':''}"></i></div><small>${v>=r.meta?'¡Llegaste a la meta! Ganaste el premio de '+m0(CC.premio)+' 🎉':'Te faltan <b>'+m0(falta)+'</b> para la meta de '+m0(r.meta)+' y el premio de '+m0(CC.premio)}</small></div>`:''}
     <p class="mjn">Hoy vendiste <b>${m0(vh)}</b>. Cuentan los pedidos aprobados; los que están por aprobar se suman cuando la oficina los aprueba.</p></div>`}
 
+/* ======================= RELOJ DE META (vendedoras) ======================= */
+/* Lo mismo que ve el dueño con Maní JL, pero con la meta de cada vendedora (config_app.metas_vendedores) y sus propias ventas: cuánto lleva, cuánto necesita por día y por semana, y su comisión. No muestra costos ni la meta de nadie más. */
+async function relojVendedor(){const box=$('#relo');if(!box||S.perfil.rol!='vendedor')return;
+  const m=mesHoy(),[a,b]=mesRango(m),hoy=new Date(),dh=hoy.getDate(),Y=hoy.getFullYear(),M=hoy.getMonth(),dm=new Date(Y,M+1,0).getDate(),mes=mesNom(m).split(' ')[0];
+  const[pe,MV]=await Promise.all([todo(()=>sb.from('pedidos').select('total,creado_en').eq('vendedor_id',S.perfil.id).not('estado','in','(pendiente,cancelado)').or('es_prueba.is.null,es_prueba.eq.false').gte('creado_en',tsAR(a)).lt('creado_en',tsAR(b)).order('creado_en')),cfgJ('metas_vendedores',{})]);
+  const meta=+MV[S.perfil.id]||0;if(pe.error||!(meta>0)){box.innerHTML='';return}
+  const L=pe.data||[],v=L.reduce((s,o)=>s+(+o.total||0),0),dHoy=diaLocal(hoy),vHoy=L.filter(o=>diaLocal(o.creado_en)==dHoy).reduce((s,o)=>s+(+o.total||0),0);
+  const{R:CR}=await calcComisiones([S.perfil.id],a,b).catch(()=>({R:{}})),com=CR[S.perfil.id]?.total||0;
+  /* días hábiles: lunes a sábado; de noche (después de las 19) o en domingo, ya cuenta el próximo día de trabajo */
+  const hab=(d1,d2)=>{let n=0;for(let d=d1;d<=d2;d++)if(new Date(Y,M,d).getDay()!=0)n++;return n};
+  const hoyCuenta=hoy.getDay()!=0&&hoy.getHours()<19,diasRest=Math.max(1,hab(hoyCuenta?dh:dh+1,dm));
+  const falta=Math.max(0,meta-v),faltaIniHoy=Math.max(0,meta-(hoyCuenta?v-vHoy:v)),porDia=falta<=0?0:Math.max(1,Math.ceil(faltaIniHoy/diasRest)),porSem=Math.min(falta,porDia*Math.min(6,diasRest));
+  const pc=Math.max(0,Math.min(1,v/meta)),pcHoy=porDia?Math.min(1,vHoy/porDia):0,hoyOk=porDia>0&&vHoy>=porDia;
+  const m0=n=>(n<0?'−':'')+'$\u00a0'+Math.round(Math.abs(+n||0)).toLocaleString('es-AR');
+  const mc=n=>n>=1e6?'$\u00a0'+(n/1e6).toLocaleString('es-AR',{maximumFractionDigits:2})+' M':n>=1e3?'$\u00a0'+Math.round(n/1e3).toLocaleString('es-AR')+' mil':m0(n);
+  const cuando=hoyCuenta?'Hoy':(()=>{const d=new Date(hoy);d.setDate(d.getDate()+1);if(d.getDay()==0)d.setDate(d.getDate()+1);return d.getDay()==1&&hoy.getDay()!=0?'El lunes':'Mañana'})();
+  const hero=falta<=0?`<div class="mq ok"><div class="mq-top"><span>Llevás vendido</span><span class="mq-chip ok">Meta cumplida</span></div><div class="mq-big">${m0(v)}<span> de ${m0(meta)}</span></div><div class="mq-bar"><i style="width:100%"></i></div><p class="mq-msg">Vas ${m0(v-meta)} arriba de la meta. Lo que sumes ya es extra.${com>0?' Tu comisión del mes: <b>'+m0(com)+'</b>.':''}</p><div class="mq-need"><div class="mq-hoy"><button class="mq-ped" id="rl_ped" type="button">${IC('plus',15)} Cargar cajas</button></div></div></div>`
+    :`<div class="mq"><div class="mq-row"><div><span class="mq-lb">Llevás vendido</span><div class="mq-big">${m0(v)}<span> de ${m0(meta)}</span></div></div><span class="mq-chip">Quedan ${diasRest} ${diasRest==1?'día':'días'}</span></div>
+      <div class="mq-bar"><i style="width:${(pc*100).toFixed(1)}%"></i></div>
+      <div class="mq-lg"><span>Tu comisión: ${m0(com)}</span><span>Faltan ${m0(falta)}</span></div>
+      <div class="mq-need"><div class="mq-h4">Para llegar necesitás vender</div><div class="mq-g3">
+        <div class="hoy"><small>Por día</small><b>${mc(porDia)}</b></div>
+        <div><small>Por semana</small><b>${mc(porSem)}</b></div>
+        <div><small>En total</small><b>${mc(falta)}</b></div></div>
+        <div class="mq-hoy${hoyOk?' ok':''}"><b>${cuando}: ${hoyCuenta?m0(vHoy)+' de '+m0(porDia):m0(porDia)}${hoyOk?' ✓':''}</b>${hoyCuenta?`<div class="mq-mb"><i style="width:${(pcHoy*100).toFixed(1)}%"></i></div>`:''}<button class="mq-ped" id="rl_ped" type="button">${IC('plus',15)} Cargar cajas</button></div></div></div>`;
+  box.innerHTML=`<div class="box obj mj"><div class="mjtop"><div class="mjtl"><div><div class="ey">Meta de ${esc(mes.toLowerCase())}</div><div class="tt">Tus ventas</div></div></div></div><div id="rl_h">${hero}</div>
+    <p class="mjn">Cuentan los pedidos aprobados; los que están por aprobar se suman cuando la oficina los aprueba. El objetivo por día se recalcula todos los días.</p></div>`;
+  const pb=$('#rl_ped');if(pb)pb.onclick=e=>{e.stopPropagation();irA('pedidos')}}
+
 /* Aviso de cliente repetido para vendedores (no muestra los datos del cliente existente) */
 async function yaEsCliente(cuit,tel){if(S.perfil?.rol!='vendedor'||!(cuit||tel))return false;try{const{data}=await sb.rpc('cliente_ya_existe',{p_cuit:cuit||'',p_tel:tel||''});return !!data}catch(e){return false}}
 const MSJ_YA_CLIENTE='Este comercio ya es cliente de Sabores de mi País. Consultá con la oficina antes de cargarlo.';
@@ -4228,15 +4263,15 @@ const LIQ='Últimas unidades',SOBRE='Liquidación';
 const REL='⚡ Oferta relámpago';
 
 /* ---------- 9. Catálogo por tipo de negocio ---------- */
-const RUBROS=['Kiosco','Almacén','Autoservicio','Supermercado','Supermercado chino','Dietética','Verdulería','Fiambrería','Bar / Café','Panadería','Confitería','Rotisería','Maxikiosco','Distribuidor','Restaurante','Pizzería','Parrilla','Heladería','Hotel'];
+const RUBROS=['Kiosco','Almacén','Autoservicio','Supermercado','Supermercado chino','Dietética','Verdulería','Fiambrería','Bar / Café','Panadería','Confitería','Rotisería','Maxikiosco','Distribuidor','Restaurante','Pizzería','Parrilla','Heladería','Birrerías y Cervecerías','Hotel'];
 /* Familias de clientes: agrupan los rubros para ver la lista de clientes ordenada */
-const FAM_CLI=[['🥖 Panaderías',['Panadería','Confitería']],['🍦 Heladerías',['Heladería']],['🧀 Fiambrerías',['Fiambrería']],['🛒 Supermercados',['Supermercado','Autoservicio']],['🏮 Super chinos',['Supermercado chino']],
+const FAM_CLI=[['🥖 Panaderías',['Panadería','Confitería']],['🍦 Heladerías',['Heladería']],['🧀 Fiambrerías',['Fiambrería']],['🍺 Birrerías y Cervecerías',['Birrerías y Cervecerías']],['🛒 Supermercados',['Supermercado','Autoservicio']],['🏮 Super chinos',['Supermercado chino']],
   ['🏪 Almacenes y comercios',['Almacén','Kiosco','Maxikiosco','Dietética','Verdulería']],['🍝 Gastronomía',['Restaurante','Pizzería','Parrilla','Bar / Café','Rotisería','Hotel']],['🚚 Distribuidores',['Distribuidor']]];
 const famCli=c=>{const r=norm((c?.rubro||'').trim());
   /* los super chinos van aparte: por el rubro o porque el nombre dice "chino" (aunque el rubro diga supermercado o esté vacío) */
   if(/chin/.test(r)||(/\bchin[oa]s?\b/.test(norm((c?.razon_social||'')+' '+(c?.nombre_fantasia||'')+' '+(c?.nombre||'')))&&(!r||/supermerc|autoserv|almac|maxik/.test(r))))return '🏮 Super chinos';
   if(!r)return '❔ Sin rubro';for(const[f,L]of FAM_CLI)if(L.some(x=>norm(x)==r))return f;
-  if(/supermerc|autoserv/.test(r))return '🛒 Supermercados';if(/panad|confit/.test(r))return '🥖 Panaderías';if(/helad/.test(r))return '🍦 Heladerías';if(/fiambr/.test(r))return '🧀 Fiambrerías';
+  if(/supermerc|autoserv/.test(r))return '🛒 Supermercados';if(/panad|confit/.test(r))return '🥖 Panaderías';if(/helad/.test(r))return '🍦 Heladerías';if(/fiambr/.test(r))return '🧀 Fiambrerías';if(/birr|cerve/.test(r))return '🍺 Birrerías y Cervecerías';
   if(/resto|restaur|pizz|parri|bar|cafe|rotis|hotel|gastro/.test(r))return '🍝 Gastronomía';if(/distrib/.test(r))return '🚚 Distribuidores';return '🏪 Almacenes y comercios'};
 const selRubro=(id,val)=>`<select id="${id}"><option value="">Elegí el tipo de negocio</option>${FAM_CLI.map(([f,L])=>`<optgroup label="${esc(f)}">${L.map(r=>`<option ${val==r?'selected':''}>${esc(r)}</option>`).join('')}</optgroup>`).join('')}</select>`;
 const rubroDL=()=>`<datalist id="dl_rub">${[...new Set([...RUBROS,...S.clientes.map(c=>(c.rubro||'').trim()).filter(Boolean)])].map(r=>`<option value="${esc(r)}">`).join('')}</datalist>`;
@@ -6501,7 +6536,7 @@ function ceros(){document.querySelectorAll('.kp .num').forEach(n=>n.classList.to
 /* Tirar hacia abajo para actualizar */
 async function actualizarTodo(){const ind=document.getElementById('ptr');setTimeout(()=>ind&&ind.remove(),12000);try{
   const[c,pr]=await Promise.all([todo(()=>sb.from('clientes').select('*').eq('activo',true).order('razon_social').order('id')),todo(()=>sb.from('precios_productos').select(PROD_COLS).order('descripcion').order('producto_id'),2)]);
-  if(!c.error&&c.data.length)S.clientes.splice(0,S.clientes.length,...c.data);if(!pr.error&&pr.data.length)S.productos.splice(0,S.productos.length,...pr.data);
+  if(!c.error&&c.data.length)S.clientes.splice(0,S.clientes.length,...c.data);if(!pr.error&&pr.data.length)S.productos.splice(0,S.productos.length,...ajustaPrecios(pr.data));
   try{guardarCache()}catch(e){}await cargarStock().catch(()=>{});S.ultPed=null;
   if(S.fc&&document.getElementById('fc_vol')){const cl=S.clientes.find(x=>x.id==S.fc);if(cl)fichaCliente(cl);else shell()}else shell();toast('Datos actualizados.')}catch(e){toast('No se pudo actualizar: '+(e.message||e),1)}finally{ind&&ind.remove()}}
 {let y0=null,d=0,ind=null,wd=0;setInterval(()=>{const x=document.getElementById('ptr');if(x&&!x.classList.contains('gira')&&y0==null)x.remove()},1500);const ok=()=>matchMedia('(max-width:640px)').matches&&scrollY<=0&&!document.querySelector('.modal')&&S.perfil&&document.getElementById('v');
